@@ -130,6 +130,7 @@ class AssayDetector:
                                             if tenx["has_gene_expression"]
                                             else "10x_atac_h5"
                                         ),
+                                        "paired_rna": bool(tenx["has_gene_expression"]),
                                         **tenx,
                                     },
                                     possible_alternatives=(
@@ -196,7 +197,15 @@ class AssayDetector:
                     modality="scATAC",
                     confidence="high",
                     reason="MatrixMarket file is part of a 10X ATAC/Multiome MEX triplet.",
-                    evidence={"format": "10x_mtx", **feature_summary},
+                    evidence={
+                        "format": (
+                            "10x_multiome_mtx"
+                            if feature_summary["has_gene_expression"]
+                            else "10x_mtx"
+                        ),
+                        "paired_rna": bool(feature_summary["has_gene_expression"]),
+                        **feature_summary,
+                    },
                     possible_alternatives=(
                         ("scRNA",) if feature_summary["has_gene_expression"] else ()
                     ),
@@ -439,27 +448,33 @@ def _inspect_10x_h5_matrix(matrix) -> dict[str, object]:
         features = matrix["features"]
         if hasattr(features, "keys"):
             if "feature_type" in features:
-                feature_types = _decode_h5_values(features["feature_type"])
+                feature_types = set()
+                dataset = features["feature_type"]
+                for offset in range(0, len(dataset), 8192):
+                    feature_types.update(
+                        v.decode() if isinstance(v, bytes) else str(v)
+                        for v in dataset[offset : offset + 8192]
+                    )
             if "genome" in features:
                 genomes = _decode_h5_values(features["genome"])
     except Exception:
         pass
-    return _feature_type_summary(feature_types, genomes)
+    return _feature_type_summary(list(feature_types), genomes)
 
 
 def _inspect_10x_feature_table(path: Path | None) -> dict[str, object]:
     if path is None:
         return _feature_type_summary([], [])
-    text = _read_text_prefix(path)
-    feature_types = []
-    genomes = []
-    for line in text.splitlines()[:500]:
-        parts = line.rstrip("\n").split("\t")
-        if len(parts) >= 3:
-            feature_types.append(parts[2])
-        if len(parts) >= 4:
-            genomes.append(parts[3])
-    return _feature_type_summary(feature_types, genomes)
+    feature_types, genomes = set(), set()
+    opener = gzip.open if path.name.endswith(".gz") else open
+    with opener(path, "rt", encoding="utf-8") as handle:
+        for line in handle:
+            parts = line.rstrip("\n").split("\t")
+            if len(parts) >= 3:
+                feature_types.add(parts[2])
+            if len(parts) >= 4:
+                genomes.add(parts[3])
+    return _feature_type_summary(list(feature_types), list(genomes))
 
 
 def _inspect_10x_barcodes(path: Path | None) -> dict[str, object]:

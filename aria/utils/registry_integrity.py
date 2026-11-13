@@ -74,14 +74,22 @@ AGENT_SCRIPT_CONTRACTS = {
         ),
         "planned": (),
     },
+    # ADR-079: the paired joint-QC + WNN spine is required; intake (assembly /
+    # cohort merge) and downstream layers are optional per input and request.
+    # Optional scripts that carry an IPC contract are still existence-checked
+    # below (`contract_script_missing`).
     "integration_agent": {
         "required": (
             "aria/scripts/integration_paired_qc.py",
             "aria/scripts/integration_wnn.py",
+        ),
+        "optional": (
+            "aria/scripts/integration_assemble_multiome.py",
+            "aria/scripts/integration_merge_cohort.py",
             "aria/scripts/integration_wnn_diagnostics.py",
+            "aria/scripts/integration_mofa.py",
             "aria/scripts/integration_peak2gene.py",
             "aria/scripts/integration_eregulons.py",
-            "aria/scripts/integration_mofa.py",
         ),
         "planned": (),
     },
@@ -168,10 +176,34 @@ def check_registry_integrity(repo_root: Path | None = None) -> list[IntegrityIss
                 "integration_agent: beta tier scope must be 'paired_same_cell_rna_atac' (ADR-071)",
             ))
     elif int_level == "production":
-        issues.append(IntegrityIssue(
-            "integration_premature_production_tier",
-            "integration_agent: production promotion is blocked by ADR-056 governance criteria",
-        ))
+        # ADR-079: production is valid only for the paired same-cell scope, with
+        # dispatch enabled, an explicit promotion flag + ADR, and no ack gate.
+        # Unpaired / diagonal / bulk cross-modal scopes never reach production.
+        if INTEGRATION_VALIDATION.get("scope") != "paired_same_cell_rna_atac":
+            issues.append(IntegrityIssue(
+                "integration_production_scope_invalid",
+                "integration_agent: production scope must be 'paired_same_cell_rna_atac' (ADR-079)",
+            ))
+        if INTEGRATION_VALIDATION.get("dispatch_enabled") is not True:
+            issues.append(IntegrityIssue(
+                "integration_production_dispatch_disabled",
+                "integration_agent: production tier must declare dispatch_enabled=True (ADR-079)",
+            ))
+        if INTEGRATION_VALIDATION.get("production_promoted") is not True:
+            issues.append(IntegrityIssue(
+                "integration_production_flag_invalid",
+                "integration_agent: production tier must declare production_promoted=True (ADR-056/ADR-079)",
+            ))
+        if INTEGRATION_VALIDATION.get("requires_ack") is not False:
+            issues.append(IntegrityIssue(
+                "integration_production_ack_flag_invalid",
+                "integration_agent: production tier must declare requires_ack=False (ADR-079)",
+            ))
+        if not INTEGRATION_VALIDATION.get("promotion_adr"):
+            issues.append(IntegrityIssue(
+                "integration_production_missing_adr",
+                "integration_agent: production tier must cite its promotion ADR (ADR-056)",
+            ))
 
     for agent_name, contract in AGENT_SCRIPT_CONTRACTS.items():
         for script in _scripts(contract.get("required", ())):
@@ -179,6 +211,12 @@ def check_registry_integrity(repo_root: Path | None = None) -> list[IntegrityIss
                 issues.append(IntegrityIssue(
                     "required_script_missing",
                     f"{agent_name}: required script missing: {script}",
+                ))
+        for script in _scripts(contract.get("optional", ())):
+            if not (root / script).exists():
+                issues.append(IntegrityIssue(
+                    "optional_script_missing",
+                    f"{agent_name}: optional script missing: {script}",
                 ))
         for script in _scripts(contract.get("planned", ())):
             if (root / script).exists():

@@ -53,6 +53,11 @@ from aria.benchmarks.concordance_mofa import (
     spearman_correlation,
 )
 from aria.scripts._base import mocks_allowed, run_script
+from aria.utils.stage_manifest import (
+    build_stage_manifest,
+    stage_is_current,
+    write_stage_manifest,
+)
 from aria.utils.wnn_diagnostics import sanitize_for_hdf5_uns
 
 _STRATA_COL_PREFERENCE = (
@@ -63,6 +68,127 @@ _STRATA_COL_PREFERENCE = (
 )
 _S_SCORE_COLS = ("S_score", "s_score")
 _G2M_SCORE_COLS = ("G2M_score", "g2m_score")
+_AUTO_BATCH_CANDIDATES = ("batch", "donor_id", "sample_id")
+_AUTO_CONDITION_CANDIDATES = (
+    "condition",
+    "disease",
+    "group",
+    "treatment",
+    "age_group",
+    "phenotype",
+)
+_STAGE_VERSION = "aria.integration_mofa.v2"
+
+
+def _expand_manifest_inputs(role_prefix: str, raw_path: str | None) -> list[tuple[str, str]]:
+    """Expand a file or directory (e.g. 10x MEX dir) into deterministic file roles."""
+    if not raw_path:
+        return []
+    p = Path(str(raw_path))
+    if not p.exists():
+        return []
+    if p.is_file():
+        return [(role_prefix, str(p.resolve()))]
+    if p.is_dir():
+        out: list[tuple[str, str]] = []
+        for child in sorted(p.rglob("*")):
+            if child.is_file():
+                rel = child.relative_to(p).as_posix()
+                out.append((f"{role_prefix}:{rel}", str(child.resolve())))
+        return out
+    return []
+
+
+def _resolve_categorical_obs(
+    obs_dfs: list[Any],
+    explicit_col: str | None,
+    fallback_candidates: tuple[str, ...],
+    *,
+    exclude_col: str | None = None,
+) -> tuple[str | None, list[str] | None, str]:
+    """Resolve a categorical column with >= 2 levels across aligned `.obs` frames."""
+    if explicit_col is not None and str(explicit_col).strip():
+        col = str(explicit_col).strip()
+        for df in obs_dfs:
+            if df is not None and col in df.columns:
+                vals = [str(v) for v in df[col].tolist()]
+                if len(set(vals)) >= 2 and len(set(vals)) < len(vals):
+                    return col, vals, "explicit"
+                return col, None, "explicit_insufficient_levels"
+        return col, None, "explicit_missing"
+
+    for col in fallback_candidates:
+        if exclude_col and col == exclude_col:
+            continue
+        for df in obs_dfs:
+            if df is not None and col in df.columns:
+                vals = [str(v) for v in df[col].tolist()]
+                uniq = set(vals)
+                if len(uniq) >= 2 and len(uniq) < len(vals):
+                    return col, vals, f"auto:{col}"
+    return None, None, "absent"
+
+
+def _compute_categorical_eta2(
+    values,
+    group_labels: list[str],
+    *,
+    weights=None,
+) -> tuple[float | None, float | None]:
+    """Compute one-way ANOVA eta^2 (weighted if weights given) and unweighted F-stat."""
+    import numpy as np
+
+    z = np.asarray(values, dtype=np.float64)
+    n = int(z.size)
+    if n < 3 or len(group_labels) != n:
+        return None, None
+    uniq = sorted(set(group_labels))
+    b = len(uniq)
+    if b < 2 or b >= n:
+        return None, None
+    if float(np.std(z)) <= 1e-12:
+        return 0.0, 0.0
+
+    w = (
+        np.asarray(weights, dtype=np.float64)
+        if weights is not None
+        else np.ones(n, dtype=np.float64)
+    )
+    w_sum = float(np.sum(w))
+    if w_sum <= 0.0:
+        return None, None
+
+    grand_mean = float(np.sum(w * z) / w_sum)
+    ss_tot = float(np.sum(w * ((z - grand_mean) ** 2)))
+    if ss_tot <= 1e-15:
+        return 0.0, 0.0
+
+    ss_between = 0.0
+    # Unweighted ANOVA F-statistic alongside weighted eta^2
+    mean_unw = float(np.mean(z))
+    ss_tot_unw = float(np.sum((z - mean_unw) ** 2))
+    ss_bet_unw = 0.0
+    for g in uniq:
+        mask = np.asarray([lbl == g for lbl in group_labels], dtype=bool)
+        if not np.any(mask):
+            continue
+        w_g = float(np.sum(w[mask]))
+        if w_g > 0.0:
+            mean_g = float(np.sum(w[mask] * z[mask]) / w_g)
+            ss_between += w_g * ((mean_g - grand_mean) ** 2)
+        n_g = int(np.sum(mask))
+        mean_g_unw = float(np.mean(z[mask]))
+        ss_bet_unw += float(n_g) * ((mean_g_unw - mean_unw) ** 2)
+
+    eta2 = max(0.0, min(1.0, ss_between / ss_tot))
+    ss_within_unw = max(0.0, ss_tot_unw - ss_bet_unw)
+    df_bet = b - 1
+    df_with = n - b
+    if df_bet > 0 and df_with > 0 and ss_within_unw > 1e-15:
+        f_stat = (ss_bet_unw / float(df_bet)) / (ss_within_unw / float(df_with))
+    else:
+        f_stat = 0.0
+    return round(float(eta2), 4), round(float(f_stat), 4)
 
 
 def _classify_modality_kind(name: str) -> str:
@@ -523,12 +649,17 @@ def integration_mofa(params: dict) -> dict:
     depth_corr_cutoff = float(params.get("depth_corr_cutoff", 0.70))
     cell_cycle_corr_cutoff = float(params.get("cell_cycle_corr_cutoff", 0.50))
     cell_cycle_genes = params.get("cell_cycle_genes")
+    batch_key_param = params.get("batch_key")
+    condition_col_param = params.get("condition_col")
+    batch_eta2_cutoff = float(params.get("batch_eta2_cutoff", 0.65))
+    exclude_batch_factors = bool(params.get("exclude_batch_factors", True))
     top_n_loadings = max(5, int(params.get("top_n_loadings", 25)))
     min_shared_cells = max(10, int(params.get("min_cells", 100)))
     seed = int(params.get("seed", 0))
     output_dir = str(params.get("output_dir") or "/tmp/aria_mofa")
     write_h5mu = bool(params.get("write_h5mu", bool(h5mu_param)))
     save_model_data = bool(params.get("save_model_data", False))
+    resume = bool(params.get("resume", True))
     allow_mock = mocks_allowed(params)
     warnings: list[str] = []
     metrics_not_computed: list[str] = []
@@ -576,6 +707,93 @@ def integration_mofa(params: dict) -> dict:
                     ),
                 }
             resolved_h5mu = str(h5mu_candidates[0])
+
+    stage_inputs: list[tuple[str, str | None]] = []
+    if resolved_h5mu is not None:
+        stage_inputs.extend(_expand_manifest_inputs("paired_input", resolved_h5mu))
+    else:
+        for mod_name in sorted(modalities.keys()):
+            valid_m = [str(f) for f in (modalities[mod_name] or []) if Path(str(f)).exists()]
+            for idx, vf in enumerate(valid_m):
+                stage_inputs.extend(_expand_manifest_inputs(f"mod:{mod_name}:{idx}", vf))
+
+    manifest_params = {
+        "genome": genome,
+        "organism": organism,
+        "n_factors": n_factors_req,
+        "max_cells": max_cells,
+        "min_stratum_cells": min_stratum_cells,
+        "subsample_strata_col": (
+            str(subsample_strata_col) if subsample_strata_col is not None else None
+        ),
+        "n_top_genes": n_top_genes,
+        "n_top_peaks": n_top_peaks,
+        "scale_views": scale_views,
+        "max_iter": max_iter,
+        "convergence_mode": convergence_mode,
+        "drop_r2": drop_r2,
+        "active_r2_min": active_r2_min,
+        "rel_r2_min": rel_r2_min,
+        "min_floor_r2": min_floor_r2,
+        "depth_corr_cutoff": depth_corr_cutoff,
+        "cell_cycle_corr_cutoff": cell_cycle_corr_cutoff,
+        "cell_cycle_genes": cell_cycle_genes if isinstance(cell_cycle_genes, dict) else None,
+        "batch_key": (
+            str(batch_key_param).strip()
+            if batch_key_param is not None and str(batch_key_param).strip()
+            else None
+        ),
+        "condition_col": (
+            str(condition_col_param).strip()
+            if condition_col_param is not None and str(condition_col_param).strip()
+            else None
+        ),
+        "batch_eta2_cutoff": batch_eta2_cutoff,
+        "exclude_batch_factors": exclude_batch_factors,
+        "top_n_loadings": top_n_loadings,
+        "min_cells": min_shared_cells,
+        "seed": seed,
+        "write_h5mu": write_h5mu,
+        "save_model_data": save_model_data,
+    }
+    out_dir_candidate = Path(output_dir)
+    manifest_path = out_dir_candidate / "integration_mofa.stage_manifest.json"
+    cached_result_path = out_dir_candidate / ".integration_mofa.result.json"
+    req_outputs = [
+        out_dir_candidate / "mofa_model.hdf5",
+        out_dir_candidate / "mofa_factor_scores.csv",
+        out_dir_candidate / "mofa_loadings.json",
+    ]
+    if write_h5mu and resolved_h5mu is not None:
+        req_outputs.append(out_dir_candidate / "mofa_integrated.h5mu")
+
+    if (
+        resume
+        and stage_inputs
+        and cached_result_path.is_file()
+        and all(p.is_file() and p.stat().st_size > 0 for p in req_outputs)
+    ):
+        is_curr, _why = stage_is_current(
+            manifest_path,
+            inputs=stage_inputs,
+            params=manifest_params,
+            tool_version=_STAGE_VERSION,
+        )
+        if is_curr:
+            try:
+                cached_payload = json.loads(
+                    cached_result_path.read_text(encoding="utf-8")
+                )
+                if cached_payload.get("status") == "success":
+                    cached_payload["resumed"] = True
+                    cached_payload["warnings"] = list(
+                        cached_payload.get("warnings") or []
+                    ) + [
+                        "[resume] Reused current MOFA+ stage output verified by SHA-256 stage manifest."
+                    ]
+                    return cached_payload
+            except Exception:
+                pass
 
     try:
         import anndata as ad
@@ -947,6 +1165,48 @@ def integration_mofa(params: dict) -> dict:
         if not cc_info.get("available", False):
             metrics_not_computed.append("cell_cycle_factor_correlation")
 
+        explicit_batch_col = (
+            str(batch_key_param).strip()
+            if batch_key_param is not None and str(batch_key_param).strip()
+            else None
+        )
+        explicit_cond_col = (
+            str(condition_col_param).strip()
+            if condition_col_param is not None and str(condition_col_param).strip()
+            else None
+        )
+        resolved_batch_col, batch_labels_train, batch_source = _resolve_categorical_obs(
+            obs_dfs_train,
+            explicit_batch_col,
+            _AUTO_BATCH_CANDIDATES,
+        )
+        if explicit_batch_col and batch_labels_train is None:
+            warnings.append(
+                f"Requested batch_key='{explicit_batch_col}' was missing or had <2 levels "
+                "on MOFA+ training cells; batch factor screening skipped."
+            )
+        if batch_labels_train is None:
+            metrics_not_computed.append("batch_factor_association")
+
+        resolved_cond_col, cond_labels_train, _cond_source = _resolve_categorical_obs(
+            obs_dfs_train,
+            explicit_cond_col,
+            _AUTO_CONDITION_CANDIDATES,
+            exclude_col=resolved_batch_col,
+        )
+        batch_condition_confounded = False
+        if batch_labels_train is not None and cond_labels_train is not None:
+            cond_to_batches: dict[str, set[str]] = {}
+            for b_lbl, c_lbl in zip(batch_labels_train, cond_labels_train):
+                cond_to_batches.setdefault(c_lbl, set()).add(b_lbl)
+            if cond_to_batches and max(len(bs) for bs in cond_to_batches.values()) <= 1:
+                batch_condition_confounded = True
+                warnings.append(
+                    f"Batch/donor column '{resolved_batch_col}' is 1:1 confounded with "
+                    f"condition column '{resolved_cond_col}' (1 donor/batch per condition); "
+                    "donor-specific technical effects cannot be disentangled from condition."
+                )
+
         top_factors: list[dict[str, Any]] = []
         shared_factors: list[dict[str, Any]] = []
         modality_specific_factors: dict[str, list[dict[str, Any]]] = {
@@ -958,13 +1218,14 @@ def integration_mofa(params: dict) -> dict:
         best_tech_fid: int | None = None
         best_tech_abs_r = -1.0
         cell_cycle_factor_ids: list[int] = []
+        batch_factor_ids: list[int] = []
         n_active_factors = 0
 
-        # Precompute depth correlations per factor so sequencing-depth artifacts
-        # (such as ATAC library-size factors explaining ~80% of raw peak R^2) do
-        # not inflate the biological view denominator `view_bio_sums` and mask
-        # genuine cross-modal biological chromatin factors.
+        # Precompute depth and batch associations per factor so sequencing-depth or
+        # extreme batch-outlier artifacts do not inflate the biological view
+        # denominator `view_bio_sums` and mask genuine cross-modal factors.
         depth_info_per_k: list[tuple[dict[str, dict[str, float | None]], float, str | None, bool]] = []
+        batch_info_per_k: list[tuple[float | None, float | None, float | None, bool]] = []
         for k in range(k_actual):
             depth_corrs_k: dict[str, dict[str, float | None]] = {}
             max_depth_r = 0.0
@@ -994,8 +1255,37 @@ def integration_mofa(params: dict) -> dict:
                 (depth_corrs_k, max_depth_r, max_depth_view, tentative_depth)
             )
 
+            b_eta2, b_fstat = (
+                _compute_categorical_eta2(
+                    z_train[:, k], batch_labels_train, weights=train_weights
+                )
+                if batch_labels_train is not None
+                else (None, None)
+            )
+            c_eta2, _ = (
+                _compute_categorical_eta2(
+                    z_train[:, k], cond_labels_train, weights=train_weights
+                )
+                if cond_labels_train is not None
+                else (None, None)
+            )
+            tentative_batch = bool(
+                b_eta2 is not None
+                and b_eta2 >= max(0.80, batch_eta2_cutoff)
+                and (
+                    c_eta2 is None
+                    or batch_condition_confounded
+                    or (b_eta2 - c_eta2) >= 0.25
+                )
+            )
+            batch_info_per_k.append((b_eta2, b_fstat, c_eta2, tentative_batch))
+
         non_depth_mask = np.asarray(
-            [not item[3] for item in depth_info_per_k], dtype=bool
+            [
+                not (depth_info_per_k[idx][3] or batch_info_per_k[idx][3])
+                for idx in range(k_actual)
+            ],
+            dtype=bool,
         )
         view_bio_sums: dict[str, float] = {}
         for v, v_name in enumerate(view_names):
@@ -1011,6 +1301,7 @@ def integration_mofa(params: dict) -> dict:
         for k in range(k_actual):
             fid = k + 1
             depth_corrs_k, max_depth_r, max_depth_view, tentative_depth = depth_info_per_k[k]
+            b_eta2, b_fstat, c_eta2, tentative_batch = batch_info_per_k[k]
             active_views_k: list[str] = []
             r2_by_view_k: dict[str, float] = {}
             r2_raw_by_view_k: dict[str, float] = {}
@@ -1022,7 +1313,7 @@ def integration_mofa(params: dict) -> dict:
                 r2_raw_by_view_k[v_name] = round(val_raw, 6)
                 denom_v = (
                     view_pos_sums[v_name]
-                    if tentative_depth
+                    if (tentative_depth or tentative_batch)
                     else view_bio_sums[v_name]
                 )
                 if is_factor_active_in_view(
@@ -1093,6 +1384,31 @@ def integration_mofa(params: dict) -> dict:
             if is_cc_flagged:
                 cell_cycle_factor_ids.append(fid)
 
+            is_batch_flagged = bool(
+                is_active
+                and batch_labels_train is not None
+                and b_eta2 is not None
+                and b_eta2 >= batch_eta2_cutoff
+                and (
+                    c_eta2 is None
+                    or batch_condition_confounded
+                    or (b_eta2 - c_eta2) >= 0.25
+                )
+            )
+            if is_batch_flagged:
+                batch_factor_ids.append(fid)
+
+            batch_assoc_k: dict[str, Any] | None = None
+            if batch_labels_train is not None:
+                batch_assoc_k = {
+                    "batch_key": resolved_batch_col,
+                    "eta2": b_eta2,
+                    "f_stat": b_fstat,
+                    "condition_col": resolved_cond_col,
+                    "condition_eta2": c_eta2,
+                    "batch_condition_confounded": bool(batch_condition_confounded),
+                }
+
             exclusion_reasons: list[str] = []
             if is_depth_flagged:
                 exclusion_reasons.append(
@@ -1101,6 +1417,10 @@ def integration_mofa(params: dict) -> dict:
             if is_cc_flagged:
                 exclusion_reasons.append(
                     f"cell_cycle_correlated(|r|={max_cc_r:.3f})"
+                )
+            if is_batch_flagged and exclude_batch_factors:
+                exclusion_reasons.append(
+                    f"batch_or_donor_confounded:{resolved_batch_col}(eta2={b_eta2:.3f})"
                 )
             excluded = len(exclusion_reasons) > 0
 
@@ -1118,6 +1438,9 @@ def integration_mofa(params: dict) -> dict:
                 "technical_depth_flag": is_depth_flagged,
                 "cell_cycle_correlations": cc_corrs_k,
                 "cell_cycle_flag": is_cc_flagged,
+                "batch_association": batch_assoc_k,
+                "batch_eta2": b_eta2,
+                "batch_flag": is_batch_flagged,
                 "excluded_from_biological_interpretation": excluded,
                 "exclusion_reasons": exclusion_reasons,
             }
@@ -1152,6 +1475,7 @@ def integration_mofa(params: dict) -> dict:
         technical_factor_flag = best_tech_fid is not None
         technical_factor_id = best_tech_fid
         cell_cycle_factor_flag = len(cell_cycle_factor_ids) > 0
+        batch_factor_flag = len(batch_factor_ids) > 0
 
         if technical_factor_flag:
             warnings.append(
@@ -1164,6 +1488,16 @@ def integration_mofa(params: dict) -> dict:
                 f"Factor(s) {cell_cycle_factor_ids} correlate with S/G2M phase scores "
                 f"(|r| >= {cell_cycle_corr_cutoff:.2f}); marked "
                 "excluded_from_biological_interpretation."
+            )
+        if batch_factor_flag:
+            warnings.append(
+                f"Factor(s) {batch_factor_ids} strongly associate with batch/donor "
+                f"'{resolved_batch_col}' (ANOVA eta^2 >= {batch_eta2_cutoff:.2f})"
+                + (
+                    " and were marked excluded_from_biological_interpretation."
+                    if exclude_batch_factors
+                    else "."
+                )
             )
 
         rna_or_first_name = prepared_views[rna_view_idx]["mod_name"]
@@ -1273,6 +1607,11 @@ def integration_mofa(params: dict) -> dict:
                     "technical_factor_id": technical_factor_id,
                     "cell_cycle_factor_flag": bool(cell_cycle_factor_flag),
                     "cell_cycle_factor_ids": cell_cycle_factor_ids,
+                    "batch_evaluated": bool(batch_labels_train is not None),
+                    "batch_key": resolved_batch_col if batch_labels_train is not None else None,
+                    "batch_condition_confounded": bool(batch_condition_confounded),
+                    "batch_factor_flag": bool(batch_factor_flag),
+                    "batch_factor_ids": batch_factor_ids,
                 }
             )
             out_mdata.write_h5mu(str(tmp_h5mu))
@@ -1293,7 +1632,7 @@ def integration_mofa(params: dict) -> dict:
             "projection_min_train_abs_r": round(min_proj_r, 6),
         }
 
-        return {
+        result_payload = {
             "status": "success",
             "genome": genome,
             "organism": organism,
@@ -1327,13 +1666,47 @@ def integration_mofa(params: dict) -> dict:
             "cell_cycle_source": cc_info.get("source"),
             "cell_cycle_factor_flag": bool(cell_cycle_factor_flag),
             "cell_cycle_factor_ids": cell_cycle_factor_ids,
+            "batch_evaluated": bool(batch_labels_train is not None),
+            "batch_key": resolved_batch_col if batch_labels_train is not None else None,
+            "batch_source": batch_source,
+            "condition_col": resolved_cond_col if cond_labels_train is not None else None,
+            "batch_condition_confounded": bool(batch_condition_confounded),
+            "batch_factor_flag": bool(batch_factor_flag),
+            "batch_factor_ids": batch_factor_ids,
             "factor_scores": str(scores_path),
             "factor_loadings_path": str(loadings_path),
             "output_path": str(model_path),
             "h5mu_output_path": h5mu_output_path,
             "metrics_not_computed": metrics_not_computed,
+            "resumed": False,
             "warnings": warnings,
         }
+
+        if stage_inputs:
+            try:
+                tmp_res = cached_result_path.with_name(
+                    f".integration_mofa.result.tmp.{os.getpid()}.json"
+                )
+                tmp_res.write_text(
+                    json.dumps(result_payload, indent=2), encoding="utf-8"
+                )
+                os.replace(tmp_res, cached_result_path)
+                write_stage_manifest(
+                    manifest_path,
+                    build_stage_manifest(
+                        stage="integration_mofa",
+                        inputs=stage_inputs,
+                        params=manifest_params,
+                        tool_version=_STAGE_VERSION,
+                        extra={"output_path": str(model_path)},
+                    ),
+                )
+            except Exception as manifest_exc:
+                warnings.append(
+                    f"Could not write MOFA+ stage manifest: {manifest_exc}"
+                )
+
+        return result_payload
 
     except ImportError as e:
         if allow_mock:

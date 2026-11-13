@@ -18,6 +18,7 @@ structured agent results; it asserts no biology and runs no LLM.
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 
@@ -143,6 +144,12 @@ _BULK_ANALYSES: list[dict[str, Any]] = [
 # V48 Slice I7 (ADR-070): paired multiome integration analyses reconciled
 # directly from IntegrationAgent structured outputs. Process vocabulary only.
 _INTEGRATION_ANALYSES: list[dict[str, Any]] = [
+    # ADR-079: raw Multiome FASTQ / Cell Ranger ARC assembly and multi-donor
+    # cohort union. Reconciled by ``_reconcile_integration`` (artifact-gated).
+    {"key": "preprocessing", "label": "Multiome raw assembly & cohort union",
+     "plan_kw": ["multiome fastq", "arc h5", "cohort merge", "consensus peak",
+                 "barcode translation"],
+     "finding_keys": ["preprocessing"]},
     {"key": "paired_qc", "label": "Paired multiome QC",
      "plan_kw": ["paired qc", "multiome qc", "shared barcode"],
      "finding_keys": ["paired_qc"]},
@@ -358,6 +365,101 @@ def _reconcile_chromatin(findings: dict, phrases: list[str]) -> list[dict]:
     return entries
 
 
+_MULTIOME_ASSEMBLY_SCRIPT = "aria/scripts/integration_assemble_multiome.py"
+_MULTIOME_COHORT_MERGE_SCRIPT = "aria/scripts/integration_merge_cohort.py"
+_MULTIOME_STAGE_KEYS = ("assembly", "multiome_assembly", "cohort_merge", "merge")
+
+
+def _h5mu_paths(value: Any) -> list[str]:
+    """`.h5mu` artifact paths recorded in a value (str / list / dict)."""
+    out: list[str] = []
+    if isinstance(value, str):
+        if value.strip().lower().endswith(".h5mu"):
+            out.append(value.strip())
+    elif isinstance(value, (list, tuple)):
+        for item in value:
+            out.extend(_h5mu_paths(item))
+    elif isinstance(value, dict):
+        for key in ("output_path", "path", "h5mu_path", "artifacts"):
+            out.extend(_h5mu_paths(value.get(key)))
+    return out
+
+
+def _reconcile_integration(findings: dict, phrases: list[str]) -> list[dict]:
+    """Reconcile paired-multiome findings, including ADR-079 raw intake.
+
+    IntegrationAgent stores multiome assembly (raw FASTQ / Cell Ranger ARC) and
+    multi-donor cohort union under ``preprocessing``; it maps to
+    ``ledger://integration/preprocessing`` with script/stack/input/artifact
+    provenance. ``executed`` requires a successful status AND at least one
+    recorded `.h5mu` artifact — never inferred from the request alone.
+    """
+    findings = dict(findings or {})
+    entries = _entries_for("integration", _INTEGRATION_ANALYSES, findings, phrases)
+    preprocessing = findings.get("preprocessing")
+    if not isinstance(preprocessing, dict) or not preprocessing:
+        return entries
+    entry = next(e for e in entries if e["analysis"] == "preprocessing")
+
+    stages = [preprocessing] + [
+        preprocessing[k] for k in _MULTIOME_STAGE_KEYS
+        if isinstance(preprocessing.get(k), dict)
+    ]
+    artifacts: list[str] = []
+    inputs: list[str] = []
+    for stage in stages:
+        for path in _h5mu_paths(stage):
+            if path not in artifacts:
+                artifacts.append(path)
+        for key in ("inputs", "input_paths", "rna_fastqs", "atac_fastqs",
+                    "fastq_files", "arc_path"):
+            raw = stage.get(key)
+            items = raw if isinstance(raw, (list, tuple)) else [raw]
+            for item in items:
+                if isinstance(item, (str, Path)) and str(item).strip():
+                    if str(item) not in inputs:
+                        inputs.append(str(item))
+
+    mode = str(preprocessing.get("mode") or "").lower()
+    scripts: list[str] = []
+    if preprocessing.get("script"):
+        scripts.append(str(preprocessing["script"]))
+    else:
+        if (
+            any(isinstance(preprocessing.get(k), dict)
+                for k in ("assembly", "multiome_assembly"))
+            or (mode and "cohort" not in mode and "merge" not in mode)
+        ):
+            scripts.append(_MULTIOME_ASSEMBLY_SCRIPT)
+        if (
+            any(isinstance(preprocessing.get(k), dict)
+                for k in ("cohort_merge", "merge"))
+            or "cohort" in mode or "merge" in mode
+        ):
+            scripts.append(_MULTIOME_COHORT_MERGE_SCRIPT)
+        if not scripts:
+            scripts.append(_MULTIOME_ASSEMBLY_SCRIPT)
+
+    entry["provenance"].update({
+        "script": scripts[0] if len(scripts) == 1 else scripts,
+        "environment_stack": preprocessing.get("environment_stack", "integration"),
+        "inputs": inputs,
+        "artifacts": artifacts,
+        "validation_level": preprocessing.get("validation_level", "production"),
+    })
+    status = str(preprocessing.get("status") or "").lower().strip()
+    if status in ("success", "done") and artifacts:
+        entry["status"] = "executed"
+        entry["reason"] = None
+        entry["divergence"] = False
+    elif entry["status"] == "ran":
+        # A success stamp without a produced container is not executed intake.
+        entry["status"] = "skipped"
+        entry["reason"] = "no assembled/merged .h5mu produced"
+        entry["divergence"] = bool(entry["planned"])
+    return entries
+
+
 def build_run_ledger(exp_ctx: dict, agent_results: dict) -> dict:
     """Reconcile planned vs executed analyses into an auditable manifest.
 
@@ -387,9 +489,7 @@ def build_run_ledger(exp_ctx: dict, agent_results: dict) -> dict:
 
     int_findings = _integration_findings_normalized(agent_results, exp_ctx)
     if bool(int_findings) or "integration_agent" in (agent_results or {}):
-        entries += _entries_for(
-            "integration", _INTEGRATION_ANALYSES, int_findings, phrases
-        )
+        entries += _reconcile_integration(int_findings, phrases)
         modalities.append("integration")
 
     divergences = [e for e in entries if e["divergence"]]
@@ -502,6 +602,9 @@ def node_id_for(modality: str, analysis: str) -> str:
             "peak2gene": "peak_to_gene",
             "eregulon": "eregulons",
             "triangulation": "cross_modal_triangulation",
+            # ADR-079 raw intake / cohort union share one ledger node.
+            "multiome_assembly": "preprocessing",
+            "cohort_merge": "preprocessing",
         }
         key = int_aliases.get(raw, raw)
     else:

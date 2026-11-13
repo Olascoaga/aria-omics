@@ -99,7 +99,9 @@ def test_scatac_production_promotion_and_scatac_audit_governance(tmp_path):
     }
     assert MODALITY_VALIDATION["bulk_ATAC"]["level"] == "production"
     assert MODALITY_VALIDATION["bulk_ATAC"]["promotion_adr"] == "ADR-077"
-    assert INTEGRATION_VALIDATION["production_promoted"] is False
+    assert INTEGRATION_VALIDATION["level"] == "production"
+    assert INTEGRATION_VALIDATION["production_promoted"] is True
+    assert INTEGRATION_VALIDATION["scope"] == "paired_same_cell_rna_atac"
     assert check_registry_integrity() == []
 
     for script in (

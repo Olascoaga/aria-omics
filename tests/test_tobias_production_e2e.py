@@ -264,8 +264,9 @@ def test_adr078_tobias_production_contracts_and_readiness(tmp_path):
         in AGENT_SCRIPT_CONTRACTS["chromatin_agent"]["required"]
     )
     assert check_registry_integrity() == []
-    assert INTEGRATION_VALIDATION["level"] == "beta"
-    assert INTEGRATION_VALIDATION["production_promoted"] is False
+    assert INTEGRATION_VALIDATION["level"] == "production"
+    assert INTEGRATION_VALIDATION["production_promoted"] is True
+    assert INTEGRATION_VALIDATION["scope"] == "paired_same_cell_rna_atac"
 
     stub_h5mu = tmp_path / "cohort.h5mu"
     stub_h5mu.write_bytes(b"stub")

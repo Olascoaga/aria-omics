@@ -579,10 +579,10 @@ def test_methods_html_safety_and_full_html_report_e2e(tmp_path: Path):
 def test_integration_validation_promoted_to_beta_in_slice_i8():
     from aria.agents.orchestrator_agent import INTEGRATION_VALIDATION
 
-    assert INTEGRATION_VALIDATION["level"] == "beta"
+    assert INTEGRATION_VALIDATION["level"] == "production"
     assert INTEGRATION_VALIDATION["dispatch_enabled"] is True
-    assert INTEGRATION_VALIDATION["requires_ack"] is True
-    assert INTEGRATION_VALIDATION["production_promoted"] is False
+    assert INTEGRATION_VALIDATION["requires_ack"] is False
+    assert INTEGRATION_VALIDATION["production_promoted"] is True
     assert INTEGRATION_VALIDATION["scope"] == "paired_same_cell_rna_atac"
 
 

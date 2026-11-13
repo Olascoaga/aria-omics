@@ -166,12 +166,14 @@ class IntegrationAgent(BaseAgent):
 
         multiome_contract = infer_multiome_contract(exp_ctx)
         is_paired_mudata = (
-            multiome_contract.get("object_type") == "paired_mudata"
+            multiome_contract.get("object_type")
+            in {"paired_mudata", "paired_cohort_mudata", "raw_multiome_fastq"}
             and multiome_contract.get("same_cell") is True
         )
 
-        # Determine which modalities are available (a paired .h5mu carries both
-        # scRNA and scATAC in a single shared-cell container).
+        # Determine which modalities are available (a paired .h5mu / ARC /
+        # raw Multiome FASTQ contract carries both scRNA and scATAC in a shared
+        # cell namespace).
         has_scrna  = ("scRNA" in mods) or is_paired_mudata
         has_scatac = ("scATAC" in mods) or is_paired_mudata
         has_rna    = has_scrna or "bulk_RNA" in mods
@@ -225,14 +227,60 @@ class IntegrationAgent(BaseAgent):
                 "multiome_gate": gate,
             }
 
-        if gate["contract"].get("object_type") == "paired_mudata":
+        # ADR-079: Universal same-cell multiome assembly & multi-donor cohort
+        # merger before joint QC (Cell Ranger ARC .h5 / MEX, paired matrices
+        # with barcode translation or fragments+peaks, raw Multiome FASTQs, and
+        # multi-container cohorts).
+        effective_gate = dict(gate)
+        pre_res = self._run_multiome_preprocessing(
+            experiment_id, exp_ctx, intent, effective_gate, mods
+        )
+        if pre_res is not None:
+            results["preprocessing"] = pre_res
+            if pre_res.get("status") != "success":
+                self.publish_finding(
+                    experiment_id,
+                    {
+                        "error": (
+                            "Multiome preprocessing / cohort assembly failed: "
+                            f"{pre_res.get('details', pre_res.get('error_type', 'unknown'))}"
+                        ),
+                        "preprocessing": pre_res,
+                    },
+                    Confidence.INSUFFICIENT,
+                )
+                return {
+                    "status": "failed",
+                    "reason": "multiome_preprocessing_failed",
+                    "strategy": strategy,
+                    "findings": results,
+                }
+            assembled_out = pre_res.get("output_path")
+            if assembled_out:
+                effective_gate = {
+                    **effective_gate,
+                    "evidence_paths": [str(assembled_out)],
+                    "contract": {
+                        **dict(effective_gate.get("contract") or {}),
+                        "object_type": "paired_mudata",
+                        "evidence_paths": [str(assembled_out)],
+                    },
+                }
+                is_paired_mudata = True
+                if pre_res.get("inferred_batch_key") and not stage_ctx.get("batch_key"):
+                    stage_ctx["batch_key"] = str(pre_res["inferred_batch_key"])
+
+        if effective_gate["contract"].get("object_type") in {
+            "paired_mudata",
+            "paired_cohort_mudata",
+        }:
             self.publish_status(
                 experiment_id,
                 "Running paired .h5mu contract & joint RNA+ATAC QC...",
                 0.05,
             )
             paired_qc_res = self._run_paired_qc(
-                experiment_id, exp_ctx, intent, gate
+                experiment_id, stage_ctx, intent, effective_gate
             )
             results["paired_qc"] = paired_qc_res
             if paired_qc_res.get("status") != "success":
@@ -254,7 +302,7 @@ class IntegrationAgent(BaseAgent):
                     "findings": results,
                 }
             validated_h5mu = paired_qc_res.get("output_path")
-            evidence_paths = list(gate.get("evidence_paths") or [])
+            evidence_paths = list(effective_gate.get("evidence_paths") or [])
             raw_exists = bool(
                 evidence_paths and Path(str(evidence_paths[0])).exists()
             )
@@ -285,7 +333,7 @@ class IntegrationAgent(BaseAgent):
                 "scATAC": [validated_str],
             }
             stage_ctx = {
-                **exp_ctx,
+                **stage_ctx,
                 "_validated_paired_h5mu": validated_str,
                 "h5mu_path": validated_str,
                 "paired_h5mu": validated_str,
@@ -396,6 +444,328 @@ class IntegrationAgent(BaseAgent):
             return "mofa"
         else:
             return "peak_to_gene_only"
+
+    # ── Universal Multiome Intake & Cohort Merger (ADR-079) ───────────────
+
+    def _run_multiome_preprocessing(
+        self,
+        experiment_id: str,
+        exp_ctx: dict,
+        intent: dict,
+        gate: dict,
+        mods: dict,
+    ) -> dict | None:
+        """Materialize raw FASTQs / ARC matrices / multi-donor cohorts into `.h5mu`."""
+        contract = dict(gate.get("contract") or {})
+        obj_type = str(contract.get("object_type") or "")
+        evidence_paths = [str(p) for p in (gate.get("evidence_paths") or []) if p]
+        assemble_overrides = dict(exp_ctx.get("assemble_params") or {})
+        merge_overrides = dict(exp_ctx.get("cohort_merge_params") or {})
+        genome_cfg = dict(exp_ctx.get("genome_config") or {})
+
+        # 1. Raw Multiome FASTQ manifest (single-sample or multi-sample cohort)
+        if obj_type == "raw_multiome_fastq":
+            self.publish_status(
+                experiment_id,
+                "Assembling raw Multiome FASTQs into paired .h5mu...",
+                0.03,
+            )
+            manifest = exp_ctx.get("multiome_fastq_manifest") or {}
+            samples = list(
+                (manifest.get("samples") if isinstance(manifest, dict) else None)
+                or (manifest.get("libraries") if isinstance(manifest, dict) else None)
+                or []
+            )
+            if not samples:
+                samples = [
+                    {
+                        "sample_id": (contract.get("sample_ids") or ["sample_1"])[0],
+                        "rna_fastqs": list(mods.get("scRNA") or []),
+                        "atac_fastqs": list(mods.get("scATAC") or []),
+                        "platform": contract.get("platform") or "10x_multiome_arc_v1",
+                    }
+                ]
+            base_out = Path(
+                str(
+                    assemble_overrides.get("output_dir")
+                    or self._get_output_dir(evidence_paths or ["multiome"])
+                )
+            )
+            assembled_paths: list[str] = []
+            sample_ids: list[str] = []
+            sample_meta: dict[str, dict] = dict(exp_ctx.get("sample_metadata") or {})
+            last_asm: dict = {}
+            all_rna_fqs: list[str] = []
+            all_atac_fqs: list[str] = []
+
+            for idx, row in enumerate(samples):
+                if not isinstance(row, dict):
+                    continue
+                sid = str(row.get("sample_id") or f"sample_{idx + 1}")
+                sample_ids.append(sid)
+                rna_fqs = [str(p) for p in (row.get("rna_fastqs") or []) if p]
+                atac_fqs = [str(p) for p in (row.get("atac_fastqs") or []) if p]
+                all_rna_fqs.extend(rna_fqs)
+                all_atac_fqs.extend(atac_fqs)
+                if isinstance(row.get("metadata"), dict):
+                    sample_meta.setdefault(sid, {}).update(row["metadata"])
+                if row.get("donor_id"):
+                    sample_meta.setdefault(sid, {})["donor_id"] = row["donor_id"]
+                if row.get("condition"):
+                    sample_meta.setdefault(sid, {})["condition"] = row["condition"]
+
+                asm_params: dict = {
+                    "mode": "raw_multiome_fastq",
+                    "platform": (
+                        row.get("platform")
+                        or (manifest.get("platform") if isinstance(manifest, dict) else None)
+                        or contract.get("platform")
+                        or "10x_multiome_arc_v1"
+                    ),
+                    "rna_fastqs": rna_fqs,
+                    "atac_fastqs": atac_fqs,
+                    "output_dir": str(base_out / f"assembled_{sid}"),
+                }
+                for key in (
+                    "gex_whitelist_path",
+                    "atac_whitelist_path",
+                    "barcode_map_path",
+                    "rna_counts_out",
+                    "atac_fragments_out",
+                    "peaks_path",
+                    "kb_index",
+                    "t2g_path",
+                    "genome_fasta",
+                    "chromap_index",
+                ):
+                    val = (
+                        row.get(key)
+                        or (manifest.get(key) if isinstance(manifest, dict) else None)
+                        or contract.get(key)
+                    )
+                    if val:
+                        asm_params[key] = val
+                if not asm_params.get("genome_fasta") and genome_cfg.get("fasta"):
+                    asm_params["genome_fasta"] = genome_cfg["fasta"]
+                asm_params.update(
+                    {k: v for k, v in assemble_overrides.items() if k != "output_dir"}
+                )
+                asm_res = self.env.run_in_stack(
+                    stack="chromatin",
+                    script_path="aria/scripts/integration_assemble_multiome.py",
+                    params=asm_params,
+                )
+                last_asm = asm_res
+                if asm_res.get("status") != "success" or not asm_res.get("output_path"):
+                    return {
+                        **asm_res,
+                        "mode": "raw_multiome_fastq",
+                        "rna_fastqs": all_rna_fqs,
+                        "atac_fastqs": all_atac_fqs,
+                        "environment_stack": "chromatin",
+                    }
+                assembled_paths.append(str(asm_res["output_path"]))
+
+            if len(assembled_paths) == 1:
+                return {
+                    **last_asm,
+                    "n_samples": 1,
+                    "sample_ids": sample_ids,
+                    "rna_fastqs": all_rna_fqs,
+                    "atac_fastqs": all_atac_fqs,
+                    "environment_stack": "chromatin",
+                }
+
+            merge_params = {
+                "inputs": assembled_paths,
+                "sample_ids": sample_ids,
+                "sample_metadata": sample_meta,
+                "output_dir": str(base_out / "cohort_merge"),
+                **merge_overrides,
+            }
+            merge_res = self.env.run_in_stack(
+                stack="chromatin",
+                script_path="aria/scripts/integration_merge_cohort.py",
+                params=merge_params,
+            )
+            if merge_res.get("status") != "success":
+                return {
+                    **merge_res,
+                    "mode": "raw_multiome_fastq_cohort",
+                    "assembly": last_asm,
+                    "rna_fastqs": all_rna_fqs,
+                    "atac_fastqs": all_atac_fqs,
+                    "environment_stack": "chromatin",
+                }
+            return {
+                **merge_res,
+                "mode": "raw_multiome_fastq_cohort",
+                "platform": last_asm.get("platform"),
+                "assembly": {
+                    **last_asm,
+                    "artifacts": assembled_paths,
+                    "rna_fastqs": all_rna_fqs,
+                    "atac_fastqs": all_atac_fqs,
+                },
+                "cohort_merge": merge_res,
+                "rna_fastqs": all_rna_fqs,
+                "atac_fastqs": all_atac_fqs,
+                "inferred_batch_key": "donor_id",
+                "environment_stack": "chromatin",
+            }
+
+        # 2. Multi-donor / multi-sample paired containers -> cohort union
+        if obj_type in {"paired_mudata", "paired_cohort_mudata"} and (
+            len(evidence_paths) >= 2 or contract.get("cohort_merge_required") is True
+        ):
+            self.publish_status(
+                experiment_id,
+                f"Merging {len(evidence_paths)} paired multiome samples onto consensus peaks...",
+                0.03,
+            )
+            base_out = Path(self._get_output_dir(evidence_paths)) / "cohort_merge"
+            merge_params = {
+                "inputs": evidence_paths,
+                "output_dir": str(base_out),
+            }
+            sids = exp_ctx.get("sample_ids") or contract.get("sample_ids")
+            if sids:
+                merge_params["sample_ids"] = list(sids)
+            if exp_ctx.get("sample_metadata"):
+                merge_params["sample_metadata"] = dict(exp_ctx["sample_metadata"])
+            merge_params.update(merge_overrides)
+            merge_res = self.env.run_in_stack(
+                stack="chromatin",
+                script_path="aria/scripts/integration_merge_cohort.py",
+                params=merge_params,
+            )
+            return {
+                **merge_res,
+                "mode": "paired_cohort_merge",
+                "platform": contract.get("platform") or "paired_multiome",
+                "barcode_translation": "shared_mudata_obs",
+                "inputs": evidence_paths,
+                "cohort_merge": merge_res,
+                "inferred_batch_key": "donor_id",
+                "environment_stack": "chromatin",
+            }
+
+        # 3. Single Cell Ranger ARC `.h5` or ARC dual MEX directory -> `.h5mu`
+        if (
+            obj_type == "paired_mudata"
+            and len(evidence_paths) == 1
+            and not evidence_paths[0].lower().endswith(".h5mu")
+            and Path(evidence_paths[0]).exists()
+        ):
+            self.publish_status(
+                experiment_id,
+                "Assembling Cell Ranger ARC container into verified .h5mu...",
+                0.03,
+            )
+            base_out = Path(self._get_output_dir(evidence_paths)) / "assembled_arc"
+            asm_params = {
+                "mode": "cellranger_arc",
+                "arc_path": evidence_paths[0],
+                "platform": contract.get("platform") or "10x_multiome_arc_v1",
+                "output_dir": str(base_out),
+                **assemble_overrides,
+            }
+            asm_res = self.env.run_in_stack(
+                stack="chromatin",
+                script_path="aria/scripts/integration_assemble_multiome.py",
+                params=asm_params,
+            )
+            return {
+                **asm_res,
+                "arc_path": evidence_paths[0],
+                "n_samples": 1,
+                "environment_stack": "chromatin",
+            }
+
+        # 4. Explicit same-cell paired matrices requiring barcode translation
+        #    or fragments+peaks interval quantification
+        if obj_type in {"explicit_same_cell", "explicit_pairing"}:
+            ns = str(
+                contract.get("cell_namespace")
+                or contract.get("barcode_namespace")
+                or ""
+            )
+            rna_files = [str(f) for f in (mods.get("scRNA") or []) if f]
+            atac_files = [str(f) for f in (mods.get("scATAC") or []) if f]
+            has_frag_peaks = any(
+                "fragment" in Path(f).name.lower() or f.lower().endswith(".tsv.gz")
+                for f in atac_files
+            )
+            needs_assembly = bool(
+                assemble_overrides
+                or ns in {"10x_arc_whitelist_pair", "barcode_map_tsv"}
+                or contract.get("barcode_map")
+                or contract.get("gex_whitelist_path")
+                or has_frag_peaks
+            )
+            if needs_assembly and rna_files and atac_files:
+                self.publish_status(
+                    experiment_id,
+                    "Assembling paired RNA + ATAC matrices over verified cell namespace...",
+                    0.03,
+                )
+                base_out = (
+                    Path(self._get_output_dir(rna_files or atac_files))
+                    / "assembled_paired"
+                )
+                asm_params = {
+                    "mode": "paired_matrices",
+                    "rna_path": rna_files[0],
+                    "platform": contract.get("platform") or "paired_multiome",
+                    "output_dir": str(base_out),
+                }
+                if has_frag_peaks:
+                    frags = [
+                        f
+                        for f in atac_files
+                        if "fragment" in Path(f).name.lower()
+                        or f.lower().endswith(".tsv.gz")
+                    ]
+                    peaks = [
+                        f
+                        for f in atac_files
+                        if f not in frags
+                        and Path(f).name.lower().endswith(
+                            (".bed", ".bed.gz", ".narrowpeak", ".broadpeak")
+                        )
+                    ]
+                    if frags:
+                        asm_params["fragments_path"] = frags[0]
+                    if peaks:
+                        asm_params["peaks_path"] = peaks[0]
+                else:
+                    asm_params["atac_path"] = atac_files[0]
+
+                if ns == "10x_arc_whitelist_pair" or contract.get("gex_whitelist_path"):
+                    asm_params["barcode_translation"] = "10x_arc_whitelist_pair"
+                    if contract.get("gex_whitelist_path"):
+                        asm_params["gex_whitelist_path"] = contract["gex_whitelist_path"]
+                    if contract.get("atac_whitelist_path"):
+                        asm_params["atac_whitelist_path"] = contract["atac_whitelist_path"]
+                elif ns == "barcode_map_tsv" or contract.get("barcode_map"):
+                    asm_params["barcode_translation"] = "barcode_map_tsv"
+                    if contract.get("barcode_map"):
+                        asm_params["barcode_map_path"] = contract["barcode_map"]
+
+                asm_params.update(assemble_overrides)
+                asm_res = self.env.run_in_stack(
+                    stack="chromatin",
+                    script_path="aria/scripts/integration_assemble_multiome.py",
+                    params=asm_params,
+                )
+                return {
+                    **asm_res,
+                    "inputs": [rna_files[0], *atac_files],
+                    "n_samples": 1,
+                    "environment_stack": "chromatin",
+                }
+
+        return None
 
     # ── Paired .h5mu contract & joint QC (V48 I1) ─────────────────────────
 
@@ -557,6 +927,8 @@ class IntegrationAgent(BaseAgent):
         }
         if h5mu_path:
             wnn_params["h5mu_path"] = h5mu_path
+        if exp_ctx.get("batch_key"):
+            wnn_params["batch_key"] = str(exp_ctx["batch_key"])
         wnn_params.update(wnn_overrides)
         validated_paired = exp_ctx.get("_validated_paired_h5mu")
         if validated_paired:
@@ -1151,6 +1523,13 @@ class IntegrationAgent(BaseAgent):
             mofa_params["h5mu_path"] = str(h5mu_cand)
         if isinstance(exp_ctx.get("cell_cycle_genes"), dict):
             mofa_params["cell_cycle_genes"] = exp_ctx["cell_cycle_genes"]
+        if exp_ctx.get("batch_key"):
+            mofa_params["batch_key"] = str(exp_ctx["batch_key"])
+        cond_col = exp_ctx.get("condition_col") or (
+            (exp_ctx.get("design") or {}).get("condition_col")
+        )
+        if cond_col:
+            mofa_params["condition_col"] = str(cond_col)
         mofa_params.update(mofa_overrides)
         validated_paired = exp_ctx.get("_validated_paired_h5mu")
         if validated_paired:
@@ -1405,6 +1784,38 @@ class IntegrationAgent(BaseAgent):
                             "action": "Use single-modality embeddings as primary reference",
                         }
                     )
+
+            batch_int = wnn.get("batch_integration")
+            if isinstance(batch_int, dict):
+                qa = batch_int.get("quality_assessment") or {}
+                if qa.get("possible_overcorrection"):
+                    conflicts.append(
+                        {
+                            "type": "wnn_harmony_possible_overcorrection",
+                            "description": (
+                                "Batch/donor Harmony harmonization aggressively reduced "
+                                "batch separation while joint WNN cluster cohesion was "
+                                "weak; biological subpopulation variation may be compressed."
+                            ),
+                            "confidence": "low",
+                            "action": "Compare harmonized WNN clusters against unintegrated per-modality clusters",
+                        }
+                    )
+
+        if mofa.get("status") == "success" and mofa.get("batch_factor_flag"):
+            b_fids = mofa.get("batch_factor_ids") or []
+            conflicts.append(
+                {
+                    "type": "mofa_batch_confounded_factors",
+                    "description": (
+                        f"MOFA+ factor(s) {b_fids} strongly associate with "
+                        f"batch/donor '{mofa.get('batch_key')}' and were flagged "
+                        "for exclusion from biological interpretation."
+                    ),
+                    "confidence": "medium",
+                    "action": "Restrict downstream biological claims to non-confounded factors",
+                }
+            )
 
         # Check peak-gene negative correlations (discordant evidence)
         if p2g.get("status") == "success":

@@ -186,20 +186,25 @@ MODALITY_VALIDATION_LEVELS = {
 }
 
 INTEGRATION_VALIDATION = {
-    "level": "beta",
+    "level": "production",
     "dispatch_enabled": True,
-    "requires_ack": True,
+    "requires_ack": False,
     "scope": "paired_same_cell_rna_atac",
-    "production_promoted": False,
+    "production_promoted": True,
     "promotion_policy_adr": "ADR-056",
-    "promotion_adr": "ADR-071",
+    "promotion_adr": "ADR-079",
     "reason": (
-        "Paired same-cell RNA+ATAC multiome integration (V48 Tier 1 WNN + "
-        "5-axis anti-degradation guardrail, Tier 2a MOFA+, Tier 2b cis "
-        "peak-to-gene + candidate eRegulons, and non-circular cross-modal "
-        "evidence graph; ADR-064..ADR-071) is open as a beta, "
-        "acknowledgement-gated lane. Unpaired, diagonal, and bulk "
-        "cross-modal integration remain blocked fail-closed."
+        "Paired same-cell RNA+ATAC multiome integration (universal .h5mu / "
+        "Cell Ranger ARC .h5 & MEX / raw Multiome FASTQ intake, multi-donor "
+        "consensus-peak cohort union, donor/batch-aware Harmony + WNN with "
+        "5-axis anti-degradation guardrail, MOFA+ with quantitative depth/"
+        "cell-cycle/batch confounder screening, cis peak-to-gene + candidate "
+        "eRegulons, and C3 run-ledger provenance; ADR-064..ADR-079) is "
+        "validated for production dispatch. Risk-elevated designs (<200 "
+        "shared cells, partial barcode overlap, or batch-confounded cohorts) "
+        "escalate to CP3.5 acknowledgement via IntegrationAuditAgent; "
+        "unpaired, diagonal, and bulk cross-modal integration remain blocked "
+        "fail-closed."
     ),
 }
 
@@ -745,9 +750,14 @@ class OrchestratorAgent(BaseAgent):
                         lines.append(f"      -> {finding.get('message', '')}")
                 int_ready = matrix.get("integration_readiness") or {}
                 if int_ready.get("requires_ack_for_dispatch"):
+                    int_label = (
+                        int_ready.get("status", "yellow")
+                        if int_ready.get("tier") == "production"
+                        else int_ready.get("tier", "beta")
+                    )
                     lines.append(
                         f"  [{len(lines) + 1}] integration_agent is "
-                        f"{int_ready.get('tier', 'beta')} ({int_ready.get('scope', 'paired_same_cell_rna_atac')}) "
+                        f"{int_label} ({int_ready.get('scope', 'paired_same_cell_rna_atac')}) "
                         "and requires explicit acknowledgement before dispatch."
                     )
                     for finding in int_ready.get("findings", []):
@@ -1069,11 +1079,29 @@ class OrchestratorAgent(BaseAgent):
         elif integration_requested:
             meta = INTEGRATION_VALIDATION
             multiome_gate = enforce_same_cell_integration_gate(exp_context)
+            int_ready = (
+                (exp_context.get("capability_matrix") or {}).get(
+                    "integration_readiness"
+                )
+                or {}
+            )
+            if not int_ready:
+                from aria.agents.modality_audit import IntegrationAuditAgent
+
+                int_ready = IntegrationAuditAgent().audit(
+                    exp_context,
+                    multiome_gate.get("contract") or {},
+                    meta,
+                )
+            requires_ack = bool(
+                (meta.get("requires_ack") is True)
+                or (int_ready.get("requires_ack_for_dispatch") is True)
+            )
             session_ack = bool(
                 self._get_session(experiment_id).cp35_acknowledged is True
             )
             ack_satisfied = (
-                (meta.get("requires_ack") is not True)
+                (not requires_ack)
                 or session_ack
                 or (exp_context.get("cp35_acknowledged") is True)
                 or (exp_context.get("integration_ack_confirmed") is True)
@@ -1086,12 +1114,12 @@ class OrchestratorAgent(BaseAgent):
                 agent_results["integration_agent"] = {
                     "status": "skipped",
                     "reason": "multiome_same_cell_gate_blocked",
-                    "validation_level": meta.get("level", "beta"),
+                    "validation_level": meta.get("level", "production"),
                     "scope": meta.get("scope", "paired_same_cell_rna_atac"),
                     "multiome_gate": multiome_gate,
                     "details": (
                         "Cross-modal IntegrationAgent requires confirmed "
-                        f"same-cell RNA+ATAC pairing (ADR-071): {blocker_msgs}"
+                        f"same-cell RNA+ATAC pairing (ADR-071 / ADR-079): {blocker_msgs}"
                     ),
                 }
                 self.publish_finding(
@@ -1103,7 +1131,7 @@ class OrchestratorAgent(BaseAgent):
                             "(single-modality lanes remain unaffected)."
                         ),
                         "agent": "integration_agent",
-                        "validation_level": meta.get("level", "beta"),
+                        "validation_level": meta.get("level", "production"),
                         "reason": "multiome_same_cell_gate_blocked",
                         "blockers": multiome_gate.get("blockers", []),
                     },
@@ -1113,22 +1141,22 @@ class OrchestratorAgent(BaseAgent):
                 agent_results["integration_agent"] = {
                     "status": "skipped",
                     "reason": "integration_ack_required",
-                    "validation_level": meta.get("level", "beta"),
+                    "validation_level": meta.get("level", "production"),
                     "scope": meta.get("scope", "paired_same_cell_rna_atac"),
                     "details": (
-                        "IntegrationAgent is beta (ADR-056 / ADR-071) and "
-                        "requires explicit CP3.5 acknowledgement before dispatch."
+                        "IntegrationAgent readiness requires explicit CP3.5 "
+                        "acknowledgement before dispatch (ADR-056 / ADR-079)."
                     ),
                 }
                 self.publish_finding(
                     experiment_id,
                     {
                         "summary": (
-                            "IntegrationAgent skipped: explicit CP3.5 beta "
+                            "IntegrationAgent skipped: explicit CP3.5 "
                             "acknowledgement was not recorded."
                         ),
                         "agent": "integration_agent",
-                        "validation_level": meta.get("level", "beta"),
+                        "validation_level": meta.get("level", "production"),
                         "reason": "integration_ack_required",
                     },
                     Confidence.INSUFFICIENT,

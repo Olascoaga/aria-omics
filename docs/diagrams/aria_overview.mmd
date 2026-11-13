@@ -14,7 +14,7 @@ flowchart TD
     SETUP --> B["BulkRNAAgent (production)"]
     SETUP --> S["scRNAAgent (production)"]
     SETUP --> C["ChromatinAgent (scATAC & bulk ATAC production)"]
-    SETUP --> INT["IntegrationAgent (paired Multiome beta)"]
+    SETUP --> INT["IntegrationAgent (paired same-cell Multiome production)"]
     SETUP -. disabled by default .-> H["GenomeArchAgent (scaffold)"]
     B --> N["NarrativeAgent + Synthesis + Triangulation"]
     S --> N

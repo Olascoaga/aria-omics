@@ -564,6 +564,32 @@ class DataAuditAgent(BaseAgent):
                 "error": f"No files found in {data_dir}"
             }
 
+        # Auto-discover multiome_fastq_manifest.json in data_dir if not inline.
+        multiome_manifest_obj = context.get("multiome_fastq_manifest")
+        multiome_manifest_source: str | None = None
+        if multiome_manifest_obj is None:
+            cand_mm = data_dir / "multiome_fastq_manifest.json"
+            if cand_mm.is_file():
+                multiome_manifest_source = str(cand_mm)
+                try:
+                    multiome_manifest_obj = json.loads(
+                        cand_mm.read_text(encoding="utf-8")
+                    )
+                except Exception:
+                    multiome_manifest_obj = str(cand_mm)
+        elif isinstance(multiome_manifest_obj, (str, Path)):
+            mm_path = Path(str(multiome_manifest_obj))
+            if not mm_path.is_absolute():
+                mm_path = data_dir / mm_path
+            multiome_manifest_source = str(mm_path)
+            if mm_path.is_file():
+                try:
+                    multiome_manifest_obj = json.loads(
+                        mm_path.read_text(encoding="utf-8")
+                    )
+                except Exception:
+                    pass
+
         # The manifest JSON and barcode whitelists are assay metadata, not
         # modality payloads. Keep them in the audit scan/provenance but do not
         # create a spurious ``unknown`` modality hall for them.
@@ -575,6 +601,24 @@ class DataAuditAgent(BaseAgent):
             )
         if scatac_manifest.get("source") not in (None, "inline"):
             assay_metadata_paths.add(str(scatac_manifest["source"]))
+        if multiome_manifest_source:
+            assay_metadata_paths.add(str(multiome_manifest_source))
+        if isinstance(multiome_manifest_obj, dict):
+            for row in multiome_manifest_obj.get("samples") or multiome_manifest_obj.get("libraries") or []:
+                if not isinstance(row, dict):
+                    continue
+                for wl_key in (
+                    "rna_whitelist",
+                    "atac_whitelist",
+                    "barcode_whitelist",
+                    "barcode_map_tsv",
+                ):
+                    wl_val = row.get(wl_key)
+                    if wl_val:
+                        wl_p = Path(str(wl_val))
+                        if not wl_p.is_absolute():
+                            wl_p = data_dir / wl_p
+                        assay_metadata_paths.add(str(wl_p))
         modality_files = [
             path for path in all_files if str(path) not in assay_metadata_paths
         ]
@@ -591,6 +635,28 @@ class DataAuditAgent(BaseAgent):
             per_file_types.update(
                 manifest_library_types(scatac_manifest["manifest"])
             )
+        if isinstance(multiome_manifest_obj, dict):
+            for row in multiome_manifest_obj.get("samples") or multiome_manifest_obj.get("libraries") or []:
+                if not isinstance(row, dict):
+                    continue
+                for rk in ("rna_fastqs", "rna_r1", "rna_r2"):
+                    rv = row.get(rk)
+                    r_items = rv if isinstance(rv, list) else ([rv] if rv else [])
+                    for item in r_items:
+                        rp = Path(str(item))
+                        if not rp.is_absolute():
+                            rp = data_dir / rp
+                        per_file_types[str(rp)] = "scRNA"
+                        per_file_types[rp.name] = "scRNA"
+                for ak in ("atac_fastqs", "atac_r1", "atac_r2", "atac_r3", "atac_barcode_fastq"):
+                    av = row.get(ak)
+                    a_items = av if isinstance(av, list) else ([av] if av else [])
+                    for item in a_items:
+                        ap = Path(str(item))
+                        if not ap.is_absolute():
+                            ap = data_dir / ap
+                        per_file_types[str(ap)] = "scATAC"
+                        per_file_types[ap.name] = "scATAC"
         declared_library_types = {
             "global": context.get("library_type"),
             "per_file": per_file_types,
@@ -737,9 +803,20 @@ class DataAuditAgent(BaseAgent):
             "peak2gene_params",
             "eregulon_params",
             "mofa_params",
+            "multiome_fastq_manifest",
+            "batch_key",
+            "sample_ids",
+            "sample_metadata",
+            "assemble_params",
+            "cohort_merge_params",
         ):
             if _passthrough_key in context and context[_passthrough_key] is not None:
                 exp_context[_passthrough_key] = context[_passthrough_key]
+        if (
+            "multiome_fastq_manifest" not in exp_context
+            and multiome_manifest_obj is not None
+        ):
+            exp_context["multiome_fastq_manifest"] = multiome_manifest_obj
 
         # Propagate GEO metadata into exp_context so downstream agents can use it
         if geo_metadata:
@@ -1108,6 +1185,65 @@ class DataAuditAgent(BaseAgent):
 
             if not matched:
                 classified.setdefault("unknown", []).append(str(f))
+
+        # ADR-079: collapse complete scATAC / 10x Multiome ARC MEX triplets
+        # (where AssayDetector classified matrix.mtx* as scATAC while SIGNATURES
+        # sent sibling barcodes.tsv* / features.tsv* into scRNA) into their
+        # parent directory under scATAC without leaking barcodes/features into scRNA.
+        if classified.get("scATAC"):
+            scatac_mtx_dirs = {
+                str(Path(p).parent)
+                for p in classified["scATAC"]
+                if _MEX_MATRIX_RE.search(Path(p).name)
+            }
+            if scatac_mtx_dirs:
+                combined_mex = list(classified.get("scATAC", [])) + list(
+                    classified.get("scRNA", [])
+                )
+                scatac_comps = _mex_dir_components(combined_mex)
+                complete_scatac_dirs = {
+                    d
+                    for d in scatac_mtx_dirs
+                    if {"matrix", "barcodes", "features"}
+                    <= scatac_comps.get(d, set())
+                }
+                if complete_scatac_dirs:
+                    collapsed_scatac: list[str] = []
+                    seen_scatac_dirs: set[str] = set()
+                    for p in classified["scATAC"]:
+                        pp = Path(p)
+                        parent_s = str(pp.parent)
+                        if parent_s in complete_scatac_dirs and _MEX_COMPONENT_RE.search(
+                            pp.name
+                        ):
+                            if parent_s not in seen_scatac_dirs:
+                                collapsed_scatac.append(parent_s)
+                                seen_scatac_dirs.add(parent_s)
+                        else:
+                            collapsed_scatac.append(p)
+                    classified["scATAC"] = collapsed_scatac
+
+                    if classified.get("scRNA"):
+                        kept_scrna = [
+                            p
+                            for p in classified["scRNA"]
+                            if not (
+                                str(Path(p).parent) in complete_scatac_dirs
+                                and _MEX_COMPONENT_RE.search(Path(p).name)
+                            )
+                        ]
+                        if kept_scrna:
+                            classified["scRNA"] = kept_scrna
+                        else:
+                            classified.pop("scRNA", None)
+
+                    for rec in getattr(self, "_last_assay_detections", []) or []:
+                        rec_path = Path(str(rec.get("path", "")))
+                        if (
+                            str(rec_path.parent) in complete_scatac_dirs
+                            and _MEX_MATRIX_RE.search(rec_path.name)
+                        ):
+                            rec["path"] = str(rec_path.parent)
 
         # E2E-1: a 10x MEX triplet is ONE sample (its directory), not 3 files.
         # T5: an incomplete MEX (matrix.mtx without barcodes/features) is NOT

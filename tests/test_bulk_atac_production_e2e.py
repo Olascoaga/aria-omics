@@ -89,7 +89,9 @@ def test_bulk_atac_production_promotion_and_audit_governance(tmp_path):
         "dispatch_enabled": True,
         "promotion_adr": "ADR-077",
     }
-    assert INTEGRATION_VALIDATION["production_promoted"] is False
+    assert INTEGRATION_VALIDATION["level"] == "production"
+    assert INTEGRATION_VALIDATION["production_promoted"] is True
+    assert INTEGRATION_VALIDATION["scope"] == "paired_same_cell_rna_atac"
     assert check_registry_integrity() == []
 
     for script in (

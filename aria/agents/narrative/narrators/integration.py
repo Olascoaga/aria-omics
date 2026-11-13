@@ -5,6 +5,8 @@ Translates ``IntegrationAgent`` structured outputs (I1-I6) into governed
 ``modality="integration"``:
 
   - ``multiome.gate`` (diagnostic when same-cell gate blocked execution)
+  - ``multiome.preprocessing`` (``analysis="preprocessing"``; ADR-079 raw
+    Multiome / Cell Ranger ARC assembly and multi-donor cohort union)
   - ``multiome.paired_qc`` (``analysis="paired_qc"``)
   - ``multiome.wnn`` (``analysis="wnn"``; surfaces 5-axis guardrail)
   - ``multiome.mofa`` (``analysis="mofa"``; surfaces excluded confounders)
@@ -176,6 +178,148 @@ def _table_entry(findings: dict[str, Any], key: str, fallback_path: Any, label: 
     return [{"id": f"multiome.{key}", "path": chosen, "label": label}]
 
 
+_PRE_STAGE_KEYS = ("assembly", "multiome_assembly", "cohort_merge", "merge")
+
+
+def _preprocessing_stages(pre: dict[str, Any]) -> list[dict[str, Any]]:
+    return [pre] + [
+        pre[k] for k in _PRE_STAGE_KEYS if isinstance(pre.get(k), dict)
+    ]
+
+
+def _h5mu_artifacts(value: Any) -> list[str]:
+    out: list[str] = []
+    if isinstance(value, str):
+        if value.strip().lower().endswith(".h5mu"):
+            out.append(value.strip())
+    elif isinstance(value, (list, tuple)):
+        for item in value:
+            out.extend(_h5mu_artifacts(item))
+    elif isinstance(value, dict):
+        for key in ("output_path", "path", "h5mu_path", "artifacts"):
+            out.extend(_h5mu_artifacts(value.get(key)))
+    return out
+
+
+def _preprocessing_artifacts(pre: dict[str, Any]) -> list[str]:
+    """Recorded `.h5mu` outputs of ADR-079 assembly / cohort union stages."""
+    out: list[str] = []
+    for stage in _preprocessing_stages(pre):
+        for path in _h5mu_artifacts(stage):
+            if path not in out:
+                out.append(path)
+    return out
+
+
+def _first_stage_value(pre: dict[str, Any], *keys: str) -> Any:
+    for stage in _preprocessing_stages(pre):
+        for key in keys:
+            val = stage.get(key)
+            if val is not None and val != "" and not isinstance(val, bool):
+                return val
+    return None
+
+
+def _as_int(val: Any) -> int | None:
+    if val is None or isinstance(val, bool):
+        return None
+    try:
+        return int(val)
+    except (TypeError, ValueError):
+        return None
+
+
+def _preprocessing_summary(pre: dict[str, Any]) -> dict[str, Any]:
+    """Descriptive, measured-only intake facts (absent values stay None)."""
+    sample_ids = _first_stage_value(pre, "sample_ids")
+    n_samples = _as_int(_first_stage_value(pre, "n_samples"))
+    if n_samples is None and isinstance(sample_ids, (list, tuple)):
+        n_samples = len(sample_ids)
+    bt_raw = _first_stage_value(
+        pre, "barcode_translation", "barcode_namespace", "cell_namespace"
+    )
+    if isinstance(bt_raw, dict):
+        bt_mode = _clean_token(bt_raw.get("mode"), "unspecified")
+        bt_orient = _clean_token(bt_raw.get("orientation"), "")
+        bt_str = f"{bt_mode} ({bt_orient})" if bt_orient else bt_mode
+    else:
+        bt_str = _clean_token(bt_raw, "unspecified")
+    return {
+        "mode": _clean_token(_first_stage_value(pre, "mode"), "unspecified"),
+        "platform": _clean_token(_first_stage_value(pre, "platform"), "unspecified"),
+        "n_samples": n_samples,
+        "n_cells_total": _as_int(
+            _first_stage_value(pre, "n_cells_total", "n_shared_cells")
+        ),
+        "n_genes": _as_int(_first_stage_value(pre, "n_genes")),
+        "n_consensus_peaks": _as_int(
+            _first_stage_value(pre, "n_consensus_peaks", "n_peaks")
+        ),
+        "barcode_translation": bt_str,
+        "rna_gene_join": _clean_token(
+            _first_stage_value(pre, "rna_gene_join"), "unspecified"
+        ),
+    }
+
+
+def _batch_integration(wnn: dict[str, Any]) -> dict[str, Any] | None:
+    """Measured batch-harmonization record, only when it was applied."""
+    bi = wnn.get("batch_integration")
+    if not isinstance(bi, dict) or bi.get("applied") is not True:
+        return None
+    qc = bi.get("quality_assessment") or bi.get("qc_assessment")
+    warnings: list[str] = []
+    if isinstance(qc, dict):
+        for key in ("warnings", "flags", "issues"):
+            for item in qc.get(key) or []:
+                code = item.get("code") if isinstance(item, dict) else item
+                if code:
+                    warnings.append(_clean_token(code))
+        if qc.get("possible_overcorrection") is True:
+            warnings.append("possible_overcorrection")
+        if qc.get("warning"):
+            warnings.append(_clean_token(qc["warning"]))
+        status = qc.get("status")
+        if status and str(status).lower() not in {"ok", "pass", "clean", "green"}:
+            warnings.append(_clean_token(status))
+    elif isinstance(qc, (list, tuple)):
+        warnings.extend(_clean_token(x) for x in qc if x)
+    elif isinstance(qc, str) and qc.strip():
+        warnings.append(_clean_token(qc))
+    dedup: list[str] = []
+    for w in warnings:
+        if w not in dedup:
+            dedup.append(w)
+    return {
+        "method": _clean_token(bi.get("method"), "Harmony"),
+        "batch_key": _clean_token(bi.get("batch_key"), "batch"),
+        "n_batches": _as_int(bi.get("n_batches")),
+        "rna_batch_silhouette_before": _finite_round(bi.get("rna_batch_silhouette_before"), 4),
+        "rna_batch_silhouette_after": _finite_round(bi.get("rna_batch_silhouette_after"), 4),
+        "atac_batch_silhouette_before": _finite_round(bi.get("atac_batch_silhouette_before"), 4),
+        "atac_batch_silhouette_after": _finite_round(bi.get("atac_batch_silhouette_after"), 4),
+        "wnn_batch_ilisi_median": _finite_round(bi.get("wnn_batch_ilisi_median"), 4),
+        "qc_warnings": dedup,
+    }
+
+
+def _mofa_batch_factor_ids(mofa: dict[str, Any]) -> list[int]:
+    ids: list[int] = []
+    for key in ("batch_factor_ids", "batch_confounded_factors"):
+        for item in mofa.get(key) or []:
+            raw = item
+            if isinstance(item, dict):
+                raw = (
+                    item.get("factor_id")
+                    if item.get("factor_id") is not None
+                    else item.get("factor")
+                )
+            fid = _as_int(raw)
+            if fid is not None and fid not in ids:
+                ids.append(fid)
+    return ids
+
+
 class IntegrationNarrator:
     """Modality narrator for paired same-cell multiome integration (I1-I7)."""
 
@@ -190,7 +334,10 @@ class IntegrationNarrator:
         findings = unwrap_integration_findings(agent_result)
         return any(
             k in findings
-            for k in ("multiome_gate", "paired_qc", "wnn", "mofa", "peak_to_gene", "eregulons")
+            for k in (
+                "multiome_gate", "preprocessing", "paired_qc", "wnn", "mofa",
+                "peak_to_gene", "eregulons",
+            )
         )
 
     def collect(
@@ -232,6 +379,33 @@ class IntegrationNarrator:
                     ],
                 )
             )
+
+        # 0b. ADR-079 raw multiome assembly / multi-donor cohort union.
+        pre = findings.get("preprocessing")
+        pre_state = _stage_state(pre)
+        if pre_state in {"skipped", "error"} and isinstance(pre, dict):
+            blocks.append(
+                _diagnostic_block(
+                    "multiome.preprocessing", "preprocessing",
+                    "Multiome raw assembly and cohort union", pre, pre_state,
+                    block_type="qc",
+                )
+            )
+        elif pre_state == "ok" and isinstance(pre, dict):
+            if _preprocessing_artifacts(pre):
+                blocks.append(self._preprocessing_block(pre))
+            else:
+                # Anti-fabrication: a success stamp without a recorded `.h5mu`
+                # is reported as not executed (mirrors the run ledger).
+                blocks.append(
+                    _diagnostic_block(
+                        "multiome.preprocessing", "preprocessing",
+                        "Multiome raw assembly and cohort union",
+                        {**pre, "reason": "no assembled/merged .h5mu produced"},
+                        "skipped",
+                        block_type="qc",
+                    )
+                )
 
         # 1. Paired QC (I1).
         pqc = findings.get("paired_qc")
@@ -321,6 +495,83 @@ class IntegrationNarrator:
             blocks.append(tri_block)
 
         return blocks
+
+    @staticmethod
+    def _preprocessing_block(pre: dict[str, Any]) -> NarrativeBlock:
+        s = _preprocessing_summary(pre)
+        artifacts = _preprocessing_artifacts(pre)
+        evidence: list[EvidenceItem] = [
+            EvidenceItem("intake mode", s["mode"], source="preprocessing"),
+            EvidenceItem("platform", s["platform"], source="preprocessing"),
+            EvidenceItem(
+                "barcode translation", s["barcode_translation"],
+                source="preprocessing",
+            ),
+            EvidenceItem(
+                "assembled containers", len(artifacts), source="preprocessing"
+            ),
+        ]
+        for label, key in (
+            ("samples", "n_samples"),
+            ("cells total", "n_cells_total"),
+            ("RNA genes", "n_genes"),
+            ("consensus ATAC peaks", "n_consensus_peaks"),
+        ):
+            if s[key] is not None:
+                evidence.append(EvidenceItem(label, s[key], source="preprocessing"))
+
+        parts = [f"Multiome intake ({s['mode']}, platform {s['platform']})"]
+        counts: list[str] = []
+        if s["n_samples"] is not None:
+            counts.append(f"{s['n_samples']} sample(s)")
+        if s["n_cells_total"] is not None:
+            counts.append(f"{s['n_cells_total']} cells")
+        if s["n_genes"] is not None:
+            counts.append(f"{s['n_genes']} RNA genes")
+        if s["n_consensus_peaks"] is not None:
+            counts.append(f"{s['n_consensus_peaks']} consensus ATAC peaks")
+        claim = (
+            parts[0]
+            + " produced a paired RNA+ATAC container"
+            + (f" with {', '.join(counts)}" if counts else "")
+            + f" under barcode translation {s['barcode_translation']}."
+        )
+        caveats = [
+            Caveat(
+                text=(
+                    "Intake assembles measured RNA and ATAC data over a declared "
+                    "same-cell barcode namespace; it does not pair cells across "
+                    "samples or modalities without verified shared barcodes."
+                ),
+                severity="info",
+            )
+        ]
+        if (s["n_samples"] or 0) >= 2:
+            caveats.append(
+                Caveat(
+                    text=(
+                        "Multi-sample cohort: per-sample ATAC peak sets were "
+                        "merged onto consensus peaks and barcodes were "
+                        "sample-prefixed; residual sample-level technical "
+                        "variation is assessed downstream by batch-aware WNN "
+                        "metrics."
+                    ),
+                    severity="info",
+                )
+            )
+        return NarrativeBlock(
+            id="multiome.preprocessing",
+            modality="integration",
+            analysis="preprocessing",
+            block_type="qc",
+            title="Multiome raw assembly and cohort union",
+            status="success",
+            confidence="high",
+            claim=claim,
+            evidence=evidence,
+            caveats=caveats,
+            metrics={**s, "artifacts": artifacts},
+        )
 
     @staticmethod
     def _paired_qc_block(pqc: dict[str, Any]) -> NarrativeBlock:
@@ -445,9 +696,55 @@ class IntegrationNarrator:
                     )
                 )
 
+        # ADR-079: measured batch harmonization for multi-donor paired cohorts.
+        batch = _batch_integration(wnn)
+        if batch is not None:
+            evidence.append(
+                EvidenceItem("batch key", batch["batch_key"], source="wnn_batch")
+            )
+            for label, key in (
+                ("batches", "n_batches"),
+                ("RNA batch silhouette before", "rna_batch_silhouette_before"),
+                ("RNA batch silhouette after", "rna_batch_silhouette_after"),
+                ("ATAC batch silhouette before", "atac_batch_silhouette_before"),
+                ("ATAC batch silhouette after", "atac_batch_silhouette_after"),
+                ("WNN batch iLISI median", "wnn_batch_ilisi_median"),
+            ):
+                if batch[key] is not None:
+                    evidence.append(
+                        EvidenceItem(label, batch[key], source="wnn_batch")
+                    )
+            caveats.append(
+                Caveat(
+                    text=(
+                        f"RNA and ATAC latent spaces were harmonized across "
+                        f"{batch['n_batches'] if batch['n_batches'] is not None else 'the'} "
+                        f"batch level(s) of '{batch['batch_key']}' ({batch['method']}) "
+                        "before WNN; batch-mixing metrics are reported as measured "
+                        "before and after harmonization."
+                    ),
+                    severity="info",
+                )
+            )
+            for code in batch["qc_warnings"][:4]:
+                caveats.append(
+                    Caveat(
+                        text=(
+                            f"Batch harmonization QC flagged [{code}]; compare "
+                            "per-batch and per-condition structure before "
+                            "interpreting joint clusters across batches."
+                        ),
+                        severity="warning",
+                    )
+                )
+
         if guard == "degraded":
             confidence = "low"
-        elif guard in {"warn", "skipped"} or n_cells < 500:
+        elif (
+            guard in {"warn", "skipped"}
+            or n_cells < 500
+            or (batch is not None and batch["qc_warnings"])
+        ):
             confidence = "medium"
         else:
             confidence = "high"
@@ -501,6 +798,7 @@ class IntegrationNarrator:
                 "wnn_vs_atac_nmi": nmi_a,
                 "n_discordant_clusters": n_disc,
                 "guardrail_status": guard,
+                "batch_integration": batch,
             },
         )
 
@@ -588,6 +886,24 @@ class IntegrationNarrator:
                     severity="warning",
                 )
             )
+        batch_ids = _mofa_batch_factor_ids(mofa)
+        for fid in batch_ids:
+            evidence.append(
+                EvidenceItem(f"batch-associated Factor {fid}", fid, source="mofa")
+            )
+        if batch_ids:
+            caveats.append(
+                Caveat(
+                    text=(
+                        f"{len(batch_ids)} MOFA+ factor(s) (Factor "
+                        + ", ".join(str(i) for i in batch_ids)
+                        + ") were associated with the sample/batch covariate and "
+                        "are reported as technical alongside depth and "
+                        "cell-cycle confounders, not as biological programs."
+                    ),
+                    severity="warning",
+                )
+            )
         if mofa.get("subsampled"):
             caveats.append(
                 Caveat(
@@ -639,6 +955,7 @@ class IntegrationNarrator:
                 "n_modality_specific_factors": n_spec,
                 "n_excluded_factors": n_excl,
                 "excluded_factor_ids": excluded_ids,
+                "batch_factor_ids": batch_ids,
                 "rna_r2_pct": rna_r2_pct,
                 "atac_r2_pct": atac_r2_pct,
                 "rna_additive_r2_pct": rna_add_pct,
@@ -950,6 +1267,33 @@ class IntegrationNarrator:
         findings = unwrap_integration_findings(agent_result)
         paragraphs: list[str] = []
 
+        pre = findings.get("preprocessing")
+        if (
+            _stage_state(pre) == "ok"
+            and isinstance(pre, dict)
+            and _preprocessing_artifacts(pre)
+        ):
+            s = _preprocessing_summary(pre)
+            sample_clause = (
+                f" across {s['n_samples']} sample(s)"
+                if s["n_samples"] is not None else ""
+            )
+            peak_clause = (
+                f"; per-sample ATAC peak sets were merged onto "
+                f"{s['n_consensus_peaks']} sweep-line consensus peaks with "
+                f"sample-prefixed cell barcodes"
+                if (s["n_samples"] or 0) >= 2 and s["n_consensus_peaks"] is not None
+                else ""
+            )
+            paragraphs.append(
+                f"Multiome intake: paired RNA and ATAC data ({s['mode']}, "
+                f"platform {s['platform']}) were assembled into a MuData "
+                f"container{sample_clause} over a verified same-cell barcode "
+                f"namespace (barcode translation: {s['barcode_translation']})"
+                f"{peak_clause}. Cells without a shared RNA and ATAC barcode "
+                f"were excluded rather than imputed."
+            )
+
         pqc = findings.get("paired_qc")
         if _stage_state(pqc) == "ok" and isinstance(pqc, dict):
             rna_s = pqc.get("rna_qc_summary") or {}
@@ -992,12 +1336,44 @@ class IntegrationNarrator:
                 f"(guardrail_status={guard}), treating WNN as a complementary "
                 f"multi-modal lens alongside single-modality clusterings."
             )
+            batch = _batch_integration(wnn)
+            if batch is not None:
+                def _ba(before: Any, after: Any) -> str:
+                    if before is None or after is None:
+                        return "not computed"
+                    return f"{before} before vs {after} after"
+
+                ilisi = batch["wnn_batch_ilisi_median"]
+                n_b = batch["n_batches"]
+                qc_txt = (
+                    " Harmonization QC flags: " + ", ".join(batch["qc_warnings"]) + "."
+                    if batch["qc_warnings"] else ""
+                )
+                paragraphs.append(
+                    f"Batch-aware WNN: RNA PCA and ATAC LSI embeddings were "
+                    f"harmonized independently with {batch['method']} over "
+                    f"'{batch['batch_key']}'"
+                    f"{f' ({n_b} batches)' if n_b is not None else ''} prior to "
+                    f"joint WNN graph construction. Batch silhouette was "
+                    f"{_ba(batch['rna_batch_silhouette_before'], batch['rna_batch_silhouette_after'])} "
+                    f"harmonization for RNA and "
+                    f"{_ba(batch['atac_batch_silhouette_before'], batch['atac_batch_silhouette_after'])} "
+                    f"for ATAC; the median batch iLISI on the WNN graph was "
+                    f"{ilisi if ilisi is not None else 'not computed'}.{qc_txt}"
+                )
 
         mofa = findings.get("mofa")
         if _stage_state(mofa) == "ok" and isinstance(mofa, dict):
             n_fac = mofa.get("n_factors", "?")
             n_act = mofa.get("n_active_factors", "?")
             n_excl = len(mofa.get("excluded_factors") or [])
+            batch_ids = _mofa_batch_factor_ids(mofa)
+            batch_clause = (
+                f" Factors associated with the sample/batch covariate "
+                f"(Factor {', '.join(str(i) for i in batch_ids)}) were reported "
+                f"as technical."
+                if batch_ids else ""
+            )
             sub_clause = ""
             if mofa.get("subsampled"):
                 sub_clause = (
@@ -1014,7 +1390,7 @@ class IntegrationNarrator:
                 f"Factors exhibiting sequencing-depth association (|r| >= 0.70) "
                 f"or cell-cycle enrichment were quarantined ({n_excl} excluded), "
                 f"yielding {n_act} active biological factors with non-additive "
-                f"total variance explained reported per view."
+                f"total variance explained reported per view.{batch_clause}"
             )
 
         p2g = findings.get("peak_to_gene")

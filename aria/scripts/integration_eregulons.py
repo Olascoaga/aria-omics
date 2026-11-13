@@ -37,6 +37,12 @@ import numpy as np
 from scipy import sparse
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+from aria.utils.mudata_io import (
+    _stage_cache,
+    _stage_complete,
+    paired_input_files,
+    MultiomeInputError,
+)
 from aria.scripts._base import run_script
 from aria.utils.eregulon_core import (
     ContigMismatchError,
@@ -277,7 +283,7 @@ def integration_eregulons(params: dict) -> dict[str, Any]:
                 resolved_h5mu = str(cand)
                 break
 
-    if resolved_h5mu and not Path(resolved_h5mu).is_file():
+    if resolved_h5mu and not Path(resolved_h5mu).exists():
         return {
             "status": "error",
             "error_type": "MissingH5mu",
@@ -387,6 +393,59 @@ def integration_eregulons(params: dict) -> dict[str, Any]:
             ),
         }
 
+    try:
+        stage_inputs = (
+            paired_input_files("h5mu_input", resolved_h5mu)
+            if resolved_h5mu
+            else [
+                item
+                for role, paths in (("rna", valid_rna), ("atac", valid_atac))
+                for i, path in enumerate(paths)
+                for item in paired_input_files(f"{role}:{i}", path)
+            ]
+        )
+    except MultiomeInputError as exc:
+        return {"status": "error", "error_type": exc.error_type, "details": str(exc)}
+    for role, path in (("gtf", gtf_resolved), ("genome_fasta", fasta_resolved),
+                       ("fasta_index", str(fasta_resolved) + ".fai" if fasta_resolved else None),
+                       ("peaks", params.get("peaks_path")), ("motifs", meme_path), ("precomputed_p2g", params.get("precomputed_p2g_csv"))):
+        if path and Path(str(path)).is_file():
+            stage_inputs.append((role, str(path)))
+    stage_params = dict(params)
+    stage_params.update(
+        distance_bp=distance_bp,
+        min_distance_bp=min_distance_bp,
+        promoter_bp=promoter_bp,
+        p2g_min_corr=p2g_min_corr,
+        p2g_max_padj=p2g_max_padj,
+        min_shared_cells=min_shared_cells,
+        min_cells_detected=min_cells_detected,
+        scan_window_bp=scan_window_bp,
+        motif_pvalue=motif_pvalue,
+        scanner_backend=scanner_backend,
+        min_tf_gene_corr=min_tf_gene_corr,
+        min_target_genes=min_target_genes,
+        max_regulon_padj=max_regulon_padj,
+        n_null_permutations=n_null_permutations,
+        aucell_top_frac=aucell_top_frac,
+        compute_cell_activity=compute_cell_activity,
+        standard_chroms_only=standard_chroms_only,
+        sign_classes=sign_classes,
+        seed=seed,
+        genome=genome,
+        organism=organism,
+    )
+    cached, stage_state = _stage_cache(
+        "integration_eregulons",
+        output_dir,
+        stage_inputs,
+        stage_params,
+        params.get("resume", True),
+        required=("output_path", "triplets_path"),
+    )
+    if cached:
+        return cached
+
     # ── Ingest paired RNA + ATAC raw count matrices in canonical barcode order ──
     mdata = None
     if resolved_h5mu:
@@ -460,7 +519,7 @@ def integration_eregulons(params: dict) -> dict[str, Any]:
         rna_chk = _select_raw_counts_matrix(
             rna_sub, modality_label="rna", require_raw_counts=True
         )
-        if rna_chk.get("matrix") is None or not rna_chk.get("is_raw_counts", False):
+        if rna_chk.get("matrix") is None or not rna_chk.get("inspection", {}).get("is_raw_counts", False):
             return {
                 "status": "error",
                 "error_type": "NonRawCountsRNA",
@@ -472,7 +531,7 @@ def integration_eregulons(params: dict) -> dict[str, Any]:
         atac_chk = _select_raw_counts_matrix(
             atac_sub, modality_label="atac", require_raw_counts=True
         )
-        if atac_chk.get("matrix") is None or not atac_chk.get("is_raw_counts", False):
+        if atac_chk.get("matrix") is None or not atac_chk.get("inspection", {}).get("is_raw_counts", False):
             return {
                 "status": "error",
                 "error_type": "NonRawCountsATAC",
@@ -640,9 +699,9 @@ def integration_eregulons(params: dict) -> dict[str, Any]:
                 except OSError:
                     pass
 
-    return {
+    result = {
         "status": "success",
-        "validation_level": "beta",
+        "validation_level": "production",
         "input_mode": input_mode,
         "organism": organism,
         "genome": genome,
@@ -685,6 +744,7 @@ def integration_eregulons(params: dict) -> dict[str, Any]:
         "caveat": _ASSOCIATIVE_CAVEAT,
         "warnings": warnings,
     }
+    return _stage_complete(result, stage_state)
 
 
 if __name__ == "__main__":

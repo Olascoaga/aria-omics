@@ -484,13 +484,13 @@ def test_no_fabrication_ast_scan_on_i3_modules():
 def test_script_contract_and_registry_integrity_for_i3():
     key = "aria/scripts/integration_wnn_diagnostics.py"
     assert key in SCRIPT_CONTRACTS
-    assert SCRIPT_CONTRACTS[key].validation_level == "beta"
-    assert key in AGENT_SCRIPT_CONTRACTS["integration_agent"]["required"]
+    assert SCRIPT_CONTRACTS[key].validation_level == "production"
+    assert key in AGENT_SCRIPT_CONTRACTS["integration_agent"]["optional"]
     assert check_registry_integrity() == []
-    assert INTEGRATION_VALIDATION["level"] == "beta"
+    assert INTEGRATION_VALIDATION["level"] == "production"
     assert INTEGRATION_VALIDATION["dispatch_enabled"] is True
-    assert INTEGRATION_VALIDATION["requires_ack"] is True
-    assert INTEGRATION_VALIDATION["production_promoted"] is False
+    assert INTEGRATION_VALIDATION["requires_ack"] is False
+    assert INTEGRATION_VALIDATION["production_promoted"] is True
 
 
 def test_integration_wnn_diagnostics_missing_file_fails_closed(tmp_path: Path):

@@ -809,10 +809,62 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
             _f("bam_files", "list", required=False),
         ),
     ),
+    # ADR-079: universal same-cell multiome intake — assembles a paired `.h5mu`
+    # from Cell Ranger ARC `.h5` / MEX, split same-cell RNA+ATAC objects, or raw
+    # Multiome FASTQs (explicit barcode translation; never unpaired inputs).
+    "aria/scripts/integration_assemble_multiome.py": ScriptContract(
+        script_path="aria/scripts/integration_assemble_multiome.py",
+        validation_level="production",
+        inputs=(
+            _f("mode", "str", required=False),
+            _f("arc_path", "str", required=False),
+            _f("rna_path", "str", required=False),
+            _f("atac_path", "str", required=False),
+            _f("fragments_path", "str", required=False),
+            _f("peaks_path", "str", required=False),
+            _f("rna_fastqs", "list", required=False),
+            _f("atac_fastqs", "list", required=False),
+            _f("platform", "str", required=False),
+            _f("barcode_namespace", "str", required=False),
+            _f("gex_whitelist_path", "str", required=False),
+            _f("atac_whitelist_path", "str", required=False),
+            _f("barcode_map_path", "str", required=False),
+            _f("output_dir", "str", required=False),
+            _f("resume", "bool", required=False),
+        ),
+        success_outputs=(
+            _f("output_path", "path", allow_empty=False, path_must_exist=True),
+            _f("n_shared_cells", "int"),
+            _f("n_genes", "int"),
+            _f("n_peaks", "int"),
+        ),
+    ),
+    # ADR-079: multi-donor paired cohort union onto sweep-line consensus peaks
+    # with sample-prefixed (collision-safe) barcodes.
+    "aria/scripts/integration_merge_cohort.py": ScriptContract(
+        script_path="aria/scripts/integration_merge_cohort.py",
+        validation_level="production",
+        inputs=(
+            _f("inputs", "list[path]", allow_empty=False, path_must_exist=True),
+            _f("output_dir", "str", required=False),
+            _f("output_path", "str", required=False),
+            _f("sample_ids", "list", required=False),
+            _f("sample_metadata", "any", required=False),
+            _f("rna_gene_join", "str", required=False),
+            _f("resume", "bool", required=False),
+        ),
+        success_outputs=(
+            _f("output_path", "path", allow_empty=False, path_must_exist=True),
+            _f("n_samples", "int"),
+            _f("n_cells_total", "int"),
+            _f("n_genes", "int"),
+            _f("n_consensus_peaks", "int"),
+        ),
+    ),
     # V48 multi-omics integration: Slice I1 paired .h5mu contract + joint QC.
     "aria/scripts/integration_paired_qc.py": ScriptContract(
         script_path="aria/scripts/integration_paired_qc.py",
-        validation_level="beta",
+        validation_level="production",
         inputs=(
             ContractField(
                 name="h5mu_path",
@@ -822,6 +874,7 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
             ),
             _f("output_dir", "str", required=False),
             _f("reference_h5ad", "path", required=False),
+            _f("resume", "bool", required=False),
         ),
         success_outputs=(
             _f("output_path", "path", allow_empty=False, path_must_exist=True),
@@ -836,7 +889,7 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
     # V48 multi-omics integration: Slice I2 deterministic WNN joint state.
     "aria/scripts/integration_wnn.py": ScriptContract(
         script_path="aria/scripts/integration_wnn.py",
-        validation_level="beta",
+        validation_level="production",
         inputs=(
             ContractField(
                 name="h5mu_path",
@@ -850,6 +903,10 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
             _f("output_dir", "str", required=False),
             _f("k", "int", required=False),
             _f("seed", "int", required=False),
+            # ADR-079: batch-aware WNN for multi-donor paired cohorts.
+            _f("batch_key", "str", required=False),
+            _f("harmonize_batches", "any", required=False),
+            _f("resume", "bool", required=False),
         ),
         success_outputs=(
             _f("output_path", "path", allow_empty=False, path_must_exist=True),
@@ -867,7 +924,7 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
     # V48 multi-omics integration: Slice I3 anti-degradation guardrail.
     "aria/scripts/integration_wnn_diagnostics.py": ScriptContract(
         script_path="aria/scripts/integration_wnn_diagnostics.py",
-        validation_level="beta",
+        validation_level="production",
         inputs=(
             ContractField(
                 name="h5mu_path",
@@ -900,7 +957,7 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
     # V48 multi-omics integration: Slice I4 deterministic MOFA+ Tier 2a factors.
     "aria/scripts/integration_mofa.py": ScriptContract(
         script_path="aria/scripts/integration_mofa.py",
-        validation_level="beta",
+        validation_level="production",
         inputs=(
             ContractField(
                 name="h5mu_path",
@@ -916,6 +973,10 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
             _f("seed", "int", required=False),
             _f("scale_views", "bool", required=False),
             _f("cell_cycle_genes", "dict", required=False),
+            # ADR-079: batch / condition covariates for cohort factor audits.
+            _f("batch_key", "str", required=False),
+            _f("condition_col", "str", required=False),
+            _f("resume", "bool", required=False),
         ),
         success_outputs=(
             _f("n_factors", "int"),
@@ -930,7 +991,7 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
     # V48 multi-omics integration: Slice I5 paired peak-to-gene Tier 2b links.
     "aria/scripts/integration_peak2gene.py": ScriptContract(
         script_path="aria/scripts/integration_peak2gene.py",
-        validation_level="beta",
+        validation_level="production",
         inputs=(
             ContractField(
                 name="h5mu_path",
@@ -950,6 +1011,7 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
             _f("max_padj", "any", required=False),
             _f("seed", "int", required=False),
             _f("output_dir", "str", required=False),
+            _f("resume", "bool", required=False),
         ),
         success_outputs=(
             _f("output_path", "path", allow_empty=False, path_must_exist=True),
@@ -965,7 +1027,7 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
     # V48 multi-omics integration: Slice I6 candidate eRegulons Tier 2b.
     "aria/scripts/integration_eregulons.py": ScriptContract(
         script_path="aria/scripts/integration_eregulons.py",
-        validation_level="beta",
+        validation_level="production",
         inputs=(
             ContractField(
                 name="h5mu_path",
@@ -994,6 +1056,7 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
             _f("output_dir", "str", required=False),
             _f("update_h5mu", "bool", required=False),
             _f("output_h5mu", "str", required=False),
+            _f("resume", "bool", required=False),
         ),
         success_outputs=(
             _f("output_path", "path", allow_empty=False, path_must_exist=True),

@@ -269,7 +269,7 @@ def test_no_hardcoded_biology_contract_and_agent_conflict_wiring():
 
     c = contract_for_script("aria/scripts/integration_mofa.py")
     assert c is not None
-    assert c.validation_level == "beta"
+    assert c.validation_level == "production"
     assert c.validate_params({"h5mu_path": "/tmp/x.h5mu", "n_factors": 10, "seed": 0}) == []
 
     # Verify IntegrationAgent._resolve_conflicts surfaces excluded MOFA confounders

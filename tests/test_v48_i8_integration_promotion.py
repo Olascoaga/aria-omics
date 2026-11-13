@@ -56,17 +56,17 @@ PAIRED_H5MU_CTX: dict[str, Any] = {
 }
 
 
-# ── 1. Registry & ADR-056 / ADR-071 Tier Governance ─────────────────────────
+# ── 1. Registry & ADR-056 / ADR-071 / ADR-079 Tier Governance ───────────────
 
 
-def test_integration_validation_is_beta_ack_gated_and_never_production():
-    assert INTEGRATION_VALIDATION["level"] == "beta"
+def test_integration_validation_is_production_for_paired_same_cell_only():
+    assert INTEGRATION_VALIDATION["level"] == "production"
     assert INTEGRATION_VALIDATION["dispatch_enabled"] is True
-    assert INTEGRATION_VALIDATION["requires_ack"] is True
+    assert INTEGRATION_VALIDATION["requires_ack"] is False
     assert INTEGRATION_VALIDATION["scope"] == "paired_same_cell_rna_atac"
-    assert INTEGRATION_VALIDATION["production_promoted"] is False
+    assert INTEGRATION_VALIDATION["production_promoted"] is True
     assert INTEGRATION_VALIDATION["promotion_policy_adr"] == "ADR-056"
-    assert INTEGRATION_VALIDATION["promotion_adr"] == "ADR-071"
+    assert INTEGRATION_VALIDATION["promotion_adr"] == "ADR-079"
 
     # Per-assay modality table remains strictly 9 per-assay keys (1-to-1 with docs)
     assert set(MODALITY_VALIDATION) == {
@@ -85,7 +85,9 @@ def test_integration_validation_is_beta_ack_gated_and_never_production():
     assert "integration" not in MODALITY_VALIDATION
 
 
-def test_registry_integrity_enforces_adr071_invariants_as_hard_errors(monkeypatch):
+def test_registry_integrity_enforces_adr071_and_adr079_invariants_as_hard_errors(
+    monkeypatch,
+):
     assert [i for i in check_registry_integrity() if i.severity == "error"] == []
 
     bad_cases = [
@@ -124,8 +126,23 @@ def test_registry_integrity_enforces_adr071_invariants_as_hard_errors(monkeypatc
             {
                 "level": "production",
                 "dispatch_enabled": True,
+                "requires_ack": False,
+                "production_promoted": False,
+                "promotion_adr": "ADR-079",
+                "scope": "paired_same_cell_rna_atac",
             },
-            "integration_premature_production_tier",
+            "integration_production_flag_invalid",
+        ),
+        (
+            {
+                "level": "production",
+                "dispatch_enabled": True,
+                "requires_ack": False,
+                "production_promoted": True,
+                "promotion_adr": "ADR-079",
+                "scope": "unpaired_any",
+            },
+            "integration_production_scope_invalid",
         ),
     ]
     for mutated, expected_code in bad_cases:
@@ -140,7 +157,7 @@ def test_registry_integrity_enforces_adr071_invariants_as_hard_errors(monkeypatc
         )
 
 
-# ── 2. Paired .h5mu Detection, Multi-Container Ambiguity & Plan Routing ──────
+# ── 2. Paired .h5mu Detection, Multi-Container Cohort & Plan Routing ─────────
 
 
 def test_atac_only_h5mu_is_not_promoted_to_paired_mudata_by_filename_fallback():
@@ -167,7 +184,7 @@ def test_atac_only_h5mu_is_not_promoted_to_paired_mudata_by_filename_fallback():
     assert gate["allowed"] is False
 
 
-def test_multiple_unmerged_paired_mudata_containers_fail_closed():
+def test_multi_donor_paired_mudata_requires_cohort_merge_and_mixed_unpaired_fails_closed():
     multi_ctx = {
         "genome": "hg38",
         "modalities": {
@@ -187,11 +204,26 @@ def test_multiple_unmerged_paired_mudata_containers_fail_closed():
         ],
     }
     gate = enforce_same_cell_integration_gate(multi_ctx)
-    assert gate["allowed"] is False
-    assert any(
-        b["check"] == "multiome_multiple_mudata_unsupported"
-        for b in gate["blockers"]
-    )
+    assert gate["allowed"] is True
+    assert gate["contract"]["cohort_merge_required"] is True
+
+    # Mixed paired .h5mu + standalone unpaired scRNA .h5ad must still fail closed!
+    mixed_ctx = {
+        "genome": "hg38",
+        "modalities": {
+            "scATAC": ["/virtual/donor1.h5mu"],
+            "scRNA": ["/virtual/unpaired_rna.h5ad"],
+        },
+        "assay_detections": [
+            {
+                "path": "/virtual/donor1.h5mu",
+                "modality": "scATAC",
+                "evidence": {"format": "h5mu", "paired_rna": True},
+            },
+        ],
+    }
+    mixed_gate = enforce_same_cell_integration_gate(mixed_ctx)
+    assert mixed_gate["allowed"] is False
 
 
 def test_orchestrator_fallback_and_llm_plans_set_integration_needed_for_paired_h5mu():
@@ -229,9 +261,8 @@ def test_orchestrator_fallback_and_llm_plans_set_integration_needed_for_paired_h
 # ── 3. Capability Matrix, AuditAgent & CP3.5 Acknowledgement Lifecycle ──────
 
 
-def test_capability_matrix_and_audit_agent_require_cp35_ack_for_paired_multiome(tmp_path):
-    # Explicit same-cell multiome with scRNA-only modality card (green) still triggers
-    # integration_readiness requires_ack_for_dispatch -> AuditAgent status == "blocking"
+def test_capability_matrix_and_audit_agent_production_auto_vs_risk_ack(tmp_path):
+    # Clean paired multiome at production (ADR-079) is green / auto (no CP3.5 ack).
     explicit_same_cell_ctx = {
         "genome": "hg38",
         "modalities": {
@@ -252,29 +283,49 @@ def test_capability_matrix_and_audit_agent_require_cp35_ack_for_paired_multiome(
             "atac_feature_space": "peak_matrix",
         },
     }
-    matrix = build_capability_matrix(
+    matrix_green = build_capability_matrix(
         explicit_same_cell_ctx,
         modality_validation=MODALITY_VALIDATION,
         integration_validation=INTEGRATION_VALIDATION,
     )
-    assert matrix["dispatch"]["requires_ack"] == []
-    assert matrix["dispatch"]["blocked"] == []
-    int_ready = matrix["integration_readiness"]
-    assert int_ready["tier"] == "beta"
-    assert int_ready["requires_ack"] is True
-    assert int_ready["requires_ack_for_dispatch"] is True
-    assert int_ready["production_promoted"] is False
-    assert int_ready["governance_blockers"]
+    assert matrix_green["dispatch"]["requires_ack"] == []
+    assert matrix_green["dispatch"]["blocked"] == []
+    int_green = matrix_green["integration_readiness"]
+    assert int_green["tier"] == "production"
+    assert int_green["status"] == "green"
+    assert int_green["requires_ack"] is False
+    assert int_green["requires_ack_for_dispatch"] is False
+    assert int_green["production_promoted"] is True
+
+    # Risk-elevated paired multiome (n_shared_cells < 200) downgrades to yellow / requires_ack
+    risk_ctx = {**copy.deepcopy(explicit_same_cell_ctx), "n_shared_cells": 120}
+    matrix_yellow = build_capability_matrix(
+        risk_ctx,
+        modality_validation=MODALITY_VALIDATION,
+        integration_validation=INTEGRATION_VALIDATION,
+    )
+    int_yellow = matrix_yellow["integration_readiness"]
+    assert int_yellow["tier"] == "production"
+    assert int_yellow["status"] == "yellow"
+    assert int_yellow["requires_ack_for_dispatch"] is True
     assert any(
-        f["check"] == "integration_beta_ack_required" for f in matrix["findings"]
+        f["check"] == "integration_low_cell_count" for f in matrix_yellow["findings"]
     )
 
     mem = ARIAMemory(db_path=str(tmp_path / "mem.sqlite"))
     try:
         auditor = AuditAgent(memory=mem, llm=object())
         auditor.publish_status = lambda *a, **kw: None
-        audit_res = auditor.run_audit(
+        ok_res = auditor.run_audit(
             explicit_same_cell_ctx,
+            "exp_int_green",
+            modality_validation=MODALITY_VALIDATION,
+            integration_validation=INTEGRATION_VALIDATION,
+        )
+        assert ok_res["status"] in ("ok", "warnings")
+
+        audit_res = auditor.run_audit(
+            risk_ctx,
             "exp_int_ack",
             modality_validation=MODALITY_VALIDATION,
             integration_validation=INTEGRATION_VALIDATION,
@@ -315,15 +366,20 @@ def test_cp35_ack_lifecycle_strict_affirmative_memory_logging_and_reaudit_reset(
         monkeypatch.setattr("aria.agents.orchestrator_agent.threading.Thread", _NoopThread)
 
         plan = {"steps": [], "integration_needed": True}
+        risk_paired_ctx = {
+            **copy.deepcopy(PAIRED_H5MU_CTX),
+            "n_shared_cells": 120,
+            "decision_actor": "human_reviewer",
+        }
         gate_res = orch._gate_and_dispatch(
             "exp_cp35",
             plan,
-            {**copy.deepcopy(PAIRED_H5MU_CTX), "decision_actor": "human_reviewer"},
+            copy.deepcopy(risk_paired_ctx),
         )
         assert gate_res["status"] == "audit_blocking"
         assert len(escalations) == 1
         assert escalations[0]["checkpoint"] == 3.5
-        assert "integration_agent is beta" in escalations[0]["question"]
+        assert "integration_agent is yellow" in escalations[0]["question"]
         assert orch._get_session("exp_cp35").cp35_acknowledged is False
 
         # Ambiguous / non-affirmative response must fail closed (cancelled, never dispatched)
@@ -336,7 +392,7 @@ def test_cp35_ack_lifecycle_strict_affirmative_memory_logging_and_reaudit_reset(
         gate_res_2 = orch._gate_and_dispatch(
             "exp_cp35",
             plan,
-            {**copy.deepcopy(PAIRED_H5MU_CTX), "decision_actor": "human_reviewer"},
+            copy.deepcopy(risk_paired_ctx),
         )
         assert gate_res_2["status"] == "audit_blocking"
         ack_res = orch._after_audit_checkpoint("exp_cp35", "Proceed anyway", None)
@@ -354,7 +410,7 @@ def test_cp35_ack_lifecycle_strict_affirmative_memory_logging_and_reaudit_reset(
         assert cp35_rows[0]["made_by"] == "human_reviewer"
 
         # Re-running _gate_and_dispatch resets stale cp35_acknowledged back to False
-        orch._gate_and_dispatch("exp_cp35", plan, copy.deepcopy(PAIRED_H5MU_CTX))
+        orch._gate_and_dispatch("exp_cp35", plan, copy.deepcopy(risk_paired_ctx))
         assert orch._get_session("exp_cp35").cp35_acknowledged is False
     finally:
         mem.close()
@@ -424,18 +480,28 @@ def test_dispatch_blocks_non_same_cell_integration_while_running_single_lanes(
     int_res = orch._agent_results[exp_id]["integration_agent"]
     assert int_res["status"] == "skipped"
     assert int_res["reason"] == "multiome_same_cell_gate_blocked"
-    assert int_res["validation_level"] == "beta"
+    assert int_res["validation_level"] == "production"
 
 
-def test_dispatch_requires_boolean_cp35_ack_before_running_paired_integration():
+def test_dispatch_autonomous_green_vs_boolean_cp35_ack_on_risk_elevated():
     orch, calls, _ = _make_stub_orchestrator()
 
-    # 1. Unacknowledged paired .h5mu (including truthy non-bool string "true") fails closed
+    # 1. Clean green paired .h5mu at production dispatches autonomously without ack
+    orch._experiment_plans["exp_green_auto"] = {"intent": {"user_question": "joint states"}}
+    plan_green = orch._fallback_plan(PAIRED_H5MU_CTX)
+    orch._dispatch_agents("exp_green_auto", plan_green, copy.deepcopy(PAIRED_H5MU_CTX))
+    assert "integration_agent" in [name for name, _ in calls]
+    assert orch._agent_results["exp_green_auto"]["integration_agent"]["status"] == "done"
+
+    calls.clear()
+
+    # 2. Risk-elevated yellow paired .h5mu (including truthy non-bool string "true") fails closed
+    risk_base = {**copy.deepcopy(PAIRED_H5MU_CTX), "n_shared_cells": 120}
     for idx, bad_ctx in enumerate(
         [
-            copy.deepcopy(PAIRED_H5MU_CTX),
-            {**copy.deepcopy(PAIRED_H5MU_CTX), "integration_ack_confirmed": "true"},
-            {**copy.deepcopy(PAIRED_H5MU_CTX), "cp35_acknowledged": "yes"},
+            copy.deepcopy(risk_base),
+            {**copy.deepcopy(risk_base), "integration_ack_confirmed": "true"},
+            {**copy.deepcopy(risk_base), "cp35_acknowledged": "yes"},
         ]
     ):
         exp_id = f"exp_no_ack_{idx}"
@@ -448,11 +514,11 @@ def test_dispatch_requires_boolean_cp35_ack_before_running_paired_integration():
 
     assert "integration_agent" not in [name for name, _ in calls]
 
-    # 2. Session-level CP3.5 acknowledgement dispatches IntegrationAgent cleanly
+    # 3. Session-level CP3.5 acknowledgement dispatches risk-elevated IntegrationAgent cleanly
     orch._experiment_plans["exp_ack_ok"] = {"intent": {"user_question": "joint states"}}
     orch._get_session("exp_ack_ok").cp35_acknowledged = True
-    plan_ok = orch._fallback_plan(PAIRED_H5MU_CTX)
-    orch._dispatch_agents("exp_ack_ok", plan_ok, copy.deepcopy(PAIRED_H5MU_CTX))
+    plan_ok = orch._fallback_plan(risk_base)
+    orch._dispatch_agents("exp_ack_ok", plan_ok, copy.deepcopy(risk_base))
 
     called_ok = [name for name, _ in calls]
     assert "chromatin_agent" in called_ok

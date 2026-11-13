@@ -22,6 +22,7 @@ Pipeline over same-cell paired multiome data (.h5mu preferred, or paired .h5ad):
 
 from __future__ import annotations
 
+import json
 import os
 from pathlib import Path
 import sys
@@ -29,12 +30,190 @@ from typing import Any
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from aria.scripts._base import run_script
+from aria.utils.integration_qc import assess_integration_quality
+from aria.utils.stage_manifest import (
+    build_stage_manifest,
+    stage_is_current,
+    write_stage_manifest,
+)
 from aria.utils.wnn_diagnostics import (
     compute_wnn_anti_degradation_diagnostics,
     sanitize_for_hdf5_uns,
 )
 
 _FRIP_COL_HINTS = ("frip", "fraction_reads_in_peaks", "pct_reads_in_peaks")
+_AUTO_BATCH_CANDIDATES = ("batch", "donor_id", "sample_id")
+_STAGE_VERSION = "aria.integration_wnn.v2"
+
+
+def _expand_manifest_inputs(role_prefix: str, raw_path: str | None) -> list[tuple[str, str]]:
+    """Expand a file or directory (e.g. 10x MEX dir) into deterministic file roles."""
+    if not raw_path:
+        return []
+    p = Path(str(raw_path))
+    if not p.exists():
+        return []
+    if p.is_file():
+        return [(role_prefix, str(p.resolve()))]
+    if p.is_dir():
+        out: list[tuple[str, str]] = []
+        for child in sorted(p.rglob("*")):
+            if child.is_file():
+                rel = child.relative_to(p).as_posix()
+                out.append((f"{role_prefix}:{rel}", str(child.resolve())))
+        return out
+    return []
+
+
+def _resolve_batch_series(
+    obs_dfs: list[Any],
+    explicit_batch_key: str | None,
+) -> tuple[str | None, list[str] | None, str]:
+    """Resolve batch/donor labels across candidate `.obs` frames."""
+    if explicit_batch_key is not None and str(explicit_batch_key).strip():
+        col = str(explicit_batch_key).strip()
+        for df in obs_dfs:
+            if df is not None and col in df.columns:
+                vals = [str(v) for v in df[col].tolist()]
+                return col, vals, "explicit_batch_key"
+        return col, None, "explicit_batch_key_missing"
+
+    for col in _AUTO_BATCH_CANDIDATES:
+        for df in obs_dfs:
+            if df is not None and col in df.columns:
+                vals = [str(v) for v in df[col].tolist()]
+                if len(set(vals)) >= 2:
+                    return col, vals, f"auto_detected:{col}"
+    return None, None, "no_multi_batch_column"
+
+
+def _compute_safe_silhouette(
+    embedding,
+    labels: list[str],
+    *,
+    seed: int,
+    max_dims: int = 20,
+) -> float | None:
+    """Compute Euclidean silhouette score safely on up to 2,000 sampled cells."""
+    import numpy as np
+    from sklearn.metrics import silhouette_score
+
+    n_cells = int(embedding.shape[0])
+    uniq = set(labels)
+    if n_cells < 4 or len(uniq) < 2 or len(uniq) >= n_cells:
+        return None
+    # Require at least one group with >= 2 cells so silhouette is well-defined.
+    if max(labels.count(u) for u in uniq) < 2:
+        return None
+    mat = np.asarray(embedding[:, : min(max_dims, embedding.shape[1])], dtype=np.float64)
+    if not np.all(np.isfinite(mat)):
+        return None
+    try:
+        val = float(
+            silhouette_score(
+                mat,
+                np.asarray(labels, dtype=object),
+                sample_size=min(2000, n_cells),
+                random_state=int(seed),
+            )
+        )
+        return round(val, 4) if np.isfinite(val) else None
+    except Exception:
+        return None
+
+
+def _compute_graph_ilisi(
+    connectivities,
+    batch_labels: list[str],
+) -> tuple[float | None, float | None]:
+    """Compute median Inverse Simpson's Index (iLISI) on a sparse kNN/WNN graph.
+
+    Returns `(median_ilisi, median_normalized_ilisi)` where `ilisi` is in `[1, B]`
+    and `normalized_ilisi = (ilisi - 1) / (B - 1)` is in `[0, 1]`.
+    """
+    import numpy as np
+    import scipy.sparse as sp
+
+    n_cells = len(batch_labels)
+    uniq = sorted(set(batch_labels))
+    n_batches = len(uniq)
+    if n_cells < 4 or n_batches < 2:
+        return None, None
+
+    batch_to_idx = {b: i for i, b in enumerate(uniq)}
+    b_idx = np.asarray([batch_to_idx[b] for b in batch_labels], dtype=int)
+    csr = sp.csr_matrix(connectivities, dtype=np.float64)
+    if csr.shape != (n_cells, n_cells):
+        return None, None
+
+    ilisi_vals = np.empty(n_cells, dtype=np.float64)
+    for i in range(n_cells):
+        start, end = csr.indptr[i], csr.indptr[i + 1]
+        nbrs = csr.indices[start:end]
+        wts = csr.data[start:end]
+        pos_mask = wts > 0.0
+        nbrs = nbrs[pos_mask]
+        wts = wts[pos_mask]
+        if nbrs.size == 0:
+            ilisi_vals[i] = 1.0
+            continue
+        w_sum = float(np.sum(wts))
+        if w_sum <= 0.0:
+            probs = np.full(nbrs.size, 1.0 / float(nbrs.size), dtype=np.float64)
+        else:
+            probs = wts / w_sum
+        batch_masses = np.bincount(b_idx[nbrs], weights=probs, minlength=n_batches)
+        simpson = float(np.sum(batch_masses ** 2))
+        ilisi_vals[i] = (1.0 / simpson) if simpson > 1e-12 else 1.0
+
+    med_ilisi = float(np.median(ilisi_vals))
+    norm_ilisi = max(0.0, min(1.0, (med_ilisi - 1.0) / float(n_batches - 1)))
+    return round(med_ilisi, 4), round(norm_ilisi, 4)
+
+
+def _run_harmony_embedding(
+    embedding,
+    batch_labels: list[str],
+    *,
+    batch_col: str,
+    seed: int,
+):
+    """Harmonize a `(n_cells, n_dims)` latent matrix across `batch_labels`."""
+    import inspect
+    import harmonypy as hm
+    import numpy as np
+    import pandas as pd
+
+    arr = np.asarray(embedding, dtype=np.float64)
+    n_cells, n_dims = arr.shape
+    nclust = max(2, min(int(round(float(n_cells) / 30.0)), 100, max(2, n_cells - 1)))
+    meta_df = pd.DataFrame({str(batch_col): [str(v) for v in batch_labels]})
+
+    kwargs: dict[str, Any] = {
+        "nclust": int(nclust),
+        "random_state": int(seed),
+        "verbose": False,
+    }
+    try:
+        sig_params = inspect.signature(hm.run_harmony).parameters
+        if "device" in sig_params:
+            kwargs["device"] = "cpu"
+    except Exception:
+        pass
+
+    ho = hm.run_harmony(arr, meta_df, str(batch_col), **kwargs)
+    z_corr = np.asarray(ho.Z_corr, dtype=np.float32)
+    if z_corr.shape == (n_dims, n_cells) and n_cells != n_dims:
+        z_corr = z_corr.T
+    elif z_corr.shape == (n_cells, n_dims) and n_cells == n_dims:
+        ver_major = str(getattr(hm, "__version__", "2")).split(".")[0]
+        if ver_major.isdigit() and int(ver_major) < 1:
+            z_corr = z_corr.T
+    if z_corr.shape != (n_cells, n_dims):
+        raise ValueError(
+            f"Harmony output shape {z_corr.shape} does not match input {(n_cells, n_dims)}"
+        )
+    return np.ascontiguousarray(z_corr, dtype=np.float32)
 
 
 def _l2_normalize_rows(mat):
@@ -162,12 +341,18 @@ def integration_wnn(params: dict) -> dict:
     min_cells = max(10, int(params.get("min_cells", 50)))
     seed = int(params.get("seed", 0))
     output_dir = str(params.get("output_dir") or "/tmp/aria_wnn")
+    batch_key_param = params.get("batch_key")
+    harmonize_param = params.get("harmonize_batches", "auto")
+    max_harmony_cells = int(params.get("max_harmony_cells", 250_000))
+    resume = bool(params.get("resume", True))
     warnings: list[str] = []
 
     Path(output_dir).mkdir(parents=True, exist_ok=True)
 
     # Resolve whether input is a paired .h5mu or split modality files.
     resolved_h5mu: str | None = None
+    valid_rna: list[str] = []
+    valid_atac: list[str] = []
     if h5mu_param is not None and str(h5mu_param).strip():
         cand = Path(str(h5mu_param))
         if not cand.exists():
@@ -205,6 +390,79 @@ def integration_wnn(params: dict) -> dict:
                     }
             resolved_h5mu = valid_rna[0]
 
+    stage_inputs: list[tuple[str, str | None]] = []
+    if resolved_h5mu is not None:
+        stage_inputs.extend(_expand_manifest_inputs("paired_input", resolved_h5mu))
+    else:
+        for idx, rf in enumerate(valid_rna):
+            stage_inputs.extend(_expand_manifest_inputs(f"rna_{idx}", rf))
+        for idx, af in enumerate(valid_atac):
+            stage_inputs.extend(_expand_manifest_inputs(f"atac_{idx}", af))
+
+    manifest_params = {
+        "genome": genome,
+        "organism": organism,
+        "k": k,
+        "resolution": resolution,
+        "n_top_genes": n_top_genes,
+        "n_pcs": n_pcs,
+        "n_lsi_comps": n_lsi_comps,
+        "depth_corr_cutoff": depth_corr_cutoff,
+        "min_cells": min_cells,
+        "seed": seed,
+        "n_bandwidth_neighbors": int(params.get("n_bandwidth_neighbors", 20)),
+        "n_multineighbors": int(params.get("n_multineighbors", 200)),
+        "run_guardrail": bool(params.get("run_guardrail", True)),
+        "audit_group_col": (
+            str(params["audit_group_col"])
+            if params.get("audit_group_col") is not None
+            else None
+        ),
+        "batch_key": (
+            str(batch_key_param).strip()
+            if batch_key_param is not None and str(batch_key_param).strip()
+            else None
+        ),
+        "harmonize_batches": (
+            harmonize_param
+            if isinstance(harmonize_param, bool)
+            else str(harmonize_param).strip().lower()
+        ),
+        "max_harmony_cells": max_harmony_cells,
+    }
+    manifest_path = Path(output_dir) / "integration_wnn.stage_manifest.json"
+    cached_result_path = Path(output_dir) / ".integration_wnn.result.json"
+    out_h5mu_candidate = Path(output_dir) / "wnn_integrated.h5mu"
+
+    if (
+        resume
+        and stage_inputs
+        and out_h5mu_candidate.is_file()
+        and out_h5mu_candidate.stat().st_size > 0
+        and cached_result_path.is_file()
+    ):
+        is_curr, _why = stage_is_current(
+            manifest_path,
+            inputs=stage_inputs,
+            params=manifest_params,
+            tool_version=_STAGE_VERSION,
+        )
+        if is_curr:
+            try:
+                cached_payload = json.loads(
+                    cached_result_path.read_text(encoding="utf-8")
+                )
+                if cached_payload.get("status") == "success":
+                    cached_payload["resumed"] = True
+                    cached_payload["warnings"] = list(
+                        cached_payload.get("warnings") or []
+                    ) + [
+                        "[resume] Reused current WNN stage output verified by SHA-256 stage manifest."
+                    ]
+                    return cached_payload
+            except Exception:
+                pass
+
     try:
         import anndata as ad
         import mudata as md
@@ -224,6 +482,7 @@ def integration_wnn(params: dict) -> dict:
         )
 
         global_obs_preserved = None
+        src_mdata = None
         input_kind = "paired_h5ad"
 
         if resolved_h5mu is not None:
@@ -378,6 +637,64 @@ def integration_wnn(params: dict) -> dict:
         rna_adata.layers["counts"] = rna_raw.copy()
         atac_adata.layers["counts"] = atac_raw.copy()
 
+        # Resolve donor/batch labels and Harmony harmonization policy up front.
+        explicit_batch_col = (
+            str(batch_key_param).strip()
+            if batch_key_param is not None and str(batch_key_param).strip()
+            else None
+        )
+        resolved_batch_col, batch_labels, batch_source = _resolve_batch_series(
+            [global_obs_preserved, rna_adata.obs, atac_adata.obs],
+            explicit_batch_col,
+        )
+        if explicit_batch_col and batch_labels is None:
+            warnings.append(
+                f"Requested batch_key='{explicit_batch_col}' was not found in "
+                "paired .obs; proceeding without Harmony batch harmonization."
+            )
+        n_batches = len(set(batch_labels)) if batch_labels is not None else 1
+        is_merged_cohort = bool(
+            src_mdata is not None and "aria_cohort_merge" in getattr(src_mdata, "uns", {})
+        )
+        if isinstance(harmonize_param, bool):
+            harm_mode = "true" if harmonize_param else "false"
+        else:
+            harm_mode = str(harmonize_param).strip().lower()
+
+        should_harmonize = False
+        harmonize_reason = "single_batch_or_no_batch_column"
+        if batch_labels is not None and n_batches >= 2:
+            if n_cells > max_harmony_cells:
+                should_harmonize = False
+                harmonize_reason = f"skipped_above_max_harmony_cells:{max_harmony_cells}"
+                warnings.append(
+                    f"Skipped Harmony latent correction for {n_cells} cells "
+                    f"(> max_harmony_cells={max_harmony_cells})."
+                )
+            elif harm_mode in ("false", "0", "no", "off", "none"):
+                should_harmonize = False
+                harmonize_reason = "disabled_by_caller"
+            elif harm_mode in ("true", "1", "yes", "on", "harmony"):
+                should_harmonize = True
+                harmonize_reason = "enabled_by_caller"
+            else:
+                # Auto mode: activate on explicit batch_key, canonical 'batch'
+                # column, or multi-donor cohorts merged via integration_merge_cohort.
+                if (
+                    explicit_batch_col is not None
+                    or resolved_batch_col == "batch"
+                    or is_merged_cohort
+                ):
+                    should_harmonize = True
+                    harmonize_reason = (
+                        "auto_cohort_merge"
+                        if is_merged_cohort
+                        else f"auto_{resolved_batch_col}"
+                    )
+                else:
+                    should_harmonize = False
+                    harmonize_reason = f"auto_preserved_single_assay:{resolved_batch_col}"
+
         # ── 1. Deterministic RNA preprocessing ────────────────────────────
         sc.pp.normalize_total(rna_adata, target_sum=1e4)
         sc.pp.log1p(rna_adata)
@@ -421,10 +738,20 @@ def integration_wnn(params: dict) -> dict:
             svd_solver="arpack",
             random_state=seed,
         )
-        rna_adata.obsm["X_pca"] = np.asarray(
-            rna_work.obsm["X_pca"], dtype=np.float32
-        )
-        rna_adata.obsm["X_pca_l2"] = _l2_normalize_rows(rna_adata.obsm["X_pca"])
+        x_pca_raw = np.asarray(rna_work.obsm["X_pca"], dtype=np.float32)
+        rna_adata.obsm["X_pca"] = x_pca_raw
+        if should_harmonize and batch_labels is not None and resolved_batch_col is not None:
+            rna_adata.obsm["X_pca_unintegrated"] = x_pca_raw.copy()
+            x_pca_harm = _run_harmony_embedding(
+                x_pca_raw,
+                batch_labels,
+                batch_col=resolved_batch_col,
+                seed=seed,
+            )
+            rna_adata.obsm["X_pca_harmony"] = x_pca_harm
+            rna_adata.obsm["X_pca_l2"] = _l2_normalize_rows(x_pca_harm)
+        else:
+            rna_adata.obsm["X_pca_l2"] = _l2_normalize_rows(x_pca_raw)
 
         sc.pp.neighbors(
             rna_adata,
@@ -495,10 +822,20 @@ def integration_wnn(params: dict) -> dict:
                 f"(|r| vs log10 depth >= {depth_corr_cutoff})."
             )
 
-        atac_adata.obsm["X_lsi"] = np.asarray(
-            lsi_raw[:, keep_lsi], dtype=np.float32
-        )
-        atac_adata.obsm["X_lsi_l2"] = _l2_normalize_rows(atac_adata.obsm["X_lsi"])
+        x_lsi_kept = np.asarray(lsi_raw[:, keep_lsi], dtype=np.float32)
+        atac_adata.obsm["X_lsi"] = x_lsi_kept
+        if should_harmonize and batch_labels is not None and resolved_batch_col is not None:
+            atac_adata.obsm["X_lsi_unintegrated"] = x_lsi_kept.copy()
+            x_lsi_harm = _run_harmony_embedding(
+                x_lsi_kept,
+                batch_labels,
+                batch_col=resolved_batch_col,
+                seed=seed,
+            )
+            atac_adata.obsm["X_lsi_harmony"] = x_lsi_harm
+            atac_adata.obsm["X_lsi_l2"] = _l2_normalize_rows(x_lsi_harm)
+        else:
+            atac_adata.obsm["X_lsi_l2"] = _l2_normalize_rows(x_lsi_kept)
         atac_adata.obs["atac_total_counts"] = atac_cell_totals.astype(np.float64)
 
         sc.pp.neighbors(
@@ -523,6 +860,16 @@ def integration_wnn(params: dict) -> dict:
         if global_obs_preserved is not None:
             for col in global_obs_preserved.columns:
                 mdata.obs[str(col)] = global_obs_preserved[col].values
+        if (
+            resolved_batch_col is not None
+            and batch_labels is not None
+            and resolved_batch_col not in mdata.obs.columns
+        ):
+            mdata.obs[str(resolved_batch_col)] = batch_labels
+        if is_merged_cohort and src_mdata is not None:
+            mdata.uns["aria_cohort_merge"] = sanitize_for_hdf5_uns(
+                dict(src_mdata.uns.get("aria_cohort_merge") or {})
+            )
 
         mu.pp.neighbors(
             mdata,
@@ -632,27 +979,128 @@ def integration_wnn(params: dict) -> dict:
         if atac_frip is None:
             metrics_not_computed.append("atac_frip")
 
-        # Stamp HDF5-safe provenance metadata (no None values in .uns).
-        mdata.uns["aria_wnn"] = {
-            "method": "muon_wnn_l2",
-            "input_kind": str(input_kind),
-            "rna_counts_source": str(rna_counts_source),
-            "atac_counts_source": str(atac_counts_source),
-            "seed": int(seed),
-            "k": int(k_eff),
-            "n_bandwidth_neighbors": int(n_bw),
-            "n_multineighbors": int(n_multi),
-            "resolution": float(resolution),
-            "n_hvg": int(n_hvg_used),
-            "n_pcs": int(n_pcs_eff),
-            "n_lsi_components_raw": int(n_lsi_eff),
-            "n_lsi_components_used": int(len(keep_lsi)),
-            "dropped_lsi_components": [int(c) for c in dropped_lsi],
-            "depth_corr_cutoff": float(depth_corr_cutoff),
-            "n_joint_clusters": int(n_joint_clusters),
-            "wnn_vs_rna_ari": round(float(wnn_vs_rna_ari), 4),
-            "wnn_vs_atac_ari": round(float(wnn_vs_atac_ari), 4),
+        # ── 5a. Batch/donor mixing & Harmony overcorrection diagnostics ───
+        batch_integration: dict[str, Any] = {
+            "applied": bool(should_harmonize),
+            "method": "harmony" if should_harmonize else "none",
+            "batch_key": resolved_batch_col if batch_labels is not None else None,
+            "batch_source": batch_source,
+            "n_batches": int(n_batches),
+            "reason": harmonize_reason,
+            "rna_batch_silhouette_before": None,
+            "rna_batch_silhouette_after": None,
+            "atac_batch_silhouette_before": None,
+            "atac_batch_silhouette_after": None,
+            "wnn_cluster_silhouette": None,
+            "wnn_batch_ilisi_median": None,
+            "wnn_batch_ilisi_norm_median": None,
+            "quality_assessment": None,
         }
+        if batch_labels is not None and n_batches >= 2:
+            rna_before_emb = (
+                rna_adata.obsm["X_pca_unintegrated"]
+                if "X_pca_unintegrated" in rna_adata.obsm
+                else rna_adata.obsm["X_pca"]
+            )
+            rna_after_emb = (
+                rna_adata.obsm["X_pca_harmony"]
+                if "X_pca_harmony" in rna_adata.obsm
+                else rna_adata.obsm["X_pca"]
+            )
+            atac_before_emb = (
+                atac_adata.obsm["X_lsi_unintegrated"]
+                if "X_lsi_unintegrated" in atac_adata.obsm
+                else atac_adata.obsm["X_lsi"]
+            )
+            atac_after_emb = (
+                atac_adata.obsm["X_lsi_harmony"]
+                if "X_lsi_harmony" in atac_adata.obsm
+                else atac_adata.obsm["X_lsi"]
+            )
+            rna_sil_before = _compute_safe_silhouette(
+                rna_before_emb, batch_labels, seed=seed
+            )
+            rna_sil_after = _compute_safe_silhouette(
+                rna_after_emb, batch_labels, seed=seed
+            )
+            atac_sil_before = _compute_safe_silhouette(
+                atac_before_emb, batch_labels, seed=seed
+            )
+            atac_sil_after = _compute_safe_silhouette(
+                atac_after_emb, batch_labels, seed=seed
+            )
+            joint_l2 = np.hstack(
+                [rna_adata.obsm["X_pca_l2"], atac_adata.obsm["X_lsi_l2"]]
+            )
+            wnn_cl_sil = _compute_safe_silhouette(
+                joint_l2, wnn_labels, seed=seed, max_dims=joint_l2.shape[1]
+            )
+            wnn_ilisi, wnn_ilisi_norm = _compute_graph_ilisi(
+                mdata.obsp["wnn_connectivities"], batch_labels
+            )
+            batch_integration.update(
+                {
+                    "rna_batch_silhouette_before": rna_sil_before,
+                    "rna_batch_silhouette_after": rna_sil_after,
+                    "atac_batch_silhouette_before": atac_sil_before,
+                    "atac_batch_silhouette_after": atac_sil_after,
+                    "wnn_cluster_silhouette": wnn_cl_sil,
+                    "wnn_batch_ilisi_median": wnn_ilisi,
+                    "wnn_batch_ilisi_norm_median": wnn_ilisi_norm,
+                }
+            )
+            if (
+                should_harmonize
+                and rna_sil_before is not None
+                and rna_sil_after is not None
+                and wnn_cl_sil is not None
+            ):
+                qa = assess_integration_quality(
+                    silhouette_before=rna_sil_before,
+                    silhouette_after=rna_sil_after,
+                    cluster_silhouette=wnn_cl_sil,
+                )
+                qa_issues = qa.get("issues") or []
+                qa["possible_overcorrection"] = any(
+                    isinstance(it, dict) and it.get("code") == "possible_overcorrection"
+                    for it in qa_issues
+                )
+                if qa_issues and not qa.get("warning"):
+                    qa["warning"] = "; ".join(
+                        str(it.get("message"))
+                        for it in qa_issues
+                        if isinstance(it, dict) and it.get("message")
+                    )
+                batch_integration["quality_assessment"] = qa
+                if qa.get("warning"):
+                    warnings.append(str(qa["warning"]))
+        else:
+            metrics_not_computed.append("wnn_batch_ilisi")
+
+        # Stamp HDF5-safe provenance metadata (no None values in .uns).
+        mdata.uns["aria_wnn"] = sanitize_for_hdf5_uns(
+            {
+                "method": "muon_wnn_harmony_l2" if should_harmonize else "muon_wnn_l2",
+                "input_kind": str(input_kind),
+                "rna_counts_source": str(rna_counts_source),
+                "atac_counts_source": str(atac_counts_source),
+                "seed": int(seed),
+                "k": int(k_eff),
+                "n_bandwidth_neighbors": int(n_bw),
+                "n_multineighbors": int(n_multi),
+                "resolution": float(resolution),
+                "n_hvg": int(n_hvg_used),
+                "n_pcs": int(n_pcs_eff),
+                "n_lsi_components_raw": int(n_lsi_eff),
+                "n_lsi_components_used": int(len(keep_lsi)),
+                "dropped_lsi_components": [int(c) for c in dropped_lsi],
+                "depth_corr_cutoff": float(depth_corr_cutoff),
+                "n_joint_clusters": int(n_joint_clusters),
+                "wnn_vs_rna_ari": round(float(wnn_vs_rna_ari), 4),
+                "wnn_vs_atac_ari": round(float(wnn_vs_atac_ari), 4),
+                "batch_integration": batch_integration,
+            }
+        )
 
         # ── 5b. V48 Slice I3 anti-degradation guardrail ("Lens, not replacement")
         run_guardrail = bool(params.get("run_guardrail", True))
@@ -733,7 +1181,7 @@ def integration_wnn(params: dict) -> dict:
                 f"(persisted in mdata.obs['leiden_wnn'])."
             )
 
-        return {
+        result_payload = {
             "status": "success",
             "input_kind": input_kind,
             "seed": int(seed),
@@ -780,11 +1228,39 @@ def integration_wnn(params: dict) -> dict:
             "atac_frip": atac_frip,
             "atac_frip_source": frip_col,
             "metrics_not_computed": metrics_not_computed,
+            "batch_integration": batch_integration,
             "guardrail_status": guardrail_status,
             "anti_degradation": anti_degradation,
             "output_path": str(out_path),
+            "resumed": False,
             "warnings": warnings,
         }
+
+        if stage_inputs:
+            try:
+                tmp_res = cached_result_path.with_name(
+                    f".integration_wnn.result.tmp.{os.getpid()}.json"
+                )
+                tmp_res.write_text(
+                    json.dumps(result_payload, indent=2), encoding="utf-8"
+                )
+                os.replace(tmp_res, cached_result_path)
+                write_stage_manifest(
+                    manifest_path,
+                    build_stage_manifest(
+                        stage="integration_wnn",
+                        inputs=stage_inputs,
+                        params=manifest_params,
+                        tool_version=_STAGE_VERSION,
+                        extra={"output_path": str(out_path)},
+                    ),
+                )
+            except Exception as manifest_exc:
+                warnings.append(
+                    f"Could not write WNN stage manifest: {manifest_exc}"
+                )
+
+        return result_payload
 
     except NotImplementedError as e:
         # P0-8: an unimplemented scaffold step (e.g. raw fragment peak-matrix build)

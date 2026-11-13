@@ -364,7 +364,7 @@ def test_integration_peak2gene_paired_h5mu_windows_and_uns_persistence(tmp_path)
         }
     )
     assert res_500["status"] == "success"
-    assert res_500["validation_level"] == "beta"
+    assert res_500["validation_level"] == "production"
     assert res_500["background_match"] == "gc_and_accessibility"
     assert res_500["gc_matching"]["available"] is True
     assert res_500["ctcf_validated"] is False
@@ -378,7 +378,7 @@ def test_integration_peak2gene_paired_h5mu_windows_and_uns_persistence(tmp_path)
 
         contract = contract_for_script("aria/scripts/integration_peak2gene.py")
         assert contract is not None
-        assert contract.validation_level == "beta"
+        assert contract.validation_level == "production"
         assert contract.validate_result(res_500) == []
 
     with open(res_500["output_path"], newline="", encoding="utf-8") as fh:
@@ -529,16 +529,16 @@ def test_agent_associative_tunnels_orchestrator_gate_and_no_fabrication_guard(tm
     from aria.agents.orchestrator_agent import INTEGRATION_VALIDATION
     from aria.utils.script_contracts import contract_for_script
 
-    # Slice I8 (ADR-071): promoted to paired same-cell beta + requires_ack!
-    assert INTEGRATION_VALIDATION["level"] == "beta"
+    # Promoted to paired same-cell production (ADR-079)!
+    assert INTEGRATION_VALIDATION["level"] == "production"
     assert INTEGRATION_VALIDATION["dispatch_enabled"] is True
-    assert INTEGRATION_VALIDATION["requires_ack"] is True
-    assert INTEGRATION_VALIDATION["production_promoted"] is False
+    assert INTEGRATION_VALIDATION["requires_ack"] is False
+    assert INTEGRATION_VALIDATION["production_promoted"] is True
 
-    # ScriptContract is promoted to beta and validates canonical success payload
+    # ScriptContract is promoted to production and validates canonical success payload
     contract = contract_for_script("aria/scripts/integration_peak2gene.py")
     assert contract is not None
-    assert contract.validation_level == "beta"
+    assert contract.validation_level == "production"
     dummy_csv = tmp_path / "peak_gene_links.csv"
     dummy_csv.write_text("gene,peak,correlation\n", encoding="utf-8")
     assert (

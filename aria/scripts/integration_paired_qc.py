@@ -10,8 +10,8 @@ atomically writes a validated `.h5mu` ready for downstream WNN / MOFA+ /
 peak-to-gene integration (`I2`+).
 
 Executed inside `aria-chromatin-env` (`stack="chromatin"`) where `mudata` and
-`muon` are locked and verified, while `INTEGRATION_VALIDATION` remains
-`scaffold` (`dispatch_enabled=False`) until explicit tier promotion in Slice I8.
+`muon` are locked and verified (`INTEGRATION_VALIDATION` promoted to
+`production` for `scope="paired_same_cell_rna_atac"` under `ADR-079`).
 """
 
 from __future__ import annotations
@@ -81,7 +81,11 @@ def _subset_matrix_rows(matrix: Any, row_indices: list[int]) -> Any:
 
 
 def integration_paired_qc(params: dict[str, Any]) -> dict[str, Any]:
-    """Run paired `.h5mu` contract verification, joint RNA+ATAC QC, and optional `/obs` label join."""
+    """Run paired contract verification, joint QC, and optional reference label join.
+
+    The returned stage_manifest_path is relative to output_dir, preserving the
+    existing destination-independent reproducibility of QC result metadata.
+    """
     import numpy as np
     from aria.utils.mudata_io import (
         _import_mudata,
@@ -96,6 +100,40 @@ def integration_paired_qc(params: dict[str, Any]) -> dict[str, Any]:
             "error_type": "MissingInput",
             "details": "integration_paired_qc requires 'h5mu_path' (or 'data_path').",
         }
+
+    from aria.utils.mudata_io import (
+        _stage_cache,
+        _stage_complete,
+        paired_input_files,
+        MultiomeInputError,
+    )
+
+    normalized = dict(params)
+    for key, default in {"min_genes": 200, "min_rna_counts": 500, "min_peaks": 200, "min_atac_counts": 500}.items():
+        normalized[key] = int(params.get(key, default))
+    for key, default in {"max_pct_mt": 20.0, "min_shared_barcode_fraction": 0.50,
+                         "min_warn_reference_match_fraction": 0.50}.items():
+        normalized[key] = float(params.get(key, default))
+    normalized.update(
+        require_raw_counts=bool(params.get("require_raw_counts", True)),
+        allow_partial_overlap=bool(params.get("allow_partial_overlap", False)),
+        require_reference_match=bool(params.get("require_reference_match", True)),
+    )
+    try:
+        stage_inputs = paired_input_files("h5mu_input", h5mu_path)
+    except MultiomeInputError as exc:
+        return {"status": "error", "error_type": exc.error_type, "details": str(exc)}
+    if params.get("reference_h5ad"):
+        stage_inputs.append(("reference_h5ad", str(params["reference_h5ad"])))
+    cached, stage_state = _stage_cache(
+        "integration_paired_qc",
+        params.get("output_dir") or Path(h5mu_path).parent,
+        stage_inputs,
+        normalized,
+        params.get("resume", True),
+    )
+    if cached:
+        return cached
 
     require_raw_counts = bool(params.get("require_raw_counts", True))
     paired = read_h5mu_paired(h5mu_path, require_raw_counts=require_raw_counts)
@@ -397,7 +435,7 @@ def integration_paired_qc(params: dict[str, Any]) -> dict[str, Any]:
 
     pct_removed = round(100.0 * float(n_shared - n_after) / float(n_shared), 2)
 
-    return {
+    result = {
         "status": "success",
         "input_path": str(in_path),
         "output_path": str(out_path),
@@ -432,27 +470,39 @@ def integration_paired_qc(params: dict[str, Any]) -> dict[str, Any]:
             "mt_gene_source": mt_source,
             "n_mt_genes": n_mt_genes,
             "median_total_counts_before": round(float(np.median(rna_totals)), 2),
-            "median_total_counts_after": round(float(np.median(rna_totals[kept_idx_arr])), 2),
+            "median_total_counts_after": round(
+                float(np.median(rna_totals[kept_idx_arr])), 2
+            ),
             "median_genes_before": round(float(np.median(rna_n_genes)), 2),
-            "median_genes_after": round(float(np.median(rna_n_genes[kept_idx_arr])), 2),
+            "median_genes_after": round(
+                float(np.median(rna_n_genes[kept_idx_arr])), 2
+            ),
             "median_pct_mt_before": (
                 round(float(np.median(pct_counts_mt)), 3)
-                if mt_measured and pct_counts_mt is not None else None
+                if mt_measured and pct_counts_mt is not None
+                else None
             ),
             "median_pct_mt_after": (
                 round(float(np.median(pct_counts_mt[kept_idx_arr])), 3)
-                if mt_measured and pct_counts_mt is not None else None
+                if mt_measured and pct_counts_mt is not None
+                else None
             ),
         },
         "atac_qc_summary": {
             "median_peak_counts_before": round(float(np.median(atac_totals)), 2),
-            "median_peak_counts_after": round(float(np.median(atac_totals[kept_idx_arr])), 2),
+            "median_peak_counts_after": round(
+                float(np.median(atac_totals[kept_idx_arr])), 2
+            ),
             "median_peaks_before": round(float(np.median(atac_n_peaks)), 2),
-            "median_peaks_after": round(float(np.median(atac_n_peaks[kept_idx_arr])), 2),
+            "median_peaks_after": round(
+                float(np.median(atac_n_peaks[kept_idx_arr])), 2
+            ),
             "frip": None,
             "tss_enrichment": None,
             "fragment_count_col": atac_frag_col,
-            "median_fragments_per_cell": paired.get("median_atac_fragments_per_cell"),
+            "median_fragments_per_cell": paired.get(
+                "median_atac_fragments_per_cell"
+            ),
             "mito_obs_col": atac_mito_col,
             "median_mito_obs": paired.get("median_atac_mito_fraction"),
         },
@@ -460,6 +510,7 @@ def integration_paired_qc(params: dict[str, Any]) -> dict[str, Any]:
         "metrics_not_computed": metrics_not_computed,
         "warnings": warnings,
     }
+    return _stage_complete(result, stage_state)
 
 
 def out_Path_safe(filename: str) -> str:

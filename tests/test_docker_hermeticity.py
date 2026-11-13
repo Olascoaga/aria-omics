@@ -62,6 +62,7 @@ def test_stack_images_install_their_own_env():
         "Dockerfile.chromatin": ("aria-chromatin-env.yml", "chromatin"),
         "Dockerfile.atacseq": ("aria-atacseq-env.yml", "atacseq"),
         "Dockerfile.tobias": ("aria-tobias-env.yml", "tobias"),
+        "Dockerfile.integration": ("aria-integration-env.yml", "integration"),
     }
     for name, (env_yml, kind) in expected.items():
         text = (DOCKER / name).read_text()
@@ -72,14 +73,26 @@ def test_stack_images_install_their_own_env():
             f"docker/{name} must stamp ARIA_IMAGE_KIND={kind}"
 
 
-def test_scaffold_modalities_are_marked_unvalidated():
+def test_no_modality_image_is_stamped_scaffold_or_beta():
+    # ADR-079 promoted the last scaffold image (integration); every modality
+    # image is now a validated release image. A future scaffold image must be
+    # added here deliberately, never silently.
+    for name in _MODALITY_IMAGES:
+        text = (DOCKER / name).read_text()
+        assert "ARIA_IMAGE_VALIDATION=scaffold" not in text, name
+        assert "ARIA_IMAGE_VALIDATION=beta" not in text, name
+
+
+def test_validated_integration_image_is_stamped_validated():
     text = (DOCKER / "Dockerfile.integration").read_text()
-    assert "ARIA_IMAGE_VALIDATION=scaffold" in text, \
-        "docker/Dockerfile.integration must stamp itself as a scaffold"
+    assert "ARIA_IMAGE_VALIDATION=validated" in text
+    assert "ADR-079" in text
+    assert "SCAFFOLD" not in text
 
 
 def test_validated_chromatin_images_are_stamped_validated():
-    for name in ("Dockerfile.chromatin", "Dockerfile.atacseq", "Dockerfile.tobias"):
+    for name in ("Dockerfile.chromatin", "Dockerfile.atacseq", "Dockerfile.tobias",
+                 "Dockerfile.integration"):
         text = (DOCKER / name).read_text()
         assert "ARIA_IMAGE_VALIDATION=validated" in text, \
             f"docker/{name} must stamp ARIA_IMAGE_VALIDATION=validated"

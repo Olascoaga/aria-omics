@@ -48,11 +48,12 @@ def test_remaining_scaffold_chromatin_modalities_are_not_dispatched():
         assert MODALITY_VALIDATION[modality]["dispatch_enabled"] is False
 
 
-def test_paired_integration_agent_is_beta_and_ack_gated():
+def test_paired_integration_agent_is_production_for_same_cell_scope():
     from aria.agents.orchestrator_agent import INTEGRATION_VALIDATION
 
-    assert INTEGRATION_VALIDATION["level"] == "beta"
+    assert INTEGRATION_VALIDATION["level"] == "production"
     assert INTEGRATION_VALIDATION["dispatch_enabled"] is True
-    assert INTEGRATION_VALIDATION["requires_ack"] is True
-    assert INTEGRATION_VALIDATION["production_promoted"] is False
+    assert INTEGRATION_VALIDATION["requires_ack"] is False
+    assert INTEGRATION_VALIDATION["production_promoted"] is True
+    assert INTEGRATION_VALIDATION["promotion_adr"] == "ADR-079"
     assert INTEGRATION_VALIDATION["scope"] == "paired_same_cell_rna_atac"

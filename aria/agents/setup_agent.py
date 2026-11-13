@@ -160,7 +160,7 @@ class SetupAgent(BaseAgent):
             )
 
         # ── 2. Conda environments ─────────────────────────────────────────
-        needed_envs = self._needed_envs(modalities, has_fastq)
+        needed_envs = self._needed_envs(modalities, has_fastq, exp_ctx=exp_ctx)
         for env_name in needed_envs:
             self._ensure_env(
                 env_name, conda_cmd,
@@ -308,27 +308,34 @@ class SetupAgent(BaseAgent):
         except Exception:
             return set()
 
-    def _needed_envs(self, modalities: dict, has_fastq: bool) -> list[str]:
+    def _needed_envs(
+        self,
+        modalities: dict,
+        has_fastq: bool,
+        exp_ctx: Optional[dict] = None,
+    ) -> list[str]:
         """Which ARIA environments does this experiment need?"""
         by_stack = environment_names_by_stack()
         envs = []
         modality_set = set(modalities)
-        if has_fastq and "scRNA" in modality_set:
+        ctx = exp_ctx or {}
+        has_multiome_manifest = bool(ctx.get("multiome_fastq_manifest"))
+        if has_fastq and ("scRNA" in modality_set or has_multiome_manifest):
             envs.append(by_stack["ingestion"])
         if has_fastq and ({"bulk_RNA", "bulk_RNA_raw"} & modality_set):
             envs.append(by_stack["rnaseq"])
-        if {"scRNA", "bulk_RNA"} & modality_set:
+        if {"scRNA", "bulk_RNA"} & modality_set or has_multiome_manifest:
             envs.append(by_stack["rna"])
         chromatin = {
             "scATAC", "bulk_ATAC", "ChIP", "CUT_AND_RUN", "CUT_AND_TAG"
         } & modality_set
-        if chromatin:
+        if chromatin or has_multiome_manifest:
             envs.extend([
                 by_stack["chromatin"],
                 by_stack["rna"],
                 by_stack["tobias"],
             ])
-            if has_fastq:
+            if has_fastq or has_multiome_manifest:
                 envs.extend([by_stack["rnaseq"], by_stack["atacseq"]])
         if {"HiC", "Micro-C"} & modality_set:
             envs.append(by_stack["hic"])
@@ -337,7 +344,19 @@ class SetupAgent(BaseAgent):
             for files in modalities.values()
             for f in (files or [])
         )
-        if has_paired_h5mu or ({"scRNA", "scATAC"} <= modality_set):
+        has_paired_detection = any(
+            isinstance(rec, dict)
+            and str((rec.get("evidence") or {}).get("format") or "")
+            in {"h5mu", "10x_multiome_h5", "10x_multiome_mtx"}
+            for rec in (ctx.get("assay_detections") or [])
+        )
+        if (
+            has_paired_h5mu
+            or has_paired_detection
+            or has_multiome_manifest
+            or ({"scRNA", "scATAC"} <= modality_set)
+        ):
+            envs.append(by_stack["chromatin"])
             envs.append(by_stack["integration"])
         return list(dict.fromkeys(envs))
 
@@ -638,6 +657,8 @@ class SetupAgent(BaseAgent):
     # ── Helpers ───────────────────────────────────────────────────────────
 
     def _has_fastq(self, exp_ctx: dict) -> bool:
+        if exp_ctx.get("multiome_fastq_manifest"):
+            return True
         all_files = [
             f
             for files in exp_ctx.get("modalities", {}).values()

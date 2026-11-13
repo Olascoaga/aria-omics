@@ -231,6 +231,51 @@ class ChromatinAgent(BaseAgent):
         if not _is_fastq(files):
             matrix_files = [f for f in files
                             if str(f).lower().endswith((".h5mu", ".h5ad"))]
+            # ADR-079: Cell Ranger ARC `.h5` (`10x_multiome_h5`) and ARC dual
+            # MEX directories (`10x_multiome_mtx`) carry pre-called paired
+            # RNA+ATAC matrices; materialize them into `.h5mu` so the peak-matrix
+            # pipeline runs cleanly instead of falling through to MACS3.
+            paired_arc_formats = {"10x_multiome_h5", "10x_multiome_mtx"}
+            detected_arc_paths = {
+                str(Path(str(rec.get("path"))).resolve())
+                for rec in (exp_ctx.get("assay_detections") or [])
+                if isinstance(rec, dict)
+                and rec.get("path")
+                and str((rec.get("evidence") or {}).get("format") or "")
+                in paired_arc_formats
+            }
+            for idx, f in enumerate(files):
+                f_str = str(f)
+                if f_str in matrix_files:
+                    continue
+                p_obj = Path(f_str)
+                is_arc = (
+                    (p_obj.exists() and str(p_obj.resolve()) in detected_arc_paths)
+                    or (
+                        p_obj.exists()
+                        and (p_obj.is_dir() or f_str.lower().endswith(".h5"))
+                        and not detected_arc_paths
+                    )
+                )
+                if not is_arc or not p_obj.exists():
+                    continue
+                asm_dir = (
+                    Path(str(exp_ctx.get("data_dir") or p_obj.parent))
+                    / "aria_chromatin"
+                    / f"assembled_arc_{idx}"
+                )
+                asm_res = self.env.run_in_stack(
+                    stack="chromatin",
+                    script_path="aria/scripts/integration_assemble_multiome.py",
+                    params={
+                        "mode": "cellranger_arc",
+                        "arc_path": f_str,
+                        "output_dir": str(asm_dir),
+                        "min_shared_cells": 1,
+                    },
+                )
+                if asm_res.get("status") == "success" and asm_res.get("output_path"):
+                    matrix_files.append(str(asm_res["output_path"]))
             if len(matrix_files) == 1:
                 return self._run_scatac_matrix(
                     experiment_id, exp_ctx, intent, matrix_files[0])

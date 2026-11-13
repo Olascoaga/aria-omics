@@ -328,10 +328,10 @@ def test_registry_integrity_and_integration_tier_still_scaffold():
     assert "aria/scripts/integration_paired_qc.py" in (
         AGENT_SCRIPT_CONTRACTS["integration_agent"]["required"]
     )
-    assert INTEGRATION_VALIDATION["level"] == "beta"
+    assert INTEGRATION_VALIDATION["level"] == "production"
     assert INTEGRATION_VALIDATION["dispatch_enabled"] is True
-    assert INTEGRATION_VALIDATION["requires_ack"] is True
-    assert INTEGRATION_VALIDATION["production_promoted"] is False
+    assert INTEGRATION_VALIDATION["requires_ack"] is False
+    assert INTEGRATION_VALIDATION["production_promoted"] is True
 
 
 def test_ipc_contract_for_paired_qc(tmp_path):
@@ -340,7 +340,7 @@ def test_ipc_contract_for_paired_qc(tmp_path):
 
     contract = contract_for_script("aria/scripts/integration_paired_qc.py")
     assert contract is not None
-    assert contract.validation_level == "beta"
+    assert contract.validation_level == "production"
 
     h5mu = tmp_path / "sample1_paired.h5mu"
     h5mu.write_bytes(b"")

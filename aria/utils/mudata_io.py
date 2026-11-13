@@ -369,12 +369,325 @@ def _select_raw_counts_matrix(
     }
 
 
+class MultiomeInputError(ValueError):
+    """An intake failure with a stable IPC error type."""
+
+    def __init__(self, error_type: str, details: str):
+        super().__init__(details)
+        self.error_type = error_type
+
+
+def _open_text(path):
+    import gzip
+
+    return (
+        gzip.open(path, "rt", encoding="utf-8")
+        if str(path).endswith(".gz")
+        else open(path, encoding="utf-8")
+    )
+
+
+def _mex_files(path):
+    directory = Path(path) if Path(path).is_dir() else Path(path).parent
+    result = []
+    for stem in ("matrix.mtx", "barcodes.tsv", "features.tsv"):
+        found = next(
+            (
+                directory / name
+                for name in (stem, stem + ".gz")
+                if (directory / name).is_file()
+            ),
+            None,
+        )
+        if found is None:
+            raise MultiomeInputError(
+                "NotAnH5mu", f"Missing ARC MEX component: {directory / stem}"
+            )
+        result.append(found)
+    return result
+
+
+def paired_input_files(role, path):
+    """Expand MEX containers for content hashing; retain missing paths to invalidate resume."""
+    if not path:
+        return []
+    p = Path(path)
+    if p.is_dir() or p.name in {"matrix.mtx", "matrix.mtx.gz"}:
+        return [(f"{role}:{i}", str(f)) for i, f in enumerate(_mex_files(p))]
+    return [(role, str(p))]
+
+
+def _canonical_peak(name):
+    match = re.fullmatch(r"(.+?)(?::|_)(\d+)[_-](\d+)", str(name))
+    if not match or int(match[2]) < 0 or int(match[3]) <= int(match[2]):
+        raise MultiomeInputError(
+            "NonGenomicPeakFeatures", f"Invalid peak interval: {name}"
+        )
+    return f"{match[1]}:{int(match[2])}-{int(match[3])}"
+
+
+def _read_10x_matrix(path, *, require_paired=False):
+    """Read real 10x feature-by-cell storage without scanpy's GEX-only filtering."""
+    import numpy as np
+    from scipy import sparse
+
+    p = Path(path)
+    if p.suffix.lower() == ".h5":
+        import h5py
+
+        with h5py.File(p, "r") as handle:
+            if "matrix/features/feature_type" not in handle:
+                raise MultiomeInputError(
+                    "NotAnH5mu", "Not a typed 10x matrix container"
+                )
+            group = handle["matrix"]
+            decode = lambda values: [
+                v.decode() if isinstance(v, bytes) else str(v) for v in values
+            ]
+            types = decode(group["features/feature_type"][:])
+            names = decode(group["features/name"][:])
+            ids = decode(group["features/id"][:])
+            intervals = (
+                decode(group["features/interval"][:])
+                if "interval" in group["features"]
+                else names
+            )
+            barcodes = decode(group["barcodes"][:])
+            matrix = sparse.csc_matrix(
+                (group["data"][:], group["indices"][:], group["indptr"][:]),
+                shape=tuple(group["shape"][:]),
+            )
+            matrix.check_format(full_check=True)
+    else:
+        from scipy.io import mmread
+
+        mtx, bc, features = _mex_files(path)
+        with _open_text(bc) as handle:
+            barcodes = [line.rstrip().split("\t")[0] for line in handle]
+        with _open_text(features) as handle:
+            rows = [line.rstrip("\n").split("\t") for line in handle]
+        if not rows or any(len(row) < 3 for row in rows):
+            raise MultiomeInputError(
+                "MissingPairedModality", "MEX features require explicit feature types"
+            )
+        ids, names, types = ([row[i] for row in rows] for i in range(3))
+        intervals = names
+        matrix = sparse.coo_matrix(mmread(str(mtx)))
+    if require_paired and not {"Gene Expression", "Peaks"} <= set(types):
+        raise MultiomeInputError(
+            "MissingPairedModality",
+            "10x input requires both Gene Expression and Peaks features",
+        )
+    if (
+        matrix.shape != (len(names), len(barcodes))
+        or len(types) != len(names)
+        or len(ids) != len(names)
+    ):
+        raise MultiomeInputError(
+            "InvalidMatrixShape", "10x metadata and matrix dimensions differ"
+        )
+    inspection = _inspect_count_matrix(matrix)
+    if not inspection["is_raw_counts"] or (
+        matrix.data.size and np.max(matrix.data) >= np.iinfo(np.int64).max
+    ):
+        raise MultiomeInputError(
+            "NonIntegerCounts",
+            "10x matrix requires nonnegative int64-compatible raw counts",
+        )
+    # Inspect stored entries before coalescing duplicate coordinates; fractional
+    # entries cannot become accepted counts merely by summing to an integer.
+    matrix = matrix.astype(np.int64).T.tocsr()
+    matrix.check_format(full_check=True)
+    if matrix.data.size and np.any(matrix.data < 0):
+        raise MultiomeInputError("NonIntegerCounts", "Counts overflowed int64 storage")
+    return matrix, barcodes, names, ids, types, intervals
+
+
+def _tenx_modality(data, feature_type):
+    import anndata as ad
+    import pandas as pd
+
+    matrix, barcodes, names, ids, types, intervals = data
+    positions = [i for i, value in enumerate(types) if value == feature_type]
+    if not positions:
+        raise MultiomeInputError(
+            "MissingPairedModality", f"No {feature_type} features in 10x container"
+        )
+    selected_names = []
+    for i in positions:
+        if feature_type == "Peaks":
+            try:
+                name = _canonical_peak(names[i])
+            except MultiomeInputError:
+                name = _canonical_peak(intervals[i] or ids[i])
+        else:
+            name = names[i]
+        selected_names.append(name)
+    var = pd.DataFrame(
+        {
+            "gene_ids" if feature_type == "Gene Expression" else "feature_ids": [
+                ids[i] for i in positions
+            ]
+        },
+        index=selected_names,
+    )
+    result = ad.AnnData(
+        X=matrix[:, positions].copy(), obs=pd.DataFrame(index=barcodes), var=var
+    )
+    if feature_type == "Gene Expression":
+        result.var_names_make_unique()
+    elif not result.var_names.is_unique:
+        # Duplicate genomic features would cause double counting at later union steps.
+        raise MultiomeInputError(
+            "DuplicatePeakFeatures", "10x peak coordinates must be unique"
+        )
+    result.layers["counts"] = result.X.copy()
+    return result
+
+
+def _write_paired_atomic(mdata, output_path):
+    import os
+    import tempfile
+
+    target = Path(output_path)
+    if target.suffix.lower() != ".h5mu":
+        raise MultiomeInputError(
+            "InvalidOutputPath", "Paired output requires a .h5mu suffix"
+        )
+    target.parent.mkdir(parents=True, exist_ok=True)
+    fd, temporary = tempfile.mkstemp(
+        prefix=f".{target.stem}.", suffix=".h5mu", dir=target.parent
+    )
+    os.close(fd)
+    try:
+        mdata.write_h5mu(temporary)
+        os.replace(temporary, target)
+    finally:
+        Path(temporary).unlink(missing_ok=True)
+
+
+def load_or_convert_paired_multiome_to_h5mu(
+    source_path: str, output_h5mu: str
+) -> dict[str, Any]:
+    """Validate a same-cell container and atomically persist its aligned raw counts."""
+    result = read_h5mu_paired(source_path)
+    if result["status"] != "success":
+        return result
+    try:
+        import mudata
+        from scipy import sparse
+
+        mods = {}
+        for key in ("rna", "atac"):
+            adata = result[f"{key}_adata"]
+            rows = adata.obs_names.get_indexer(result["shared_barcodes"])
+            sub = adata[rows].copy()
+            sub.X = sparse.csr_matrix(result[f"{key}_counts_matrix"])[rows].astype(
+                "int64"
+            )
+            sub.layers["counts"] = sub.X.copy()
+            mods[key] = sub
+        _write_paired_atomic(mudata.MuData(mods), output_h5mu)
+        return {
+            "status": "success",
+            "output_path": str(output_h5mu),
+            "n_shared_cells": result["n_shared_cells"],
+            "validation_level": "production",
+        }
+    except Exception as exc:
+        return {
+            "status": "error",
+            "error_type": getattr(exc, "error_type", type(exc).__name__),
+            "details": str(exc),
+        }
+
+
+def _stage_cache(
+    stage, output_dir, inputs, params, resume=True, required=("output_path",)
+):
+    """Read an A4 receipt only when all content signatures and output files match."""
+    import json
+    from aria.utils.stage_manifest import stage_is_current
+    from aria.version import __version__
+
+    directory = Path(output_dir)
+    manifest = directory / f"{stage}.stage_manifest.json"
+    receipt = directory / f".{stage}.result.json"
+    # Include paths because stage_is_current compares content by role, not input path.
+    normalized = {k: v for k, v in params.items() if k != "resume"}
+    normalized["_input_paths"] = [
+        (role, str(Path(path).absolute())) for role, path in inputs
+    ]
+    state = (stage, manifest, receipt, inputs, normalized, __version__)
+    try:
+        current = (
+            resume
+            and stage_is_current(
+                manifest, inputs=inputs, params=normalized, tool_version=__version__
+            )[0]
+        )
+    except (OSError, ValueError, TypeError, AttributeError):
+        current = False
+    if current:
+        try:
+            result = json.loads(receipt.read_text())
+            if not isinstance(result, dict):
+                return None, state
+            paths = [result.get(key) for key in required]
+            if result.get("status") == "success" and all(
+                path and Path(path).is_file() for path in paths
+            ):
+                return (
+                    dict(
+                        result,
+                        resumed=True,
+                        stage_manifest_path=_manifest_result_path(stage, manifest),
+                    ),
+                    state,
+                )
+        except (OSError, ValueError, TypeError):
+            pass
+    return None, state
+
+
+def _manifest_result_path(stage, manifest):
+    # QC receipts historically compare identically across destination directories.
+    # Expose its manifest relative to output_dir to preserve that contract.
+    return manifest.name if stage == "integration_paired_qc" else str(manifest)
+
+
+def _stage_complete(result, state):
+    import json
+    from aria.utils.stage_manifest import build_stage_manifest, write_stage_manifest
+
+    stage, manifest, receipt, inputs, params, version = state
+    result.update(
+        resumed=False, stage_manifest_path=_manifest_result_path(stage, manifest)
+    )
+    # Publish the receipt before the manifest so an interrupted run never advertises a new cache.
+    manifest.unlink(missing_ok=True)
+    receipt.parent.mkdir(parents=True, exist_ok=True)
+    temporary = receipt.with_suffix(".tmp")
+    temporary.write_text(json.dumps(result, sort_keys=True))
+    temporary.replace(receipt)
+    write_stage_manifest(
+        manifest,
+        build_stage_manifest(
+            stage=stage, inputs=inputs, params=params, tool_version=version
+        ),
+    )
+    return result
+
+
 def read_h5mu_paired(
     path: str,
     *,
     require_raw_counts: bool = True,
 ) -> dict[str, Any]:
-    """Load and validate a paired RNA+ATAC `.h5mu` for V48 Slice I1.
+    """Load verified paired RNA+ATAC from MuData, ARC HDF5, or a dual MEX triplet.
+
+    Native MuData retains the V48 I1 error contract; typed 10x input must expose
+    both Gene Expression and Peaks (`MissingPairedModality` otherwise).
 
     Enforces:
       1. Both RNA and ATAC modalities exist (`NoRnaModality`, `NoAtacModality`).
@@ -384,9 +697,19 @@ def read_h5mu_paired(
       4. Raw non-negative integer count matrices are verified without densifying
          sparse storage (`NonIntegerCounts` when `require_raw_counts=True`).
     """
-    bad = _validate_path(path)
-    if bad:
-        return bad
+    p = Path(path)
+    if not p.exists():
+        return {"status": "error", "error_type": "FileNotFound", "details": str(path)}
+    if not (
+        p.suffix.lower() in {".h5mu", ".h5"}
+        or p.is_dir()
+        or p.name in {"matrix.mtx", "matrix.mtx.gz"}
+    ):
+        return {
+            "status": "error",
+            "error_type": "NotAnH5mu",
+            "details": f"Not a paired multiome container: {path}",
+        }
 
     md = _import_mudata()
     if md is None:
@@ -401,14 +724,30 @@ def read_h5mu_paired(
         }
 
     try:
-        mdata = md.read_h5mu(str(path))
+        if p.suffix.lower() == ".h5mu":
+            mdata = md.read_h5mu(str(path))
+        else:
+            data = _read_10x_matrix(path, require_paired=True)
+            mdata = md.MuData(
+                {
+                    "rna": _tenx_modality(data, "Gene Expression"),
+                    "atac": _tenx_modality(data, "Peaks"),
+                }
+            )
     except Exception as exc:
         return {
             "status": "error",
-            "error_type": "H5muReadFailed",
+            "error_type": getattr(exc, "error_type", "H5muReadFailed"),
             "details": f"{type(exc).__name__}: {str(exc)[:200]}",
         }
 
+    return validate_paired_multiome(
+        mdata, require_raw_counts=require_raw_counts, path=str(path)
+    )
+
+
+def validate_paired_multiome(mdata, *, require_raw_counts=True, path=""):
+    """Apply the identical paired/count contract to disk and in-memory intake."""
     mod_keys = list(mdata.mod.keys())
     rna_name = _match_modality(mod_keys, _RNA_KEYS)
     if rna_name is None:

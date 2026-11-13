@@ -37,6 +37,12 @@ from typing import Any
 import uuid
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+from aria.utils.mudata_io import (
+    _stage_cache,
+    _stage_complete,
+    paired_input_files,
+    MultiomeInputError,
+)
 from aria.scripts._base import run_script
 from aria.utils.mudata_io import _select_raw_counts_matrix, read_h5mu_paired
 from aria.utils.peak2gene_core import (
@@ -236,7 +242,7 @@ def integration_peak2gene(params: dict) -> dict[str, Any]:
                 resolved_h5mu = str(cand)
                 break
 
-    if resolved_h5mu and not Path(resolved_h5mu).is_file():
+    if resolved_h5mu and not Path(resolved_h5mu).exists():
         return {
             "status": "error",
             "error_type": "MissingH5mu",
@@ -300,6 +306,52 @@ def integration_peak2gene(params: dict) -> dict[str, Any]:
             "error_type": "MissingGenomeFasta",
             "details": str(exc),
         }
+
+    try:
+        stage_inputs = (
+            paired_input_files("h5mu_input", resolved_h5mu)
+            if resolved_h5mu
+            else [
+                item
+                for role, paths in (("rna", valid_rna), ("atac", valid_atac))
+                for i, path in enumerate(paths)
+                for item in paired_input_files(f"{role}:{i}", path)
+            ]
+        )
+    except MultiomeInputError as exc:
+        return {"status": "error", "error_type": exc.error_type, "details": str(exc)}
+    for role, path in (("gtf", gtf_resolved), ("genome_fasta", fasta_resolved),
+                       ("fasta_index", str(fasta_resolved) + ".fai" if fasta_resolved else None),
+                       ("peaks", params.get("peaks_path"))):
+        if path and Path(str(path)).is_file():
+            stage_inputs.append((role, str(path)))
+    stage_params = dict(params)
+    stage_params.update(
+        distance_bp=distance_bp,
+        min_distance_bp=min_distance_bp,
+        promoter_bp=promoter_bp,
+        min_corr=min_corr,
+        min_shared_cells=min_shared_cells,
+        min_cells_detected=min_cells_detected,
+        atac_transform=atac_transform,
+        standard_chroms_only=standard_chroms_only,
+        background_null=background_null,
+        use_fdr=use_fdr,
+        max_padj=max_padj,
+        seed=seed,
+        genome=genome,
+        organism=organism,
+    )
+    cached, stage_state = _stage_cache(
+        "integration_peak2gene",
+        output_dir,
+        stage_inputs,
+        stage_params,
+        params.get("resume", True),
+        required=("output_path",),
+    )
+    if cached:
+        return cached
 
     try:
         import scipy.sparse as sp
@@ -529,7 +581,7 @@ def integration_peak2gene(params: dict) -> dict[str, Any]:
             target_h5mu.parent.mkdir(parents=True, exist_ok=True)
             uns_payload = sanitize_for_hdf5_uns(
                 {
-                    "validation_level": "beta",
+                    "validation_level": "production",
                     "seed": int(seed),
                     "n_cells": int(core_res["n_cells"]),
                     "n_genes_tested": int(core_res["n_genes_tested"]),
@@ -570,9 +622,9 @@ def integration_peak2gene(params: dict) -> dict[str, Any]:
                     except OSError:
                         pass
 
-        return {
+        result = {
             "status": "success",
-            "validation_level": "beta",
+            "validation_level": "production",
             "method": "paired_cis_peak_gene_background_z_bh_fdr",
             "organism": organism,
             "genome": genome,
@@ -609,6 +661,7 @@ def integration_peak2gene(params: dict) -> dict[str, Any]:
             "caveat": _ASSOCIATIVE_CAVEAT,
             "warnings": warnings,
         }
+        return _stage_complete(result, stage_state)
 
     except ImportError as exc:
         return {

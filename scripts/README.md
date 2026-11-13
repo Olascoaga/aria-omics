@@ -80,3 +80,4 @@
 | `run_v48_i7_narrative_validation.py` | Non-circular Cross-Modal Evidence Graph, `IntegrationNarrator`, and dual PNG+SVG E2E runner (`V48 I7`, `ADR-070`). |
 | `run_v48_i8_orchestrated_validation.py` | Live `OrchestratorAgent` CP3.5 acknowledgement + `IntegrationAgent` E2E validation (`V48 I8`, `ADR-071`). |
 | `run_v48_i9_cross_modal_hypotheses.py` | Cross-modal `HypothesisAgent S10` Arms A–D + live LLM E2E validation (`V48 I9`, `ADR-072`). |
+| `run_adr079_multidonor_multiome_validation.py` | 4-donor `GSE278576` cohort union, donor-aware Harmony WNN, MOFA+ donor $\eta^2$ screening, barcode-permuted null `peak2gene`, and `C3` ledger production validation (`ADR-079`). |

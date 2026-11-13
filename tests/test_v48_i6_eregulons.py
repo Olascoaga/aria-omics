@@ -566,7 +566,7 @@ def test_integration_eregulons_error_contracts_and_h5mu_roundtrip():
 
         contract = contract_for_script("aria/scripts/integration_eregulons.py")
         assert contract is not None
-        assert contract.validation_level == "beta"
+        assert contract.validation_level == "production"
 
     err_p = integration_eregulons({"motif_pvalue": 1.0})
     assert err_p["status"] == "error"
@@ -712,10 +712,10 @@ def test_no_causal_labels_or_hardcoded_gene_panels_ast_guard():
     if _has_module("litellm"):
         from aria.agents.orchestrator_agent import INTEGRATION_VALIDATION
 
-        assert INTEGRATION_VALIDATION["level"] == "beta"
+        assert INTEGRATION_VALIDATION["level"] == "production"
         assert INTEGRATION_VALIDATION["dispatch_enabled"] is True
-        assert INTEGRATION_VALIDATION["requires_ack"] is True
-        assert INTEGRATION_VALIDATION["production_promoted"] is False
+        assert INTEGRATION_VALIDATION["requires_ack"] is False
+        assert INTEGRATION_VALIDATION["production_promoted"] is True
 
     core_src = (ROOT / "aria" / "utils" / "eregulon_core.py").read_text(encoding="utf-8")
     script_src = (ROOT / "aria" / "scripts" / "integration_eregulons.py").read_text(

@@ -1,0 +1,501 @@
+{
+  "adr": "ADR-079",
+  "benchmark": "adr079_multidonor_paired_multiome_production_validation",
+  "dataset": {
+    "accession": "GSE278576",
+    "assay": "10x_chromium_single_cell_multiome_atac_plus_gene_expression",
+    "conditions": {
+      "20-39": [
+        "hc29",
+        "hc77"
+      ],
+      "60-79": [
+        "hc1153",
+        "hc69984"
+      ]
+    },
+    "donors": [
+      {
+        "age": 28,
+        "age_group": "20-39",
+        "donor_id": "hc29",
+        "sample_id": "hc29",
+        "sex": "M"
+      },
+      {
+        "age": 20,
+        "age_group": "20-39",
+        "donor_id": "hc77",
+        "sample_id": "hc77",
+        "sex": "M"
+      },
+      {
+        "age": 75,
+        "age_group": "60-79",
+        "donor_id": "hc1153",
+        "sample_id": "hc1153",
+        "sex": "F"
+      },
+      {
+        "age": 75,
+        "age_group": "60-79",
+        "donor_id": "hc69984",
+        "sample_id": "hc69984",
+        "sex": "M"
+      }
+    ],
+    "genome": "hg38",
+    "gtf_annotation": "annotation.gtf",
+    "n_donors": 4,
+    "reference_annotation": "GSE278576_hippocampus_RNA_seurat_object_filtered_cells_metadata.tsv.gz",
+    "reference_fasta": "GRCh38.primary_assembly.genome.fa",
+    "tissue": "human_hippocampus"
+  },
+  "stage_1_cohort_merge": {
+    "a4_resume_elapsed_s": 1.403,
+    "a4_resume_verified": true,
+    "elapsed_s": 11.279,
+    "n_cells_total": 14737,
+    "n_consensus_peaks": 138301,
+    "n_genes": 36601,
+    "n_samples": 4,
+    "per_sample_cells": {
+      "hc1153": 2555,
+      "hc29": 3528,
+      "hc69984": 4875,
+      "hc77": 3779
+    },
+    "rna_gene_join": "inner",
+    "sample_ids": [
+      "hc29",
+      "hc77",
+      "hc1153",
+      "hc69984"
+    ],
+    "script": "aria/scripts/integration_merge_cohort.py"
+  },
+  "stage_2_paired_qc": {
+    "a4_resume_elapsed_s": 0.092,
+    "a4_resume_verified": true,
+    "author_subclass_match_fraction": 1.0,
+    "author_subclass_matched_cells": 14077,
+    "elapsed_s": 10.961,
+    "n_cells_after": 14077,
+    "n_cells_before": 14737,
+    "n_genes": 36601,
+    "n_peaks": 138301,
+    "script": "aria/scripts/integration_paired_qc.py",
+    "top_author_subclasses": {
+      "Astro": 1985,
+      "DG": 26,
+      "LAMP5": 26,
+      "Microglia": 1065,
+      "NR2F2": 56,
+      "OPC": 809,
+      "Oligo": 9803,
+      "PVALB": 25,
+      "SST": 101,
+      "SUB": 82,
+      "T-Cell": 15,
+      "VIP": 47
+    }
+  },
+  "stage_3_donor_aware_wnn": {
+    "batch_key": "donor_id",
+    "donor_mixing_delta": {
+      "wnn_ilisi_gain": 0.8579,
+      "wnn_ilisi_norm_gain": 0.286
+    },
+    "harmony_integrated": {
+      "a4_resume_elapsed_s": 0.421,
+      "a4_resume_verified": true,
+      "atac_batch_silhouette_after": -0.0385,
+      "atac_batch_silhouette_before": 0.187,
+      "elapsed_s": 160.872,
+      "external_subclass_concordance": {
+        "n_annotated_cells": 14077,
+        "rna_vs_author_subclass_ari": 0.4205,
+        "rna_vs_author_subclass_nmi": 0.7174,
+        "wnn_vs_author_subclass_ari": 0.4983,
+        "wnn_vs_author_subclass_nmi": 0.7324
+      },
+      "guardrail_status": "warn",
+      "harmonized": true,
+      "mean_atac_weight": 0.4957,
+      "mean_rna_weight": 0.5043,
+      "method": "harmony",
+      "n_joint_clusters": 8,
+      "quality_assessment": {
+        "issues": [],
+        "metrics": {
+          "cluster_silhouette": 0.1516,
+          "silhouette_after": -0.0824,
+          "silhouette_before": 0.0017
+        },
+        "possible_overcorrection": false,
+        "status": "clean"
+      },
+      "rna_batch_silhouette_after": -0.0824,
+      "rna_batch_silhouette_before": 0.0017,
+      "wnn_batch_ilisi_median": 1.8579,
+      "wnn_batch_ilisi_norm_median": 0.286
+    },
+    "script": "aria/scripts/integration_wnn.py",
+    "unintegrated": {
+      "atac_batch_silhouette": 0.187,
+      "elapsed_s": 160.781,
+      "external_subclass_concordance": {
+        "n_annotated_cells": 14077,
+        "rna_vs_author_subclass_ari": 0.2184,
+        "rna_vs_author_subclass_nmi": 0.5925,
+        "wnn_vs_author_subclass_ari": 0.27,
+        "wnn_vs_author_subclass_nmi": 0.5917
+      },
+      "guardrail_status": "pass",
+      "harmonized": false,
+      "mean_atac_weight": 0.492,
+      "mean_rna_weight": 0.508,
+      "n_joint_clusters": 18,
+      "rna_batch_silhouette": 0.0017,
+      "wnn_batch_ilisi_median": 1.0,
+      "wnn_batch_ilisi_norm_median": 0.0
+    }
+  },
+  "stage_4_donor_screened_mofa": {
+    "a4_resume_elapsed_s": 0.231,
+    "a4_resume_verified": true,
+    "batch_condition_confounded": false,
+    "batch_evaluated": true,
+    "batch_factor_flag": false,
+    "batch_factor_ids": [],
+    "batch_key": "donor_id",
+    "condition_col": "age_group",
+    "elapsed_s": 195.882,
+    "factor_batch_eta2": [
+      {
+        "batch_eta2": 0.2491,
+        "factor_id": 1
+      },
+      {
+        "batch_eta2": 0.0801,
+        "factor_id": 2
+      },
+      {
+        "batch_eta2": 0.0072,
+        "factor_id": 3
+      },
+      {
+        "batch_eta2": 0.122,
+        "factor_id": 4
+      },
+      {
+        "batch_eta2": 0.0924,
+        "factor_id": 5
+      },
+      {
+        "batch_eta2": 0.0989,
+        "factor_id": 6
+      },
+      {
+        "batch_eta2": 0.482,
+        "factor_id": 7
+      },
+      {
+        "batch_eta2": 0.1985,
+        "factor_id": 8
+      },
+      {
+        "batch_eta2": 0.0403,
+        "factor_id": 9
+      },
+      {
+        "batch_eta2": 0.0126,
+        "factor_id": 10
+      }
+    ],
+    "n_cells": 14077,
+    "n_factors": 10,
+    "n_shared_biological_factors": 2,
+    "script": "aria/scripts/integration_mofa.py",
+    "technical_factor_flag": true,
+    "variance_explained": {
+      "atac": 0.0381,
+      "rna": 0.4496
+    }
+  },
+  "stage_5_cis_peak2gene_vs_barcode_permuted_null": {
+    "background_match": "gc_and_accessibility",
+    "barcode_shuffled_null_control": {
+      "derangement_fixed_points": 0,
+      "elapsed_s": 16.53,
+      "empirical_false_discovery_rate_at_q005": 0.0333,
+      "n_fdr_significant": 731,
+      "n_links": 1,
+      "n_tested": 171135,
+      "per_test_false_positive_rate": 5.84e-06
+    },
+    "chromosomes_evaluated": [
+      "chr1",
+      "chr2",
+      "chr11",
+      "chr17",
+      "chr18",
+      "chr19"
+    ],
+    "distance_kb": 250,
+    "max_padj": 0.05,
+    "min_corr": 0.3,
+    "n_cells": 2000,
+    "n_peaks_in_slice": 44244,
+    "real_paired": {
+      "a4_resume_elapsed_s": 0.204,
+      "a4_resume_verified": true,
+      "elapsed_s": 16.093,
+      "n_fdr_significant": 1598,
+      "n_links": 30,
+      "n_negative_correlations": 0,
+      "n_positive_correlations": 30,
+      "n_tested": 171135,
+      "top_links": [
+        {
+          "background_scope": "trans",
+          "correlation": 0.418303,
+          "direction": "positive",
+          "distance_bp": 0,
+          "distance_kb": 0.0,
+          "gene": "ZNF98",
+          "gene_id": "ENSG00000197360",
+          "p_value": 6.527443948918827e-06,
+          "p_value_signac": 3.2637219744594134e-06,
+          "padj": 0.001886949527361864,
+          "peak": "chr19:22532123-22533073",
+          "region_class": "promoter_proximal",
+          "tss_offset_bp": -113,
+          "zscore": 4.508543
+        },
+        {
+          "background_scope": "trans",
+          "correlation": 0.411451,
+          "direction": "positive",
+          "distance_bp": 42876,
+          "distance_kb": 42.876,
+          "gene": "SLC1A2",
+          "gene_id": "ENSG00000110436",
+          "p_value": 5.4124033857976324e-05,
+          "p_value_signac": 2.7062016928988162e-05,
+          "padj": 0.010303132963609319,
+          "peak": "chr11:35462939-35463881",
+          "region_class": "distal_cis",
+          "tss_offset_bp": -43347,
+          "zscore": 4.037065
+        },
+        {
+          "background_scope": "trans",
+          "correlation": 0.411384,
+          "direction": "positive",
+          "distance_bp": 0,
+          "distance_kb": 0.0,
+          "gene": "CACNG5",
+          "gene_id": "ENSG00000075429",
+          "p_value": 7.124467734217799e-15,
+          "p_value_signac": 3.562233867108899e-15,
+          "padj": 2.2578625661025243e-11,
+          "peak": "chr17:66834740-66835610",
+          "region_class": "promoter_proximal",
+          "tss_offset_bp": 58,
+          "zscore": 7.782252
+        },
+        {
+          "background_scope": "trans",
+          "correlation": 0.40915,
+          "direction": "positive",
+          "distance_bp": 17931,
+          "distance_kb": 17.931,
+          "gene": "IGFBP5",
+          "gene_id": "ENSG00000115461",
+          "p_value": 7.98440764351861e-20,
+          "p_value_signac": 3.992203821759305e-20,
+          "padj": 5.693381675306489e-16,
+          "peak": "chr2:216713480-216714448",
+          "region_class": "distal_cis",
+          "tss_offset_bp": -18415,
+          "zscore": 9.113394
+        },
+        {
+          "background_scope": "trans",
+          "correlation": 0.382771,
+          "direction": "positive",
+          "distance_bp": 16366,
+          "distance_kb": 16.366,
+          "gene": "ZNF98",
+          "gene_id": "ENSG00000197360",
+          "p_value": 1.1849158549702787e-05,
+          "p_value_signac": 5.9245792748513935e-06,
+          "padj": 0.0031006204104027314,
+          "peak": "chr19:22515232-22516119",
+          "region_class": "distal_cis",
+          "tss_offset_bp": 16810,
+          "zscore": 4.380345
+        },
+        {
+          "background_scope": "trans",
+          "correlation": 0.382231,
+          "direction": "positive",
+          "distance_bp": 100897,
+          "distance_kb": 100.897,
+          "gene": "PITPNC1",
+          "gene_id": "ENSG00000154217",
+          "p_value": 0.000202834827004524,
+          "p_value_signac": 0.000101417413502262,
+          "padj": 0.02783651813906914,
+          "peak": "chr17:67478178-67479127",
+          "region_class": "distal_cis",
+          "tss_offset_bp": 101371,
+          "zscore": 3.715459
+        },
+        {
+          "background_scope": "trans",
+          "correlation": 0.375113,
+          "direction": "positive",
+          "distance_bp": 73265,
+          "distance_kb": 73.265,
+          "gene": "CABLES1",
+          "gene_id": "ENSG00000134508",
+          "p_value": 9.969876578844084e-07,
+          "p_value_signac": 4.984938289422042e-07,
+          "padj": 0.00041512530838296475,
+          "peak": "chr18:23207829-23208817",
+          "region_class": "distal_cis",
+          "tss_offset_bp": 73759,
+          "zscore": 4.892232
+        },
+        {
+          "background_scope": "trans",
+          "correlation": 0.352949,
+          "direction": "positive",
+          "distance_bp": 32566,
+          "distance_kb": 32.566,
+          "gene": "SPON1",
+          "gene_id": "ENSG00000262655",
+          "p_value": 0.00012733551757450538,
+          "p_value_signac": 6.366775878725269e-05,
+          "padj": 0.01961436885698738,
+          "peak": "chr11:13929222-13930157",
+          "region_class": "distal_cis",
+          "tss_offset_bp": -33034,
+          "zscore": 3.831556
+        },
+        {
+          "background_scope": "trans",
+          "correlation": 0.348282,
+          "direction": "positive",
+          "distance_bp": 0,
+          "distance_kb": 0.0,
+          "gene": "GFAP",
+          "gene_id": "ENSG00000131095",
+          "p_value": 1.1512226447296222e-06,
+          "p_value_signac": 5.756113223648111e-07,
+          "padj": 0.0004657552891390163,
+          "peak": "chr17:44916483-44917440",
+          "region_class": "promoter_proximal",
+          "tss_offset_bp": -24,
+          "zscore": 4.863853
+        },
+        {
+          "background_scope": "trans",
+          "correlation": 0.336575,
+          "direction": "positive",
+          "distance_bp": 0,
+          "distance_kb": 0.0,
+          "gene": "CACNG4",
+          "gene_id": "ENSG00000075461",
+          "p_value": 2.0126657214516777e-08,
+          "p_value_signac": 1.0063328607258388e-08,
+          "padj": 1.5106910010554075e-05,
+          "peak": "chr17:66964148-66966057",
+          "region_class": "promoter_proximal",
+          "tss_offset_bp": 395,
+          "zscore": 5.610909
+        }
+      ]
+    },
+    "script": "aria/scripts/integration_peak2gene.py"
+  },
+  "stage_6_governance_and_c3_ledger": {
+    "audit_readiness_probes": {
+      "balanced_4donor_2x2_cohort": {
+        "dispatch_policy": "auto",
+        "requires_ack_for_dispatch": false,
+        "status": "green"
+      },
+      "confounded_1donor_per_condition_cohort": {
+        "dispatch_policy": "requires_ack",
+        "finding_checks": [
+          "integration_donor_confounded_design"
+        ],
+        "requires_ack_for_dispatch": true,
+        "status": "yellow"
+      },
+      "unpaired_scrna_plus_scatac": {
+        "dispatch_policy": "blocked",
+        "single_modality_blocked": [],
+        "status": "red"
+      }
+    },
+    "c3_preprocessing_stage_status": "executed",
+    "claim_ledger_violations": 0,
+    "environment_locks": {
+      "aria_chromatin_env": "pass",
+      "aria_integration_env": "pass"
+    },
+    "integration_validation": {
+      "dispatch_enabled": true,
+      "level": "production",
+      "production_promoted": true,
+      "promotion_adr": "ADR-079",
+      "promotion_policy_adr": "ADR-056",
+      "reason": "Paired same-cell RNA+ATAC multiome integration (universal .h5mu / Cell Ranger ARC .h5 & MEX / raw Multiome FASTQ intake, multi-donor consensus-peak cohort union, donor/batch-aware Harmony + WNN with 5-axis anti-degradation guardrail, MOFA+ with quantitative depth/cell-cycle/batch confounder screening, cis peak-to-gene + candidate eRegulons, and C3 run-ledger provenance; ADR-064..ADR-079) is validated for production dispatch. Risk-elevated designs (<200 shared cells, partial barcode overlap, or batch-confounded cohorts) escalate to CP3.5 acknowledgement via IntegrationAuditAgent; unpaired, diagonal, and bulk cross-modal integration remain blocked fail-closed.",
+      "requires_ack": false,
+      "scope": "paired_same_cell_rna_atac"
+    },
+    "narrative_block_ids": [
+      "multiome.preprocessing",
+      "multiome.paired_qc",
+      "multiome.wnn",
+      "multiome.mofa",
+      "multiome.peak_to_gene",
+      "multiome.triangulation"
+    ],
+    "registry_integrity_errors": 0,
+    "rocrate_generated": true
+  },
+  "total_wall_time_s": 597.21,
+  "version_metadata": {
+    "aria_version": "4.8.0",
+    "environment": {
+      "conda_prefix": "anaconda3",
+      "env_lock_file": null,
+      "env_lock_sha256": null,
+      "env_name": "anaconda3",
+      "source": "no_lock"
+    },
+    "git_commit": "bfea677ef06d5b06bf93c39e9013a576f8789b31",
+    "git_describe": "v4.8.0-10-gbfea677-dirty",
+    "git_dirty": true,
+    "git_sha": "bfea677ef06d5b06bf93c39e9013a576f8789b31",
+    "git_tree_sha": "4eedbae0d48a22cf34c3de1504790ab1770230cb",
+    "image": {
+      "containerized": false,
+      "digest": null,
+      "env_lock_sha256": null,
+      "kind": null,
+      "reference": null,
+      "revision": null,
+      "validation": null
+    },
+    "version": "4.8.0",
+    "version_source": "aria.version.__version__",
+    "workflow_hash": "9ed6e89531f3e62b705c3d56b73519d14968080633ee18e41d8646d8431b87ef",
+    "workflow_hash_algorithm": "sha256(version+git_sha+git_tree_sha+git_dirty+git_status+git_diff)"
+  }
+}

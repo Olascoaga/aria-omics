@@ -187,6 +187,8 @@ jobs:
             tests/test_calibration_gate.py
 
       - name: Preprint C1-C7 governance + HypothesisAgent + V48 Multiome contracts
+        # ADR-079: integration production governance (same-cell gate, audit
+        # tiers, registry invariants, contracts, ledger/narrator) gates the PR.
         run: |
           python -m pytest -q \
             tests/test_preprint_audit_q1_doc_claims.py \
@@ -203,6 +205,8 @@ jobs:
             tests/test_hypothesis_optin_plumbing.py \
             tests/test_hypothesis_report_section.py \
             tests/test_integration_agent.py \
+            tests/test_integration_governance_adr079.py \
+            tests/test_multiome_contracts.py \
             tests/test_v48_i7_integration_narrative.py \
             tests/test_v48_i8_integration_promotion.py \
             tests/test_v48_i9_cross_modal_hypotheses.py

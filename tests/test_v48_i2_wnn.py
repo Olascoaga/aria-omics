@@ -318,7 +318,7 @@ def test_wnn_contract_is_beta_and_validates_output_path(tmp_path):
     from aria.utils.script_contracts import SCRIPT_CONTRACTS
 
     contract = SCRIPT_CONTRACTS[WNN_SCRIPT]
-    assert contract.validation_level == "beta"
+    assert contract.validation_level == "production"
 
     h5mu = tmp_path / "paired.h5mu"
     h5mu.write_bytes(b"")
@@ -343,10 +343,10 @@ def test_integration_dispatch_guardrail_stays_scaffold():
     _require_orchestration_deps()
     from aria.agents.orchestrator_agent import INTEGRATION_VALIDATION
 
-    assert INTEGRATION_VALIDATION["level"] == "beta"
+    assert INTEGRATION_VALIDATION["level"] == "production"
     assert INTEGRATION_VALIDATION["dispatch_enabled"] is True
-    assert INTEGRATION_VALIDATION["requires_ack"] is True
-    assert INTEGRATION_VALIDATION["production_promoted"] is False
+    assert INTEGRATION_VALIDATION["requires_ack"] is False
+    assert INTEGRATION_VALIDATION["production_promoted"] is True
 
 
 class _RecordingEnv:

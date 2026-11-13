@@ -52,15 +52,32 @@ _ATAC_GOVERNANCE_BLOCKERS = (
     "explicit_production_promotion_adr",   # a deliberate promotion decision
 )
 
-# ADR-056 + ADR-071: paired same-cell RNA+ATAC integration is promoted from
-# scaffold to beta + requires_ack (never production without external multi-donor
-# multiome replication, CI smoke, preprint freeze, and an explicit promotion ADR).
-_INTEGRATION_GOVERNANCE_BLOCKERS = (
+# ADR-056 + ADR-079: paired same-cell RNA+ATAC integration is promoted to
+# `production` by ADR-079, so no governance blocker remains for the production
+# tier. The tuple below is reported ONLY when a caller explicitly configures the
+# lane below production (e.g. a `beta` override): those are the criteria a
+# promotion ADR has to close, and production is never inferred from the audit.
+_INTEGRATION_GOVERNANCE_BLOCKERS: tuple[str, ...] = ()
+_INTEGRATION_SUBPRODUCTION_GOVERNANCE_BLOCKERS = (
     "external_multi_donor_multiome_replication",
     "end_to_end_integration_ci_green",
     "reproducible_preprint_freeze",
     "explicit_production_promotion_adr",
 )
+
+# Associative-only sub-layers of the production integration lane (ADR-070 /
+# ADR-079): reported with zero causal verbs; HypothesisAgent S10 keeps any
+# mechanistic extrapolation quarantined behind SPECULATIVE.
+_INTEGRATION_CAVEATED_SUBLAYERS = {
+    "peak_to_gene": "production_associative",
+    "eregulons": "production_associative",
+    "mofa_factors": "production_associative",
+}
+
+# WNN bandwidth selection and the cis peak-to-gene background both need a
+# minimum number of shared cells for stable estimates.
+_INTEGRATION_MIN_SHARED_CELLS = 200
+_INTEGRATION_MIN_SHARED_BARCODE_FRACTION = 0.50
 
 _DOUBLET_HINTS = ("doublet", "scrublet", "demuxlet")
 _MITO_HINTS = ("pct_counts_mt", "pct_mito", "percent_mito", "mito_frac")
@@ -911,113 +928,389 @@ class ChromatinAuditAgent:
         return card
 
 
+def _integration_production_readiness(
+    *,
+    tier_override: str | None = None,
+    promotion_adr: str | None = None,
+) -> dict[str, Any]:
+    """Integration readiness, ADR-056 / ADR-079-honest.
+
+    Mirrors `_atac_production_readiness`: paired same-cell RNA+ATAC integration
+    (`scope="paired_same_cell_rna_atac"`) is explicitly promoted to `production`
+    by `ADR-079` (verified paired `.h5mu`, Cell Ranger ARC `.h5` / MEX, raw
+    Multiome FASTQs, and multi-donor paired cohorts with batch-aware WNN).
+    Peak-to-gene links, candidate eRegulons, and MOFA+ factors stay
+    `production_associative` (zero causal claims). Any explicit sub-production
+    tier keeps the legacy acknowledgement gate and governance criteria.
+    """
+    effective_tier = tier_override or "production"
+    if effective_tier == "production":
+        return {
+            "tier": "production",
+            "requires_ack": False,
+            "production_promoted": True,
+            "technical_blockers_cleared": True,
+            "open_blockers": [],
+            "governance_blockers": list(_INTEGRATION_GOVERNANCE_BLOCKERS),
+            "promotion_policy_adr": "ADR-056",
+            "promotion_adr": promotion_adr or "ADR-079",
+            "caveated_sub_layers": dict(_INTEGRATION_CAVEATED_SUBLAYERS),
+        }
+    return {
+        "tier": effective_tier,
+        "requires_ack": effective_tier != "scaffold",
+        # Production is NEVER inferred from the audit (ADR-056).
+        "production_promoted": False,
+        "technical_blockers_cleared": effective_tier != "scaffold",
+        "open_blockers": [],
+        "governance_blockers": list(_INTEGRATION_SUBPRODUCTION_GOVERNANCE_BLOCKERS),
+        "promotion_policy_adr": "ADR-056",
+        "promotion_adr": promotion_adr or "ADR-071",
+        "caveated_sub_layers": dict(_INTEGRATION_CAVEATED_SUBLAYERS),
+    }
+
+
+def _as_count(value: Any) -> int | None:
+    if isinstance(value, bool):
+        return None
+    try:
+        n = int(value)
+    except (TypeError, ValueError):
+        return None
+    return n if n >= 0 else None
+
+
+def _as_fraction(value: Any) -> float | None:
+    if isinstance(value, bool):
+        return None
+    try:
+        f = float(value)
+    except (TypeError, ValueError):
+        return None
+    return f if 0.0 <= f <= 1.0 else None
+
+
+class IntegrationAuditAgent:
+    """Pre-dispatch readiness for paired same-cell RNA+ATAC integration (ADR-079).
+
+    Mirrors `ScATACAuditAgent` / `BulkATACAuditAgent`: at the `production` tier a
+    verified paired multiome input dispatches automatically (`green` / `auto`)
+    and is downgraded to `yellow` / `requires_ack` only by a measured data or
+    design risk (too few shared cells, partial barcode overlap, donor/batch
+    confounding in a multi-container cohort). Inputs that fail the same-cell
+    gate (unpaired scRNA+scATAC, bulk cross-modal, ATAC-only `.h5mu`, mixed
+    paired+unpaired containers) are `red` / `blocked` for the integration lane
+    only — the result is kept out of per-assay `dispatch`, so single-assay lanes
+    are never blocked here. An explicit sub-production tier (`beta` override)
+    preserves the legacy CP3.5 acknowledgement behaviour.
+    """
+
+    modality = "multiome"
+
+    def audit(
+        self,
+        exp_context: dict[str, Any],
+        multiome_contract: dict[str, Any],
+        integration_validation: dict[str, Any] | None,
+    ) -> dict[str, Any]:
+        meta = dict(integration_validation or {})
+        tier = str(meta.get("level") or "production")
+        default_ack = tier in {"alpha", "beta", "experimental"}
+        requires_ack_policy = bool(meta.get("requires_ack", default_ack))
+        enabled = bool(meta.get("dispatch_enabled", True))
+        scope = str(meta.get("scope") or "paired_same_cell_rna_atac")
+        readiness = _integration_production_readiness(
+            tier_override=tier,
+            promotion_adr=meta.get("promotion_adr"),
+        )
+        production_tier = tier == "production" and not requires_ack_policy
+
+        def _result(status: str, policy: str, **extra: Any) -> dict[str, Any]:
+            out: dict[str, Any] = {
+                "status": status,
+                "tier": tier,
+                "dispatch_enabled": enabled,
+                "requires_ack": requires_ack_policy,
+                "requires_ack_for_dispatch": False,
+                "dispatch_policy": policy,
+                "scope": scope,
+                "production_promoted": bool(
+                    production_tier and readiness["production_promoted"]
+                ),
+                "promotion_policy_adr": readiness["promotion_policy_adr"],
+                "promotion_adr": readiness["promotion_adr"],
+                "governance_blockers": (
+                    [] if production_tier
+                    else list(readiness["governance_blockers"])
+                ),
+                "caveated_sub_layers": dict(readiness["caveated_sub_layers"]),
+                "findings": [],
+            }
+            out.update(extra)
+            return out
+
+        presence = (multiome_contract.get("checks") or {}).get("modalities") or {}
+        if (
+            multiome_contract.get("status") == "not_applicable"
+            and not presence.get("has_rna_and_atac")
+        ):
+            return _result("not_applicable", "not_applicable")
+        # RNA + ATAC present without a same-cell contract (e.g. bulk_RNA +
+        # bulk_ATAC) is a cross-modal request the gate must explicitly block.
+
+        gate = enforce_same_cell_integration_gate(exp_context)
+        if not enabled:
+            return _result(
+                "red", "blocked",
+                dispatch_enabled=False,
+                reason="agent_not_validated",
+                same_cell_gate_allowed=bool(gate.get("allowed")),
+            )
+
+        if not gate.get("allowed"):
+            return _result(
+                "red", "blocked",
+                reason="multiome_same_cell_gate_blocked",
+                same_cell_gate_allowed=False,
+                blockers=list(gate.get("blockers") or []),
+            )
+
+        if tier == "scaffold":
+            return _result(
+                "red", "blocked",
+                reason="integration_scaffold_tier",
+                same_cell_gate_allowed=True,
+                findings=[_finding(
+                    "blocking",
+                    "integration_scaffold_not_dispatchable",
+                    "IntegrationAgent is configured at scaffold tier.",
+                    "Do not dispatch same-cell integration at scaffold tier.",
+                    modality=self.modality,
+                )],
+            )
+
+        if not production_tier:
+            # Legacy beta / explicit-ack behaviour (ADR-071), preserved.
+            findings: list[dict[str, Any]] = []
+            if integration_validation is not None:
+                findings.append(_finding(
+                    "warning",
+                    "integration_beta_ack_required",
+                    (
+                        f"Cross-modal IntegrationAgent is {tier} "
+                        "(`paired_same_cell_rna_atac`; ADR-056 / "
+                        f"{readiness['promotion_adr']}) and requires explicit "
+                        "CP3.5 acknowledgement before dispatch."
+                    ),
+                    (
+                        f"Proceed only if you accept paired-multiome {tier} "
+                        "limitations (associative peak-to-gene / candidate "
+                        "eRegulons; WNN joint topology audited against "
+                        "per-modality structure, never causal)."
+                    ),
+                    modality=self.modality,
+                ))
+            return _result(
+                "yellow", "requires_ack",
+                requires_ack_for_dispatch=integration_validation is not None,
+                reason=str(meta.get("reason") or ""),
+                same_cell_gate_allowed=True,
+                findings=findings,
+            )
+
+        # ── production (ADR-079): green unless a measured risk is present ──
+        contract = dict(gate.get("contract") or {})
+        design = _combined_design(exp_context)
+        checks = self._risk_checks(exp_context, design, contract)
+        findings = []
+        if checks["shared_cells"]["status"] == "warning":
+            n = checks["shared_cells"]["n_shared_cells"]
+            findings.append(_finding(
+                "warning",
+                "integration_low_cell_count",
+                (
+                    f"Paired multiome input reports {n} shared cells "
+                    f"(< {_INTEGRATION_MIN_SHARED_CELLS}); WNN modality-weight "
+                    "bandwidths and the cis peak-to-gene background are "
+                    "unstable at this size."
+                ),
+                (
+                    "Proceed only after acknowledging the low cell count, or "
+                    "add cells/samples. Treat neighbourhood weights and "
+                    "peak-to-gene links as exploratory."
+                ),
+                modality=self.modality,
+            ))
+        if checks["barcode_overlap"]["status"] == "warning":
+            overlap = checks["barcode_overlap"]
+            findings.append(_finding(
+                "warning",
+                "integration_partial_barcode_overlap",
+                (
+                    "RNA and ATAC barcodes only partially overlap "
+                    f"(shared fraction={overlap['shared_barcode_fraction']}, "
+                    f"allow_partial_overlap={overlap['allow_partial_overlap']})."
+                ),
+                (
+                    "Integration will run on the shared-barcode intersection "
+                    "only. Confirm barcode translation (ARC whitelist pair / "
+                    "barcode map) before acknowledging."
+                ),
+                modality=self.modality,
+            ))
+        if checks["donor_design"]["status"] == "warning":
+            findings.append(_finding(
+                "warning",
+                "integration_donor_confounded_design",
+                (
+                    "Multi-sample paired multiome cohort has condition "
+                    "completely confounded with batch/donor (each batch holds "
+                    "a single condition)."
+                ),
+                (
+                    "Batch-aware WNN cannot separate condition from batch in "
+                    "this design; harmonization may remove the condition "
+                    "signal. Proceed only after acknowledgement and report "
+                    "cross-condition integrated structure as descriptive."
+                ),
+                modality=self.modality,
+            ))
+
+        notes: list[str] = []
+        if contract.get("cohort_merge_required") is True:
+            notes.append(
+                "Multi-sample paired multiome cohort will be merged onto "
+                "sweep-line consensus ATAC peaks prior to joint QC and "
+                "batch-aware WNN."
+            )
+        if contract.get("object_type") == "raw_multiome_fastq":
+            notes.append(
+                "Raw Multiome FASTQs will be assembled into a paired container "
+                "(RNA counts + ATAC fragments over a shared barcode namespace) "
+                "before joint QC."
+            )
+
+        status = "yellow" if findings else "green"
+        return _result(
+            status,
+            _POLICY_FOR_STATUS[status],
+            requires_ack_for_dispatch=bool(findings),
+            reason=str(meta.get("reason") or ""),
+            same_cell_gate_allowed=True,
+            checks=checks,
+            notes=notes,
+            findings=findings,
+        )
+
+    @staticmethod
+    def _risk_checks(
+        exp_context: dict[str, Any],
+        design: dict[str, Any],
+        contract: dict[str, Any],
+    ) -> dict[str, Any]:
+        raw_contract = exp_context.get("multiome_contract")
+        sources = [
+            exp_context,
+            design,
+            contract,
+            raw_contract if isinstance(raw_contract, dict) else {},
+        ]
+
+        # Only reported values are judged; an unreported count is not a risk.
+        counts = [
+            n
+            for src in sources
+            for key in ("n_shared_cells", "n_cells")
+            if (n := _as_count(src.get(key))) is not None
+        ]
+        n_shared = min(counts) if counts else None
+        if n_shared is None:
+            cells_status = "not_reported"
+        elif n_shared < _INTEGRATION_MIN_SHARED_CELLS:
+            cells_status = "warning"
+        else:
+            cells_status = "pass"
+        shared_cells = {
+            "status": cells_status,
+            "n_shared_cells": n_shared,
+            "minimum": _INTEGRATION_MIN_SHARED_CELLS,
+        }
+
+        allow_partial = any(
+            src.get("allow_partial_overlap") is True for src in sources
+        )
+        fractions = [
+            f for src in sources
+            if (f := _as_fraction(src.get("shared_barcode_fraction"))) is not None
+        ]
+        fraction = min(fractions) if fractions else None
+        partial = allow_partial or (
+            fraction is not None
+            and fraction < _INTEGRATION_MIN_SHARED_BARCODE_FRACTION
+        )
+        barcode_overlap = {
+            "status": "warning" if partial else "pass",
+            "allow_partial_overlap": allow_partial,
+            "shared_barcode_fraction": fraction,
+            "minimum_fraction": _INTEGRATION_MIN_SHARED_BARCODE_FRACTION,
+        }
+
+        n_units = max(
+            _as_count(contract.get("n_containers")) or 0,
+            _as_count(contract.get("n_samples")) or 0,
+        )
+        is_cohort = contract.get("cohort_merge_required") is True or n_units >= 2
+        design_ctx = dict(exp_context)
+        manifest = exp_context.get("multiome_fastq_manifest")
+        if (
+            not design_ctx.get("sample_metadata")
+            and isinstance(manifest, dict)
+            and isinstance(manifest.get("samples"), list)
+        ):
+            # Reuse the shared confounding check on raw-FASTQ manifest rows.
+            design_ctx["bulk_fastq_manifest"] = {"samples": manifest["samples"]}
+        groups = design.get("analysis_groups") or design.get("groups") or {}
+        one_donor_per_condition = bool(
+            isinstance(groups, dict)
+            and len(groups) >= 2
+            and all(isinstance(v, (list, tuple, set)) and len(v) <= 1 for v in groups.values())
+        )
+        confounded = bool(
+            is_cohort
+            and (
+                one_donor_per_condition
+                or _batch_condition_confounded(design, design_ctx)
+            )
+        )
+        donor_design = {
+            "status": "warning" if confounded else "pass",
+            "multi_sample_cohort": is_cohort,
+            "n_samples": n_units or None,
+            "condition_batch_confounded": confounded,
+        }
+        return {
+            "shared_cells": shared_cells,
+            "barcode_overlap": barcode_overlap,
+            "donor_design": donor_design,
+        }
+
+
 def _build_integration_readiness(
     exp_context: dict[str, Any],
     multiome_contract: dict[str, Any],
     integration_validation: dict[str, Any] | None,
 ) -> dict[str, Any]:
-    """Evaluate pre-dispatch readiness for paired same-cell integration (ADR-071).
+    """Evaluate pre-dispatch readiness for paired same-cell integration (ADR-079).
 
     Intentionally kept separate from per-assay `dispatch` so unpaired/blocked
     cross-modal contracts never block independent single-modality lanes (`scRNA`,
     `scATAC`, `bulk_RNA`, `bulk_ATAC`).
     """
-    meta = dict(integration_validation or {})
-    level = str(meta.get("level") or "beta")
-    enabled = bool(meta.get("dispatch_enabled", True))
-    requires_ack = bool(meta.get("requires_ack", level in {"alpha", "beta", "experimental"}))
-    scope = str(meta.get("scope") or "paired_same_cell_rna_atac")
-
-    if multiome_contract.get("status") == "not_applicable":
-        return {
-            "status": "not_applicable",
-            "tier": level,
-            "dispatch_enabled": enabled,
-            "requires_ack": requires_ack,
-            "requires_ack_for_dispatch": False,
-            "dispatch_policy": "not_applicable",
-            "scope": scope,
-            "production_promoted": False,
-            "promotion_policy_adr": "ADR-056",
-            "promotion_adr": "ADR-071",
-            "governance_blockers": list(_INTEGRATION_GOVERNANCE_BLOCKERS),
-            "findings": [],
-        }
-
-    gate = enforce_same_cell_integration_gate(exp_context)
-    if not enabled:
-        return {
-            "status": "red",
-            "tier": level,
-            "dispatch_enabled": False,
-            "requires_ack": requires_ack,
-            "requires_ack_for_dispatch": False,
-            "dispatch_policy": "blocked",
-            "reason": "agent_not_validated",
-            "scope": scope,
-            "production_promoted": False,
-            "promotion_policy_adr": "ADR-056",
-            "promotion_adr": "ADR-071",
-            "governance_blockers": list(_INTEGRATION_GOVERNANCE_BLOCKERS),
-            "same_cell_gate_allowed": bool(gate.get("allowed")),
-            "findings": [],
-        }
-
-    if not gate.get("allowed"):
-        return {
-            "status": "red",
-            "tier": level,
-            "dispatch_enabled": True,
-            "requires_ack": requires_ack,
-            "requires_ack_for_dispatch": False,
-            "dispatch_policy": "blocked",
-            "reason": "multiome_same_cell_gate_blocked",
-            "scope": scope,
-            "production_promoted": False,
-            "promotion_policy_adr": "ADR-056",
-            "promotion_adr": "ADR-071",
-            "governance_blockers": list(_INTEGRATION_GOVERNANCE_BLOCKERS),
-            "same_cell_gate_allowed": False,
-            "blockers": list(gate.get("blockers") or []),
-            "findings": [],
-        }
-
-    findings: list[dict[str, Any]] = []
-    if requires_ack and integration_validation is not None:
-        findings.append(_finding(
-            "warning",
-            "integration_beta_ack_required",
-            (
-                "Cross-modal IntegrationAgent is beta (`paired_same_cell_rna_atac`; "
-                "ADR-056 / ADR-071) and requires explicit CP3.5 acknowledgement "
-                "before dispatch."
-            ),
-            (
-                "Proceed only if you accept paired-multiome beta limitations "
-                "(associative peak-to-gene / candidate eRegulons; WNN joint "
-                "topology audited against per-modality structure, never causal)."
-            ),
-            modality="multiome",
-        ))
-
-    return {
-        "status": "yellow" if requires_ack else "green",
-        "tier": level,
-        "dispatch_enabled": True,
-        "requires_ack": requires_ack,
-        "requires_ack_for_dispatch": bool(
-            requires_ack and integration_validation is not None
-        ),
-        "dispatch_policy": "requires_ack" if requires_ack else "auto",
-        "reason": str(meta.get("reason") or ""),
-        "scope": scope,
-        "production_promoted": False,
-        "promotion_policy_adr": "ADR-056",
-        "promotion_adr": "ADR-071",
-        "governance_blockers": list(_INTEGRATION_GOVERNANCE_BLOCKERS),
-        "same_cell_gate_allowed": True,
-        "findings": findings,
-    }
+    return IntegrationAuditAgent().audit(
+        exp_context,
+        multiome_contract,
+        integration_validation,
+    )
 
 
 def build_capability_matrix(

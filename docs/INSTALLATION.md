@@ -272,9 +272,14 @@ multi-platform `chromap` raw FASTQs via `aria-atacseq-env` + `aria-chromatin-env
 `docker/Dockerfile.atacseq` + `docker/Dockerfile.chromatin`), and universal
 `bulk_ATAC` inputs (SE/PE/multi-lane raw FASTQs, BAM/CRAM, and pre-computed
 peak-count matrices), and `TOBIAS` differential TF footprinting (`aria-tobias-env` /
-`docker/Dockerfile.tobias`, `ADR-078`). Beta paired-multiome entry points require
-typed metadata, manifests, and `CP3.5` acknowledgement where the assay contract
-needs them.
+`docker/Dockerfile.tobias`, `ADR-078`), and universal paired same-cell Multiome
+inputs (`.h5mu`, Cell Ranger ARC `.h5` and dual MEX, explicit shared-barcode or
+ARC-whitelist-translated paired matrices, manifested raw Multiome FASTQs, and
+multi-donor paired cohorts via `aria-chromatin-env` + `aria-integration-env` /
+`docker/Dockerfile.integration`, `ADR-079`). Risk-elevated multiome cohorts
+(`< 200` shared cells, partial barcode overlap, or batch/donor confounding)
+require explicit `CP3.5` acknowledgement, while unpaired/diagonal cross-modal
+combinations fail closed.
 
 Do not rely on filenames to establish the biological design. ARIA intentionally
 refuses silent production inference for groups, references, replicates, and

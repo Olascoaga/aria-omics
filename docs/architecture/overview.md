@@ -24,13 +24,13 @@ flowchart TD
     D --> CP2["CP2 / CP2.5: Confirm Groups, Replicates, Covariates & Contrasts"]
     CP2 --> CP3["CP3: Analysis Plan & Threshold Profiles"]
     CP3 --> A["AuditAgent + modality_audit"]
-    A -->|Beta paired multiome / low-power ack or blocking risks| CP35["CP3.5: Explicit Acknowledgement or Cancel"]
-    A -->|Validated RNA / ATAC & no blocking issues| SETUP["SetupAgent + EnvironmentManager"]
+    A -->|Risk-elevated multiome / low-power ack or blocking risks| CP35["CP3.5: Explicit Acknowledgement or Cancel"]
+    A -->|Validated RNA / ATAC / Paired Multiome & no blocking issues| SETUP["SetupAgent + EnvironmentManager"]
     CP35 -->|Proceed confirmed| SETUP
     SETUP --> B["BulkRNAAgent (Production Matrix & Universal Raw FASTQ)"]
     SETUP --> S["scRNAAgent (Production + Beta Trajectory/LIANA)"]
     SETUP --> C["ChromatinAgent (Production scATAC & Bulk ATAC)"]
-    SETUP --> INT["IntegrationAgent (Beta Paired Same-Cell 10x Multiome)"]
+    SETUP --> INT["IntegrationAgent (Production Paired Same-Cell Multiome)"]
     SETUP -. disabled by default .-> H["GenomeArchAgent (Scaffold Hi-C)"]
     B --> N["NarrativeAgent + BiologicalSynthesisAgent + Cross-Modal Triangulation"]
     S --> N
@@ -58,7 +58,7 @@ The standalone Mermaid source is stored in [aria_overview.mmd](../diagrams/aria_
 | `BulkRNAAgent` | Orchestrates universal bulk RNA-seq raw FASTQ preprocessing (`full_length`, 3'/5' tag, inline-UMI `pysam` dedup, and `STARsolo` pooled plates) and `pyDESeq2` DE + local GMT ORA + GSEA. |
 | `scRNAAgent` | Orchestrates QC, Harmony integration + overcorrection QC, clustering, CellTypist/marker annotation, donor-aware pseudobulk DE, PAGA/DPT trajectory, and LIANA communication. |
 | `ChromatinAgent` | Orchestrates `production` universal `scATAC` (`chromap` multi-platform/multi-lane/auto-RC FASTQ, air-gapped `snapatac2` fragments-to-matrix, multi-sample overlap consensus peak union, LSI, donor-aware `pyDESeq2` DA, peak annotation, local ORA, motifs, Signac-calibrated `peak2gene`), `production` universal `bulk_ATAC` (`bwa-mem2` SE/PE/multi-lane FASTQ, BAM/CRAM, pre-computed peak matrices, local `pysam`+`bedtools`+GTF ENCODE QC, SE/PE `MACS3` consensus, `bedtools` integer + `CPM` matrices, replicate-aware `pyDESeq2` DA, annotation, ORA, motifs, dual PNG+SVG PCA/QC figures), and `production` `TOBIAS` differential TF footprinting (`ADR-078`, associative). `ChIP`/`CUT&RUN`/`CUT&TAG` remain disabled scaffolds. |
-| `IntegrationAgent` | Orchestrates acknowledgement-gated `beta` paired same-cell 10x Multiome (`paired_qc`, deterministic `WNN` + 5-axis guardrail, `MOFA+`, Signac-faithful `peak2gene`, and candidate `eRegulons`). Unpaired/diagonal combinations fail closed. |
+| `IntegrationAgent` | Orchestrates `production` paired same-cell Multiome (`ADR-079`, governed by `IntegrationAuditAgent`: universal intake across `.h5mu`, Cell Ranger ARC `.h5`/MEX, manifested raw Multiome FASTQs, and multi-donor cohort union onto consensus peaks; `paired_qc`; donor/batch-aware Harmony `WNN` + 5-axis guardrail; batch-screened `MOFA+`; Signac-faithful `peak2gene`; and candidate `eRegulons` with `A4` stage-manifest resume). Unpaired/diagonal/bulk cross-modal combinations fail closed. |
 | `BiologicalSynthesisAgent` & `cross_modal_triangulation` | Deterministic zero-LLM within/cross-contrast RNA synthesis (`ADR-028`) and non-circular paired multiome triangulation (`ADR-070`). |
 | `NarrativeAgent` | Compiles evidence-verified `NarrativeBlock`s (`C1–C4`, `W-CLAIM`, `W-LEDGER`) into self-contained HTML reports, `methodology.json`, RO-Crate metadata, and reproducibility capsules. |
 | `HypothesisAgent` (`S0`–`S10`) | Opt-in (`--hypotheses`) mechanistic hypothesis proposer across 5 deterministic adapters and 4 publication gates, mechanically walled inside `SPECULATIVE` quarantine (`ADR-057`, `ADR-072`). |
