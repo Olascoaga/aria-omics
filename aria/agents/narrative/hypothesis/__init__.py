@@ -16,6 +16,7 @@ from __future__ import annotations
 from .adapters import (
     bulk_atac_evidence,
     bulk_rna_evidence,
+    cross_modal_evidence,
     integration_evidence,
     scatac_evidence,
     scrna_evidence,
@@ -23,6 +24,7 @@ from .adapters import (
 from .caveats import (
     CAVEAT_CODES,
     CAVEAT_GLOSSES,
+    CROSS_MODAL_UNPAIRED_COHORT,
     caveat_gloss,
 )
 from .devils_advocate import (
@@ -95,6 +97,8 @@ __all__ = [
     "bulk_atac_evidence",
     "scatac_evidence",
     "integration_evidence",
+    "cross_modal_evidence",
+    "CROSS_MODAL_UNPAIRED_COHORT",
     "LLMProposer",
     "build_proposer_prompt",
     "classify_parse",

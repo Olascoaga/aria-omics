@@ -172,6 +172,99 @@ _INTEGRATION_ANALYSES: list[dict[str, Any]] = [
 ]
 
 
+# ADR-080 (ADR-028 Slice 2): non-same-cell RNA x ATAC cross-modal concordance
+# reconciled from the ``cross_modal_concordance`` IPC script result (separate
+# bulk libraries or unpaired single-cell cohorts). Process vocabulary only.
+_CROSS_MODAL_ANALYSES: list[dict[str, Any]] = [
+    {
+        "key": "concordance",
+        "label": "Cross-modal contrast & sample concordance",
+        "plan_kw": ["cross-modal concordance", "de x da", "rna atac concordance"],
+        "finding_keys": ["concordance"],
+    },
+]
+
+_CROSS_MODAL_SCRIPT = "aria/scripts/cross_modal_concordance.py"
+_CROSS_MODAL_OK_STATUSES = ("success", "ok", "done")
+
+
+def cross_modal_findings(agent_results: dict | None) -> dict:
+    """Unwrap ``agent_results['cross_modal_concordance']`` to its payload.
+
+    The orchestrator may store the IPC script result directly or wrapped as
+    ``{"status": "done", "findings": {...}}``; both shapes are accepted. Returns
+    ``{}`` when the result is absent or malformed (never fabricates).
+    """
+    cm = (agent_results or {}).get("cross_modal_concordance")
+    if not isinstance(cm, dict):
+        return {}
+    inner = cm.get("findings")
+    if isinstance(inner, dict) and inner:
+        return inner
+    return cm
+
+
+def cross_modal_status(findings: dict | None) -> tuple[str, str | None]:
+    """Ledger status for an unwrapped cross-modal concordance payload.
+
+    ``ran`` ONLY when the script stamped ``ran is True`` with a successful
+    status; an explicit ``ran is False`` (no matched contrasts/samples) or a
+    skipped/blocked status is ``skipped``; error/failed is ``error``. Anything
+    else is ``not_run`` — execution is never inferred from a request.
+    """
+    if not isinstance(findings, dict) or not findings:
+        return "not_run", None
+    status = str(findings.get("status", "success") or "success").lower().strip()
+    reason = findings.get("reason")
+    if status in ("error", "failed"):
+        return "error", (
+            findings.get("error_type") or findings.get("details") or reason
+        )
+    if status in ("skipped", "blocked") or findings.get("ran") is False:
+        return "skipped", reason
+    if findings.get("ran") is True and status in _CROSS_MODAL_OK_STATUSES:
+        return "ran", None
+    return "not_run", reason
+
+
+def cross_modal_concordance_ran(agent_results: dict | None) -> bool:
+    """True iff the cross-modal concordance engine genuinely ran."""
+    return cross_modal_status(cross_modal_findings(agent_results))[0] == "ran"
+
+
+def _reconcile_cross_modal(findings: dict, phrases: list[str]) -> list[dict]:
+    """One ``ledger://cross_modal/concordance`` node with IPC provenance."""
+    spec = _CROSS_MODAL_ANALYSES[0]
+    status, reason = cross_modal_status(findings)
+    planned = _is_planned(spec, phrases)
+    tables = findings.get("tables") or {}
+    return [{
+        "modality": "cross_modal",
+        "analysis": spec["key"],
+        "label": spec["label"],
+        "node_id": f"ledger://cross_modal/{spec['key']}",
+        "node_type": "analysis_run",
+        "provenance": {
+            "kind": "ipc_script",
+            "script": _CROSS_MODAL_SCRIPT,
+            "rna_modality": findings.get("rna_modality"),
+            "atac_modality": findings.get("atac_modality"),
+            "stage_manifest_path": findings.get("stage_manifest_path"),
+            "tables": {
+                k: v for k, v in (
+                    tables.items() if isinstance(tables, dict) else []
+                ) if v
+            },
+            "validation_level": findings.get("validation_level"),
+            "evidence_tier": findings.get("evidence_tier"),
+        },
+        "planned": planned,
+        "status": status,
+        "reason": reason,
+        "divergence": bool(planned and status != "ran"),
+    }]
+
+
 def _plan_phrases(exp_ctx: dict) -> list[str]:
     di = (exp_ctx or {}).get("design_intelligence", {}) or {}
     phrases: list[str] = []
@@ -492,6 +585,11 @@ def build_run_ledger(exp_ctx: dict, agent_results: dict) -> dict:
         entries += _reconcile_integration(int_findings, phrases)
         modalities.append("integration")
 
+    cm_findings = cross_modal_findings(agent_results)
+    if cm_findings or "cross_modal_concordance" in (agent_results or {}):
+        entries += _reconcile_cross_modal(cm_findings, phrases)
+        modalities.append("cross_modal")
+
     divergences = [e for e in entries if e["divergence"]]
     return {
         "entries": entries,
@@ -563,6 +661,9 @@ _LEDGER_KEY_ALIASES = {
     "scrna_integrated_signal": "biological_synthesis",
     "scrna_context_layers": "biological_synthesis",
     "scrna_integration_limitations": "biological_synthesis",
+    # ADR-080 in-memory Slice 2 synthesis (no concordance engine pre-run).
+    "cross_modal_synthesis": "biological_synthesis",
+    "cross_modal_limitations": "biological_synthesis",
 }
 
 _REPORT_DERIVED_ANALYSES = {
@@ -574,12 +675,20 @@ _REPORT_DERIVED_ANALYSES = {
     "scrna_integrated_signal",
     "scrna_context_layers",
     "scrna_integration_limitations",
+    "cross_modal_synthesis",
+    "cross_modal_limitations",
 }
 
 
 def _ledger_modality_group(modality: str) -> str:
     """Map a block/claim modality label to a ledger modality group."""
     m = str(modality or "").lower().strip()
+    # ADR-080: non-same-cell cross-modal concordance owns its own group and must
+    # resolve before the generic RNA/ATAC substring fallbacks below.
+    if m in ("cross_modal", "cross-modal") or m.startswith(
+        ("cross_modal", "cross-modal")
+    ):
+        return "cross_modal"
     if "report" in m or "integrated" in m:
         return "report"
     if m == "integration" or "multiome" in m:
@@ -607,6 +716,12 @@ def node_id_for(modality: str, analysis: str) -> str:
             "cohort_merge": "preprocessing",
         }
         key = int_aliases.get(raw, raw)
+    elif group == "cross_modal":
+        cm_aliases = {
+            "cross_modal_concordance": "concordance",
+            "de_da_concordance": "concordance",
+        }
+        key = cm_aliases.get(raw, raw)
     else:
         key = _LEDGER_KEY_ALIASES.get(raw, raw)
     return f"ledger://{group}/{key}"

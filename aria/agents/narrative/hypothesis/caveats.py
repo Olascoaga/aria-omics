@@ -36,6 +36,8 @@ PARALOG_MOTIF_AMBIGUITY = "paralog_motif_ambiguity"
 DEPTH_CONFOUNDED = "depth_confounded"
 MOFA_LATENT_ASSOCIATIVE = "mofa_latent_associative"
 WNN_GUARDRAIL_DEGRADED = "wnn_guardrail_degraded"
+# Non-same-cell cross-modal concordance caveat (ADR-080 / ADR-028 Slice 2).
+CROSS_MODAL_UNPAIRED_COHORT = "cross_modal_unpaired_cohort"
 
 # code -> human-readable gloss (rendered in the prompt + the report).
 CAVEAT_GLOSSES: dict[str, str] = {
@@ -80,6 +82,33 @@ CAVEAT_GLOSSES: dict[str, str] = {
     WNN_GUARDRAIL_DEGRADED: (
         "joint WNN embedding triggered anti-degradation guardrail warnings "
         "relative to single-modality structure (lens, not replacement)"
+    ),
+    CROSS_MODAL_UNPAIRED_COHORT: (
+        "cross-modal concordance comes from non-same-cell assays (separate "
+        "libraries or cohorts) and reflects condition- or donor-level "
+        "co-variation, not single-cell cis regulation"
+    ),
+}
+
+# Recognition tokens for caveat codes whose free-text acknowledgement the
+# adversarial gate must parse but that post-date its built-in token table. The
+# hypothesis package registers these into ``devils_advocate._CONFOUND_TOKENS``
+# at import time (additive, idempotent), so a hypothesis can acknowledge the
+# caveat by code, by its gloss, or by its own phrasing.
+EXTRA_CONFOUND_TOKENS: dict[str, tuple[str, ...]] = {
+    CROSS_MODAL_UNPAIRED_COHORT: (
+        "cross_modal_unpaired_cohort",
+        "unpaired cohort",
+        "unpaired assay",
+        "non-same-cell",
+        "not same-cell",
+        "not from the same cells",
+        "separate libraries",
+        "separate cohorts",
+        "condition-level co-variation",
+        "donor-level co-variation",
+        "condition- or donor-level",
+        "not single-cell cis",
     ),
 }
 

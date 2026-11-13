@@ -103,6 +103,7 @@ def check_registry_integrity(repo_root: Path | None = None) -> list[IntegrityIss
     from aria.agents.base_agent import BaseAgent
     from aria.agents.orchestrator_agent import (
         AGENT_REGISTRY,
+        CROSS_MODAL_CONCORDANCE_VALIDATION,
         INTEGRATION_VALIDATION,
         MODALITY_TO_AGENT,
         MODALITY_VALIDATION,
@@ -204,6 +205,63 @@ def check_registry_integrity(repo_root: Path | None = None) -> list[IntegrityIss
                 "integration_production_missing_adr",
                 "integration_agent: production tier must cite its promotion ADR (ADR-056)",
             ))
+
+    # ADR-080: contrast-aligned & sample/donor-matched RNA x ATAC concordance
+    # engine (`production` associative tier); single-cell diagonal/bridge cell
+    # imputation remains fail-closed blocked.
+    cm_level = CROSS_MODAL_CONCORDANCE_VALIDATION.get("level")
+    if not cm_level:
+        issues.append(IntegrityIssue(
+            "cross_modal_missing_validation_level",
+            "cross_modal_concordance: missing validation level (ADR-080)",
+        ))
+    elif cm_level == "production":
+        if CROSS_MODAL_CONCORDANCE_VALIDATION.get("scope") != "contrast_and_sample_matched_rna_atac":
+            issues.append(IntegrityIssue(
+                "cross_modal_production_scope_invalid",
+                "cross_modal_concordance: production scope must be 'contrast_and_sample_matched_rna_atac' (ADR-080)",
+            ))
+        if CROSS_MODAL_CONCORDANCE_VALIDATION.get("evidence_tier") != "associative":
+            issues.append(IntegrityIssue(
+                "cross_modal_evidence_tier_invalid",
+                "cross_modal_concordance: evidence_tier must be 'associative' (ADR-080)",
+            ))
+        if CROSS_MODAL_CONCORDANCE_VALIDATION.get("diagonal_cell_imputation") != "blocked":
+            issues.append(IntegrityIssue(
+                "cross_modal_diagonal_imputation_unblocked",
+                "cross_modal_concordance: diagonal_cell_imputation must remain 'blocked' (ADR-080)",
+            ))
+        if CROSS_MODAL_CONCORDANCE_VALIDATION.get("dispatch_enabled") is not True:
+            issues.append(IntegrityIssue(
+                "cross_modal_production_dispatch_disabled",
+                "cross_modal_concordance: production tier must declare dispatch_enabled=True (ADR-080)",
+            ))
+        if CROSS_MODAL_CONCORDANCE_VALIDATION.get("production_promoted") is not True:
+            issues.append(IntegrityIssue(
+                "cross_modal_production_flag_invalid",
+                "cross_modal_concordance: production tier must declare production_promoted=True (ADR-080)",
+            ))
+        if CROSS_MODAL_CONCORDANCE_VALIDATION.get("requires_ack") is not False:
+            issues.append(IntegrityIssue(
+                "cross_modal_production_ack_flag_invalid",
+                "cross_modal_concordance: production tier must declare requires_ack=False (ADR-080)",
+            ))
+        if not CROSS_MODAL_CONCORDANCE_VALIDATION.get("promotion_adr"):
+            issues.append(IntegrityIssue(
+                "cross_modal_production_missing_adr",
+                "cross_modal_concordance: production tier must cite its promotion ADR (ADR-080)",
+            ))
+    cm_script = "aria/scripts/cross_modal_concordance.py"
+    if not (root / cm_script).exists():
+        issues.append(IntegrityIssue(
+            "required_script_missing",
+            f"cross_modal_concordance: required script missing: {cm_script}",
+        ))
+    elif cm_script not in IPC_SCRIPT_CONTRACTS:
+        issues.append(IntegrityIssue(
+            "missing_script_contract",
+            f"cross_modal_concordance: missing IPC ScriptContract for {cm_script} (ADR-080)",
+        ))
 
     for agent_name, contract in AGENT_SCRIPT_CONTRACTS.items():
         for script in _scripts(contract.get("required", ())):

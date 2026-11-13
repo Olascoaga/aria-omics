@@ -1,8 +1,14 @@
-# Paired Multimodal Integration Workflow & Roadmap
+# Multimodal Integration & Cross-Modal Concordance Workflows
 
-Validation level: **`production` (`ADR-079`), scoped to `paired_same_cell_rna_atac`** (promoted from `beta` + `requires_ack`, `ADR-071`; policy `ADR-056`). Unpaired, diagonal, and bulk cross-modal integration remain **blocked fail-closed**.
+ARIA enforces an architectural separation between two distinct multimodal integration regimes:
 
-Production covers verified paired same-cell RNA + ATAC inputs only:
+1. **Paired Same-Cell Multiome (`IntegrationAgent`, `production`, `ADR-079`, scoped strictly to `paired_same_cell_rna_atac`):** Joint cell-level manifolds (`WNN`, `MOFA+`), Signac-faithful cis `peak2gene`, and candidate `eRegulons` on verified shared-barcode RNA + ATAC nuclei/cells (promoted from `beta` + `requires_ack`, `ADR-071`; policy `ADR-056`).
+2. **Non-Same-Cell RNA $\times$ ATAC Contrast & Sample/Donor Concordance (`aria/scripts/cross_modal_concordance.py` + `BiologicalSynthesisAgent` Slice 2, `production` `associative`, `ADR-080`, scoped to `contrast_and_sample_matched_rna_atac`):** Post-DE / post-DA cis 4-quadrant gene–peak concordance, JASPAR2024 motif + `TOBIAS` footprint $\times$ cognate TF RNA triangulation, functional pathway intersection, and `N >= 6` sample/donor-matched `log2(CPM + 1)` cis correlation for `bulk_RNA + bulk_ATAC` and unpaired cohort `scRNA + scATAC` — **without** cell-level manifold fusion or barcode matching.
+3. **Unpaired Single-Cell Diagonal / Bridge Cell Imputation (`GLUE`, `MultiVI`, `Seurat bridge`):** **Blocked fail-closed** across both `IntegrationAgent` and `CrossModalConcordanceAuditAgent` (`diagonal_cell_imputation_not_validated`).
+
+## 1. Paired Same-Cell Multiome (`IntegrationAgent`, `ADR-079`)
+
+Production `IntegrationAgent` covers verified paired same-cell RNA + ATAC inputs only:
 
 - paired `.h5mu` (MuData with RNA and ATAC over one shared `obs` barcode namespace);
 - Cell Ranger ARC filtered `.h5` and MEX directories (`10x_multiome_h5` / `10x_multiome_mtx`);
@@ -22,14 +28,25 @@ Every input must pass `enforce_same_cell_integration_gate`. `IntegrationAuditAge
 - `cross_modal_triangulation.py` + `IntegrationNarrator` (`I7`, `ADR-070`): non-circular Cross-Modal Evidence Graph (`shared_upstream=["peak_to_gene"]`), governed C1–C4 reporting, and 4 dual PNG (`300 DPI`) + editable SVG figures;
 - `aria/agents/narrative/hypothesis/adapters/integration.py` (`I9` / `S10`, `ADR-072`): opt-in `SPECULATIVE`-quarantined cross-modal `HypothesisAgent` adapter with code-owned `independence_key` preventing cis double-counting.
 
-## Deferred / Blocked Scopes (Fail-Closed; Not Covered by `ADR-079`)
+## 2. Non-Same-Cell Contrast & Sample/Donor Concordance (`ADR-080`)
 
-- unpaired split `scRNA + scATAC` diagonal/bridge integration (e.g., GLUE / Seurat bridge / MultiVI) remains deferred and blocked fail-closed;
-- bulk cross-modal (`bulk_RNA + bulk_ATAC`), `scRNA + ChIP`, and ATAC-only `.h5mu` inputs are blocked fail-closed;
+When a run combines validated single-assay RNA (`bulk_RNA` or `scRNA` pseudobulk) and chromatin (`bulk_ATAC` or `scATAC` pseudobulk) **without** shared cell barcodes (`enforce_same_cell_integration_gate` blocks `IntegrationAgent` as expected), `CrossModalConcordanceAuditAgent` (`CROSS_MODAL_CONCORDANCE_VALIDATION`, `level="production"`, `evidence_tier="associative"`) enables automatic post-assay execution of `aria/scripts/cross_modal_concordance.py` followed by `BiologicalSynthesisAgent` Slice 2 (`aria/agents/narrative/synthesis/cross_modal_synthesis.py`):
+
+- **Contrast alignment & sign canonicalization (`ADR-028`):** matches `(numerator, denominator)` arms across RNA DE and ATAC DA, automatically negating ATAC `log2FC` when ATAC was contrasted in reverse (`B_vs_A` vs `A_vs_B`, stamping `atac_sign_flipped=True`), and refusing unaligned reference arms (`A_vs_B` vs `A_vs_C`);
+- **Layer A — 4-quadrant cis DE $\times$ DA concordance:** joins RNA DE tables against cis ATAC DA peaks (`|distance_to_tss| <= 100 kb`, plus `<= 2 kb` promoter subset; annotating all tested peaks when a GTF is resolvable to avoid post-selection correlation bias), reporting `concordant_up`, `concordant_down`, discordant classes, chromatin-only / RNA-only loci, 2$\times$2 Fisher's exact directional odds ratio & $p$-value, and continuous Spearman $\rho$ / Pearson $r$;
+- **Layer B — TF motif + `TOBIAS` footprint $\times$ cognate TF RNA triangulation:** splits heterodimers (`::`), maps cognate TF transcript DE/expression, classifies `concordant` / `discordant` / `chromatin_shift_rna_unchanged` / `not_detected_in_rna`, and flags `paralog_motif_ambiguity`;
+- **Layer C — Pathway intersection (`RNA ORA` $\cap$ `ATAC peak_ora`):** normalized term overlap and Jaccard index across shared pathway collections;
+- **Layer D — Sample/donor-matched cis peak–gene correlation (`N >= 6` shared biological units):** `log2(CPM + 1)` cis correlation across explicitly shared `sample_id` / `donor_id` units with sample-permutation BH-FDR, returning structured non-runs (`insufficient_matched_biological_units` for `N < 6`, `unmatched_sample_namespaces` for disjoint IDs, never guessing pairings from filenames);
+- **Governed `RunLedger` (`C3`), `W-CLAIM`, dual 300-DPI PNG + editable SVG `cross_modal_starburst`, and non-circular `HypothesisAgent` (`adapters/cross_modal.py`, `CROSS_MODAL_UNPAIRED_COHORT` caveat):** reconciled as `ledger://cross_modal/concordance` with shared chromatin TF `independence_key` lineage so cross-modal TF triangulation is never double-counted as a third wet-lab assay.
+
+## 3. Deferred / Blocked Scopes (Fail-Closed)
+
+- unpaired split `scRNA + scATAC` **cell-level diagonal/bridge imputation** (e.g., `GLUE` / `Seurat bridge` / `MultiVI`) remains deferred and blocked fail-closed (`diagonal_cell_imputation_not_validated`);
+- `IntegrationAgent` cell-level joint manifolds (`WNN` / `MOFA+` / cell-level `peak2gene` / `eRegulons`) remain strictly blocked fail-closed on non-same-cell `bulk_RNA + bulk_ATAC`, unpaired `scRNA + scATAC`, `scRNA + ChIP`, and ATAC-only `.h5mu` inputs;
 - paired containers mixed with separate unpaired `scRNA`/`scATAC` count files fail closed (`multiome_mixed_paired_and_unpaired_containers`) unless an explicit `multiome_contract` declares the pairing;
 - hand-written contracts listing several paired containers without `cohort_merge_required=True` fail closed (`multiome_multiple_mudata_unsupported`);
 - incomplete raw Multiome FASTQ manifests (`multiome_raw_fastq_incomplete`) and manifests without same-cell chemistry or barcode translation (`multiome_not_same_cell`) fail closed;
-- any expansion beyond `paired_same_cell_rna_atac` requires its own promotion ADR under `ADR-056`; `registry_integrity.py` rejects a production tier with any other scope (`integration_production_scope_invalid`).
+- `registry_integrity.py` enforces both `INTEGRATION_VALIDATION["scope"] == "paired_same_cell_rna_atac"` (`ADR-079`) and `CROSS_MODAL_CONCORDANCE_VALIDATION["diagonal_cell_imputation"] == "blocked"` (`ADR-080`).
 
 ## Executed Paired Same-Cell Architecture
 

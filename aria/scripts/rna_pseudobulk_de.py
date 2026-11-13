@@ -854,6 +854,7 @@ def rna_pseudobulk_de(params: dict) -> dict:
     # nominal alpha used for the planning power estimate. Reporting power at
     # this effective alpha reconciles the "power vs decision rule" gap.
     effective_alpha_global = None
+    full_csv_rows = []
     if n_tests_global:
         padj_global = _global_bh(global_pvals)
         _gp = np.asarray(global_pvals, dtype=float)
@@ -1016,11 +1017,25 @@ def rna_pseudobulk_de(params: dict) -> dict:
                     "padj_local":  r["padj_local"],
                     "padj_global": r["padj_global"],
                 })
+            for g_id, row in res.loc[valid].iterrows():
+                p_val = row.get(primary_padj_col)
+                full_csv_rows.append({
+                    "group":       block["group"],
+                    "comparison":  block["comparison"],
+                    "gene":        str(g_id),
+                    "log2fc":      round(float(row["log2FoldChange"]), 4) if pd.notna(row.get("log2FoldChange")) else None,
+                    "log2fc_raw":  _raw_lfc(row),
+                    "pvalue":      float(row["pvalue"]),
+                    "padj":        float(p_val) if pd.notna(p_val) else None,
+                    "padj_local":  float(row["padj_local"]) if pd.notna(row.get("padj_local")) else None,
+                    "padj_global": float(row["padj_global"]) if pd.notna(row.get("padj_global")) else None,
+                })
 
     # ── Write CSV ─────────────────────────────────────────────────────────
     out_dir = Path(output_dir) if output_dir else Path(data_path).parent
     out_dir.mkdir(parents=True, exist_ok=True)
     csv_path = str(out_dir / "pseudobulk_de.csv")
+    full_csv_path = str(out_dir / "pseudobulk_de_all_tested.csv")
     if csv_rows:
         pd.DataFrame(csv_rows).to_csv(csv_path, index=False)
     else:
@@ -1030,6 +1045,17 @@ def rna_pseudobulk_de(params: dict) -> dict:
             "padj", "padj_local", "padj_global",
         ]) \
           .to_csv(csv_path, index=False)
+    if full_csv_rows:
+        pd.DataFrame(full_csv_rows).to_csv(full_csv_path, index=False)
+    else:
+        pd.DataFrame(columns=[
+            "group", "comparison", "gene", "log2fc", "log2fc_raw", "pvalue",
+            "padj", "padj_local", "padj_global",
+        ]).to_csv(full_csv_path, index=False)
+    for _grp_data in per_group.values():
+        for _comp_data in (_grp_data.get("per_comparison") or {}).values():
+            if isinstance(_comp_data, dict) and _comp_data.get("status") != "skipped":
+                _comp_data["full_results_csv"] = full_csv_path
 
     # Count provenance (audit 2026-05-28, F-SCI-LOGNORM): be explicit about
     # whether DESeq2 saw genuine raw counts or counts reverse-engineered from
@@ -1112,6 +1138,7 @@ def rna_pseudobulk_de(params: dict) -> dict:
                            "min_replicates_per_condition": min_replicates_per_condition},
         "per_group":      per_group,
         "output_csv":     csv_path,
+        "full_results_csv": full_csv_path,
     }
 
 

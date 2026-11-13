@@ -69,7 +69,12 @@ def _normalized_effect(signal) -> float | None:
         return None
     if (
         measure.startswith("peak2gene")
-        or measure in ("gene_activity", "eregulon_mean_tf_gene_correlation")
+        or measure in (
+            "gene_activity",
+            "eregulon_mean_tf_gene_correlation",
+            # ADR-080: sample/donor-matched cis correlation is a bounded r.
+            "sample_matched_peak2gene_corr",
+        )
     ):
         return min(abs(value), 1.0)  # correlation / bounded score
     return math.tanh(abs(value))  # log2FC, motif enrichment, generic log-scale

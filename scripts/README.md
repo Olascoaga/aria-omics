@@ -81,3 +81,4 @@
 | `run_v48_i8_orchestrated_validation.py` | Live `OrchestratorAgent` CP3.5 acknowledgement + `IntegrationAgent` E2E validation (`V48 I8`, `ADR-071`). |
 | `run_v48_i9_cross_modal_hypotheses.py` | Cross-modal `HypothesisAgent S10` Arms A–D + live LLM E2E validation (`V48 I9`, `ADR-072`). |
 | `run_adr079_multidonor_multiome_validation.py` | 4-donor `GSE278576` cohort union, donor-aware Harmony WNN, MOFA+ donor $\eta^2$ screening, barcode-permuted null `peak2gene`, and `C3` ledger production validation (`ADR-079`). |
+| `run_adr080_cross_modal_concordance_validation.py` | 10-donor (`5` young vs `5` aged, sex-balanced) `GSE278576` non-same-cell RNA $\times$ ATAC contrast & donor-matched cis concordance, reversed-contrast sign invariance, donor-deranged null calibration, and paired `peak2gene` overlap validation (`ADR-080`). |

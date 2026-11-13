@@ -139,6 +139,20 @@ _CONFOUND_TOKENS: dict[str, tuple[str, ...]] = {
         "joint embedding warning",
         "lens, not replacement",
     ),
+    "cross_modal_unpaired_cohort": (
+        "cross_modal_unpaired_cohort",
+        "unpaired cohort",
+        "unpaired assay",
+        "non-same-cell",
+        "not same-cell",
+        "not from the same cells",
+        "separate libraries",
+        "separate cohorts",
+        "condition-level co-variation",
+        "donor-level co-variation",
+        "condition- or donor-level",
+        "not single-cell cis",
+    ),
 }
 
 

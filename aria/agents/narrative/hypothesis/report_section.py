@@ -20,9 +20,11 @@ from .adapters import (
     PAIRED_CIS_REGULATORY_KEY,
     bulk_atac_evidence,
     bulk_rna_evidence,
+    cross_modal_evidence,
     integration_evidence,
     scatac_evidence,
     scrna_evidence,
+    tag_chromatin_tf_lineage,
 )
 
 log = logging.getLogger(__name__)
@@ -98,6 +100,15 @@ def gather_evidence(agent_results, run_ledger=None, exp_ctx=None) -> list:
                 ):
                     sig.independence_key = PAIRED_CIS_REGULATORY_KEY
         signals += integ_signals
+    if "cross_modal_concordance" in agent_results:
+        cm_signals = cross_modal_evidence(agent_results, run_ledger, exp_ctx)
+        # ADR-080 / ADR-072: a cross-modal TF concordance is algebraically
+        # derived from the same contrast's RNA DE + chromatin motif/footprint
+        # signals. Share one chromatin lineage key per TF between the derived
+        # concordance and the single-assay ATAC TF signals, so ranking never
+        # counts it as a third wet-lab line (no destructive dedup).
+        tag_chromatin_tf_lineage(signals, cm_signals)
+        signals += cm_signals
     return signals
 
 

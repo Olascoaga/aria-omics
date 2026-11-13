@@ -1313,6 +1313,163 @@ def _build_integration_readiness(
     )
 
 
+_DIAGONAL_IMPUTATION_STRATEGIES = frozenset(
+    {"diagonal", "bridge", "glue", "multivi", "seurat_bridge", "cell_imputation"}
+)
+_RNA_CONCORDANCE_MODALITIES = frozenset({"scRNA", "bulk_RNA", "bulk_RNA_raw"})
+_ATAC_CONCORDANCE_MODALITIES = frozenset({"scATAC", "bulk_ATAC"})
+
+
+class CrossModalConcordanceAuditAgent:
+    """Pre-dispatch readiness auditor for non-same-cell RNA+ATAC concordance (ADR-080).
+
+    Evaluates deterministic contrast- and sample/donor-level concordance readiness
+    across ``bulk_RNA``/``bulk_RNA_raw`` + ``bulk_ATAC`` and unpaired cohort
+    ``scRNA`` + ``scATAC`` while keeping synthetic cell-level diagonal/bridge
+    imputation (``GLUE``, ``MultiVI``, ``Seurat bridge``) blocked fail-closed.
+    """
+
+    name = "cross_modal_concordance_audit_agent"
+
+    def audit(
+        self,
+        exp_context: dict[str, Any],
+        multiome_contract: dict[str, Any],
+        cards: dict[str, dict[str, Any]],
+        concordance_validation: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        meta = concordance_validation or {}
+        tier = str(meta.get("level") or "production")
+        enabled = bool(meta.get("dispatch_enabled", True))
+        modalities = exp_context.get("modalities") or {}
+
+        strategy = (
+            str(
+                exp_context.get("cross_modal_strategy")
+                or exp_context.get("integration_strategy")
+                or ""
+            )
+            .lower()
+            .strip()
+        )
+        diagonal_requested = bool(
+            exp_context.get("diagonal_imputation") is True
+            or strategy in _DIAGONAL_IMPUTATION_STRATEGIES
+        )
+        if diagonal_requested:
+            finding = _finding(
+                "blocking",
+                "diagonal_cell_imputation_blocked",
+                (
+                    "Unpaired single-cell diagonal/bridge cell imputation "
+                    "(e.g. GLUE, MultiVI, Seurat bridge) is not validated in ARIA "
+                    "and is blocked fail-closed."
+                ),
+                (
+                    "Remove diagonal_imputation / bridge strategy to run audited "
+                    "single-modality pipelines plus ADR-080 contrast- and "
+                    "donor-level cross-modal concordance."
+                ),
+                modality="cross_modal",
+            )
+            return {
+                "tier": tier,
+                "evidence_tier": "associative",
+                "scope": "contrast_and_sample_matched_rna_atac",
+                "promotion_adr": str(meta.get("promotion_adr") or "ADR-080"),
+                "diagonal_cell_imputation": "blocked",
+                "status": "red",
+                "dispatch_policy": "blocked",
+                "requires_ack_for_dispatch": False,
+                "reason": "diagonal_cell_imputation_not_validated",
+                "findings": [finding],
+            }
+
+        if not enabled:
+            return {
+                "tier": tier,
+                "evidence_tier": "associative",
+                "scope": "contrast_and_sample_matched_rna_atac",
+                "promotion_adr": str(meta.get("promotion_adr") or "ADR-080"),
+                "diagonal_cell_imputation": "blocked",
+                "status": "red",
+                "dispatch_policy": "blocked",
+                "requires_ack_for_dispatch": False,
+                "reason": "cross_modal_concordance_dispatch_disabled",
+                "findings": [],
+            }
+
+        contract_details = multiome_contract.get("contract") or multiome_contract
+        if bool(contract_details.get("same_cell") is True) and (
+            multiome_contract.get("status") not in {"red", "blocked"}
+        ):
+            return {
+                "tier": tier,
+                "evidence_tier": "associative",
+                "scope": "contrast_and_sample_matched_rna_atac",
+                "promotion_adr": str(meta.get("promotion_adr") or "ADR-080"),
+                "diagonal_cell_imputation": "blocked",
+                "status": "not_applicable",
+                "dispatch_policy": "superseded_by_paired_same_cell_integration",
+                "requires_ack_for_dispatch": False,
+                "reason": "paired_same_cell_multiome_uses_integration_agent",
+                "findings": [],
+            }
+
+        active_rna = sorted(
+            m
+            for m in (set(modalities) & _RNA_CONCORDANCE_MODALITIES)
+            if (cards.get(m) or {}).get("status") != "red"
+        )
+        active_atac = sorted(
+            m
+            for m in (set(modalities) & _ATAC_CONCORDANCE_MODALITIES)
+            if (cards.get(m) or {}).get("status") != "red"
+        )
+        if active_rna and active_atac:
+            return {
+                "tier": tier,
+                "evidence_tier": "associative",
+                "scope": "contrast_and_sample_matched_rna_atac",
+                "promotion_adr": str(meta.get("promotion_adr") or "ADR-080"),
+                "diagonal_cell_imputation": "blocked",
+                "status": "green",
+                "dispatch_policy": "auto",
+                "requires_ack_for_dispatch": False,
+                "rna_modalities": active_rna,
+                "atac_modalities": active_atac,
+                "reason": "non_same_cell_rna_atac_contrast_and_sample_concordance_ready",
+                "findings": [],
+            }
+
+        return {
+            "tier": tier,
+            "evidence_tier": "associative",
+            "scope": "contrast_and_sample_matched_rna_atac",
+            "promotion_adr": str(meta.get("promotion_adr") or "ADR-080"),
+            "diagonal_cell_imputation": "blocked",
+            "status": "not_applicable",
+            "dispatch_policy": "not_applicable",
+            "requires_ack_for_dispatch": False,
+            "reason": "requires_validated_rna_and_atac_modalities",
+            "findings": [],
+        }
+
+
+def _build_cross_modal_concordance_readiness(
+    exp_context: dict[str, Any],
+    multiome_contract: dict[str, Any],
+    cards: dict[str, dict[str, Any]],
+    concordance_validation: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    return CrossModalConcordanceAuditAgent().audit(
+        exp_context,
+        multiome_contract,
+        cards,
+        concordance_validation,
+    )
+
+
 def build_capability_matrix(
     exp_context: dict[str, Any],
     *,
@@ -1400,6 +1557,11 @@ def build_capability_matrix(
         multiome_contract,
         integration_validation,
     )
+    cross_modal_concordance_readiness = _build_cross_modal_concordance_readiness(
+        exp_context,
+        multiome_contract,
+        cards,
+    )
 
     preflight = {}
     design_power = assess_design_power(exp_context)
@@ -1424,6 +1586,7 @@ def build_capability_matrix(
     for contract in contracts.values():
         findings.extend(contract.get("findings", []))
     findings.extend(integration_readiness.get("findings", []))
+    findings.extend(cross_modal_concordance_readiness.get("findings", []))
     for check in preflight.values():
         findings.extend(check.get("findings", []))
 
@@ -1432,7 +1595,10 @@ def build_capability_matrix(
 
     return {
         "status": (
-            "red" if dispatch["blocked"]
+            "red" if (
+                dispatch["blocked"]
+                or cross_modal_concordance_readiness.get("status") == "red"
+            )
             else "yellow" if (
                 dispatch["requires_ack"]
                 or integration_readiness.get("requires_ack_for_dispatch")
@@ -1442,6 +1608,7 @@ def build_capability_matrix(
         "cards": cards,
         "contracts": contracts,
         "integration_readiness": integration_readiness,
+        "cross_modal_concordance_readiness": cross_modal_concordance_readiness,
         "preflight": preflight,
         "dispatch": dispatch,
         "findings": findings,

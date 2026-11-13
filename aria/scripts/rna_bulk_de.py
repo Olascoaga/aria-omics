@@ -502,6 +502,31 @@ def bulk_rna_de(params: dict) -> dict:
             title_suffix=name,
         )
 
+        # Export full tested DE table (ADR-080: required so cross-modal concordance
+        # has the complete tested-gene universe rather than only padj < alpha hits).
+        full_de_tsv = None
+        results_df_all = de_result.get("results")
+        if results_df_all is not None and len(results_df_all) > 0:
+            try:
+                all_df = results_df_all.copy()
+                all_df["gene_id"] = all_df.index.astype(str)
+                all_df["clean_id"] = all_df["gene_id"].str.split(".").str[0]
+                all_df["gene_symbol"] = (
+                    all_df["clean_id"].map(symbol_map).fillna("")
+                    if symbol_map
+                    else ""
+                )
+                all_cols = ["gene_id", "gene_symbol"] + [
+                    c
+                    for c in ("baseMean", "log2FoldChange", "lfcSE", "stat", "pvalue", "padj")
+                    if c in all_df.columns
+                ]
+                full_path = tables_dir / "de_all_genes.tsv"
+                all_df[all_cols].to_csv(full_path, sep="\t", index=False)
+                full_de_tsv = str(full_path)
+            except Exception as exc:
+                warnings.append(f"[{name}] Full DE table export failed: {str(exc)[:150]}")
+
         # ── Pathway visualizations (ORA dotplots + GSEA running sums) ──
         # Lazy import: avoid pulling matplotlib/blitzgsea at module load
         try:
@@ -627,6 +652,7 @@ def bulk_rna_de(params: dict) -> dict:
             "contrast_dir":      str(contrast_dir),
             "figures_dir":       str(figures_dir),
             "tables_dir":        str(tables_dir),
+            "full_results_csv":  full_de_tsv,
         })
 
         # P1-1c: stash this contrast's per-gene p-value + shrunken log2fc for the

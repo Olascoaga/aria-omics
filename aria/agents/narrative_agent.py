@@ -1314,6 +1314,12 @@ for small-effect genes.""",
                             "modality-specific factors."
                         )
 
+        # Non-same-cell cross-modal concordance (ADR-080 / ADR-028 Slice 2).
+        cm_paragraph = self._cross_modal_methods_paragraph(agent_results)
+        if cm_paragraph:
+            lines.append("\n**Cross-modal concordance (RNA × ATAC)**\n")
+            lines.append(cm_paragraph)
+
         # Parameter decisions appendix reference
         if decisions:
             lines.append(
@@ -1324,6 +1330,95 @@ for small-effect genes.""",
             )
 
         return "\n".join(lines)
+
+    @staticmethod
+    def _cross_modal_methods_paragraph(agent_results: dict) -> str:
+        """Copy-pasteable, HTML-tag-free, non-causal cross-modal methods text.
+
+        Emitted only when ``cross_modal_concordance`` genuinely ran. Dynamic
+        tokens are stripped of ``<``/``>`` and HTML-escaped, so no tag can reach
+        the manuscript Methods.
+        """
+        import html as _html
+        import re as _re
+
+        from aria.agents.narrative.run_ledger import (
+            cross_modal_findings,
+            cross_modal_status,
+        )
+        cm = cross_modal_findings(agent_results)
+        if cross_modal_status(cm)[0] != "ran":
+            return ""
+
+        def _tok(value, default: str = "") -> str:
+            text = _re.sub(r"[<>]", "", str(value if value is not None else default))
+            return _html.escape(_re.sub(r"\s+", " ", text).strip()[:120], quote=False)
+
+        rna = _tok(cm.get("rna_modality"), "RNA")
+        atac = _tok(cm.get("atac_modality"), "ATAC")
+        matched = [m for m in (cm.get("matched_contrasts") or [])
+                   if isinstance(m, dict)]
+        n_mc = cm.get("n_matched_contrasts")
+        if not isinstance(n_mc, int):
+            n_mc = len(matched)
+        n_flipped = sum(1 for m in matched if m.get("atac_sign_flipped"))
+        links = cm.get("sample_matched_links") or {}
+        if not isinstance(links, dict):
+            links = {}
+        cis_bp = links.get("cis_distance_bp")
+        cis_clause = (
+            f"within {_tok(cis_bp)} bp of each gene's transcription start site"
+            if isinstance(cis_bp, (int, float)) and not isinstance(cis_bp, bool)
+            else "within the configured cis window around each gene's "
+                 "transcription start site"
+        )
+        parts = [
+            f"{rna} differential expression and {atac} differential "
+            f"accessibility results were compared across {_tok(n_mc)} matched "
+            f"contrast(s) from non-same-cell assays (separate libraries or "
+            f"unpaired cohorts). Contrasts were matched on their condition "
+            f"levels; when the chromatin comparison was run in the reverse "
+            f"orientation its log2 fold changes were multiplied by -1 before "
+            f"comparison ({n_flipped} sign-aligned contrast(s)), and contrasts "
+            f"with non-matching arms were not compared.",
+            f"Gene-peak pairs were defined {cis_clause}. Directional "
+            f"concordance of co-significant pairs was tested with a two-sided "
+            f"2 × 2 Fisher exact test (concordant versus discordant sign), and "
+            f"the agreement of RNA and ATAC log2 fold changes across all "
+            f"co-tested pairs was summarized with Spearman rank and Pearson "
+            f"linear correlation.",
+            "Transcription factor motif enrichment and, where available, "
+            "differential TF footprinting shifts were triangulated against the "
+            "RNA change of each TF's own gene; motifs shared among paralog TFs "
+            "were flagged as ambiguous because sequence similarity prevents "
+            "assigning the signal to a single family member.",
+            "Over-representation results for differentially expressed genes and "
+            "for genes nearest to differentially accessible peaks (local "
+            "hypergeometric test) were intersected by term and summarized with "
+            "the Jaccard index.",
+        ]
+        if links.get("ran") is True:
+            perm = links.get("permutation_null") or {}
+            n_perm = perm.get("n_permutations") if isinstance(perm, dict) else None
+            perm_clause = (
+                f" with an empirical null from {_tok(n_perm)} sample-label "
+                f"permutations"
+                if isinstance(n_perm, int) and n_perm > 0 else
+                " with an empirical sample-label permutation null"
+            )
+            parts.append(
+                f"For the {_tok(links.get('n_shared_samples'), '?')} biological "
+                f"units profiled in both assays, expression and accessibility "
+                f"were transformed to log2(CPM + 1) and cis peak-gene pairs "
+                f"were tested for across-sample correlation{perm_clause}, "
+                f"followed by Benjamini-Hochberg FDR control."
+            )
+        parts.append(
+            "All cross-modal results are associative: they describe condition- "
+            "or donor-level co-variation between separately measured assays and "
+            "are not interpreted as same-cell cis coupling or mechanism."
+        )
+        return " ".join(parts)
 
     # ── Per-agent summarizers ─────────────────────────────────────────────
 

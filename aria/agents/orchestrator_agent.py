@@ -208,6 +208,28 @@ INTEGRATION_VALIDATION = {
     ),
 }
 
+CROSS_MODAL_CONCORDANCE_VALIDATION = {
+    "level": "production",
+    "evidence_tier": "associative",
+    "dispatch_enabled": True,
+    "requires_ack": False,
+    "scope": "contrast_and_sample_matched_rna_atac",
+    "diagonal_cell_imputation": "blocked",
+    "production_promoted": True,
+    "promotion_policy_adr": "ADR-056",
+    "promotion_adr": "ADR-080",
+    "reason": (
+        "Deterministic contrast-aligned DE x DA 4-quadrant concordance, "
+        "TF motif + TOBIAS differential footprint x cognate TF RNA "
+        "triangulation, shared ORA pathway intersection, and sample/donor-"
+        "matched CPM cis peak-to-gene correlation (N >= 6 shared biological "
+        "units) for non-same-cell bulk_RNA + bulk_ATAC and unpaired cohort "
+        "scRNA + scATAC (ADR-080). Unpaired single-cell diagonal/bridge "
+        "cell-level imputation (GLUE/MultiVI/Seurat bridge) remains blocked "
+        "fail-closed."
+    ),
+}
+
 
 class OrchestratorAgent(BaseAgent):
 
@@ -217,6 +239,7 @@ class OrchestratorAgent(BaseAgent):
     MODALITY_TO_AGENT = MODALITY_TO_AGENT
     MODALITY_VALIDATION = MODALITY_VALIDATION
     INTEGRATION_VALIDATION = INTEGRATION_VALIDATION
+    CROSS_MODAL_CONCORDANCE_VALIDATION = CROSS_MODAL_CONCORDANCE_VALIDATION
 
     def __init__(self, memory: ARIAMemory,
                  llm: LLMProvider = None,
@@ -1176,6 +1199,14 @@ class OrchestratorAgent(BaseAgent):
                 )
                 agent_results["integration_agent"] = result
 
+        cm_result = self._run_cross_modal_concordance(
+            experiment_id=experiment_id,
+            exp_context=exp_context,
+            agent_results=agent_results,
+        )
+        if cm_result is not None:
+            agent_results["cross_modal_concordance"] = cm_result
+
         self.publish_status(experiment_id, "Generating report...", 0.88)
         findings = self._get_session(experiment_id).message_bus.get_findings(
             experiment_id
@@ -1256,6 +1287,189 @@ class OrchestratorAgent(BaseAgent):
     @staticmethod
     def _integration_dispatch_enabled() -> bool:
         return bool(INTEGRATION_VALIDATION.get("dispatch_enabled", True))
+
+    @staticmethod
+    def _cross_modal_concordance_dispatch_enabled() -> bool:
+        return bool(CROSS_MODAL_CONCORDANCE_VALIDATION.get("dispatch_enabled", True))
+
+    def _run_cross_modal_concordance(
+        self,
+        experiment_id: str,
+        exp_context: dict,
+        agent_results: dict,
+    ) -> dict | None:
+        """Execute ADR-080 contrast & sample/donor cross-modal concordance when
+        non-same-cell RNA + ATAC lanes both produced structured findings."""
+        if not isinstance(exp_context, dict) or not isinstance(agent_results, dict):
+            return None
+        if exp_context.get("disable_cross_modal_concordance") is True:
+            return None
+
+        strategy = (
+            str(
+                exp_context.get("cross_modal_strategy")
+                or exp_context.get("integration_strategy")
+                or ""
+            )
+            .lower()
+            .strip()
+        )
+        if exp_context.get("diagonal_imputation") is True or strategy in {
+            "diagonal",
+            "bridge",
+            "glue",
+            "multivi",
+            "seurat_bridge",
+            "cell_imputation",
+        }:
+            blocked = {
+                "status": "blocked",
+                "ran": False,
+                "analysis": "cross_modal_concordance",
+                "validation_level": CROSS_MODAL_CONCORDANCE_VALIDATION.get(
+                    "level", "production"
+                ),
+                "evidence_tier": "associative",
+                "reason": "diagonal_cell_imputation_not_validated",
+                "details": (
+                    "Single-cell diagonal/bridge cell-level imputation "
+                    "(GLUE/MultiVI/Seurat bridge) is blocked fail-closed."
+                ),
+            }
+            self.publish_finding(
+                experiment_id,
+                {
+                    "summary": (
+                        "Cross-modal concordance blocked: diagonal cell-level "
+                        "imputation was requested and is not validated."
+                    ),
+                    "agent": "cross_modal_concordance",
+                    "reason": "diagonal_cell_imputation_not_validated",
+                },
+                Confidence.INSUFFICIENT,
+            )
+            return blocked
+
+        if not self._cross_modal_concordance_dispatch_enabled():
+            return {
+                "status": "skipped",
+                "ran": False,
+                "analysis": "cross_modal_concordance",
+                "reason": "cross_modal_concordance_dispatch_disabled",
+            }
+
+        integ_res = agent_results.get("integration_agent") or {}
+        if (
+            isinstance(integ_res, dict)
+            and integ_res.get("status") == "done"
+            and exp_context.get("enable_cross_modal_concordance") is not True
+        ):
+            return None
+
+        rna_res = None
+        for rna_key in ("bulk_rna_agent", "scrna_agent", "rna_agent"):
+            cand = agent_results.get(rna_key)
+            if (
+                isinstance(cand, dict)
+                and cand.get("status") == "done"
+                and isinstance(cand.get("findings"), dict)
+                and bool(cand.get("findings"))
+            ):
+                rna_res = cand
+                break
+
+        chrom_res = agent_results.get("chromatin_agent")
+        if not (
+            rna_res is not None
+            and isinstance(chrom_res, dict)
+            and chrom_res.get("status") == "done"
+            and isinstance(chrom_res.get("findings"), dict)
+            and bool(chrom_res.get("findings"))
+        ):
+            return None
+
+        base_dir = (
+            exp_context.get("cross_modal_output_dir")
+            or exp_context.get("output_dir")
+            or exp_context.get("data_dir")
+        )
+        if not base_dir:
+            for mod_files in (exp_context.get("modalities") or {}).values():
+                if isinstance(mod_files, list) and mod_files:
+                    base_dir = str(Path(str(mod_files[0])).parent)
+                    break
+        out_dir = str(
+            Path(str(base_dir or ".")) / "cross_modal_concordance"
+        )
+
+        params: dict = {
+            "rna_results": rna_res,
+            "chromatin_results": chrom_res,
+            "organism": exp_context.get("organism", "Homo sapiens"),
+            "genome": exp_context.get("genome", "hg38"),
+            "output_dir": out_dir,
+            "padj_threshold": float(exp_context.get("global_padj", 0.05)),
+        }
+        for opt_key in (
+            "rna_cpm_path",
+            "atac_cpm_path",
+            "sample_id_map",
+            "gtf_path",
+            "cis_distance_bp",
+            "promoter_bp",
+            "min_matched_samples",
+            "n_permutations",
+            "seed",
+            "resume",
+        ):
+            if exp_context.get(opt_key) is not None:
+                params[opt_key] = exp_context[opt_key]
+
+        self.publish_status(
+            experiment_id,
+            "Running cross-modal concordance (RNA x ATAC)...",
+            0.80,
+        )
+        try:
+            env = getattr(self, "env", None)
+            if env is None:
+                from aria.utils.environment_manager import env_manager
+
+                env = env_manager
+            result = env.run_in_stack(
+                stack="rna",
+                script_path="aria/scripts/cross_modal_concordance.py",
+                params=params,
+            )
+        except Exception as exc:
+            log.warning("cross_modal_concordance failed: %s", exc, exc_info=True)
+            return {
+                "status": "error",
+                "ran": False,
+                "analysis": "cross_modal_concordance",
+                "error_type": type(exc).__name__,
+                "details": str(exc),
+            }
+
+        if isinstance(result, dict) and result.get("ran") is True:
+            de_da = result.get("de_da_concordance") or {}
+            n_conc = int(de_da.get("n_concordant_total") or 0)
+            n_mc = int(result.get("n_matched_contrasts") or 0)
+            self.publish_finding(
+                experiment_id,
+                {
+                    "summary": (
+                        f"Cross-modal concordance evaluated {n_mc} matched "
+                        f"contrast(s) with {n_conc} directionally concordant "
+                        "cis gene-peak pair(s) (associative tier)."
+                    ),
+                    "agent": "cross_modal_concordance",
+                    "validation_level": "production",
+                    "evidence_tier": "associative",
+                },
+                Confidence.MEDIUM,
+            )
+        return result
 
     @staticmethod
     def _has_paired_same_cell_multiome(exp_context: dict) -> bool:

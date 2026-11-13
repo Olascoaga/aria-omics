@@ -111,6 +111,38 @@ class ReportSectionsMixin:
                         f"shared cells{pr_str}{guard_str}</td></tr>"
                     )
 
+            # Non-same-cell cross-modal concordance (RNA × ATAC, ADR-080)
+            from aria.agents.narrative.run_ledger import (
+                cross_modal_findings as _cm_findings,
+                cross_modal_status as _cm_status,
+            )
+            cm_f = _cm_findings(agent_results)
+            if _cm_status(cm_f)[0] == "ran":
+                n_mc = cm_f.get("n_matched_contrasts")
+                if not isinstance(n_mc, int):
+                    n_mc = len(cm_f.get("matched_contrasts") or [])
+                n_conc = 0
+                for mc in cm_f.get("matched_contrasts") or []:
+                    dd = mc.get("de_da_summary") if isinstance(mc, dict) else None
+                    if not isinstance(dd, dict):
+                        continue
+                    if isinstance(dd.get("n_concordant_total"), (int, float)):
+                        n_conc += int(dd["n_concordant_total"])
+                parts = [
+                    f"{_html.escape(str(n_mc))} matched contrast(s)",
+                    f"{n_conc} concordant DE×DA pair(s)",
+                ]
+                sml = cm_f.get("sample_matched_links") or {}
+                if isinstance(sml, dict) and sml.get("ran") is True:
+                    parts.append(
+                        f"{_html.escape(str(sml.get('n_shared_samples', '?')))} "
+                        f"matched sample(s)"
+                    )
+                rows.append(
+                    "<tr><td>Cross-Modal Concordance (RNA × ATAC)</td>"
+                    f"<td>{' · '.join(parts)}</td></tr>"
+                )
+
             if rows:
                 qc_rows = f"""
 <table style="margin-top:1rem">
@@ -230,7 +262,14 @@ class ReportSectionsMixin:
             )
             if ((agent_results or {}).get(name) or {}).get("status") == "done"
         ]
-        if "integration_agent" not in active and len(active) <= 1:
+        from aria.agents.narrative.run_ledger import cross_modal_concordance_ran
+        if cross_modal_concordance_ran(agent_results):
+            active.append("cross_modal_concordance")
+        if (
+            "integration_agent" not in active
+            and "cross_modal_concordance" not in active
+            and len(active) <= 1
+        ):
             return (
                 "Cross-modal conflict analysis: not applicable; "
                 "single-modality report."
@@ -612,6 +651,43 @@ class ReportSectionsMixin:
             except Exception as e:
                 log.warning(f"Stage integration supplementary tables: {e}",
                             exc_info=True)
+
+        # Non-same-cell cross-modal concordance tables + starburst (ADR-080).
+        self._stage_cross_modal_artifacts(agent_results, report_dir)
+
+    @staticmethod
+    def _stage_cross_modal_artifacts(agent_results: dict, report_dir: Path):
+        """Copy ``cross_modal_*`` CSVs and the starburst figure into the report.
+
+        Only files that exist are copied (never fabricated); filenames are kept
+        so the report tree mirrors the engine outputs (``tables/cross_modal_*.csv``,
+        ``figures/cross_modal_starburst.{png,svg}``).
+        """
+        import shutil
+
+        from aria.agents.narrative.run_ledger import cross_modal_findings
+        cm = cross_modal_findings(agent_results)
+        if not cm:
+            return
+        staged = []
+        tables = cm.get("tables") or {}
+        if isinstance(tables, dict):
+            for key in ("de_da_concordance_csv", "tf_triangulation_csv",
+                        "shared_pathways_csv", "sample_matched_links_csv"):
+                src = tables.get(key)
+                if isinstance(src, str) and src and Path(src).is_file():
+                    staged.append((Path(src), Path(report_dir) / "tables"))
+        for fig_key in ("figures", "figures_svg"):
+            figs = cm.get(fig_key) or {}
+            src = figs.get("cross_modal_starburst") if isinstance(figs, dict) else None
+            if isinstance(src, str) and src and Path(src).is_file():
+                staged.append((Path(src), Path(report_dir) / "figures"))
+        for src, dst_dir in staged:
+            try:
+                dst_dir.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(src, dst_dir / src.name)
+            except Exception as e:
+                log.warning(f"Stage cross-modal artifact {src.name}: {e}")
 
 
     def _build_findings_table(self, grouped: dict) -> str:

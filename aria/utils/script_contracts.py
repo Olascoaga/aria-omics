@@ -213,6 +213,34 @@ def _f(name: str, type_: FieldType = "any", *, required: bool = True,
 
 
 SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
+    "aria/scripts/cross_modal_concordance.py": ScriptContract(
+        script_path="aria/scripts/cross_modal_concordance.py",
+        validation_level="production",
+        inputs=tuple(
+            _f(name, kind, required=False)
+            for name, kind in (
+                ("rna_results", "dict"), ("chromatin_results", "dict"),
+                ("rna_cpm_path", "path"), ("atac_cpm_path", "path"),
+                ("sample_id_map", "dict"), ("gtf_path", "path"),
+                ("organism", "str"), ("genome", "str"), ("output_dir", "path"),
+                ("padj_threshold", "float"), ("cis_distance_bp", "int"),
+                ("promoter_bp", "int"), ("min_matched_samples", "int"),
+                ("n_permutations", "int"), ("seed", "int"), ("resume", "bool"),
+            )
+        ),
+        success_outputs=tuple(
+            _f(name, kind)
+            for name, kind in (
+                ("ran", "bool"), ("analysis", "str"), ("validation_level", "str"),
+                ("evidence_tier", "str"), ("associative_only", "bool"),
+                ("n_matched_contrasts", "int"), ("matched_contrasts", "list"),
+                ("de_da_concordance", "dict"), ("tf_triangulation", "dict"),
+                ("pathway_concordance", "dict"), ("sample_matched_links", "dict"),
+                ("tables", "dict"), ("figures", "dict"), ("figures_svg", "dict"),
+                ("warnings", "list"),
+            )
+        ),
+    ),
     "aria/scripts/rna_qc.py": ScriptContract(
         script_path="aria/scripts/rna_qc.py",
         validation_level="production",
