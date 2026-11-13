@@ -40,12 +40,19 @@ def test_bulk_atac_production_is_dispatchable_with_adr077():
     assert MODALITY_VALIDATION["bulk_ATAC"]["promotion_adr"] == "ADR-077"
 
 
-def test_remaining_scaffold_chromatin_modalities_are_not_dispatched():
+def test_epigenomic_and_hic_modalities_are_production_with_adr081_and_adr082():
     from aria.agents.orchestrator_agent import MODALITY_VALIDATION
 
+    # ADR-081: ChIP, CUT_AND_RUN, CUT_AND_TAG promoted to production.
     for modality in ("ChIP", "CUT_AND_RUN", "CUT_AND_TAG"):
-        assert MODALITY_VALIDATION[modality]["level"] == "scaffold"
-        assert MODALITY_VALIDATION[modality]["dispatch_enabled"] is False
+        assert MODALITY_VALIDATION[modality]["level"] == "production"
+        assert MODALITY_VALIDATION[modality]["dispatch_enabled"] is True
+        assert MODALITY_VALIDATION[modality]["promotion_adr"] == "ADR-081"
+
+    # ADR-082: HiC promoted to production.
+    assert MODALITY_VALIDATION["HiC"]["level"] == "production"
+    assert MODALITY_VALIDATION["HiC"]["dispatch_enabled"] is True
+    assert MODALITY_VALIDATION["HiC"]["promotion_adr"] == "ADR-082"
 
 
 def test_paired_integration_agent_is_production_for_same_cell_scope():

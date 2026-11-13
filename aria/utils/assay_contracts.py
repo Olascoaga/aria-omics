@@ -301,13 +301,25 @@ def _first_fastq_read_length(path: str) -> int | None:
         return None
 
 
+def _is_control_metadata_row(row: dict[str, Any], condition_col: str = "condition") -> bool:
+    if not isinstance(row, dict):
+        return False
+    if row.get("is_control") is True:
+        return True
+    role = str(row.get("role") or row.get("assay_role") or "").strip().lower()
+    if role in {"control", "input", "igg", "mock"}:
+        return True
+    cond = str(row.get(condition_col) or row.get("condition") or "").strip().lower()
+    return cond in {"input", "igg"}
+
+
 def _barcode_check(
     exp_context: dict[str, Any],
     modality: str,
     files: list[str],
 ) -> dict[str, Any]:
     fastq = any(_is_fastq(p) for p in files)
-    if modality == "bulk_ATAC" and fastq:
+    if modality in {"bulk_ATAC", "ChIP", "CUT_AND_RUN", "CUT_AND_TAG"} and fastq:
         sc_errors = _detect_bulk_atac_single_cell_fastq(exp_context, files)
         if sc_errors:
             return {
@@ -416,6 +428,8 @@ def _sample_metadata_check(exp_context: dict[str, Any], files: list[str]) -> dic
         if not isinstance(row, dict):
             missing.append(sample_id)
             continue
+        if _is_control_metadata_row(row, str(condition_col)):
+            continue
         if not row.get(condition_col) or not row.get(replicate_col):
             missing.append(sample_id)
 
@@ -435,9 +449,17 @@ def _replicate_check(
     files: list[str],
 ) -> dict[str, Any]:
     design = exp_context.get("design") or exp_context.get("inferred_design") or {}
-    groups = (
+    raw_groups = (
         (design.get("analysis_groups") or design.get("groups") or {})
         if isinstance(design, dict)
+        else {}
+    )
+    groups = (
+        {
+            k: v for k, v in raw_groups.items()
+            if str(k).strip().lower() not in {"input", "igg"}
+        }
+        if isinstance(raw_groups, dict)
         else {}
     )
     comparisons = exp_context.get("comparisons") or (
@@ -446,22 +468,35 @@ def _replicate_check(
         else None
     )
     has_explicit_bulk_contrast = (
-        modality in {"bulk_RNA", "bulk_RNA_raw", "bulk_ATAC"}
+        modality in {"bulk_RNA", "bulk_RNA_raw", "bulk_ATAC", "ChIP", "CUT_AND_RUN", "CUT_AND_TAG"}
         and isinstance(groups, dict)
         and len(groups) >= 2
     )
     if (not comparisons and not has_explicit_bulk_contrast) or modality not in {
-        "bulk_ATAC", "scATAC", "bulk_RNA", "bulk_RNA_raw", "scRNA"
+        "bulk_ATAC", "scATAC", "ChIP", "CUT_AND_RUN", "CUT_AND_TAG", "HiC",
+        "bulk_RNA", "bulk_RNA_raw", "scRNA",
     }:
         return {
             "status": "pass",
             "required_for_comparison": bool(comparisons or has_explicit_bulk_contrast),
         }
 
-    metadata = exp_context.get("sample_metadata") or {}
-    condition_col = exp_context.get("condition_col", "condition")
-    replicate_col = exp_context.get("replicate_col") or exp_context.get(
-        "replicate_column", "replicate"
+    metadata = (
+        exp_context.get("sample_metadata")
+        or (design.get("sample_metadata") if isinstance(design, dict) else None)
+        or (design.get("sample_sheet") if isinstance(design, dict) else None)
+        or {}
+    )
+    condition_col = (
+        exp_context.get("condition_col")
+        or (design.get("condition_col") if isinstance(design, dict) else None)
+        or "condition"
+    )
+    replicate_col = (
+        exp_context.get("replicate_col")
+        or exp_context.get("replicate_column")
+        or (design.get("replicate_col") if isinstance(design, dict) else None)
+        or "replicate"
     )
     counts: dict[str, set[str]] = {}
     if isinstance(metadata, dict) and metadata:
@@ -471,12 +506,30 @@ def _replicate_check(
             row = metadata.get(sample_id) or {}
             if not isinstance(row, dict):
                 continue
+            if _is_control_metadata_row(row, str(condition_col)):
+                continue
             condition = row.get(condition_col) or row.get("condition")
             replicate = (
                 row.get(replicate_col)
                 or row.get("replicate")
                 or row.get("donor_id")
                 or sample_id
+            )
+            if condition and replicate:
+                counts.setdefault(str(condition), set()).add(str(replicate))
+    elif isinstance(metadata, list) and metadata:
+        for idx, row in enumerate(metadata):
+            if not isinstance(row, dict):
+                continue
+            if _is_control_metadata_row(row, str(condition_col)):
+                continue
+            sid = str(row.get("sample_id") or row.get("sample") or f"s{idx}")
+            condition = row.get(condition_col) or row.get("condition")
+            replicate = (
+                row.get(replicate_col)
+                or row.get("replicate")
+                or row.get("donor_id")
+                or sid
             )
             if condition and replicate:
                 counts.setdefault(str(condition), set()).add(str(replicate))
@@ -490,7 +543,10 @@ def _replicate_check(
     per_condition = {condition: len(reps) for condition, reps in counts.items()}
     min_reps = min(per_condition.values()) if per_condition else 0
     if (
-        modality in {"bulk_RNA", "bulk_RNA_raw", "scATAC", "bulk_ATAC"}
+        modality in {
+            "bulk_RNA", "bulk_RNA_raw", "scATAC", "bulk_ATAC",
+            "ChIP", "CUT_AND_RUN", "CUT_AND_TAG", "HiC",
+        }
         and len(per_condition) >= 2
         and min_reps < 2
     ):

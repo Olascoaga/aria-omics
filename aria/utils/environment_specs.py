@@ -71,9 +71,10 @@ ENVIRONMENT_SPECS: dict[str, EnvironmentSpec] = {
     ),
     "hic": EnvironmentSpec(
         "hic", "aria-hic-env", "aria-hic-env.yml",
-        "Experimental Hi-C analysis", 14400,
-        ("python", "cooler"), lock_required=False,
-        lock_policy="scaffold_dispatch_disabled",
+        "3D genome architecture (Hi-C / Micro-C balancing, compartments, TADs, loops)", 14400,
+        ("python", "cooler", "pairtools", "bedtools"),
+        lock_required=True,
+        lock_policy="active_scientific_runtime",
     ),
     "integration": EnvironmentSpec(
         "integration", "aria-integration-env", "aria-integration-env.yml",

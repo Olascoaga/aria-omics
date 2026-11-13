@@ -13,15 +13,16 @@ flowchart TD
     CP35 -->|Proceed| SETUP
     SETUP --> B["BulkRNAAgent (production)"]
     SETUP --> S["scRNAAgent (production)"]
-    SETUP --> C["ChromatinAgent (scATAC & bulk ATAC production)"]
+    SETUP --> C["ChromatinAgent (scATAC, bulk ATAC, ChIP, CUT&RUN & CUT&TAG production)"]
     SETUP --> INT["IntegrationAgent (paired same-cell Multiome production)"]
-    SETUP -. disabled by default .-> H["GenomeArchAgent (scaffold)"]
+    SETUP --> H["GenomeArchAgent (Hi-C / Micro-C 3D genome production)"]
     B --> CM["cross_modal_concordance.py (non-same-cell RNA x ATAC)"]
     S --> CM
     C --> CM
     B --> N["NarrativeAgent + Synthesis + Triangulation"]
     S --> N
     C --> N
+    H --> N
     CM --> N
     INT --> N
     N --> COMP["C1-C4 Claim Compiler + W-CLAIM + W-LEDGER"]

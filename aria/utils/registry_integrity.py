@@ -68,9 +68,11 @@ AGENT_SCRIPT_CONTRACTS = {
     },
     "genome_arch_agent": {
         "required": (
+            "aria/scripts/hic_preprocess.py",
             "aria/scripts/hic_inspect.py",
             "aria/scripts/hic_qc_and_balance.py",
             "aria/scripts/hic_topology.py",
+            "aria/scripts/hic_figure.py",
         ),
         "planned": (),
     },

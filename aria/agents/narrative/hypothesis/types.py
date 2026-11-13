@@ -20,7 +20,10 @@ from typing import Literal
 EntityKind = Literal[
     "gene", "peak", "tf_motif", "pathway", "cluster", "celltype", "other"
 ]
-Modality = Literal["bulk_RNA", "scRNA", "bulk_ATAC", "scATAC", "integration"]
+Modality = Literal[
+    "bulk_RNA", "scRNA", "bulk_ATAC", "scATAC",
+    "ChIP", "CUT_AND_RUN", "CUT_AND_TAG", "HiC", "integration",
+]
 Direction = Literal["up", "down", "na"]
 
 _ENTITY_KINDS = {

@@ -58,7 +58,7 @@
 
 ---
 
-## 5. Chromatin & Paired 10x Multiome Concordance Suites (V46–V48)
+## 5. Chromatin, Epigenomics, 3D Genome & Multiome Concordance Suites (V46–V48, ADR-076..ADR-082)
 
 | Script | Validation Scope |
 | :--- | :--- |
@@ -82,3 +82,5 @@
 | `run_v48_i9_cross_modal_hypotheses.py` | Cross-modal `HypothesisAgent S10` Arms A–D + live LLM E2E validation (`V48 I9`, `ADR-072`). |
 | `run_adr079_multidonor_multiome_validation.py` | 4-donor `GSE278576` cohort union, donor-aware Harmony WNN, MOFA+ donor $\eta^2$ screening, barcode-permuted null `peak2gene`, and `C3` ledger production validation (`ADR-079`). |
 | `run_adr080_cross_modal_concordance_validation.py` | 10-donor (`5` young vs `5` aged, sex-balanced) `GSE278576` non-same-cell RNA $\times$ ATAC contrast & donor-matched cis concordance, reversed-contrast sign invariance, donor-deranged null calibration, and paired `peak2gene` overlap validation (`ADR-080`). |
+| `run_adr081_epigenomics_validation.py` | Wet-lab `mm39` + `sacCer3` spike-in `CUT&RUN` (`SEACR`, Gaussian-copula `IDR`, BigWig, spike-in `pyDESeq2`), R Bioconductor `DESeq2` `sizeFactors` concordance & unidirectional global-loss recovery + 15 null cohorts, wet-lab `mm10` `ChIP-seq` vs external `EDD` megadomains, `CUT&Tag` `SEACR`, and `C1–C4` governance (`ADR-081`). |
+| `run_adr082_hic_validation.py` | Multi-resolution `.pairs -> .mcool` preprocessing + `A4` resume, `ICE` balancing & `HiCRep` `SCC`, standalone `cooltools 0.7.1` numerical concordance (`E1` compartments, Crane insulation `TADs`, donut `loops` + GTF gene anchors), `4v4` `differential_3d` switching + balanced null calibration, dual PNG+SVG figures, and `C1–C4` + `HypothesisAgent` governance (`ADR-082`). |

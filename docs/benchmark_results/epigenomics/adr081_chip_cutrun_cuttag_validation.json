@@ -1,0 +1,130 @@
+{
+  "adr": "ADR-081",
+  "all_gates_pass": true,
+  "benchmark": "adr081_chip_cutrun_cuttag_validation",
+  "description": "Empirical certification of ChIP-seq, CUT&RUN, and CUT&Tag production pipelines: wet-lab mm39+sacCer3 spike-in CUT&RUN, external R Bioconductor DESeq2 custom sizeFactors concordance & unidirectional global-loss recovery, null calibration, wet-lab mm10 ChIP-seq vs external EDD megadomains, and C1-C4 claim governance.",
+  "environment": {
+    "aria_version": "4.8.0",
+    "chromatin_env": "aria-chromatin-env",
+    "external_r_comparator_env": "aria-bench-env",
+    "git_commit_base": "2601a2f",
+    "rna_de_env": "aria-rna-env"
+  },
+  "generated_utc": "2026-11-13T19:38:33Z",
+  "modalities_promoted": [
+    "ChIP",
+    "CUT_AND_RUN",
+    "CUT_AND_TAG"
+  ],
+  "paths_clean": true,
+  "schema_version": 1,
+  "suites": {
+    "real_chipseq_mm10_edd_domains_and_cuttag_governance": {
+      "gates": {
+        "audit_agents_governed": true,
+        "broad_domains_called": true,
+        "chip_ip_control_jsd_measured": true,
+        "chip_qc_ran": true,
+        "cuttag_seacr_ran": true,
+        "edd_domain_concordance": true,
+        "zero_causal_verbs": true,
+        "zero_withheld_claims": true
+      },
+      "metrics": {
+        "blacklist_filtered_regions": 1,
+        "broad_domains_called_chr19": 31,
+        "causal_language_violations": 0,
+        "chip_cohort": "wet-lab mouse mm10 heterochromatin/lamina ChIP-seq + matched Input A9 (chr19)",
+        "chip_ip_control_jsd": 0.1731,
+        "chip_qc_nrf": 0.7724,
+        "chip_qc_nsc": 3.4712,
+        "chip_qc_pbc1": 0.7602,
+        "chip_qc_rsc": 7.091,
+        "cuttag_seacr_peaks": 279,
+        "edd_chr19_overlap": {
+          "aria_bp_precision": 0.6294,
+          "aria_domain_bp": 41100000,
+          "bp_jaccard": 0.613,
+          "edd_bp_recall": 0.9592,
+          "edd_domain_bp": 26970000,
+          "intersection_bp": 25870000
+        },
+        "withheld_claims_across_3_modalities": 0
+      },
+      "pass": true,
+      "status": "ran"
+    },
+    "real_cutrun_mm39_saccer3_spikein": {
+      "gates": {
+        "bigwig_exported": true,
+        "bioconductor_lfc_concordance": true,
+        "bioconductor_stat_concordance": true,
+        "copula_idr_ran": true,
+        "qc_success": true,
+        "seacr_relaxed_ge_stringent": true,
+        "seacr_stringent_called": true,
+        "spikein_de_ran": true
+      },
+      "metrics": {
+        "bioconductor_deseq2_lfc_pearson_r": 1.0,
+        "bioconductor_deseq2_stat_pearson_r": 1.0,
+        "cohort": "8-library wet-lab mouse mm39 CUT&RUN + sacCer3 spike-in (chr19)",
+        "frip_chr19": 0.08624831527833311,
+        "idr_reproducible_peaks": 30,
+        "idr_self_consistency_ratio": null,
+        "n_bigwig_tracks": 8,
+        "n_libraries": 8,
+        "n_peaks_tested_de": 30,
+        "n_shared_peaks_compared": 30,
+        "n_significant_ko_vs_wt": 0,
+        "qc_mito_fraction": 0.0,
+        "qc_nrf": 0.7138,
+        "qc_pbc1": 0.7257,
+        "qc_pbc2": 3.8376,
+        "saccer3_spikein_reads": {
+          "KC_1": 916918.0,
+          "KC_2": 424720.0,
+          "KH_1": 291172.0,
+          "KH_2": 293796.0,
+          "WC_1": 473224.0,
+          "WC_2": 109396.0,
+          "WH_1": 242240.0,
+          "WH_2": 217146.0
+        },
+        "seacr_relaxed_peaks": 22,
+        "seacr_stringent_peaks": 22
+      },
+      "pass": true,
+      "status": "ran"
+    },
+    "spikein_bioconductor_concordance_and_null": {
+      "gates": {
+        "bioconductor_lfc_r": true,
+        "bioconductor_stat_r": true,
+        "naive_distortion_demonstrated": true,
+        "null_empirical_false_positive_rate": true,
+        "significant_jaccard": true,
+        "technical_sum_first_exact": true,
+        "unidirectional_loss_recovered": true
+      },
+      "metrics": {
+        "aria_spikein_n_down": 240,
+        "aria_spikein_n_up": 0,
+        "bioconductor_lfc_pearson_r": 0.99996588,
+        "bioconductor_stat_pearson_r": 0.99985013,
+        "n_peaks": 300,
+        "n_planted_lost": 240,
+        "naive_median_ratios_false_up": 60,
+        "naive_median_ratios_n_down": 0,
+        "null_cohorts": 15,
+        "null_empirical_fp_rate": 0.0,
+        "null_total_false_positives": 0,
+        "null_total_tests": 3000,
+        "significant_jaccard_vs_bioconductor": 1.0,
+        "technical_sum_first_ratio": 0.98039216
+      },
+      "pass": true,
+      "status": "ran"
+    }
+  }
+}

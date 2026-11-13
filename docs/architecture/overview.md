@@ -29,15 +29,16 @@ flowchart TD
     CP35 -->|Proceed confirmed| SETUP
     SETUP --> B["BulkRNAAgent (Production Matrix & Universal Raw FASTQ)"]
     SETUP --> S["scRNAAgent (Production + Beta Trajectory/LIANA)"]
-    SETUP --> C["ChromatinAgent (Production scATAC & Bulk ATAC)"]
+    SETUP --> C["ChromatinAgent (Production scATAC, Bulk ATAC, ChIP, CUT&RUN & CUT&TAG)"]
     SETUP --> INT["IntegrationAgent (Production Paired Same-Cell Multiome)"]
-    SETUP -. disabled by default .-> H["GenomeArchAgent (Scaffold Hi-C)"]
+    SETUP --> H["GenomeArchAgent (Production Hi-C / Micro-C 3D Genome)"]
     B --> CM["cross_modal_concordance.py (Non-Same-Cell RNA x ATAC Contrast & Donor Concordance)"]
     S --> CM
     C --> CM
     B --> N["NarrativeAgent + BiologicalSynthesisAgent + Cross-Modal Triangulation"]
     S --> N
     C --> N
+    H --> N
     CM --> N
     INT --> N
     N --> COMP["C1-C4 Claim Compiler + W-CLAIM + W-LEDGER"]
@@ -61,11 +62,12 @@ The standalone Mermaid source is stored in [aria_overview.mmd](../diagrams/aria_
 | `SetupAgent` & `EnvironmentManager` | Verifies lock-gated Conda stacks (`ENVIRONMENT_SPECS`) and executes `aria/scripts/*.py` subprocesses over validated JSON IPC (`ScriptContract`). |
 | `BulkRNAAgent` | Orchestrates universal bulk RNA-seq raw FASTQ preprocessing (`full_length`, 3'/5' tag, inline-UMI `pysam` dedup, and `STARsolo` pooled plates) and `pyDESeq2` DE + local GMT ORA + GSEA. |
 | `scRNAAgent` | Orchestrates QC, Harmony integration + overcorrection QC, clustering, CellTypist/marker annotation, donor-aware pseudobulk DE, PAGA/DPT trajectory, and LIANA communication. |
-| `ChromatinAgent` | Orchestrates `production` universal `scATAC` (`chromap` multi-platform/multi-lane/auto-RC FASTQ, air-gapped `snapatac2` fragments-to-matrix, multi-sample overlap consensus peak union, LSI, donor-aware `pyDESeq2` DA, peak annotation, local ORA, motifs, Signac-calibrated `peak2gene`), `production` universal `bulk_ATAC` (`bwa-mem2` SE/PE/multi-lane FASTQ, BAM/CRAM, pre-computed peak matrices, local `pysam`+`bedtools`+GTF ENCODE QC, SE/PE `MACS3` consensus, `bedtools` integer + `CPM` matrices, replicate-aware `pyDESeq2` DA, annotation, ORA, motifs, dual PNG+SVG PCA/QC figures), and `production` `TOBIAS` differential TF footprinting (`ADR-078`, associative). `ChIP`/`CUT&RUN`/`CUT&TAG` remain disabled scaffolds. |
+| `ChromatinAgent` | Orchestrates `production` universal `scATAC`, `production` universal `bulk_ATAC`, `production` epigenomic protein–DNA interaction assays (`ChIP`, `CUT_AND_RUN`, `CUT_AND_TAG`: assay-aware dedup/shift/fragment filtering, Input/IgG control pairing, `MACS3` narrow/broad + `SEACR` empirical/top-fraction + `call_broad_domains` megadomains, Gaussian-copula `IDR`, normalized BigWig export, and heterologous spike-in `size_factors` `pyDESeq2` differential binding, `ADR-081`), and `production` `TOBIAS` differential TF footprinting (`ADR-078`, associative). |
+| `GenomeArchAgent` | Orchestrates `production` 3D genome architecture (`HiC` / Micro-C, `ADR-082`, governed by `HiCAuditAgent`: out-of-core preprocessing across `.pairs`/`.hic`/chimeric `.bam`/paired FASTQs -> `.cool`/`.mcool` with `A4` resume, `ICE` balancing, polymer `P(s)` contact decay, `HiCRep` `SCC`, GC/GTF-phased `eigs_cis` `A/B` compartments, Crane multi-scale `insulation` TADs, `expected_cis` + `dots` loops with GTF anchor annotation, replicate-aware empirical-Bayes moderated `differential_3d` switching, and dual PNG+SVG figures). |
 | `IntegrationAgent` | Orchestrates `production` paired same-cell Multiome (`ADR-079`, governed by `IntegrationAuditAgent`: universal intake across `.h5mu`, Cell Ranger ARC `.h5`/MEX, manifested raw Multiome FASTQs, and multi-donor cohort union onto consensus peaks; `paired_qc`; donor/batch-aware Harmony `WNN` + 5-axis guardrail; batch-screened `MOFA+`; Signac-faithful `peak2gene`; and candidate `eRegulons` with `A4` stage-manifest resume). Same-cell manifold scopes stay strictly `paired_same_cell_rna_atac`. |
 | `cross_modal_concordance.py` & `BiologicalSynthesisAgent` | Deterministic `production` (`associative`, `ADR-080`) non-same-cell RNA $\times$ ATAC contrast & sample/donor concordance (`bulk_RNA + bulk_ATAC` and unpaired cohort `scRNA + scATAC`, governed by `CrossModalConcordanceAuditAgent`), within/cross-contrast RNA synthesis (`ADR-028`), and non-circular paired multiome triangulation (`ADR-070`). Unpaired single-cell diagonal/bridge cell imputation (`GLUE`/`MultiVI`/`Seurat bridge`) fails closed. |
 | `NarrativeAgent` | Compiles evidence-verified `NarrativeBlock`s (`C1–C4`, `W-CLAIM`, `W-LEDGER`) into self-contained HTML reports, `methodology.json`, RO-Crate metadata, and reproducibility capsules. |
-| `HypothesisAgent` (`S0`–`S10`) | Opt-in (`--hypotheses`) mechanistic hypothesis proposer across 6 deterministic adapters (`bulk_rna`, `scrna`, `chromatin`, `synthesis`, `integration`, `cross_modal`) and 4 publication gates, mechanically walled inside `SPECULATIVE` quarantine (`ADR-057`, `ADR-072`, `ADR-080`). |
+| `HypothesisAgent` (`S0`–`S10`) | Opt-in (`--hypotheses`) mechanistic hypothesis proposer across 7 deterministic adapters (`bulk_rna`, `scrna`, `chromatin` [`scATAC` + `bulk_ATAC`/`ChIP`/`CUT&RUN`/`CUT&TAG`], `synthesis`, `integration`, `cross_modal`, `hic`) and 4 publication gates, mechanically walled inside `SPECULATIVE` quarantine (`ADR-057`, `ADR-072`, `ADR-080`, `ADR-082`). |
 | `ARIAMemory` | Hierarchical SQLite store (`~/.aria/memory.db`) with WAL-consistent single-experiment snapshot export (`memory_snapshot.sqlite`). |
 | `Control Center` | Optional Textual cockpit (`aria/ui/`) over the pure `experiment_view` read-model. |
 
@@ -91,4 +93,4 @@ The standalone Mermaid source is stored in [aria_overview.mmd](../diagrams/aria_
 | `tobias` | `aria-tobias-env` | TOBIAS, samtools | **Locked (`active_scientific_runtime`)** |
 | `integration` | `aria-integration-env` | mofapy2, muon, mudata, SnapATAC2, Scanpy, AnnData | **Locked (`active_scientific_runtime`)** |
 | `benchmark` | `aria-bench-env` | R, DESeq2, edgeR, limma-voom, SingleCellExperiment | **Locked (`active_benchmark_runtime`)** |
-| `hic` | `aria-hic-env` | cooler, cooltools, pairtools | Dispatch-disabled scaffold (`lock_required=False`) |
+| `hic` | `aria-hic-env` | cooler, cooltools, pairtools, bioframe, hicstraw | **Locked (`active_scientific_runtime`)** |

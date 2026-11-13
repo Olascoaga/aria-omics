@@ -1,11 +1,10 @@
-"""P0-3 regression: Hi-C must not dispatch by default.
+"""ADR-081 & ADR-082 promotion + OrchestratorAgent scaffold/experimental gate guard.
 
-Hi-C was a `scaffold` modality with `dispatch_enabled=True` (ADR-012 tracked
-exception), so `genome_arch_agent` could publish TADs/loops at MEDIUM/HIGH
-confidence — unvalidated conclusions presented as publication-grade. Per the
-master plan (P0-3) Hi-C is now dispatch-OFF by default; running it requires the
-explicit `ARIA_ALLOW_EXPERIMENTAL_HIC=1` opt-in and is stamped experimental /
-not publication-grade. This does not add or change any Hi-C science.
+Hi-C (`ADR-082`) and ChIP / CUT&RUN / CUT&TAG (`ADR-081`) are now promoted to
+`production` (`dispatch_enabled=True`). We verify both their production status
+in `MODALITY_VALIDATION` and that `OrchestratorAgent._blocked_modalities` /
+`_experimental_modalities` continue to fail closed on any hypothetical future
+`scaffold` modality unless explicitly opted in via its own `experimental_env_flag`.
 """
 
 import pytest
@@ -16,46 +15,50 @@ from aria.agents.orchestrator_agent import (
 )
 
 
-def test_hic_is_a_dispatch_gated_scaffold_by_default():
-    meta = MODALITY_VALIDATION["HiC"]
-    assert meta["level"] == "scaffold"
-    assert meta["dispatch_enabled"] is False
-    assert meta.get("experimental_env_flag") == "ARIA_ALLOW_EXPERIMENTAL_HIC"
-
-
-def test_hic_is_blocked_when_flag_unset(monkeypatch):
+def test_hic_and_epigenomics_are_production_and_unblocked_by_default(monkeypatch):
     monkeypatch.delenv("ARIA_ALLOW_EXPERIMENTAL_HIC", raising=False)
-    blocked = OrchestratorAgent._blocked_modalities({"HiC": ["x.hic"]})
-    assert "HiC" in blocked
-    experimental = OrchestratorAgent._experimental_modalities({"HiC": ["x.hic"]})
-    assert experimental == {}
+    meta = MODALITY_VALIDATION["HiC"]
+    assert meta["level"] == "production"
+    assert meta["dispatch_enabled"] is True
+    assert meta["promotion_adr"] == "ADR-082"
+
+    for mod in ("ChIP", "CUT_AND_RUN", "CUT_AND_TAG"):
+        assert MODALITY_VALIDATION[mod]["level"] == "production"
+        assert MODALITY_VALIDATION[mod]["dispatch_enabled"] is True
+        assert MODALITY_VALIDATION[mod]["promotion_adr"] == "ADR-081"
+
+    assert OrchestratorAgent._blocked_modalities(
+        {"HiC": ["x.mcool"], "ChIP": ["b.bam"], "CUT_AND_RUN": ["c.bam"], "CUT_AND_TAG": ["d.bam"]}
+    ) == {}
+    assert OrchestratorAgent._experimental_modalities(
+        {"HiC": ["x.mcool"], "ChIP": ["b.bam"], "CUT_AND_RUN": ["c.bam"], "CUT_AND_TAG": ["d.bam"]}
+    ) == {}
 
 
-def test_hic_experimental_flag_unblocks_but_marks_experimental(monkeypatch):
-    monkeypatch.setenv("ARIA_ALLOW_EXPERIMENTAL_HIC", "1")
-    # Under the explicit opt-in Hi-C is no longer hard-blocked...
-    blocked = OrchestratorAgent._blocked_modalities({"HiC": ["x.hic"]})
-    assert "HiC" not in blocked
-    # ...but it is recorded as an experimental, not-publication-grade run.
-    experimental = OrchestratorAgent._experimental_modalities({"HiC": ["x.hic"]})
-    assert "HiC" in experimental
-
-
-def test_other_scaffolds_ignore_the_hic_flag(monkeypatch):
-    """The Hi-C opt-in must not unblock unrelated scaffold modalities.
-
-    T10 (tri-audit 2026-06-14): scATAC is no longer a scaffold; V47 later opened
-    bulk_ATAC as a beta acknowledgement-gated lane. This regression therefore
-    uses still-scaffolded chromatin modalities, which have no experimental opt-in.
-    """
-    monkeypatch.setenv("ARIA_ALLOW_EXPERIMENTAL_HIC", "1")
-    blocked = OrchestratorAgent._blocked_modalities(
-        {"ChIP": ["b.bam"], "CUT_AND_RUN": ["c.bam"]}
+def test_scaffold_gate_blocks_when_flag_unset_and_marks_experimental_when_set(monkeypatch):
+    monkeypatch.setitem(
+        MODALITY_VALIDATION,
+        "SyntheticScaffold",
+        {
+            "level": "scaffold",
+            "dispatch_enabled": False,
+            "experimental_env_flag": "ARIA_ALLOW_EXPERIMENTAL_SYNTH",
+        },
     )
-    assert "ChIP" in blocked
-    assert "CUT_AND_RUN" in blocked
-    # The Hi-C opt-in only ever affects Hi-C.
-    experimental = OrchestratorAgent._experimental_modalities(
-        {"ChIP": ["b.bam"], "CUT_AND_RUN": ["c.bam"]}
+    monkeypatch.setitem(
+        MODALITY_VALIDATION,
+        "UnflaggedScaffold",
+        {"level": "scaffold", "dispatch_enabled": False},
     )
-    assert experimental == {}
+
+    monkeypatch.delenv("ARIA_ALLOW_EXPERIMENTAL_SYNTH", raising=False)
+    assert "SyntheticScaffold" in OrchestratorAgent._blocked_modalities({"SyntheticScaffold": ["x.dat"]})
+    assert OrchestratorAgent._experimental_modalities({"SyntheticScaffold": ["x.dat"]}) == {}
+
+    monkeypatch.setenv("ARIA_ALLOW_EXPERIMENTAL_SYNTH", "1")
+    assert "SyntheticScaffold" not in OrchestratorAgent._blocked_modalities({"SyntheticScaffold": ["x.dat"]})
+    assert "SyntheticScaffold" in OrchestratorAgent._experimental_modalities({"SyntheticScaffold": ["x.dat"]})
+
+    # Opt-in flag never leaks to unrelated scaffold entries
+    assert "UnflaggedScaffold" in OrchestratorAgent._blocked_modalities({"UnflaggedScaffold": ["y.dat"]})
+    assert OrchestratorAgent._experimental_modalities({"UnflaggedScaffold": ["y.dat"]}) == {}

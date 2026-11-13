@@ -149,34 +149,24 @@ MODALITY_VALIDATION = {
         "promotion_adr": "ADR-077",
     },
     "ChIP": {
-        "level": "scaffold",
-        "dispatch_enabled": False,
-        "reason": "ChIP validation is not closed.",
+        "level": "production",
+        "dispatch_enabled": True,
+        "promotion_adr": "ADR-081",
     },
     "CUT_AND_RUN": {
-        "level": "scaffold",
-        "dispatch_enabled": False,
-        "reason": "CUT&RUN validation is not closed.",
+        "level": "production",
+        "dispatch_enabled": True,
+        "promotion_adr": "ADR-081",
     },
     "CUT_AND_TAG": {
-        "level": "scaffold",
-        "dispatch_enabled": False,
-        "reason": "CUT&TAG validation is not closed.",
+        "level": "production",
+        "dispatch_enabled": True,
+        "promotion_adr": "ADR-081",
     },
     "HiC": {
-        "level": "scaffold",
-        # P0-3: Hi-C is dispatch-OFF by default. Its scripts run, but
-        # `hic_topology` emits TADs/loops (unvalidated conclusions under a
-        # scaffold level), so a default run is not publication-grade. Opt in
-        # explicitly with ARIA_ALLOW_EXPERIMENTAL_HIC=1; such runs are stamped
-        # experimental. This does not add or change any Hi-C science.
-        "dispatch_enabled": False,
-        "reason": (
-            "Hi-C E2E (TAD/loop/compartment) validation is not closed; set "
-            "ARIA_ALLOW_EXPERIMENTAL_HIC=1 to run it as experimental, "
-            "not-publication-grade output."
-        ),
-        "experimental_env_flag": "ARIA_ALLOW_EXPERIMENTAL_HIC",
+        "level": "production",
+        "dispatch_enabled": True,
+        "promotion_adr": "ADR-082",
     },
 }
 
@@ -1386,6 +1376,22 @@ class OrchestratorAgent(BaseAgent):
             and isinstance(chrom_res.get("findings"), dict)
             and bool(chrom_res.get("findings"))
         ):
+            return None
+        chrom_findings = chrom_res.get("findings") or {}
+        has_atac_findings = (
+            bool({"scATAC", "bulk_ATAC"} & set(exp_context.get("modalities") or {}))
+            or any(k in chrom_findings for k in ("scATAC", "bulk_ATAC"))
+            or chrom_findings.get("data_type") in {"scATAC", "bulk_ATAC"}
+            or (
+                isinstance(chrom_findings.get("differential_accessibility"), dict)
+                and chrom_findings["differential_accessibility"].get("data_type")
+                in {None, "scATAC", "bulk_ATAC"}
+                and not any(
+                    k in chrom_findings for k in ("ChIP", "CUT_AND_RUN", "CUT_AND_TAG")
+                )
+            )
+        )
+        if not has_atac_findings and exp_context.get("enable_cross_modal_concordance") is not True:
             return None
 
         base_dir = (

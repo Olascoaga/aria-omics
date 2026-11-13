@@ -251,12 +251,18 @@ def _write_summary(path: Path, rows: list[dict[str, Any]]) -> None:
             writer.writerow(row)
 
 
+_SUPPORTED_BULK_MODALITIES = frozenset({
+    "bulk_ATAC", "ChIP", "CUT_AND_RUN", "CUT_AND_TAG",
+})
+
+
 def chromatin_bulk_diffacc(params: dict) -> dict:
-    if params.get("data_type", "bulk_ATAC") != "bulk_ATAC":
+    data_type = str(params.get("data_type") or "bulk_ATAC")
+    if data_type not in _SUPPORTED_BULK_MODALITIES:
         return _error(
             "UnsupportedDataType",
-            "chromatin_bulk_diffacc currently supports bulk_ATAC only.",
-            data_type=params.get("data_type"),
+            f"chromatin_bulk_diffacc supports {sorted(_SUPPORTED_BULK_MODALITIES)}; got {data_type!r}.",
+            data_type=data_type,
         )
 
     counts_path = params.get("counts_matrix_path")
@@ -272,14 +278,15 @@ def chromatin_bulk_diffacc(params: dict) -> dict:
         params.get("comparisons") or params.get("comparison"))
     if not comparisons:
         return _skipped(
-            "no explicit comparison supplied; ARIA does not invent a "
-            "bulk ATAC reference contrast",
+            f"no explicit comparison supplied; ARIA does not invent a "
+            f"{data_type} reference contrast",
+            data_type=data_type,
         )
 
     from aria.utils.thresholds import AnalysisThresholds
     thr = AnalysisThresholds.from_exp_context(
         params.get("exp_context") or {},
-        modality="bulk_ATAC",
+        modality=data_type if data_type == "bulk_ATAC" else "bulk_ATAC",
         log2fc_default=0.5,
         min_replicates=int(params.get("min_replicates_per_condition", 3)),
     )
@@ -311,8 +318,22 @@ def chromatin_bulk_diffacc(params: dict) -> dict:
             _prepare_replicate_matrix(
                 counts, metadata, condition_col, replicate_col, covariates)
         )
+        from aria.utils.epigenomic_spikein_de import (
+            resolve_replicate_spikein_size_factors,
+            run_deseq2_with_external_size_factors,
+        )
+        spikein_sf, spikein_info = resolve_replicate_spikein_size_factors(
+            metadata.loc[list(counts.columns)],
+            rep_meta,
+            condition_col,
+            replicate_col,
+            spikein_counts=params.get("spikein_counts"),
+            spikein_scale_factors=params.get("spikein_scale_factors"),
+            spikein_counts_col=params.get("spikein_counts_col"),
+            spikein_scale_col=params.get("spikein_scale_col"),
+        )
     except (ValueError, OSError) as exc:
-        return _skipped(str(exc))
+        return _skipped(str(exc), data_type=data_type)
 
     for dropped in covariates_dropped:
         warnings.append(
@@ -372,20 +393,36 @@ def chromatin_bulk_diffacc(params: dict) -> dict:
             summary_rows.append(row)
             continue
 
-        de, de_warnings = _run_deseq2(
-            rep_counts,
-            rep_meta,
-            condition_col,
-            test,
-            ref,
-            padj_max,
-            lfc_min,
-            allow_mock=allow_mock,
-            min_replicates_per_condition=min_reps,
-            covariates=usable_covariates,
-            n_cpus=int(n_cpus) if n_cpus else None,
-            expose_convergence=True,
-        )
+        if spikein_sf is not None:
+            de, de_warnings = run_deseq2_with_external_size_factors(
+                rep_counts,
+                rep_meta,
+                spikein_sf,
+                condition_col,
+                test,
+                ref,
+                padj_max,
+                lfc_min,
+                min_replicates_per_condition=min_reps,
+                covariates=usable_covariates,
+                n_cpus=int(n_cpus) if n_cpus else None,
+                expose_convergence=True,
+            )
+        else:
+            de, de_warnings = _run_deseq2(
+                rep_counts,
+                rep_meta,
+                condition_col,
+                test,
+                ref,
+                padj_max,
+                lfc_min,
+                allow_mock=allow_mock,
+                min_replicates_per_condition=min_reps,
+                covariates=usable_covariates,
+                n_cpus=int(n_cpus) if n_cpus else None,
+                expose_convergence=True,
+            )
         warnings.extend(de_warnings)
         if de.get("status") != "success":
             row = {
@@ -444,6 +481,10 @@ def chromatin_bulk_diffacc(params: dict) -> dict:
             "covariates_dropped": covariates_dropped + (
                 de.get("covariates_dropped") or []),
             "power_estimate_at_lfc_min": de.get("power_estimate_at_lfc_min"),
+            "normalization_method": de.get(
+                "normalization_method", "deseq2_median_of_ratios"
+            ),
+            "size_factors_used": de.get("size_factors_used"),
         }
         comparison_results.append(result_row)
         summary_rows.append({
@@ -461,7 +502,8 @@ def chromatin_bulk_diffacc(params: dict) -> dict:
 
     if n_success == 0:
         return _skipped(
-            "no bulk ATAC DA comparison completed successfully",
+            f"no {data_type} differential comparison completed successfully",
+            data_type=data_type,
             comparisons=comparison_results,
             warnings=warnings,
             output_csv=str(summary_csv),
@@ -471,16 +513,23 @@ def chromatin_bulk_diffacc(params: dict) -> dict:
             covariates_requested=covariates,
             covariates_adjusted=usable_covariates,
             covariates_dropped=covariates_dropped,
+            spikein_normalization=spikein_info,
         )
 
+    method_label = (
+        f"replicate-level DESeq2 with heterologous spike-in size factors over {data_type} peak counts"
+        if spikein_sf is not None
+        else f"replicate-level DESeq2 over {data_type} peak counts"
+    )
     return {
         "status": "success",
         "ran": True,
         "reason": None,
-        "data_type": "bulk_ATAC",
+        "data_type": data_type,
         "analysis": "differential_accessibility",
         "validation_level": "production",
-        "method": "replicate-level DESeq2 over bulk ATAC peak counts",
+        "method": method_label,
+        "spikein_normalization": spikein_info,
         "counts_matrix_path": str(counts_path),
         "sample_metadata_path": str(metadata_path),
         "replicate_counts_path": str(replicate_counts_path),

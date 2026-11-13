@@ -38,6 +38,8 @@ MOFA_LATENT_ASSOCIATIVE = "mofa_latent_associative"
 WNN_GUARDRAIL_DEGRADED = "wnn_guardrail_degraded"
 # Non-same-cell cross-modal concordance caveat (ADR-080 / ADR-028 Slice 2).
 CROSS_MODAL_UNPAIRED_COHORT = "cross_modal_unpaired_cohort"
+# 3D genome focal chromatin loop caveat (ADR-082).
+HIC_LOOP_ASSOCIATIVE = "hic_loop_associative"
 
 # code -> human-readable gloss (rendered in the prompt + the report).
 CAVEAT_GLOSSES: dict[str, str] = {
@@ -88,6 +90,11 @@ CAVEAT_GLOSSES: dict[str, str] = {
         "libraries or cohorts) and reflects condition- or donor-level "
         "co-variation, not single-cell cis regulation"
     ),
+    HIC_LOOP_ASSOCIATIVE: (
+        "3D chromatin loop contact enrichment indicates spatial proximity above "
+        "local distance background, not proof of causal enhancer-promoter "
+        "gene regulation"
+    ),
 }
 
 # Recognition tokens for caveat codes whose free-text acknowledgement the
@@ -109,6 +116,17 @@ EXTRA_CONFOUND_TOKENS: dict[str, tuple[str, ...]] = {
         "donor-level co-variation",
         "condition- or donor-level",
         "not single-cell cis",
+    ),
+    HIC_LOOP_ASSOCIATIVE: (
+        "hic_loop_associative",
+        "spatial proximity",
+        "physical proximity",
+        "contact frequency",
+        "3d loop",
+        "chromatin loop",
+        "loop contact",
+        "not causal regulation",
+        "proximity alone",
     ),
 }
 

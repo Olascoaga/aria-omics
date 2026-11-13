@@ -353,11 +353,19 @@ def _read_local_tss(gtf_path):
             for chrom, rows in tss.items()}
 
 
-def _scan_bam_metrics(bam_path, reference_fasta=None, max_reads=500_000, tss=None):
-    """Count every primary read; only detailed insert/TSS sampling is capped."""
+def _scan_bam_metrics(bam_path, reference_fasta=None, max_reads=500_000, tss=None,
+                      compute_cross_corr: bool = False):
+    """Count every primary read; detailed insert/TSS/complexity/CC sampling is capped."""
     from bisect import bisect_left, bisect_right
+    import numpy as np
     from aria.scripts.chromatin_peak_counts import _open_alignment, _primary_mapped
+
     total_primary = dup_primary = mapped = mito = nondup = sampled = 0
+    complexity_sampled = 0
+    pos_counts: dict[tuple[str, int, bool], int] = {}
+    fwd_5p_by_chrom: dict[str, list[int]] = {}
+    rev_5p_by_chrom: dict[str, list[int]] = {}
+    read_lengths: list[int] = []
     sizes = []
     window = center = flank = 0
     with _open_alignment(bam_path, reference_fasta) as bam:
@@ -372,13 +380,34 @@ def _scan_bam_metrics(bam_path, reference_fasta=None, max_reads=500_000, tss=Non
                 continue
             mapped += 1
             chrom = read.reference_name
-            mito += int(chrom in {"chrM", "MT", "M"} or chrom.lower().startswith("chrm"))
+            is_mito = chrom in {"chrM", "MT", "M"} or chrom.lower().startswith("chrm")
+            mito += int(is_mito)
+            if complexity_sampled < max(max_reads, 1) and not is_mito:
+                complexity_sampled += 1
+                pos5 = (
+                    int(read.reference_end)
+                    if (read.is_reverse and read.reference_end is not None)
+                    else int(read.reference_start)
+                )
+                key = (chrom, pos5, bool(read.is_reverse))
+                pos_counts[key] = pos_counts.get(key, 0) + 1
             if read.is_duplicate:
                 continue
             nondup += 1
             if sampled >= max_reads:
                 continue
             sampled += 1
+            qlen = read.query_length or (
+                int(read.reference_end - read.reference_start)
+                if read.reference_end is not None else 0
+            )
+            if qlen > 0 and len(read_lengths) < 10_000:
+                read_lengths.append(int(qlen))
+            if compute_cross_corr and not is_mito and read.reference_end is not None:
+                if read.is_reverse:
+                    rev_5p_by_chrom.setdefault(chrom, []).append(int(read.reference_end))
+                else:
+                    fwd_5p_by_chrom.setdefault(chrom, []).append(int(read.reference_start))
             if (read.is_paired and read.is_proper_pair and read.is_read1
                     and 0 < abs(read.template_length) <= 1000):
                 sizes.append(abs(read.template_length))
@@ -392,14 +421,165 @@ def _scan_bam_metrics(bam_path, reference_fasta=None, max_reads=500_000, tss=Non
                     window += 1
                     center += int(-50 <= relative <= 50)
                     flank += int(-2000 <= relative < -1900 or 1900 < relative <= 2000)
+
     dup_rate = (dup_primary / total_primary
                 if total_primary and (dup_primary or marked) else None)
-    # A zero background does not support a finite enrichment estimate.
     enrichment = (center / 101 / (flank / 200) if window and flank else None)
-    return {"file": str(bam_path), "total_reads": total_primary,
-            "mapped_reads": mapped, "mapped_nonduplicate_reads": nondup,
-            "mito_frac": mito / max(mapped, 1), "dup_rate": dup_rate,
-            "tss_enrichment": enrichment, "tss_reads_sampled": sampled}, sizes
+
+    distinct_pos = len(pos_counts)
+    m1 = sum(1 for c in pos_counts.values() if c == 1)
+    m2 = sum(1 for c in pos_counts.values() if c == 2)
+    nrf = round(distinct_pos / complexity_sampled, 4) if complexity_sampled > 0 else None
+    pbc1 = round(m1 / distinct_pos, 4) if distinct_pos > 0 else None
+    pbc2 = round(m1 / m2, 4) if m2 > 0 else None
+
+    nsc = rsc = est_frag_bp = None
+    if compute_cross_corr and fwd_5p_by_chrom:
+        best_chrom = max(
+            fwd_5p_by_chrom,
+            key=lambda c: len(fwd_5p_by_chrom.get(c, ())) + len(rev_5p_by_chrom.get(c, ())),
+        )
+        f_pos = fwd_5p_by_chrom.get(best_chrom, [])
+        r_pos = rev_5p_by_chrom.get(best_chrom, [])
+        if len(f_pos) >= 200 and len(r_pos) >= 200:
+            step = 5
+            f_arr = np.asarray(f_pos, dtype=np.int64)
+            r_arr = np.asarray(r_pos, dtype=np.int64)
+            lo_bp = int(min(f_arr.min(), r_arr.min()))
+            # Cap window at 25 Mb so FFT cross-correlation stays <50 ms
+            hi_bp = min(int(max(f_arr.max(), r_arr.max())), lo_bp + 25_000_000)
+            f_sub = (f_arr[(f_arr >= lo_bp) & (f_arr <= hi_bp)] - lo_bp) // step
+            r_sub = (r_arr[(r_arr >= lo_bp) & (r_arr <= hi_bp)] - lo_bp) // step
+            n_bins = max(200, int((hi_bp - lo_bp) // step) + 2)
+            max_lag = min(100, n_bins // 4)  # 100 * 5bp = 500bp
+            if f_sub.size >= 100 and r_sub.size >= 100 and max_lag >= 60:
+                fv = np.bincount(f_sub, minlength=n_bins).astype(np.float64)
+                rv = np.bincount(r_sub, minlength=n_bins).astype(np.float64)
+                fv -= fv.mean()
+                rv -= rv.mean()
+                denom = float(np.linalg.norm(fv) * np.linalg.norm(rv))
+                if denom > 1e-9:
+                    fft_len = 1 << (n_bins + max_lag).bit_length()
+                    # C(lag) = sum_x fv[x] * rv[x + lag] / denom
+                    cc_full = np.fft.irfft(
+                        np.fft.rfft(rv, n=fft_len) * np.conj(np.fft.rfft(fv, n=fft_len)),
+                        n=fft_len,
+                    )
+                    cc = cc_full[: max_lag + 1] / denom
+                    read_bp = int(np.median(read_lengths)) if read_lengths else 75
+                    ph_lag = min(max_lag - 5, max(5, round(read_bp / step)))
+                    lo_frag_lag = min(max_lag - 2, max(ph_lag + 4, 110 // step))
+                    hi_frag_lag = min(max_lag, 350 // step)
+                    if hi_frag_lag > lo_frag_lag:
+                        best_lag = int(lo_frag_lag + np.argmax(cc[lo_frag_lag : hi_frag_lag + 1]))
+                        frag_cc = float(cc[best_lag])
+                        phantom_cc = float(cc[ph_lag])
+                        min_cc = float(np.min(cc[max(1, max_lag - 10) : max_lag + 1]))
+                        est_frag_bp = int(best_lag * step)
+                        if min_cc > 1e-6:
+                            nsc = round(frag_cc / min_cc, 4)
+                        elif frag_cc > 0:
+                            nsc = round((frag_cc + 1e-3) / (max(min_cc, 0.0) + 1e-3), 4)
+                        if abs(phantom_cc - min_cc) > 1e-6:
+                            rsc = round((frag_cc - min_cc) / (phantom_cc - min_cc), 4)
+
+    return {
+        "file": str(bam_path),
+        "total_reads": total_primary,
+        "mapped_reads": mapped,
+        "mapped_nonduplicate_reads": nondup,
+        "mito_frac": mito / max(mapped, 1),
+        "dup_rate": dup_rate,
+        "nrf": nrf,
+        "pbc1": pbc1,
+        "pbc2": pbc2,
+        "nsc": nsc,
+        "rsc": rsc,
+        "estimated_fragment_length_bp": est_frag_bp,
+        "tss_enrichment": enrichment,
+        "tss_reads_sampled": sampled,
+    }, sizes
+
+
+def _compute_ip_control_jsd(
+    ip_bams: list[str],
+    ctrl_bams: list[str],
+    reference_fasta: str | None = None,
+    bin_size: int = 5000,
+    max_bins: int = 1_000_000,
+) -> float | None:
+    """Compute Jensen-Shannon distance between IP and Control 5-kb bin distributions."""
+    import numpy as np
+    from aria.scripts.chromatin_peak_counts import _open_alignment, _primary_mapped
+
+    if not ip_bams or not ctrl_bams:
+        return None
+    try:
+        chrom_order: list[tuple[str, int]] = []
+        with _open_alignment(ip_bams[0], reference_fasta) as bam:
+            for ref, length in zip(bam.header.references, bam.header.lengths):
+                if ref.lower() in {"chrm", "mt", "m"} or ref.lower().startswith("chrm"):
+                    continue
+                n_b = max(1, int(length) // bin_size)
+                chrom_order.append((str(ref), n_b))
+                if sum(x[1] for x in chrom_order) >= max_bins:
+                    break
+        if not chrom_order:
+            return None
+        offsets: dict[str, tuple[int, int]] = {}
+        cursor = 0
+        for ref, n_b in chrom_order:
+            take = min(n_b, max_bins - cursor)
+            if take <= 0:
+                break
+            offsets[ref] = (cursor, take)
+            cursor += take
+        if cursor < 20:
+            return None
+
+        def _fill(paths: list[str]) -> np.ndarray:
+            vec = np.zeros(cursor, dtype=np.float64)
+            for p in paths:
+                with _open_alignment(p, reference_fasta) as bam:
+                    for read in bam.fetch(until_eof=True):
+                        if not _primary_mapped(read) or read.is_duplicate:
+                            continue
+                        info = offsets.get(read.reference_name)
+                        if info is None:
+                            continue
+                        off, take = info
+                        b = int(read.reference_start) // bin_size
+                        if 0 <= b < take:
+                            vec[off + b] += 1.0
+            return vec
+
+        ip_v = _fill(ip_bams)
+        ct_v = _fill(ctrl_bams)
+        if ip_v.sum() <= 0 or ct_v.sum() <= 0:
+            return None
+        p = ip_v / ip_v.sum()
+        q = ct_v / ct_v.sum()
+        m = 0.5 * (p + q)
+        mask_p = p > 0
+        mask_q = q > 0
+        kl_pm = float(np.sum(p[mask_p] * np.log(p[mask_p] / m[mask_p])))
+        kl_qm = float(np.sum(q[mask_q] * np.log(q[mask_q] / m[mask_q])))
+        jsd = max(0.0, 0.5 * (kl_pm + kl_qm) / np.log(2.0))
+        return round(float(np.sqrt(min(1.0, jsd))), 4)
+    except Exception:
+        return None
+
+
+def _default_bulk_qc_thresholds(data_type: str) -> dict:
+    if data_type == "bulk_ATAC":
+        return {"min_frip": 0.2, "min_tss": 6.0, "require_tss": True}
+    if data_type == "ChIP":
+        return {"min_frip": 0.01, "min_nrf": 0.5, "require_tss": False}
+    if data_type == "CUT_AND_RUN":
+        return {"min_frip": 0.05, "min_nrf": 0.4, "require_tss": False}
+    if data_type == "CUT_AND_TAG":
+        return {"min_frip": 0.10, "min_nrf": 0.4, "require_tss": False}
+    return {"min_frip": 0.05, "require_tss": False}
 
 
 def _bulk_chromatin_qc(files: list, data_type: str,
@@ -424,23 +604,48 @@ def _bulk_chromatin_qc(files: list, data_type: str,
     peaks = params.get("peaks_bed") or params.get("peaks_path")
     gtf = params.get("gtf") or params.get("gtf_path")
     reference = params.get("reference_fasta")
+    control_files = [
+        str(c) for c in (params.get("control_files") or [])
+        if c and Path(str(c)).is_file()
+    ]
     tss = _read_local_tss(gtf) if gtf and Path(gtf).is_file() else None
     metrics = []
     sizes = []
     dup_per_sample = {}
+    nrf_per_sample = {}
+    pbc1_per_sample = {}
+    pbc2_per_sample = {}
+    nsc_per_sample = {}
+    rsc_per_sample = {}
     frip_per_sample = {}
     tss_per_sample = {}
     from aria.scripts.chromatin_peaks import _compute_frip, _read_peak_intervals
     usable_peaks = bool(peaks and Path(peaks).is_file() and _read_peak_intervals(str(peaks)))
+    compute_cc = (data_type == "ChIP")
     for path in bam_files:
         try:
             row, fragments = _scan_bam_metrics(
-                path, reference, max(0, int(params.get("max_reads_per_bam", 500_000))), tss)
+                path,
+                reference,
+                max(0, int(params.get("max_reads_per_bam", 500_000))),
+                tss,
+                compute_cross_corr=compute_cc,
+            )
             sizes.extend(fragments)
             sid = Path(path).stem
             row["sample_id"] = sid
             if row["dup_rate"] is not None:
                 dup_per_sample[sid] = row["dup_rate"]
+            if row.get("nrf") is not None:
+                nrf_per_sample[sid] = row["nrf"]
+            if row.get("pbc1") is not None:
+                pbc1_per_sample[sid] = row["pbc1"]
+            if row.get("pbc2") is not None:
+                pbc2_per_sample[sid] = row["pbc2"]
+            if row.get("nsc") is not None:
+                nsc_per_sample[sid] = row["nsc"]
+            if row.get("rsc") is not None:
+                rsc_per_sample[sid] = row["rsc"]
             if row["tss_enrichment"] is not None:
                 tss_per_sample[sid] = row["tss_enrichment"]
             if usable_peaks:
@@ -461,38 +666,81 @@ def _bulk_chromatin_qc(files: list, data_type: str,
     mean = lambda values: float(np.mean(list(values))) if values else None
     frip = mean(frip_per_sample.values())
     enrichment = mean(tss_per_sample.values())
-    not_computed = [key for key, value in (("tss_enrichment", enrichment), ("frip", frip))
-                    if value is None]
-    th = {"min_frip": 0.2, "min_tss": 6.0, **(params.get("thresholds") or {})}
+    nrf_mean = mean(nrf_per_sample.values())
+    pbc1_mean = mean(pbc1_per_sample.values())
+    pbc2_mean = mean(pbc2_per_sample.values())
+    nsc_mean = mean(nsc_per_sample.values())
+    rsc_mean = mean(rsc_per_sample.values())
+    jsd_vs_control = (
+        _compute_ip_control_jsd(bam_files, control_files, reference_fasta=reference)
+        if control_files else None
+    )
+
+    th = {**_default_bulk_qc_thresholds(data_type), **(params.get("thresholds") or {})}
+    require_tss = bool(th.get("require_tss", data_type == "bulk_ATAC"))
+    if require_tss:
+        not_computed = [
+            key for key, value in (("tss_enrichment", enrichment), ("frip", frip))
+            if value is None
+        ]
+    else:
+        not_computed = ["frip"] if frip is None else []
+
     complete = not not_computed and len(metrics) == len(bam_files)
     if not_computed:
         warnings.append("QC metrics not computed: " + ", ".join(not_computed))
+
+    pass_qc = None
+    if complete:
+        if require_tss:
+            pass_qc = bool(frip >= th["min_frip"] and enrichment >= th["min_tss"])
+        else:
+            pass_qc = bool(frip >= th["min_frip"])
+
     result = {
         "status": "success", "data_type": data_type,
-        "validation_level": "production" if data_type in {"scATAC", "bulk_ATAC"} else "scaffold",
+        "assay_class": assay_class,
+        "validation_level": "production",
         "n_samples": len(metrics), "mapped_reads": sum(m["mapped_reads"] for m in metrics),
         "frip": frip, "frip_per_sample": frip_per_sample,
         "frip_distribution": list(frip_per_sample.values()) if frip_per_sample else None,
         "tss_enrichment": enrichment, "tss_enrichment_per_sample": tss_per_sample,
         "mito_fraction": round(mean([m["mito_frac"] for m in metrics]), 4),
         "dup_rate": mean(dup_per_sample.values()), "dup_rate_per_sample": dup_per_sample,
+        "nrf": round(nrf_mean, 4) if nrf_mean is not None else None,
+        "nrf_per_sample": nrf_per_sample,
+        "pbc1": round(pbc1_mean, 4) if pbc1_mean is not None else None,
+        "pbc1_per_sample": pbc1_per_sample,
+        "pbc2": round(pbc2_mean, 4) if pbc2_mean is not None else None,
+        "pbc2_per_sample": pbc2_per_sample,
+        "nsc": round(nsc_mean, 4) if nsc_mean is not None else None,
+        "nsc_per_sample": nsc_per_sample,
+        "rsc": round(rsc_mean, 4) if rsc_mean is not None else None,
+        "rsc_per_sample": rsc_per_sample,
+        "jsd_vs_control": jsd_vs_control,
+        "n_control_files": len(control_files),
         "per_sample": metrics, "metrics_not_computed": not_computed,
         "qc_complete": complete,
-        "pass_qc": bool(frip >= th["min_frip"] and enrichment >= th["min_tss"])
-                   if complete else None,
+        "pass_qc": pass_qc,
         "thresholds": th, "warnings": warnings,
     }
     if sizes:
         arr = np.asarray(sizes)
         nfr = float(np.mean(arr < 100))
+        subnuc = float(np.mean(arr < 120))
         mono = float(np.mean((arr >= 180) & (arr <= 247)))
+        cutrun_mono = float(np.mean((arr >= 140) & (arr <= 250)))
         di = float(np.mean((arr >= 315) & (arr <= 473)))
         counts, edges = np.histogram(arr, bins=np.arange(0, 1001, 10))
         result["fragment_sizes"] = {
             "median_bp": float(np.median(arr)), "n_fragments_sampled": len(sizes),
-            "nfr_fraction": round(nfr, 4), "mononucleosomal_fraction": round(mono, 4),
+            "nfr_fraction": round(nfr, 4),
+            "subnucleosomal_fraction": round(subnuc, 4),
+            "mononucleosomal_fraction": round(mono, 4),
+            "cutrun_mononucleosomal_fraction": round(cutrun_mono, 4),
             "dinucleosomal_fraction": round(di, 4),
             "nfr_to_mono_ratio": nfr / mono if mono else None,
+            "sub_to_mono_ratio": round(subnuc / cutrun_mono, 4) if cutrun_mono else None,
             "nucleosome_banding_detected": bool(nfr > 0.05 and mono > 0.05),
             "size_histogram": {"bin_edges": edges.astype(float).tolist(),
                                "counts": counts.astype(int).tolist()},

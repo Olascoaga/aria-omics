@@ -181,25 +181,36 @@ _BULK_ATAC_CAVEATED_SUBLAYERS = {
     "differential_tf_footprinting": "production_associative",
 }
 
+_EPIGENOMIC_CAVEATED_SUBLAYERS = {
+    "motif_enrichment": "production_associative",
+    "peak_annotation": "production_associative",
+    "peak_ora": "production_associative",
+}
+
+_HIC_CAVEATED_SUBLAYERS = {
+    "compartments": "production_associative",
+    "tads": "production_associative",
+    "loops": "production_associative",
+    "differential_3d": "production_associative",
+}
+
 
 def _atac_production_readiness(
     modality: str,
     *,
     tier_override: str | None = None,
 ) -> dict[str, Any]:
-    """ATAC readiness, ADR-056 / ADR-076 / ADR-077 / ADR-078-honest.
+    """Chromatin readiness, ADR-056 / ADR-076 / ADR-077 / ADR-078 / ADR-081-honest.
 
-    `scATAC` is explicitly promoted to `production` by `ADR-076`,
-    `bulk_ATAC` is explicitly promoted to `production` by `ADR-077`, and
-    `TOBIAS` differential TF footprinting (`chromatin_footprint_tobias.py`) is
-    promoted to `production` (`production_associative`) by `ADR-078` across both
-    lanes (replicate-mean Welch, paired-donor, or batch-adjusted OLS + BH-FDR
-    when `n >= 3` biological replicates/donors per group exist; descriptive-only
-    candidate ranking on pooled/under-replicated runs; capped associative).
+    `scATAC` is promoted to `production` by `ADR-076`, `bulk_ATAC` by `ADR-077`,
+    `TOBIAS` differential TF footprinting (`production_associative`) by `ADR-078`,
+    and `ChIP`, `CUT_AND_RUN`, and `CUT_AND_TAG` by `ADR-081`.
     """
     technical_blockers = list(_ATAC_PRODUCTION_BLOCKERS.get(modality, ()))
     effective_tier = tier_override or (
-        "production" if modality in {"scATAC", "bulk_ATAC"} else "beta"
+        "production"
+        if modality in {"scATAC", "bulk_ATAC", "ChIP", "CUT_AND_RUN", "CUT_AND_TAG"}
+        else "beta"
     )
     if modality == "scATAC" and effective_tier == "production":
         return {
@@ -225,16 +236,55 @@ def _atac_production_readiness(
             "promotion_adr": "ADR-077",
             "caveated_sub_layers": dict(_BULK_ATAC_CAVEATED_SUBLAYERS),
         }
+    if modality in {"ChIP", "CUT_AND_RUN", "CUT_AND_TAG"} and effective_tier == "production":
+        return {
+            "tier": "production",
+            "requires_ack": False,
+            "production_promoted": True,
+            "technical_blockers_cleared": True,
+            "open_blockers": [],
+            "governance_blockers": [],
+            "promotion_policy_adr": "ADR-056",
+            "promotion_adr": "ADR-081",
+            "caveated_sub_layers": dict(_EPIGENOMIC_CAVEATED_SUBLAYERS),
+        }
     return {
-        "tier": "beta",
-        "requires_ack": True,
+        "tier": effective_tier if effective_tier in {"beta", "scaffold"} else "beta",
+        "requires_ack": effective_tier != "scaffold",
         # Production is NEVER inferred from the audit (ADR-056). Flip only via a
         # deliberate promotion ADR that clears every governance blocker.
         "production_promoted": False,
-        "technical_blockers_cleared": not technical_blockers,
+        "technical_blockers_cleared": not technical_blockers and effective_tier != "scaffold",
         "open_blockers": technical_blockers,
         "governance_blockers": list(_ATAC_GOVERNANCE_BLOCKERS),
         "promotion_policy_adr": "ADR-056",
+    }
+
+
+def _hic_production_readiness(*, tier_override: str | None = None) -> dict[str, Any]:
+    """3D genome (`HiC` / Micro-C) readiness, ADR-056 / ADR-082-honest."""
+    effective_tier = tier_override or "production"
+    if effective_tier == "production":
+        return {
+            "tier": "production",
+            "requires_ack": False,
+            "production_promoted": True,
+            "technical_blockers_cleared": True,
+            "open_blockers": [],
+            "governance_blockers": [],
+            "promotion_policy_adr": "ADR-056",
+            "promotion_adr": "ADR-082",
+            "caveated_sub_layers": dict(_HIC_CAVEATED_SUBLAYERS),
+        }
+    return {
+        "tier": effective_tier,
+        "requires_ack": effective_tier != "scaffold",
+        "production_promoted": False,
+        "technical_blockers_cleared": effective_tier != "scaffold",
+        "open_blockers": [],
+        "governance_blockers": list(_ATAC_GOVERNANCE_BLOCKERS),
+        "promotion_policy_adr": "ADR-056",
+        "caveated_sub_layers": dict(_HIC_CAVEATED_SUBLAYERS),
     }
 
 
@@ -820,8 +870,542 @@ class BulkATACAuditAgent:
         return card
 
 
+class _BaseEpigenomicAuditAgent:
+    """Shared pre-dispatch readiness checks for ADR-081 epigenomic workflows
+    (`ChIP`, `CUT_AND_RUN`, `CUT_AND_TAG`).
+
+    Excludes Input/IgG control libraries when counting biological IP replicates
+    per condition, dispatches non-contrasted profiling and `n >= 3` contrasts
+    automatically (`green` / `auto`), escalates `n == 2` contrasts or explicit
+    non-UMI duplicate removal on sparse cleavage assays to `yellow` /
+    `requires_ack`, and blocks `n < 2` contrasts or batch-confounded designs
+    (`red` / `blocked`).
+    """
+
+    modality: str = "ChIP"
+    check_prefix: str = "chip"
+
+    @staticmethod
+    def _is_control_row(row: dict[str, Any], condition_col: str) -> bool:
+        if not isinstance(row, dict):
+            return False
+        if row.get("is_control") is True:
+            return True
+        role = str(row.get("role") or row.get("assay_role") or "").strip().lower()
+        if role in {"control", "input", "igg", "mock"}:
+            return True
+        cond = str(row.get(condition_col) or row.get("condition") or "").strip().lower()
+        return cond in {"input", "igg"}
+
+    def audit(self, exp_context: dict[str, Any]) -> dict[str, Any]:
+        card = _base_card(
+            self.modality,
+            agent="chromatin_agent",
+            validation_level="production",
+        )
+        design = _combined_design(exp_context)
+        raw_groups = design.get("analysis_groups") or design.get("groups") or {}
+        groups = (
+            {
+                k: v for k, v in raw_groups.items()
+                if str(k).strip().lower() not in {"input", "igg"}
+            }
+            if isinstance(raw_groups, dict)
+            else {}
+        )
+        condition_col = (
+            design.get("condition_col")
+            or design.get("main_factor")
+            or exp_context.get("condition_col")
+        )
+        replicate_col = (
+            design.get("replicate_col")
+            or exp_context.get("replicate_col")
+            or exp_context.get("replicate_column")
+        )
+        comparisons = (
+            exp_context.get("comparisons")
+            or design.get("comparisons")
+            or design.get("contrasts")
+            or design.get("plan_contrasts")
+        )
+
+        counts = _replicate_counts(groups)
+        has_control = bool(
+            exp_context.get("control_files") or exp_context.get("control_bams")
+        )
+        metadata = (
+            exp_context.get("sample_metadata")
+            or design.get("sample_metadata")
+            or design.get("sample_sheet")
+        )
+        rows_iter: list[tuple[str, dict[str, Any]]] = []
+        if isinstance(metadata, dict) and metadata:
+            for sample_id, row in metadata.items():
+                if isinstance(row, dict):
+                    rows_iter.append((str(sample_id), row))
+        elif isinstance(metadata, list) and metadata:
+            for idx, row in enumerate(metadata):
+                if isinstance(row, dict):
+                    sid = str(
+                        row.get("sample_id") or row.get("sample") or f"s{idx}"
+                    )
+                    rows_iter.append((sid, row))
+
+        if rows_iter:
+            c_key = str(condition_col or "condition")
+            r_key = str(replicate_col or "replicate")
+            by_cond: dict[str, set[str]] = {}
+            for sample_id, row in rows_iter:
+                if self._is_control_row(row, c_key):
+                    has_control = True
+                    continue
+                cond = row.get(c_key) or row.get("condition")
+                rep = (
+                    row.get(r_key)
+                    or row.get("replicate")
+                    or row.get("donor_id")
+                    or sample_id
+                )
+                if cond and rep:
+                    by_cond.setdefault(str(cond), set()).add(str(rep))
+            if by_cond:
+                counts = {k: len(v) for k, v in by_cond.items()}
+
+        min_reps = min(counts.values()) if counts else 0
+        has_inferential_contrast = bool(comparisons) or len(counts) >= 2
+
+        card["checks"]["validation"] = {
+            "validated": True,
+            "stage": "production",
+            "live_orchestrator_run": "done",
+            "external_concordance": "done",
+            "promotion_adr": "ADR-081",
+        }
+        card["checks"]["production_readiness"] = _atac_production_readiness(
+            self.modality, tier_override="production"
+        )
+        card["checks"]["epigenomic_controls"] = {
+            "has_input_or_igg_control": has_control,
+            "spikein_configured": bool(
+                exp_context.get("spikein_counts")
+                or exp_context.get("spikein_scale_factors")
+                or exp_context.get("spikein_contig_prefix")
+                or exp_context.get("spikein_bwa_index")
+                or exp_context.get("spikein_fasta")
+            ),
+        }
+        card["checks"]["bulk_da_design"] = {
+            "condition_col": condition_col or ("condition" if counts else None),
+            "replicate_col": replicate_col or ("replicate" if counts else None),
+            "has_groups": bool(counts),
+            "inferential_contrast_requested": has_inferential_contrast,
+        }
+        card["checks"]["bulk_da_replicates"] = {
+            "replicates_per_condition": counts,
+            "min_replicates": min_reps,
+            "publication_ready_min": 3,
+            "minimum_supported": 2,
+        }
+
+        files = list(
+            (exp_context.get("modalities") or {}).get(self.modality) or []
+        )
+        raw_or_bam = any(
+            str(f).lower().endswith(
+                (".bam", ".fastq", ".fastq.gz", ".fq", ".fq.gz")
+            )
+            for f in files
+        )
+        if self.modality == "ChIP" and raw_or_bam and not has_control:
+            _set_status(card, "yellow")
+            card["findings"].append(_finding(
+                "warning",
+                "chip_missing_input_control",
+                (
+                    "ChIP-seq alignment/FASTQ inputs do not include a matched "
+                    "Input or IgG background control library."
+                ),
+                (
+                    "Provide `control_files` / `control_bams` (or Input/IgG rows "
+                    "in sample metadata) to correct sonication and open-chromatin "
+                    "bias, or acknowledge control-free ChIP peak calling."
+                ),
+                modality=self.modality,
+            ))
+
+        if (
+            self.modality in {"CUT_AND_RUN", "CUT_AND_TAG"}
+            and exp_context.get("remove_duplicates") is True
+            and not exp_context.get("has_umi")
+        ):
+            _set_status(card, "yellow")
+            card["findings"].append(_finding(
+                "warning",
+                f"{self.check_prefix}_duplicate_removal_forced",
+                (
+                    f"{self.modality} has `remove_duplicates=True` without UMI "
+                    "barcodes; enzymatic MNase/Tn5 cleavage concentrates true "
+                    "biological fragments at identical 5' ends."
+                ),
+                (
+                    "Leave `remove_duplicates=False` (ARIA default for sparse "
+                    "CUT&RUN/CUT&Tag) unless high PCR duplication was confirmed."
+                ),
+                modality=self.modality,
+            ))
+
+        if has_inferential_contrast:
+            if not counts:
+                _set_status(card, "yellow")
+                card["findings"].append(_finding(
+                    "warning",
+                    f"{self.check_prefix}_design_incomplete",
+                    (
+                        f"{self.modality} inferential differential binding "
+                        "readiness is incomplete (missing biological IP "
+                        "replicate groups / sample metadata)."
+                    ),
+                    (
+                        "Confirm condition, biological IP replicate mapping, and "
+                        "explicit contrasts before running differential binding."
+                    ),
+                    modality=self.modality,
+                ))
+            elif min_reps < 2:
+                _set_status(card, "red")
+                card["findings"].append(_finding(
+                    "blocking",
+                    f"{self.check_prefix}_under_replicated",
+                    (
+                        f"{self.modality} contrast has condition levels with "
+                        f"fewer than two biological IP replicates: {counts}."
+                    ),
+                    (
+                        f"Do not dispatch inferential {self.modality} differential "
+                        "binding with n<2 biological IP replicates per condition. "
+                        "Add biological replicates or run non-contrasted profiling."
+                    ),
+                    modality=self.modality,
+                ))
+            elif min_reps < 3:
+                _set_status(card, "yellow")
+                card["findings"].append(_finding(
+                    "warning",
+                    f"{self.check_prefix}_low_power",
+                    (
+                        f"{self.modality} contrast has exactly two biological IP "
+                        f"replicates in at least one condition: {counts}."
+                    ),
+                    (
+                        f"Treat {self.modality} differential binding as low-power "
+                        "(e.g., ENCODE isogenic duplicates). Dispatch requires "
+                        "explicit acknowledgement; n>=3 is preferred."
+                    ),
+                    modality=self.modality,
+                ))
+
+        if _batch_condition_confounded(design, exp_context):
+            _set_status(card, "red")
+            card["findings"].append(_finding(
+                "blocking",
+                f"{self.check_prefix}_batch_condition_confounding",
+                "Each condition maps to a distinct batch in the confirmed design.",
+                (
+                    "Do not dispatch differential binding from a batch-confounded "
+                    "design. Add a balanced batch design or run non-contrasted "
+                    "profiling."
+                ),
+                modality=self.modality,
+            ))
+
+        return card
+
+
+class ChIPAuditAgent(_BaseEpigenomicAuditAgent):
+    """Pre-dispatch readiness checks for production ChIP-seq workflows (ADR-081)."""
+
+    modality = "ChIP"
+    check_prefix = "chip"
+
+
+class CutAndRunAuditAgent(_BaseEpigenomicAuditAgent):
+    """Pre-dispatch readiness checks for production CUT&RUN workflows (ADR-081)."""
+
+    modality = "CUT_AND_RUN"
+    check_prefix = "cut_and_run"
+
+
+class CutAndTagAuditAgent(_BaseEpigenomicAuditAgent):
+    """Pre-dispatch readiness checks for production CUT&TAG workflows (ADR-081)."""
+
+    modality = "CUT_AND_TAG"
+    check_prefix = "cut_and_tag"
+
+
+class HiCAuditAgent:
+    """Pre-dispatch readiness checks for production 3D genome (`HiC` / Micro-C)
+    workflows (ADR-082)."""
+
+    modality = "HiC"
+
+    def audit(
+        self,
+        exp_context: dict[str, Any],
+        *,
+        tier_override: str | None = None,
+    ) -> dict[str, Any]:
+        effective_tier = tier_override or "production"
+        if effective_tier != "production":
+            status = "red" if effective_tier == "scaffold" else "yellow"
+            card = _base_card(
+                self.modality,
+                agent="genome_arch_agent",
+                validation_level=effective_tier,
+                status=status,
+                reason=(
+                    "Hi-C validation is configured below production."
+                    if effective_tier == "scaffold"
+                    else f"Hi-C {effective_tier} dispatch requires explicit acknowledgement."
+                ),
+            )
+            card["checks"]["validation"] = {
+                "validated": effective_tier != "scaffold",
+                "stage": effective_tier,
+            }
+            card["checks"]["production_readiness"] = _hic_production_readiness(
+                tier_override=effective_tier
+            )
+            if effective_tier == "scaffold":
+                card["findings"].append(_finding(
+                    "blocking",
+                    "hic_readiness_scaffold",
+                    "HiC is configured at scaffold tier and is not dispatch-ready.",
+                    "Use ADR-082 production configuration before dispatch.",
+                    modality=self.modality,
+                ))
+            else:
+                card["findings"].append(_finding(
+                    "warning",
+                    "hic_beta_ack_required",
+                    f"HiC is configured at {effective_tier} tier and requires CP3.5 acknowledgement.",
+                    "Proceed only after explicit CP3.5 acknowledgement.",
+                    modality=self.modality,
+                ))
+            return card
+
+        card = _base_card(
+            self.modality,
+            agent="genome_arch_agent",
+            validation_level="production",
+        )
+        design = _combined_design(exp_context)
+        groups = design.get("analysis_groups") or design.get("groups") or {}
+        condition_col = (
+            design.get("condition_col")
+            or design.get("main_factor")
+            or exp_context.get("condition_col")
+        )
+        replicate_col = (
+            design.get("replicate_col")
+            or exp_context.get("replicate_col")
+            or exp_context.get("replicate_column")
+        )
+        comparisons = (
+            exp_context.get("comparisons")
+            or design.get("comparisons")
+            or design.get("contrasts")
+            or design.get("plan_contrasts")
+        )
+        counts = _replicate_counts(groups)
+        metadata = (
+            exp_context.get("sample_metadata")
+            or design.get("sample_metadata")
+            or design.get("sample_sheet")
+        )
+        rows_iter: list[tuple[str, dict[str, Any]]] = []
+        if isinstance(metadata, dict) and metadata:
+            for sample_id, row in metadata.items():
+                if isinstance(row, dict):
+                    rows_iter.append((str(sample_id), row))
+        elif isinstance(metadata, list) and metadata:
+            for idx, row in enumerate(metadata):
+                if isinstance(row, dict):
+                    sid = str(
+                        row.get("sample_id") or row.get("sample") or f"s{idx}"
+                    )
+                    rows_iter.append((sid, row))
+        if rows_iter:
+            c_key = str(condition_col or "condition")
+            r_key = str(replicate_col or "replicate")
+            by_cond: dict[str, set[str]] = {}
+            for sample_id, row in rows_iter:
+                cond = row.get(c_key) or row.get("condition")
+                rep = (
+                    row.get(r_key)
+                    or row.get("replicate")
+                    or row.get("donor_id")
+                    or sample_id
+                )
+                if cond and rep:
+                    by_cond.setdefault(str(cond), set()).add(str(rep))
+            if by_cond:
+                counts = {k: len(v) for k, v in by_cond.items()}
+
+        files = list((exp_context.get("modalities") or {}).get("HiC") or [])
+        raw_like = any(
+            str(f).lower().endswith(
+                (".fastq", ".fastq.gz", ".fq", ".fq.gz", ".bam", ".sam", ".pairs", ".pairs.gz")
+            )
+            for f in files
+        )
+        has_genome = bool(
+            exp_context.get("genome")
+            or exp_context.get("assembly")
+            or exp_context.get("chromsizes")
+            or exp_context.get("genome_fasta")
+            or design.get("genome")
+        )
+        min_reps = min(counts.values()) if counts else 0
+        has_inferential_contrast = bool(comparisons)
+
+        card["checks"]["validation"] = {
+            "validated": True,
+            "stage": "production",
+            "live_orchestrator_run": "done",
+            "external_concordance": "done",
+            "promotion_adr": "ADR-082",
+        }
+        card["checks"]["production_readiness"] = _hic_production_readiness(
+            tier_override="production"
+        )
+        card["checks"]["hic_design"] = {
+            "condition_col": condition_col or ("condition" if counts else None),
+            "replicate_col": replicate_col or ("replicate" if counts else None),
+            "has_groups": bool(counts),
+            "inferential_contrast_requested": has_inferential_contrast,
+            "phasing_reference_available": bool(
+                exp_context.get("genome_fasta") or exp_context.get("gtf_path")
+            ),
+        }
+        card["checks"]["hic_replicates"] = {
+            "replicates_per_condition": counts,
+            "min_replicates": min_reps,
+            "publication_ready_min": 3,
+            "minimum_supported": 2,
+        }
+
+        if raw_like and not has_genome:
+            _set_status(card, "red")
+            card["findings"].append(_finding(
+                "blocking",
+                "hic_missing_genome_assembly",
+                (
+                    "Hi-C raw FASTQ/BAM/pairs intake requires a confirmed genome "
+                    "assembly, reference FASTA, or chromsizes file."
+                ),
+                (
+                    "Confirm `genome` / `genome_fasta` / `chromsizes` before "
+                    "dispatching raw Hi-C preprocessing."
+                ),
+                modality=self.modality,
+            ))
+
+        req_loop_res = exp_context.get("loop_resolution") or exp_context.get("hic_resolution")
+        if req_loop_res is not None:
+            try:
+                if int(req_loop_res) > 25_000 and exp_context.get("require_loops") is True:
+                    _set_status(card, "yellow")
+                    card["findings"].append(_finding(
+                        "warning",
+                        "hic_coarse_resolution_for_loops",
+                        (
+                            f"Requested Hi-C resolution ({int(req_loop_res)} bp) is "
+                            "coarser than the <=25 kb resolution needed for focal "
+                            "donut loop calling."
+                        ),
+                        (
+                            "Provide a <=10-25 kb cooler/mcool for chromatin loop "
+                            "calling, or acknowledge that loops will skip honestly."
+                        ),
+                        modality=self.modality,
+                    ))
+            except (TypeError, ValueError):
+                pass
+
+        if has_inferential_contrast:
+            if not counts:
+                _set_status(card, "yellow")
+                card["findings"].append(_finding(
+                    "warning",
+                    "hic_design_incomplete",
+                    (
+                        "Hi-C differential 3D contrast was requested without "
+                        "biological replicate groups / sample metadata."
+                    ),
+                    (
+                        "Provide condition and biological replicate metadata, or "
+                        "acknowledge that differential 3D will skip / run "
+                        "descriptively."
+                    ),
+                    modality=self.modality,
+                ))
+            elif min_reps < 2:
+                _set_status(card, "red")
+                card["findings"].append(_finding(
+                    "blocking",
+                    "hic_under_replicated",
+                    (
+                        "Hi-C differential 3D contrast has condition levels with "
+                        f"fewer than two biological replicates: {counts}."
+                    ),
+                    (
+                        "Do not dispatch inferential differential 3D compartment/"
+                        "insulation testing with n<2 replicates per condition."
+                    ),
+                    modality=self.modality,
+                ))
+            elif min_reps < 3:
+                _set_status(card, "yellow")
+                card["findings"].append(_finding(
+                    "warning",
+                    "hic_low_power",
+                    (
+                        "Hi-C differential 3D contrast has exactly two biological "
+                        f"replicates in at least one condition: {counts}."
+                    ),
+                    (
+                        "Treat 2v2 Hi-C differential 3D calls as low-power; "
+                        "dispatch requires explicit acknowledgement (n>=3 preferred)."
+                    ),
+                    modality=self.modality,
+                ))
+
+        if _batch_condition_confounded(design, exp_context):
+            _set_status(card, "red")
+            card["findings"].append(_finding(
+                "blocking",
+                "hic_batch_condition_confounding",
+                "Each condition maps to a distinct batch in the confirmed design.",
+                (
+                    "Do not dispatch cross-condition differential 3D testing from "
+                    "a batch-confounded design."
+                ),
+                modality=self.modality,
+            ))
+
+        return card
+
+
 class ChromatinAuditAgent:
-    """Readiness cards for chromatin modalities (`scATAC`, `bulk_ATAC`, `ChIP`, etc.)."""
+    """Readiness cards for chromatin modalities (`scATAC`, `bulk_ATAC`, `ChIP`,
+    `CUT_AND_RUN`, `CUT_AND_TAG`)."""
+
+    _EPIGENOMIC_AUDITORS = {
+        "ChIP": ChIPAuditAgent,
+        "CUT_AND_RUN": CutAndRunAuditAgent,
+        "CUT_AND_TAG": CutAndTagAuditAgent,
+    }
 
     def audit(
         self,
@@ -909,6 +1493,34 @@ class ChromatinAuditAgent:
                     modality=modality,
                 ))
             return card
+
+        if modality in self._EPIGENOMIC_AUDITORS:
+            effective_tier = tier_override or "production"
+            if effective_tier == "production":
+                return self._EPIGENOMIC_AUDITORS[modality]().audit(exp_context)
+            if effective_tier == "beta":
+                card = _base_card(
+                    modality,
+                    agent="chromatin_agent",
+                    validation_level="beta",
+                    status="yellow",
+                    reason=(
+                        f"{modality} beta dispatch requires explicit CP3.5 "
+                        "acknowledgement."
+                    ),
+                )
+                card["checks"]["validation"] = {"validated": True, "stage": "beta"}
+                card["checks"]["production_readiness"] = _atac_production_readiness(
+                    modality, tier_override="beta"
+                )
+                card["findings"].append(_finding(
+                    "warning",
+                    f"{modality.lower()}_beta_ack_required",
+                    f"{modality} is configured at beta tier and requires CP3.5 acknowledgement.",
+                    "Proceed only after explicit CP3.5 acknowledgement.",
+                    modality=modality,
+                ))
+                return card
 
         card = _base_card(
             modality,
@@ -1534,13 +2146,16 @@ def build_capability_matrix(
                 chromatin_auditor.audit(
                     exp_context,
                     modality,
-                    tier_override=(
-                        configured_level
-                        if modality in {"scATAC", "bulk_ATAC"}
-                        else None
-                    ),
+                    tier_override=configured_level,
                 ),
             )
+
+    if "HiC" in modalities and cards.get("HiC", {}).get("status") != "red":
+        configured_hic_level = (validation.get("HiC") or {}).get("level")
+        cards["HiC"] = _merge_cards(
+            cards.get("HiC", _base_card("HiC")),
+            HiCAuditAgent().audit(exp_context, tier_override=configured_hic_level),
+        )
 
     for modality, files in modalities.items():
         cards[modality] = _merge_cards(

@@ -281,7 +281,13 @@ def tag_chromatin_tf_lineage(signals: list, cross_modal_signals: list) -> int:
         return 0
     n = 0
     for sig in signals or []:
-        if getattr(sig, "modality", None) not in ("bulk_ATAC", "scATAC"):
+        if getattr(sig, "modality", None) not in (
+            "bulk_ATAC",
+            "scATAC",
+            "ChIP",
+            "CUT_AND_RUN",
+            "CUT_AND_TAG",
+        ):
             continue
         if getattr(sig, "entity_kind", None) != "tf_motif":
             continue

@@ -78,9 +78,10 @@ _CHROMATIN_ANALYSES: list[dict[str, Any]] = [
     # ATAC filtering). Reconciled from the bulk lane's ``preprocessing`` finding
     # by ``_reconcile_chromatin`` (the scATAC node above is untouched).
     {"key": "bulk_atac_preprocessing",
-     "label": "Raw bulk ATAC alignment and filtering",
+     "label": "Raw bulk chromatin alignment and filtering",
      "plan_kw": ["bwa-mem2", "bwa mem", "bulk atac alignment",
-                 "atac alignment", "atac_align"],
+                 "atac alignment", "atac_align", "chip alignment",
+                 "cut&run alignment", "cut&tag alignment", "spike-in alignment"],
      "finding_keys": ["bulk_atac_preprocessing"]},
     {"key": "dimensionality_reduction",
      "label": "Dimensionality reduction (LSI/TF-IDF)",
@@ -88,14 +89,15 @@ _CHROMATIN_ANALYSES: list[dict[str, Any]] = [
                  "dimensionality", "svd"],
      "finding_keys": ["lsi_params", "lsi", "lsi_clustering"]},
     {"key": "peak_calling", "label": "Peak calling",
-     "plan_kw": ["peak", "macs"], "finding_keys": ["peaks"]},
+     "plan_kw": ["peak", "macs", "seacr", "idr", "broad domain"],
+     "finding_keys": ["peaks"]},
     {"key": "peak_count_matrix", "label": "Peak-count matrix",
      "plan_kw": ["peak count", "count matrix", "peak-by-sample",
                  "peak x sample"],
      "finding_keys": ["peak_counts"]},
-    {"key": "differential_accessibility", "label": "Differential accessibility",
+    {"key": "differential_accessibility", "label": "Differential accessibility / binding",
      "plan_kw": ["differential accessibility", "differentially accessible",
-                 "differential peak"],
+                 "differential peak", "differential binding", "spike-in"],
      "finding_keys": ["differential_accessibility"]},
     {"key": "motif_enrichment", "label": "TF motif enrichment",
      "plan_kw": ["motif enrichment", "transcription factor enrichment",
@@ -169,6 +171,32 @@ _INTEGRATION_ANALYSES: list[dict[str, Any]] = [
      "label": "Cross-modal evidence triangulation",
      "plan_kw": ["triangulation", "cross-modal evidence"],
      "finding_keys": ["cross_modal_triangulation"]},
+]
+
+
+# ADR-082: 3D genome architecture (`HiC` / Micro-C) analyses reconciled from
+# GenomeArchAgent structured outputs. Process vocabulary only (ADR-011).
+_HIC_ANALYSES: list[dict[str, Any]] = [
+    {"key": "preprocessing", "label": "3D contact preprocessing & cooler build",
+     "plan_kw": ["pairtools", "cload", "zoomify", "hicstraw", "hic preprocess"],
+     "finding_keys": ["preprocessing"]},
+    {"key": "qc", "label": "Hi-C contact QC, ICE balancing & P(s)/SCC",
+     "plan_kw": ["ice balanc", "cooler balance", "cis/trans", "contact decay",
+                 "hicrep", "stratum-adjusted"],
+     "finding_keys": ["balancing", "qc", "inspection"]},
+    {"key": "compartments", "label": "A/B compartment decomposition (E1)",
+     "plan_kw": ["compartment", "eigenvector", "eigs_cis", "pc1", "e1"],
+     "finding_keys": ["compartments"]},
+    {"key": "tads", "label": "Topologically associating domains (insulation)",
+     "plan_kw": ["tad", "insulation", "crane", "topologically associating"],
+     "finding_keys": ["tads"]},
+    {"key": "loops", "label": "Chromatin loop calling (donut enrichment)",
+     "plan_kw": ["chromatin loop", "loop call", "hiccups", "donut", "dots"],
+     "finding_keys": ["loops"]},
+    {"key": "differential_3d", "label": "Differential 3D compartment & insulation",
+     "plan_kw": ["differential compartment", "compartment switch",
+                 "differential insulation", "differential 3d"],
+     "finding_keys": ["differential_3d"]},
 ]
 
 
@@ -406,7 +434,9 @@ def _entries_for(modality: str, specs: list[dict], findings: dict,
 
 def _is_bulk_atac_preprocessing(preprocessing: Any) -> bool:
     return isinstance(preprocessing, dict) and (
-        preprocessing.get("data_type") == "bulk_ATAC"
+        preprocessing.get("data_type") in {
+            "bulk_ATAC", "ChIP", "CUT_AND_RUN", "CUT_AND_TAG",
+        }
         or "bam_files" in preprocessing
     )
 
@@ -590,6 +620,11 @@ def build_run_ledger(exp_ctx: dict, agent_results: dict) -> dict:
         entries += _reconcile_cross_modal(cm_findings, phrases)
         modalities.append("cross_modal")
 
+    hic_findings = _hic_findings_normalized(agent_results)
+    if bool(hic_findings) or "genome_arch_agent" in (agent_results or {}):
+        entries += _reconcile_hic(hic_findings, phrases)
+        modalities.append("hic")
+
     divergences = [e for e in entries if e["divergence"]]
     return {
         "entries": entries,
@@ -597,6 +632,66 @@ def build_run_ledger(exp_ctx: dict, agent_results: dict) -> dict:
         "n_divergences": len(divergences),
         "modalities": modalities,
     }
+
+
+def _hic_findings_normalized(agent_results: dict) -> dict:
+    """Flatten ``GenomeArchAgent`` outputs (`inspection`, `balancing`,
+    `topology.{compartments,tads,loops,differential_3d}`) for ledger
+    reconciliation without fabricating absent layers."""
+    hic = (agent_results or {}).get("genome_arch_agent")
+    if not isinstance(hic, dict):
+        return {}
+    findings = hic.get("findings", hic)
+    if not isinstance(findings, dict) or not findings:
+        return {}
+    out: dict[str, Any] = {}
+    if isinstance(findings.get("preprocessing"), dict):
+        out["preprocessing"] = findings["preprocessing"]
+    for qc_key in ("balancing", "qc", "inspection"):
+        if isinstance(findings.get(qc_key), dict) and findings[qc_key]:
+            out[qc_key] = findings[qc_key]
+    topo = findings.get("topology") if isinstance(findings.get("topology"), dict) else findings
+    if isinstance(topo, dict):
+        for layer in ("compartments", "tads", "loops", "differential_3d"):
+            val = topo.get(layer)
+            if isinstance(val, dict) and val:
+                out[layer] = val
+    return out
+
+
+def _reconcile_hic(findings: dict, phrases: list[str]) -> list[dict]:
+    """Reconcile 3D genome (`HiC`) findings with IPC script provenance (ADR-082)."""
+    findings = dict(findings or {})
+    entries = _entries_for("hic", _HIC_ANALYSES, findings, phrases)
+    script_by_key = {
+        "preprocessing": "aria/scripts/hic_preprocess.py",
+        "qc": "aria/scripts/hic_qc_and_balance.py",
+        "compartments": "aria/scripts/hic_topology.py",
+        "tads": "aria/scripts/hic_topology.py",
+        "loops": "aria/scripts/hic_topology.py",
+        "differential_3d": "aria/scripts/hic_topology.py",
+    }
+    for entry in entries:
+        key = entry["analysis"]
+        entry["provenance"].update({
+            "script": script_by_key.get(key, "aria/scripts/hic_topology.py"),
+            "environment_stack": "hic",
+            "validation_level": "production",
+        })
+        if key == "preprocessing":
+            pre = findings.get("preprocessing") or {}
+            coolers = [str(c) for c in (pre.get("cooler_files") or []) if c]
+            entry["provenance"]["artifacts"] = coolers
+            st = str(pre.get("status") or "").lower().strip()
+            if st in ("success", "done") and coolers:
+                entry["status"] = "executed"
+                entry["reason"] = None
+                entry["divergence"] = False
+            elif entry["status"] == "ran" and not coolers:
+                entry["status"] = "skipped"
+                entry["reason"] = "no preprocessed cooler produced"
+                entry["divergence"] = bool(entry["planned"])
+    return entries
 
 
 def _integration_findings_normalized(
@@ -693,10 +788,20 @@ def _ledger_modality_group(modality: str) -> str:
         return "report"
     if m == "integration" or "multiome" in m:
         return "integration"
+    if m in ("hic", "hi-c", "micro-c", "3d_genome", "genome_arch") or "hic" in m:
+        return "hic"
+    if "bulk_rna" in m or m == "bulk":
+        return "bulk"
+    if any(
+        tok in m
+        for tok in (
+            "atac", "chromatin", "chip", "cut_and_run", "cut&run",
+            "cut_and_tag", "cut&tag", "epigenom",
+        )
+    ):
+        return "chromatin"
     if "bulk" in m:
         return "bulk"
-    if "atac" in m or "chromatin" in m:
-        return "chromatin"
     return "scRNA"
 
 
@@ -722,6 +827,14 @@ def node_id_for(modality: str, analysis: str) -> str:
             "de_da_concordance": "concordance",
         }
         key = cm_aliases.get(raw, raw)
+    elif group == "hic":
+        hic_aliases = {
+            "balancing": "qc",
+            "inspection": "qc",
+            "hic_qc": "qc",
+            "hic_preprocessing": "preprocessing",
+        }
+        key = hic_aliases.get(raw, raw)
     else:
         key = _LEDGER_KEY_ALIASES.get(raw, raw)
     return f"ledger://{group}/{key}"

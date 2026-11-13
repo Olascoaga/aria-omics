@@ -19,7 +19,12 @@ AGENT_FILE = REPO / "aria" / "agents" / "scrna_agent.py"
 
 
 def _agent_src() -> str:
-    return AGENT_FILE.read_text()
+    parts = [AGENT_FILE.read_text(encoding="utf-8")]
+    scrna_pkg = REPO / "aria" / "agents" / "scrna"
+    if scrna_pkg.is_dir():
+        for py_file in sorted(scrna_pkg.glob("*.py")):
+            parts.append(py_file.read_text(encoding="utf-8"))
+    return "\n".join(parts)
 
 
 def make_mock_adata(n_cells=600, n_genes=500):

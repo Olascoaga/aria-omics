@@ -59,7 +59,7 @@ class ReportSectionsMixin:
             chrom = agent_results.get("chromatin_agent", {})
             if chrom.get("status") == "done":
                 chrom_f = chrom.get("findings", {}) or {}
-                for assay in ("scATAC", "bulk_ATAC", "ChIP", "CUT_AND_RUN"):
+                for assay in ("scATAC", "bulk_ATAC", "ChIP", "CUT_AND_RUN", "CUT_AND_TAG"):
                     af    = chrom_f.get(assay, {}).get("findings", {}) or {}
                     peaks = af.get("peaks", {}) or {}
                     if peaks.get("n_peaks"):
@@ -654,6 +654,34 @@ class ReportSectionsMixin:
 
         # Non-same-cell cross-modal concordance tables + starburst (ADR-080).
         self._stage_cross_modal_artifacts(agent_results, report_dir)
+        # 3D genome (Hi-C / Micro-C) tables + PNG/SVG figures (ADR-082).
+        self._stage_hic_artifacts(agent_results, report_dir)
+
+    @staticmethod
+    def _stage_hic_artifacts(agent_results: dict, report_dir: Path):
+        """Copy Hi-C supplementary tables and PNG/SVG figures into the report."""
+        import shutil
+
+        hic = (agent_results or {}).get("genome_arch_agent") or {}
+        if not isinstance(hic, dict) or hic.get("status") not in ("done", "success"):
+            return
+        try:
+            from aria.agents.narrative.narrators.hic import HiCNarrator
+            narrator = HiCNarrator()
+            for tbl in narrator.tables("genome_arch_agent", hic, report_dir):
+                src = Path(str(tbl.get("path") or ""))
+                if src.is_file():
+                    (report_dir / "tables").mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(src, report_dir / "tables" / src.name)
+            for fig in narrator.figures("genome_arch_agent", hic, report_dir):
+                for key in ("path", "svg_path"):
+                    raw = fig.get(key)
+                    if isinstance(raw, str) and raw and Path(raw).is_file():
+                        src = Path(raw)
+                        (report_dir / "figures").mkdir(parents=True, exist_ok=True)
+                        shutil.copy2(src, report_dir / "figures" / src.name)
+        except Exception as e:
+            log.warning(f"Stage Hi-C supplementary artifacts: {e}")
 
     @staticmethod
     def _stage_cross_modal_artifacts(agent_results: dict, report_dir: Path):

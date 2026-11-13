@@ -1099,34 +1099,99 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
             _f("warnings", "list"),
         ),
     ),
+    # ADR-082: 3D genome architecture production contracts (Hi-C / Micro-C).
+    "aria/scripts/hic_preprocess.py": ScriptContract(
+        script_path="aria/scripts/hic_preprocess.py",
+        validation_level="production",
+        inputs=tuple(
+            _f(name, kind, required=False)
+            for name, kind in (
+                ("files", "list"), ("samples", "list"), ("chromsizes", "any"),
+                ("genome_fasta", "str"), ("genome_fai", "str"), ("genome", "str"),
+                ("base_resolution", "int"), ("resolutions", "list"),
+                ("min_mapq", "int"), ("threads", "int"), ("output_dir", "str"),
+                ("resume", "bool"),
+            )
+        ),
+        success_outputs=(
+            _f("samples", "list"),
+            _f("n_samples", "int"),
+            _f("cooler_files", "list"),
+        ),
+    ),
     "aria/scripts/hic_inspect.py": ScriptContract(
         script_path="aria/scripts/hic_inspect.py",
-        validation_level="scaffold",
+        validation_level="production",
         inputs=(
             _f("files", "list", required=False),
+            _f("genome", "str", required=False),
         ),
         success_outputs=(
             _f("chromosomes", "list", required=False),
+            _f("resolutions", "list", required=False),
         ),
     ),
     "aria/scripts/hic_qc_and_balance.py": ScriptContract(
         script_path="aria/scripts/hic_qc_and_balance.py",
-        validation_level="scaffold",
+        validation_level="production",
         inputs=(
             _f("files", "list", required=False),
+            _f("sample_ids", "list", required=False),
+            _f("resolution", "int", required=False),
+            _f("compartment_resolution", "int", required=False),
+            _f("scc_resolution", "int", required=False),
+            _f("output_dir", "str", required=False),
+            _f("resume", "bool", required=False),
         ),
         success_outputs=(
             _f("cis_trans_ratio", "float", required=False),
+            _f("n_valid_pairs", "int", required=False),
+            _f("balanced_files", "list", required=False),
         ),
     ),
     "aria/scripts/hic_topology.py": ScriptContract(
         script_path="aria/scripts/hic_topology.py",
-        validation_level="scaffold",
-        inputs=(
-            _f("files", "list", required=False),
+        validation_level="production",
+        inputs=tuple(
+            _f(name, kind, required=False)
+            for name, kind in (
+                ("files", "list"), ("sample_ids", "list"), ("analysis", "str"),
+                ("genome", "str"), ("organism", "str"),
+                ("resolution", "int"), ("comp_resolution", "int"), ("tad_resolution", "int"),
+                ("window_bp", "int"), ("window_size", "int"),
+                ("candidate_windows", "list"), ("windows", "list"),
+                ("chromosomes", "any"),
+                ("genome_fasta", "str"), ("gtf_path", "str"), ("gtf", "str"),
+                ("sample_metadata", "any"), ("condition_col", "str"),
+                ("replicate_col", "str"), ("covariates", "list"),
+                ("comparisons", "any"), ("min_replicates_per_condition", "int"),
+                ("fdr_threshold", "float"), ("max_loci_separation", "int"),
+                ("out_of_core", "bool"), ("output_dir", "str"),
+                ("resume", "bool"),
+            )
         ),
         success_outputs=(
             _f("algorithm", "str", required=False),
+        ),
+    ),
+    "aria/scripts/hic_figure.py": ScriptContract(
+        script_path="aria/scripts/hic_figure.py",
+        validation_level="production",
+        inputs=tuple(
+            _f(name, kind, required=False)
+            for name, kind in (
+                ("output_dir", "str"), ("qc", "dict"), ("compartments", "dict"),
+                ("tads", "dict"), ("loops", "dict"), ("differential_3d", "dict"),
+                ("cooler_path", "str"), ("resolution", "int"), ("chrom", "str"),
+                ("ps_curve_tsv", "str"), ("per_file", "list"),
+                ("compartments_tsv", "str"), ("insulation_tsv", "str"),
+                ("tads_bed", "str"), ("differential_compartments_csv", "str"),
+            )
+        ),
+        success_outputs=(
+            _f("figures", "dict", required=False),
+            _f("figures_svg", "dict", required=False),
+            _f("figure_bundles", "dict", required=False),
         ),
     ),
 }

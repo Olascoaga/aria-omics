@@ -61,16 +61,28 @@ def _modality_label(data_type: str | None) -> str:
     return labels.get(str(data_type or ""), "chromatin")
 
 
-def _is_bulk_atac(findings: dict) -> bool:
-    """True when the (unwrapped) findings come from the bulk ATAC lane.
+_BULK_CHROMATIN_MODALITIES = (
+    "bulk_ATAC", "ChIP", "CUT_AND_RUN", "CUT_AND_TAG",
+)
 
-    Bulk ATAC and scATAC are separate dispatch lanes, so any one
-    ``data_type == "bulk_ATAC"`` stamp on QC/peaks/counts/DA is decisive.
-    """
+
+def _is_bulk_atac(findings: dict) -> bool:
+    """True when the (unwrapped) findings come from the bulk ATAC lane."""
     for key in ("preprocessing", "qc", "peaks", "peak_counts",
                 "differential_accessibility"):
         sub = findings.get(key)
         if isinstance(sub, dict) and sub.get("data_type") == "bulk_ATAC":
+            return True
+    return False
+
+
+def _is_bulk_chromatin(findings: dict) -> bool:
+    """True when unwrapped findings come from any bulk chromatin lane
+    (`bulk_ATAC`, `ChIP`, `CUT_AND_RUN`, `CUT_AND_TAG`)."""
+    for key in ("preprocessing", "qc", "peaks", "peak_counts",
+                "differential_accessibility"):
+        sub = findings.get(key)
+        if isinstance(sub, dict) and sub.get("data_type") in _BULK_CHROMATIN_MODALITIES:
             return True
     return False
 
@@ -134,7 +146,7 @@ class ChromatinNarrator:
             blocks.append(self._scatac_preprocessing_block(preprocessing))
 
         bulk_preproc = findings.get("preprocessing")
-        if (_is_bulk_atac(findings) and isinstance(bulk_preproc, dict)
+        if (_is_bulk_chromatin(findings) and isinstance(bulk_preproc, dict)
                 and _ok(bulk_preproc) and bulk_preproc.get("bam_files")):
             blocks.append(self._bulk_atac_preprocessing_block(bulk_preproc))
 
@@ -316,10 +328,21 @@ class ChromatinNarrator:
             if isinstance(b.get("mapped_reads_post_filter"), (int, float))
         ]
 
+        remove_dup = filt.get("remove_duplicates")
+        if remove_dup is None and "markdup_removed" in filters:
+            remove_dup = bool(filters.get("markdup_removed"))
+        if remove_dup is None:
+            remove_dup = True
+        data_type = str(preproc.get("data_type") or "bulk_ATAC")
+        mod_title = (
+            "Bulk ATAC" if data_type == "bulk_ATAC"
+            else _modality_label(data_type)
+        )
         src = "atac_align"
         evidence = [
             _ev("Raw bulk chromatin read preprocessing",
                 "trimmed and aligned", "chromatin_agent"),
+            _ev("Modality", data_type, src),
             _ev("Read trimming", "fastp (rna_fastq_qc)", "rna_fastq_qc"),
             _ev("Samples trimmed", fastq_qc.get("n_samples"), "rna_fastq_qc"),
             _ev("Aligner", preproc.get("aligner"), src),
@@ -331,11 +354,20 @@ class ChromatinNarrator:
                 "calling",
                 "mitochondrial reads removed" if remove_mito
                 else "mitochondrial reads retained", src),
-            _ev("Duplicate removal", "samtools markdup -r", src),
+            _ev("Duplicate handling",
+                "samtools markdup -r" if remove_dup
+                else "duplicates marked and retained", src),
         ]
         if reads_post_filter:
             evidence.append(_ev("Filtered alignments (total)",
                                 int(sum(reads_post_filter)), src))
+        spikein_totals = [
+            b.get("spikein_reads") for b in aligned
+            if isinstance(b.get("spikein_reads"), (int, float))
+        ]
+        if spikein_totals:
+            evidence.append(_ev("Heterologous spike-in alignments (total)",
+                                int(sum(spikein_totals)), src))
         for rec in aligned:
             evidence.append(EvidenceItem(
                 label=f"Filtered alignment {rec.get('sample_id') or rec.get('name')}",
@@ -362,15 +394,17 @@ class ChromatinNarrator:
         return NarrativeBlock(
             id="chromatin.bulk_atac_preprocessing", modality="chromatin",
             analysis="bulk_atac_preprocessing", block_type="result",
-            title="Bulk ATAC raw read preprocessing & alignment",
+            title=f"{mod_title} raw read preprocessing & alignment",
             status="success", confidence="high", claim=claim,
             evidence=evidence, caveats=caveats,
             metrics={
+                "data_type": data_type,
                 "n_samples_aligned": n_aligned,
                 "read_layout": read_layout,
                 "aligner": preproc.get("aligner"),
                 "assembly": preproc.get("assembly"),
                 "min_mapq": mapq,
+                "remove_duplicates": remove_dup,
             },
             metadata={"validation_level": preproc.get("validation_level",
                                                       "production")},
@@ -383,6 +417,7 @@ class ChromatinNarrator:
         evidence: list[EvidenceItem] = []
         for ev_label, key in (
             ("Modality", "data_type"),
+            ("Assay label", None),
             ("Cells (barcodes)", "n_cells"),
             ("Samples", "n_samples"),
             ("Peaks", "n_peaks"),
@@ -391,15 +426,23 @@ class ChromatinNarrator:
             ("Duplicate rate", "dup_rate"),
             ("FRiP", "frip"),
             ("TSS enrichment", "tss_enrichment"),
+            ("NRF", "nrf"),
+            ("PBC1", "pbc1"),
+            ("PBC2", "pbc2"),
+            ("Cross-correlation NSC", "nsc"),
+            ("Cross-correlation RSC", "rsc"),
+            ("IP vs control JSD", "ip_control_jsd"),
+            ("Subnucleosomal fraction (<120 bp)", "subnucleosomal_fraction"),
+            ("Mononucleosomal fraction (140-250 bp)", "mononucleosomal_fraction"),
         ):
-            val = qc.get(key)
+            val = modality_label if key is None else qc.get(key)
             if val is not None:
                 evidence.append(_ev(ev_label, val, "chromatin_qc"))
 
         caveats = [Caveat(
             "Chromatin QC reports only the metrics actually measured from the "
             "input; metrics that require additional assets or post-peak-calling "
-            "steps stay not-computed, and scaffolded layers remain explicitly "
+            "steps stay not-computed, and associative layers remain explicitly "
             "caveated.",
             severity="info",
         )]
@@ -413,6 +456,10 @@ class ChromatinNarrator:
         if data_type == "bulk_ATAC" and evidence:
             claim = (
                 f"Bulk ATAC QC measured {qc.get('n_samples', '?')} sample(s) "
+                f"with mean mitochondrial fraction {qc.get('mito_fraction', '?')}.")
+        elif data_type in _BULK_CHROMATIN_MODALITIES and evidence:
+            claim = (
+                f"{modality_label} QC measured {qc.get('n_samples', '?')} sample(s) "
                 f"with mean mitochondrial fraction {qc.get('mito_fraction', '?')}.")
         elif evidence:
             claim = (
@@ -429,7 +476,7 @@ class ChromatinNarrator:
             metrics={"qc_complete": qc.get("qc_complete"),
                      "pass_qc": qc.get("pass_qc")},
             metadata={"validation_level": qc.get("validation_level") or (
-                "production" if data_type in {"scATAC", "bulk_ATAC"}
+                "production" if data_type in _CHROMATIN_MODALITY_KEYS
                 else "scaffold")},
         )
 
@@ -439,8 +486,15 @@ class ChromatinNarrator:
         label = _modality_label(data_type)
         n_peaks = peaks.get("n_peaks")
         frip = peaks.get("frip")
+        caller = str(peaks.get("peak_caller") or "macs3").lower()
+        caller_label = (
+            "SEACR peak calling" if caller == "seacr"
+            else "Broad-domain calling" if caller == "broad_domain"
+            else "MACS3 peak calling"
+        )
         evidence = [
-            _ev("Analysis", "MACS3 peak calling", "chromatin_peaks"),
+            _ev("Analysis", caller_label, "chromatin_peaks"),
+            _ev("Assay label", label, "chromatin_peaks"),
             _ev("Modality", data_type, "chromatin_peaks"),
             _ev("Peaks called", n_peaks, "chromatin_peaks"),
             _ev("Genome", peaks.get("genome"), "chromatin_peaks"),
@@ -476,6 +530,12 @@ class ChromatinNarrator:
                 "not run" if not idr.get("ran") else "run",
                 "chromatin_peaks",
             ))
+            if idr.get("ran") and idr.get("n_reproducible") is not None:
+                evidence.append(_ev(
+                    "IDR reproducible peaks",
+                    idr.get("n_reproducible"),
+                    "chromatin_peaks",
+                ))
         if frip is not None:
             evidence.append(_ev("FRiP", frip, "chromatin_peaks"))
         if peaks.get("peaks_path"):
@@ -489,9 +549,9 @@ class ChromatinNarrator:
         evidence = [e for e in evidence if e.value is not None]
 
         caveats = [Caveat(
-            "Peak calling identifies accessible genomic intervals. These peaks "
-            "are not differential accessibility results and do not establish "
-            "regulatory mechanism on their own.",
+            "Peak calling identifies enriched genomic intervals. These peaks "
+            "are not differential binding or accessibility results and do not "
+            "establish regulatory mechanism on their own.",
             severity="info",
         )]
         if frip is None:
@@ -513,7 +573,7 @@ class ChromatinNarrator:
         for warning in peaks.get("warnings") or []:
             caveats.append(Caveat(str(warning), severity="warning"))
 
-        claim = f"MACS3 peak calling for {label} identified {n_peaks} peaks."
+        claim = f"{caller_label} for {label} identified {n_peaks} peaks."
         return NarrativeBlock(
             id=f"chromatin.peak_calling.{_safe_id(data_type)}",
             modality="chromatin", analysis="peak_calling",
@@ -522,12 +582,13 @@ class ChromatinNarrator:
             claim=claim, evidence=evidence, caveats=caveats,
             metrics={
                 "n_peaks": n_peaks,
+                "peak_caller": caller,
                 "frip": frip,
                 "consensus_peaks_path": peaks.get("consensus_peaks_path"),
                 "peak_reproducibility": repro or None,
             },
             metadata={"validation_level": peaks.get("validation_level") or (
-                "production" if data_type in {"scATAC", "bulk_ATAC"}
+                "production" if data_type in _CHROMATIN_MODALITY_KEYS
                 else "scaffold")},
         )
 
@@ -579,19 +640,26 @@ class ChromatinNarrator:
         for warning in counts.get("warnings") or []:
             caveats.append(Caveat(str(warning), severity="warning"))
 
+        mod_title = (
+            "Bulk ATAC" if data_type == "bulk_ATAC"
+            else _modality_label(data_type)
+        )
+        evidence.insert(4, _ev("Assay label", mod_title, "chromatin_peak_counts"))
+        evidence = [e for e in evidence if e.value is not None]
+
         if precomputed:
             claim = (
-                f"Bulk ATAC pre-computed peak-count matrix supplied with "
+                f"{mod_title} pre-computed peak-count matrix supplied with "
                 f"{n_peaks} peaks across {n_samples} samples.")
         else:
             claim = (
-                f"Bulk ATAC peak counting produced a matrix with {n_peaks} peaks "
+                f"{mod_title} peak counting produced a matrix with {n_peaks} peaks "
                 f"across {n_samples} samples."
             )
         return NarrativeBlock(
             id=f"chromatin.peak_count_matrix.{_safe_id(data_type)}",
             modality="chromatin", analysis="peak_count_matrix",
-            block_type="result", title="Bulk ATAC peak-count matrix",
+            block_type="result", title=f"{mod_title} peak-count matrix",
             status="success", confidence="medium",
             claim=claim, evidence=evidence, caveats=caveats,
             metrics={
@@ -721,9 +789,9 @@ class ChromatinNarrator:
                      "consensus_peaks": consensus},
         )
 
-    # ── Differential accessibility ──────────────────────────────────────────
+    # ── Differential accessibility / binding ───────────────────────────────
     def _diffacc_blocks(self, da: dict) -> list[NarrativeBlock]:
-        if da.get("data_type") == "bulk_ATAC" and da.get("ran"):
+        if da.get("data_type") in _BULK_CHROMATIN_MODALITIES and da.get("ran"):
             return [self._bulk_atac_diffacc_block(da)]
 
         blocks: list[NarrativeBlock] = []
@@ -810,19 +878,30 @@ class ChromatinNarrator:
         return blocks
 
     def _bulk_atac_diffacc_block(self, da: dict) -> NarrativeBlock:
+        data_type = str(da.get("data_type") or "bulk_ATAC")
+        is_atac = data_type == "bulk_ATAC"
+        mod_title = "Bulk ATAC" if is_atac else _modality_label(data_type)
+        norm_mode = da.get("normalization_mode")
         n_comps = da.get("n_comparisons_success")
         n_sig = da.get("n_sig_total")
         n_reps = da.get("n_replicate_samples")
         n_peaks = da.get("n_peaks_tested")
         evidence = [
-            _ev("Analysis", "Bulk ATAC differential accessibility",
+            _ev("Analysis",
+                "Bulk ATAC differential accessibility" if is_atac
+                else f"{mod_title} differential binding",
                 "chromatin_bulk_diffacc"),
+            _ev("Assay label", mod_title, "chromatin_bulk_diffacc"),
+            _ev("Statistical engine", "DESeq2", "chromatin_bulk_diffacc"),
             _ev("Method", da.get("method"), "chromatin_bulk_diffacc"),
+            _ev("Normalization mode", norm_mode, "chromatin_bulk_diffacc"),
             _ev("Modality", da.get("data_type"), "chromatin_bulk_diffacc"),
             _ev("Comparisons run", n_comps, "chromatin_bulk_diffacc"),
             _ev("Replicate samples", n_reps, "chromatin_bulk_diffacc"),
             _ev("Peaks tested", n_peaks, "chromatin_bulk_diffacc"),
-            _ev("Differentially accessible peaks", n_sig,
+            _ev("Differentially accessible peaks" if is_atac
+                else "Differential peaks",
+                n_sig,
                 "chromatin_bulk_diffacc"),
             _ev("padj threshold", da.get("padj_max"),
                 "chromatin_bulk_diffacc"),
@@ -831,7 +910,7 @@ class ChromatinNarrator:
         ]
         if da.get("output_csv"):
             evidence.append(EvidenceItem(
-                label="Bulk ATAC DA summary", value="csv",
+                label=f"{mod_title} DA summary", value="csv",
                 source="chromatin_bulk_diffacc", path=da["output_csv"]))
         if da.get("replicate_counts_path"):
             evidence.append(EvidenceItem(
@@ -841,26 +920,41 @@ class ChromatinNarrator:
         evidence = [e for e in evidence if e.value is not None]
 
         caveats = [Caveat(
-            "Bulk ATAC DA uses biological replicate-level peak counts and the "
-            "shared DESeq2 core. It requires explicit condition, replicate, and "
-            "comparison metadata; ARIA does not infer contrasts from filenames.",
+            f"{mod_title} differential testing uses biological replicate-level "
+            "peak counts and negative-binomial DESeq2 dispersion modeling"
+            + (" with heterologous spike-in sizeFactors"
+               if norm_mode == "heterologous_spikein" else "")
+            + ". It requires explicit condition, replicate, and comparison "
+              "metadata; ARIA does not infer contrasts from filenames.",
             severity="info",
         )]
         for warning in da.get("warnings") or []:
             caveats.append(Caveat(str(warning), severity="warning"))
 
-        claim = (
-            f"Bulk ATAC DESeq2 differential accessibility ran {n_comps} "
-            f"comparison(s) over {n_reps} replicate samples and found {n_sig} "
-            f"differentially accessible peaks.")
+        if is_atac:
+            claim = (
+                f"Bulk ATAC DESeq2 differential accessibility ran {n_comps} "
+                f"comparison(s) over {n_reps} replicate samples and found {n_sig} "
+                f"differentially accessible peaks.")
+            block_id = "chromatin.differential_accessibility.bulk_atac"
+            title = "Bulk ATAC differential accessibility"
+        else:
+            claim = (
+                f"{mod_title} DESeq2 differential binding ran {n_comps} "
+                f"comparison(s) over {n_reps} replicate samples and found {n_sig} "
+                f"differential peaks.")
+            block_id = f"chromatin.differential_accessibility.{_safe_id(data_type)}"
+            title = f"{mod_title} differential binding"
         return NarrativeBlock(
-            id="chromatin.differential_accessibility.bulk_atac",
+            id=block_id,
             modality="chromatin", analysis="differential_accessibility",
             block_type="result",
-            title="Bulk ATAC differential accessibility",
+            title=title,
             status="success", confidence="medium",
             claim=claim, evidence=evidence, caveats=caveats,
             metrics={
+                "data_type": data_type,
+                "normalization_mode": norm_mode,
                 "comparisons": da.get("comparisons"),
                 "n_peaks_tested": n_peaks,
                 "n_replicate_samples": n_reps,
@@ -980,7 +1074,7 @@ class ChromatinNarrator:
                 "that gene.", severity="info")],
             metrics={"feature_distribution_overall": dist,
                      "comparisons": ann.get("comparisons")},
-            metadata={"validation_level": ann.get("validation_level", "beta")},
+            metadata={"validation_level": ann.get("validation_level", "production")},
         )
 
     # ── Functional ORA of genes near DA peaks (B3) ───────────────────────────
@@ -1032,7 +1126,7 @@ class ChromatinNarrator:
             status="success", confidence="medium",
             claim=claim, evidence=evidence, caveats=caveats,
             metrics={"comparisons": comps},
-            metadata={"validation_level": ora.get("validation_level", "beta")},
+            metadata={"validation_level": ora.get("validation_level", "production")},
         )
 
     # ── P2 regulatory layers ────────────────────────────────────────────────
@@ -1316,18 +1410,36 @@ class ChromatinNarrator:
         never fabricates a parameter that was not actually used."""
         out: list[str] = []
         pre = findings.get("preprocessing") or {}
-        aligned_here = (pre.get("analysis") == "bulk_atac_alignment"
-                        and pre.get("ran"))
+        qc_dict = findings.get("qc") or {}
+        peaks_dict = findings.get("peaks") or {}
+        da_dict = findings.get("differential_accessibility") or {}
+        data_type = str(
+            pre.get("data_type")
+            or qc_dict.get("data_type")
+            or peaks_dict.get("data_type")
+            or da_dict.get("data_type")
+            or "bulk_ATAC"
+        )
+        mod_title = "Bulk ATAC" if data_type == "bulk_ATAC" else _modality_label(data_type)
+        aligned_here = (
+            pre.get("analysis") in {"bulk_atac_alignment", "epigenomic_alignment"}
+            and pre.get("ran")
+        )
         if aligned_here:
             filt = pre.get("filter") or {}
+            dup_txt = (
+                "duplicate-marked and removed (samtools markdup -r)"
+                if filt.get("remove_duplicates", True)
+                else "duplicate-marked without removal (preserving sparse enzymatic cleavage fragments)"
+            )
             out.append(
-                f"Bulk ATAC read alignment: raw FASTQ reads were adapter/quality "
+                f"{mod_title} read alignment: raw FASTQ reads were adapter/quality "
                 f"trimmed (fastp) and aligned with "
                 f"{pre.get('aligner', 'bwa-mem2')} to "
                 f"{pre.get('assembly', '?')} "
                 f"({pre.get('n_samples_aligned', '?')} samples). Alignments were "
-                f"duplicate-marked and removed (samtools markdup -r) and filtered "
-                f"to properly paired primary reads (MAPQ >= "
+                f"{dup_txt} and filtered "
+                f"to primary reads (MAPQ >= "
                 f"{filt.get('mapq', '?')}, samtools -f "
                 f"{filt.get('samtools_f', 2)} -F {filt.get('samtools_F', 1804)})"
                 + (", excluding mitochondrial reads"
@@ -1335,19 +1447,22 @@ class ChromatinNarrator:
                 + ".")
         if _ok(findings.get("qc")):
             out.append(
-                "Bulk ATAC QC reports only measured library metrics "
+                f"{mod_title} QC reports only measured library metrics "
                 "(per-sample fragment/read counts, mitochondrial fraction, "
-                "duplicate rate); FRiP is reported only when post-peak-calling "
-                "read counting succeeds and is never default-filled.")
+                "duplicate rate, NRF/PBC1/PBC2 complexity, strand cross-correlation "
+                "NSC/RSC or nucleosomal banding where applicable); FRiP is reported "
+                "only when post-peak-calling read counting succeeds and is never "
+                "default-filled.")
         peaks = findings.get("peaks") or {}
         if _ok(peaks):
+            caller = str(peaks.get("peak_caller") or "macs3").upper()
             realign_note = (
                 "ARIA aligned the raw FASTQ reads in this lane (see above)"
                 if aligned_here else
                 "ARIA consumes existing alignments and does not realign in "
                 "this lane")
             line = (
-                f"Bulk ATAC peak calling: MACS3 on the "
+                f"{mod_title} peak calling: {caller} on the "
                 f"{'' if aligned_here else 'provided '}aligned "
                 f"BAM/CRAM input(s) (genome {peaks.get('genome', '?')}); "
                 f"{realign_note}. {peaks.get('n_peaks', '?')} peaks were called")
@@ -1357,7 +1472,13 @@ class ChromatinNarrator:
             repro = peaks.get("peak_reproducibility") or {}
             overlap = repro.get("overlap") or {}
             idr = repro.get("idr") or {}
-            if overlap.get("ran"):
+            if idr.get("ran"):
+                line += (
+                    f". Replicate peak reproducibility was evaluated with "
+                    f"Gaussian-copula IDR (Li et al., 2011), retaining "
+                    f"{idr.get('n_reproducible', '?')} reproducible peaks"
+                )
+            elif overlap.get("ran"):
                 line += (
                     f". Peak reproducibility used "
                     f"{overlap.get('method', 'overlap support')} with support "
@@ -1388,7 +1509,7 @@ class ChromatinNarrator:
                 f"x {counts.get('n_samples', '?')} samples), producing a "
                 f"peak-by-sample count matrix.")
         da = findings.get("differential_accessibility") or {}
-        if da.get("data_type") == "bulk_ATAC" and da.get("ran"):
+        if da.get("data_type") in _BULK_CHROMATIN_MODALITIES and da.get("ran"):
             covariates = da.get("covariates_adjusted") or []
             cov_txt = (f", adjusting for {', '.join(map(str, covariates))}"
                        if covariates else "")
@@ -1401,11 +1522,19 @@ class ChromatinNarrator:
             design = next((c.get("fitted_design_formula") for c in comparisons
                            if isinstance(c, dict)
                            and c.get("fitted_design_formula")), None)
+            spike_txt = (
+                " calibrated with heterologous spike-in sizeFactors"
+                if (
+                    da.get("normalization_mode") == "heterologous_spikein"
+                    or (da.get("spikein_normalization") or {}).get("used") is True
+                )
+                else ""
+            )
             line = (
-                f"Bulk ATAC differential accessibility: technical samples were "
+                f"{mod_title} differential testing: technical samples were "
                 f"aggregated to biological replicate-level counts "
                 f"(condition::replicate), all-zero peaks dropped, then tested "
-                f"with {da.get('method', 'replicate-level DESeq2')} on "
+                f"with {da.get('method', 'replicate-level DESeq2')}{spike_txt} on "
                 f"{da.get('n_replicate_samples', '?')} replicate samples "
                 f"comparing {da.get('condition_col', 'condition')} levels "
                 f"(replicate factor {da.get('replicate_col', 'replicate')}"
@@ -1454,7 +1583,7 @@ class ChromatinNarrator:
     def methods(self, agent_name: str, agent_result: dict,
                 context: dict | None = None) -> list[str]:
         findings = unwrap_chromatin_findings(agent_result)
-        if _is_bulk_atac(findings):
+        if _is_bulk_chromatin(findings):
             return self._bulk_atac_methods(findings)
         out: list[str] = []
         if _ok(findings.get("qc")):
@@ -1540,11 +1669,12 @@ class ChromatinNarrator:
                            "path": counts["counts_cpm_path"],
                            "label": "Peak counts-per-million (visualization)"})
         da = findings.get("differential_accessibility") or {}
-        if da.get("data_type") == "bulk_ATAC" and da.get("ran"):
+        if da.get("data_type") in _BULK_CHROMATIN_MODALITIES and da.get("ran"):
+            da_mod = _modality_label(da.get("data_type"))
             if da.get("output_csv"):
                 tables.append({"id": "chromatin.bulk_atac_da_summary",
                                "path": da["output_csv"],
-                               "label": "Bulk ATAC differential accessibility "
+                               "label": f"{da_mod} differential testing "
                                         "summary"})
             for comp in da.get("comparisons") or []:
                 if not isinstance(comp, dict):
@@ -1556,7 +1686,7 @@ class ChromatinNarrator:
                 tables.append({
                     "id": f"chromatin.bulk_atac_da.{key}",
                     "path": path,
-                    "label": (f"Bulk ATAC differential accessibility "
+                    "label": (f"{da_mod} differential testing "
                               f"{comp.get('test')} vs {comp.get('reference')}"),
                 })
         pc = (da.get("per_cluster") or {})

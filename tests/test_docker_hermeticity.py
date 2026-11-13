@@ -33,7 +33,7 @@ def test_dockerignore_excludes_private_and_vcs_and_caches():
 
 _MODALITY_IMAGES = ("Dockerfile.rna", "Dockerfile.rnaseq", "Dockerfile.chromatin",
                     "Dockerfile.atacseq", "Dockerfile.tobias",
-                    "Dockerfile.integration")
+                    "Dockerfile.integration", "Dockerfile.hic")
 
 
 def test_per_modality_dockerfiles_exist():
@@ -63,6 +63,7 @@ def test_stack_images_install_their_own_env():
         "Dockerfile.atacseq": ("aria-atacseq-env.yml", "atacseq"),
         "Dockerfile.tobias": ("aria-tobias-env.yml", "tobias"),
         "Dockerfile.integration": ("aria-integration-env.yml", "integration"),
+        "Dockerfile.hic": ("aria-hic-env.yml", "hic"),
     }
     for name, (env_yml, kind) in expected.items():
         text = (DOCKER / name).read_text()

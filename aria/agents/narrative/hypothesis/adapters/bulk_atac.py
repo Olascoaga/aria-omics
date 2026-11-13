@@ -48,20 +48,33 @@ def _low_power(findings: dict) -> bool:
     )
 
 
+def _bulk_chromatin_modality(findings: dict) -> str:
+    for key in ("preprocessing", "qc", "peaks", "peak_counts",
+                "differential_accessibility", "motifs", "footprinting"):
+        sub = findings.get(key)
+        if isinstance(sub, dict):
+            dt = sub.get("data_type")
+            if dt in {"bulk_ATAC", "ChIP", "CUT_AND_RUN", "CUT_AND_TAG"}:
+                return str(dt)
+    return "bulk_ATAC"
+
+
 def bulk_atac_evidence(
     agent_results: dict,
     run_ledger: dict | None = None,
     exp_ctx: dict | None = None,
 ) -> list[EvidenceSignal]:
-    """Flatten audited bulk ATAC TF-motif enrichment into EvidenceSignal items."""
+    """Flatten audited bulk chromatin (`bulk_ATAC`, `ChIP`, `CUT_AND_RUN`,
+    `CUT_AND_TAG`) TF-motif enrichment and footprints into EvidenceSignal items."""
     findings = _chromatin_findings(agent_results)
     if not findings:
         return []
 
+    modality = _bulk_chromatin_modality(findings)
     signals: list[EvidenceSignal] = []
     low_power = _low_power(findings)
 
-    # 1. TF-motif enrichment over the DA peak sets.
+    # 1. TF-motif enrichment over the DA/DB peak sets.
     motifs = findings.get("motifs") or {}
     if motifs.get("ran") and node_ran(run_ledger, _MOTIF_NODE):
         caveats = [_ASSOCIATIVE_CAVEAT]
@@ -69,7 +82,7 @@ def bulk_atac_evidence(
             caveats.append(_LOW_REPLICATION_CAVEAT)
         signals += motif_signals(
             motifs,
-            modality="bulk_ATAC",
+            modality=modality,
             node=_MOTIF_NODE,
             base_caveats=caveats,
             max_motifs=_MAX_MOTIFS,
@@ -82,7 +95,7 @@ def bulk_atac_evidence(
     if footprinting.get("ran") and node_ran(run_ledger, FOOTPRINT_NODE):
         signals += footprint_signals(
             footprinting,
-            modality="bulk_ATAC",
+            modality=modality,
             node=FOOTPRINT_NODE,
             extra_caveats=[LOW_REPLICATION] if low_power else [],
         )

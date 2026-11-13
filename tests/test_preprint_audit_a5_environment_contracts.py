@@ -106,7 +106,12 @@ def test_exact_auditor_normalizes_lock_metadata_and_owns_binary_contracts():
     assert {"fastp", "STAR", "featureCounts", "samtools"} <= set(
         required_binaries("aria-rnaseq-env")
     )
-    assert required_binaries("aria-hic-env") == []
+    assert required_binaries("aria-hic-env") == [
+        "bedtools",
+        "cooler",
+        "pairtools",
+        "python",
+    ]
 
 
 def test_missing_scientific_environment_fails_closed(monkeypatch):

@@ -43,19 +43,23 @@ def test_chromatin_narrator_surfaces_measured_qc_and_marks_not_computed():
     qc = blocks[0]
     assert qc.modality == "chromatin"
     assert qc.metadata.get("validation_level") == "production"
-    # Unpromoted ChIP/CUT&RUN/CUT&TAG assays remain scaffold by default.
+    # ADR-081 promoted ChIP/CUT&RUN/CUT&TAG to production; unknown/unpromoted assays stay scaffold.
     chip_blocks = n.collect("chromatin_agent", {"findings": {"qc": {
-        "status": "success", "data_type": "ChIP", "n_cells": 100,
+        "status": "success", "data_type": "ChIP", "n_samples": 4, "mito_fraction": 0.02,
     }}}, {})
-    assert chip_blocks[0].metadata.get("validation_level") == "scaffold"
+    assert chip_blocks[0].metadata.get("validation_level") == "production"
+    unpromoted_blocks = n.collect("chromatin_agent", {"findings": {"qc": {
+        "status": "success", "data_type": "MNase", "n_cells": 100,
+    }}}, {})
+    assert unpromoted_blocks[0].metadata.get("validation_level") == "scaffold"
     # measured metrics appear as evidence; uncomputed metrics never fabricated
     labels = {e.label for e in qc.evidence}
     assert any("barcode" in lbl.lower() for lbl in labels)
     ev_values = {str(e.value) for e in qc.evidence}
     assert "None" not in ev_values
-    # the scaffold limitation + not-computed list are disclosed
+    # the not-computed list + scope caveat are disclosed
     caveat_text = " ".join(c.text.lower() for c in qc.caveats)
-    assert "scaffold" in caveat_text
+    assert "not-computed" in caveat_text or "not computed" in caveat_text
     assert "frip" in caveat_text and "tss_enrichment" in caveat_text
 
 

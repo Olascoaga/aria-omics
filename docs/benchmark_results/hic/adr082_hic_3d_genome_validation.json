@@ -1,0 +1,121 @@
+{
+  "adr": "ADR-082",
+  "all_gates_pass": true,
+  "benchmark": "adr082_hic_3d_genome_validation",
+  "description": "Empirical certification of ARIA's production 3D Genome Architecture Engine (HiC / Micro-C): .pairs->.mcool preprocessing + A4 resume, ICE matrix balancing & HiCRep SCC, standalone cooltools numerical concordance (GC-phased E1 compartments, Crane TAD insulation, donut chromatin loops + GTF gene annotation), 4v4 differential 3D switching with balanced null calibration, dual PNG+SVG figures, and C1-C4 governance.",
+  "environment": {
+    "aria_version": "4.8.0",
+    "git_commit_base": "2601a2f",
+    "hic_env": "aria-hic-env"
+  },
+  "generated_utc": "2026-11-13T19:31:08Z",
+  "modalities_promoted": [
+    "HiC"
+  ],
+  "paths_clean": true,
+  "schema_version": 1,
+  "suites": {
+    "cooltools_external_concordance_topology": {
+      "gates": {
+        "cooltools_e1_pearson_r": true,
+        "cooltools_insulation_pearson_r": true,
+        "pc1_gc_phased": true,
+        "planted_ab_sign_accuracy": true,
+        "planted_loops_and_gtf_genes_recalled": true,
+        "planted_tad_boundary_recall": true
+      },
+      "metrics": {
+        "annotated_loop_genes": [
+          "CCND1",
+          "KLF4",
+          "MYC",
+          "SOX2"
+        ],
+        "cooltools_e1_pearson_r": 1.0,
+        "cooltools_insulation_pearson_r": 1.0,
+        "n_loops_aria": 2,
+        "n_loops_standalone_cooltools": 2,
+        "planted_ab_domain_sign_accuracy": 1.0,
+        "planted_tad_boundary_recall": 1.0
+      },
+      "pass": true,
+      "status": "ran"
+    },
+    "differential_3d_switches_and_deranged_null": {
+      "gates": {
+        "diff3d_ran_inferentially": true,
+        "null_zero_false_switches": true,
+        "planted_a_to_b_recall": true,
+        "planted_b_to_a_recall": true,
+        "under_replicated_1v1_guarded": true,
+        "unplanted_specificity": true
+      },
+      "metrics": {
+        "guard_1v1_descriptive_only": true,
+        "n_ab_switches_total": 50,
+        "null_4v4_permutations_evaluated": 5,
+        "null_false_positive_boundaries": 0,
+        "null_false_positive_switches": 0,
+        "planted_chr1_a_to_b_recall": 1.0,
+        "planted_chr2_b_to_a_recall": 1.0,
+        "unplanted_false_switches": 0
+      },
+      "pass": true,
+      "status": "ran"
+    },
+    "figures_narrator_ledger_and_hypothesis_quarantine": {
+      "gates": {
+        "audit_green_and_red_gates": true,
+        "dual_png_svg_figures": true,
+        "hypothesis_hic_evidence_wired": true,
+        "six_narrator_blocks_emitted": true,
+        "zero_causal_verbs": true,
+        "zero_withheld_claims": true
+      },
+      "metrics": {
+        "figure_keys": [
+          "hic_compartment_insulation_track",
+          "hic_contact_decay_ps",
+          "hic_contact_map",
+          "hic_differential_compartments"
+        ],
+        "hypothesis_entities": [
+          "MYC",
+          "CCND1",
+          "SOX2",
+          "KLF4"
+        ],
+        "n_compiled_public_claims": 6,
+        "n_figures_dual_png_svg": 4,
+        "n_withheld_claims": 0
+      },
+      "pass": true,
+      "status": "ran"
+    },
+    "preprocess_resume_and_qc_balance": {
+      "gates": {
+        "a4_stage_manifest_resume_hit": true,
+        "cis_trans_realistic": true,
+        "preprocess_all_8_mcool": true,
+        "ps_powerlaw_slope": true,
+        "qc_and_ice_converged": true,
+        "within_scc_exceeds_between_scc": true
+      },
+      "metrics": {
+        "a4_resumed_second_call": true,
+        "cis_trans_ratio": 0.9434,
+        "mean_between_condition_scc": 0.7273,
+        "mean_within_condition_scc": 0.8213,
+        "n_samples": 8,
+        "ps_decay_slope": -1.0754,
+        "resolutions_built": [
+          20000,
+          40000
+        ],
+        "total_valid_pairs": 3245685
+      },
+      "pass": true,
+      "status": "ran"
+    }
+  }
+}

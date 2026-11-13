@@ -153,6 +153,17 @@ _CONFOUND_TOKENS: dict[str, tuple[str, ...]] = {
         "condition- or donor-level",
         "not single-cell cis",
     ),
+    "hic_loop_associative": (
+        "hic_loop_associative",
+        "spatial proximity",
+        "physical proximity",
+        "contact frequency",
+        "3d loop",
+        "chromatin loop",
+        "loop contact",
+        "not causal regulation",
+        "proximity alone",
+    ),
 }
 
 

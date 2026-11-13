@@ -1,20 +1,23 @@
 # Chromatin Workflows
 
-Validation level: BOTH `scATAC` (`ADR-076`, governed at `CP3.5` by
-`ScATACAuditAgent`) and `bulk_ATAC` (`ADR-077`, governed at `CP3.5` by
-`BulkATACAuditAgent`) are **production** — auto-dispatching exploratory
-single-cohort profiling runs and `n>=3` biological-replicate contrasts, requiring
-explicit acknowledgement for `n==2` low-power contrasts (such as ENCODE isogenic
-replicates), and blocking `n<2`, batch-confounded, or misrouted single-cell
-barcoded FASTQ designs.
-Even on the promoted `scATAC` and `bulk_ATAC` spines, optional sub-layers keep
-explicit statistical scope limits: per-cluster Wilcoxon markers remain descriptive
-rankings, `gene_scores` remain caveated, and differential TF footprinting (`TOBIAS`)
-is a DESCRIPTIVE candidate ranking, not FDR-controlled significance, when it
-contrasts a single pseudobulk or pooled condition BAM without `>=3` explicit
-biological replicates per group (preprint audit B7).
-ChIP-seq, CUT&RUN, and CUT&TAG remain
-scaffolded. The authoritative per-modality tier lives in the orchestrator's
+Validation level: ALL FIVE chromatin assays in `ChromatinAgent` — `scATAC`
+(`ADR-076`, `ScATACAuditAgent`), `bulk_ATAC` (`ADR-077`, `BulkATACAuditAgent`),
+`ChIP`, `CUT_AND_RUN`, and `CUT_AND_TAG` (`ADR-081`, `ChIPAuditAgent`,
+`CutAndRunAuditAgent`, `CutAndTagAuditAgent`) — plus 3D genome architecture
+`HiC` / Micro-C in `GenomeArchAgent` (`ADR-082`, `HiCAuditAgent`) are
+**production**. Exploratory single-cohort profiling runs and `n>=3`
+biological-replicate contrasts auto-dispatch (`green`), `n==2` low-power
+contrasts (or ChIP contrasts lacking an explicit Input/IgG control) require
+explicit `CP3.5` acknowledgement (`yellow`), and `n<2`, batch-confounded, or
+misrouted single-cell barcoded FASTQ designs fail closed (`red`).
+Even on promoted spines, optional sub-layers keep explicit statistical scope
+limits: per-cluster Wilcoxon markers remain descriptive rankings, `gene_scores`
+remain caveated, differential TF footprinting (`TOBIAS`) downgrades to
+`descriptive_only` (without claiming FDR-controlled significance) when
+contrasting pooled/under-replicated (`n<3`) groups, and Hi-C `differential_3d`
+likewise downgrades to `descriptive_only` without FDR-controlled significance
+when `<3` biological replicates per group are provided.
+The authoritative per-modality tier lives in the orchestrator's
 `MODALITY_VALIDATION` (single source) and is mirrored in `docs/validation_status.md`.
 
 ## Target Assays
@@ -106,32 +109,49 @@ For `scATAC` and `bulk_ATAC` optional layers (core spines are `production` under
 - independent threshold calibration if `gene_scores` is ever promoted beyond caveated exploratory status;
 - `TOBIAS` differential TF footprinting is `production` (`ADR-078`, `Dockerfile.tobias`), running replicate-mean Welch, paired-donor, or batch-adjusted OLS + BH-FDR when `>=3` biological replicates per group are supplied and downgrading to `descriptive_only` otherwise.
 
-For ChIP / CUT&RUN / CUT&TAG:
+## Current ChIP-seq, CUT&RUN, CUT&TAG (`ADR-081`) & Hi-C (`ADR-082`) Production Paths
 
-- robust BAM/fragment validation;
-- assay-specific QC;
-- peak calling and consensus peak strategy;
-- differential binding;
-- motif/pathway summary;
-- report methods.
+- **Epigenomic Protein–DNA Interaction Spine (`ADR-081`):** `ChIP`, `CUT_AND_RUN`,
+  and `CUT_AND_TAG` share universal raw SE/PE/multi-lane FASTQ alignment
+  (`atac_align.py` with `remove_duplicates=False` default for low-background
+  `CUT_AND_TAG` and heterologous spike-in read counting), BAM/CRAM cohort QC
+  (`NRF`, `PBC1`, `PBC2`, strand cross-correlation `NSC`/`RSC`, `IP vs control JSD`,
+  subnucleosomal `<120 bp` vs mononucleosomal `140–250 bp` banding, `FRiP`, `TSSe`),
+  assay-aware peak calling (`MACS3` narrow/broad, deterministic Meers et al. 2019
+  `SEACR` `stringent`/`relaxed` with IgG `norm`/`non` or top-`q` thresholding, and
+  `call_broad_domains` megadomains), Li et al. (2011) bimodal Gaussian-copula EM
+  `IDR` consensus (`compute_idr_reproducible_peaks`), normalized BigWig export,
+  heterologous spike-in (`sacCer3` / `E. coli`) `size_factors` differential binding
+  over `pyDESeq2` (`epigenomic_spikein_de.py`, `0` diff on `deseq2.py`), genomic
+  peak annotation, local GMT ORA, `JASPAR2024` motif enrichment, and `C3`-verified
+  `ChromatinNarrator` reporting.
+- **3D Genome Architecture Spine (`ADR-082`):** `HiC` / Micro-C runs in locked
+  `aria-hic-env` (`Dockerfile.hic`) via `GenomeArchAgent` across `.mcool`, `.cool`,
+  `.hic`, `.pairs(.gz)`, chimeric BAM, and raw paired Hi-C FASTQs (`bwa-mem2 mem -SP5M`
+  + `pairtools` + `cooler zoomify` with `A4` resume), exact `clr.pixels()` QC + ICE
+  balancing + $P(s)$ slope + HiCRep `SCC`, GC/gene-density-phased `cooltools.eigs_cis`
+  compartments, Crane `insulation` TADs, `dotfinder.dots` chromatin loops + GTF anchor
+  annotation, multi-replicate empirical-Bayes `differential_3d`, dual PNG+SVG figures,
+  `HiCNarrator` (`ledger://hic/*`), and `HypothesisAgent` `adapters/hic.py`
+  (`HIC_LOOP_ASSOCIATIVE`).
 
 ## Proposed Flow
 
 ```mermaid
 flowchart TD
-    I[Fragments / BAM / peak matrix] --> QC[Assay-specific QC]
-    QC --> PEAKS[Peak calling or peak matrix]
-    PEAKS --> FEAT[Feature matrix]
-    FEAT --> DA[Differential accessibility / binding]
-    DA --> MOTIF[Motif enrichment]
-    MOTIF --> N[NarrativeAgent chromatin section]
+    I[Fragments / BAM / pairs / mcool / peak matrix] --> QC[Assay-specific QC]
+    QC --> PEAKS[MACS3 / SEACR / broad domains / 3D topology]
+    PEAKS --> FEAT[Feature matrix / IDR / compartments & loops]
+    FEAT --> DA[Differential accessibility / spike-in DB / differential 3D]
+    DA --> MOTIF[Motif / anchor / ORA interpretation]
+    MOTIF --> N[NarrativeAgent governed chromatin & Hi-C sections]
 ```
 
 ## Release Recommendation
 
-`scATAC` (`ADR-076`, `ScATACAuditAgent`), `bulk_ATAC` (`ADR-077`,
-`BulkATACAuditAgent`), and `TOBIAS` differential TF footprinting (`ADR-078`)
-are promoted to **production**, while paired same-cell RNA+ATAC integration
-remains an acknowledgement-gated **beta** lane (`ADR-056`, `ADR-071`);
-scaffolded chromatin assays (ChIP/CUT&RUN/CUT&TAG) remain blocked from
-publication-looking dispatch.
+All **9/9** single-assay modalities in `MODALITY_VALIDATION` (`scRNA`, `bulk_RNA`,
+`bulk_RNA_raw`, `scATAC`, `bulk_ATAC`, `ChIP`, `CUT_AND_RUN`, `CUT_AND_TAG`, `HiC`),
+`TOBIAS` differential TF footprinting (`ADR-078`), paired same-cell RNA+ATAC
+multiome integration (`ADR-079`), and non-same-cell RNA $\times$ ATAC contrast/donor
+concordance (`ADR-080`) are promoted to **production**; unpaired single-cell
+diagonal/bridge manifold imputation remains blocked fail-closed.

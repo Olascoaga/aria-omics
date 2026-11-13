@@ -454,11 +454,14 @@ def _marker_peaks_by_cluster(findings: dict) -> dict:
 
 _BULK_ATAC_SPINE_KEYS = ("preprocessing", "qc", "peaks", "peak_counts",
                          "differential_accessibility")
+_BULK_CHROMATIN_MODALITIES = frozenset({
+    "bulk_ATAC", "ChIP", "CUT_AND_RUN", "CUT_AND_TAG",
+})
 
 
 def _is_bulk_atac_findings(findings: dict) -> bool:
     return any(isinstance(findings.get(k), dict)
-               and findings[k].get("data_type") == "bulk_ATAC"
+               and findings[k].get("data_type") in _BULK_CHROMATIN_MODALITIES
                for k in _BULK_ATAC_SPINE_KEYS)
 
 
@@ -577,8 +580,9 @@ def generate_figures(findings: dict, h5ad_path: Optional[str], output_dir,
             figs.update(render_da_figures(da_full_csv, output_dir, padj_max))
         except Exception as e:
             log.warning("chromatin DA figures failed: %s", e)
-    # Bulk ATAC shape: one convergence-gated full CSV per condition comparison.
-    if da.get("data_type") == "bulk_ATAC":
+    # Bulk chromatin shape (bulk_ATAC, ChIP, CUT&RUN, CUT&Tag): one
+    # convergence-gated full CSV per condition comparison.
+    if da.get("data_type") in _BULK_CHROMATIN_MODALITIES:
         for comp in (da.get("comparisons") or []):
             comp_csv = (comp or {}).get("full_results_csv")
             if not comp_csv:

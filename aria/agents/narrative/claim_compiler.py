@@ -81,12 +81,18 @@ _ANALYSIS_EVIDENCE = {
     "peak_to_gene": "regulatory",
     "eregulons": "regulatory",
     "cross_modal_triangulation": "regulatory",
+    # ADR-082 3D genome architecture analyses:
+    "preprocessing": "descriptive",
+    "compartments": "descriptive",
+    "tads": "descriptive",
+    "loops": "regulatory",
+    "differential_3d": "topology_change",
 }
 
 # Evidence categories that count as observational/associative support.
 _ASSOCIATIVE = {
     "expression_change", "abundance_change", "functional_annotation",
-    "communication", "trajectory", "latent_program",
+    "communication", "trajectory", "latent_program", "topology_change",
 }
 # Evidence categories that count as independent mechanistic lines.
 _MECHANISTIC = {"regulatory"}
@@ -97,6 +103,7 @@ _CAUSAL_EFFECT_ANALYSES = {
     "pseudobulk_de",
     "differential_abundance",
     "differential_accessibility",
+    "differential_3d",
     "contrast",
 }
 

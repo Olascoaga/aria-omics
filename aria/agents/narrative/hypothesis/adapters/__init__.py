@@ -10,7 +10,7 @@ becomes a 5th adapter (S10) emitting the same ``EvidenceSignal``.
 
 from __future__ import annotations
 
-from ..caveats import CROSS_MODAL_UNPAIRED_COHORT
+from ..caveats import CROSS_MODAL_UNPAIRED_COHORT, HIC_LOOP_ASSOCIATIVE
 from .bulk_atac import bulk_atac_evidence
 from .bulk_rna import bulk_rna_evidence
 from .cross_modal import (
@@ -21,6 +21,7 @@ from .cross_modal import (
     cross_modal_evidence,
     tag_chromatin_tf_lineage,
 )
+from .hic import HIC_LOOP_MEASURE, HIC_LOOPS_NODE, hic_evidence
 from .integration import PAIRED_CIS_REGULATORY_KEY, integration_evidence
 from .scatac import scatac_evidence
 from .scrna import scrna_evidence
@@ -30,6 +31,10 @@ __all__ = [
     "scrna_evidence",
     "bulk_atac_evidence",
     "scatac_evidence",
+    "hic_evidence",
+    "HIC_LOOPS_NODE",
+    "HIC_LOOP_MEASURE",
+    "HIC_LOOP_ASSOCIATIVE",
     "integration_evidence",
     "PAIRED_CIS_REGULATORY_KEY",
     "cross_modal_evidence",

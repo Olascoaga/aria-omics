@@ -68,6 +68,7 @@ from aria.scripts.chromatin_peak_counts import _save_stage_result
 # retains supplementary alignments at this step (they are a tiny fraction and
 # are gated by the -f 2 proper-pair requirement).
 SAMTOOLS_EXCLUDE_FLAGS = 1804
+SAMTOOLS_EXCLUDE_FLAGS_KEEP_DUP = 780  # 1804 - 1024 (retain marked duplicates)
 SAMTOOLS_REQUIRE_FLAGS = 2  # properly paired
 DEFAULT_MIN_MAPQ = 30
 DEFAULT_MAPQ = DEFAULT_MIN_MAPQ
@@ -77,13 +78,24 @@ DEFAULT_MITO_CONTIGS = tuple(sorted(DEFAULT_MITO))
 
 def atac_align(params: dict) -> dict:
     samples = params.get("samples") or []
+    assay_type = str(params.get("assay_type") or params.get("data_type") or "bulk_ATAC")
     genome_fasta = params.get("genome_fasta", "")
     bwa_index = params.get("bwa_index") or genome_fasta
     output_dir = Path(params.get("output_dir",
                                  str(Path("aria_atac_aligned"))))
     threads = int(params.get("threads", 8))
-    mapq = int(params.get("min_mapq", params.get("mapq", DEFAULT_MIN_MAPQ)))
+    default_mapq = (
+        DEFAULT_MIN_MAPQ if assay_type == "bulk_ATAC" else 20
+    )
+    mapq = int(params.get("min_mapq", params.get("mapq", default_mapq)))
     remove_mito = bool(params.get("remove_mito", True))
+    default_remove_dup = assay_type in {"bulk_ATAC", "ChIP"}
+    remove_duplicates = bool(params.get("remove_duplicates", default_remove_dup))
+    hic_chimeric = bool(params.get("hic_chimeric", assay_type == "HiC"))
+    spikein_fasta = str(params.get("spikein_fasta") or "")
+    spikein_bwa_index = str(params.get("spikein_bwa_index") or spikein_fasta or "")
+    spikein_contig_prefix = str(params.get("spikein_contig_prefix") or "")
+    spikein_scale_constant = float(params.get("spikein_scale_constant", 10000.0))
     mito_contigs = tuple(params.get("mito_contigs") or DEFAULT_MITO_CONTIGS)
     allow_mock = mocks_allowed(params)
     warnings: list[str] = []
@@ -165,26 +177,53 @@ def atac_align(params: dict) -> dict:
         mito = set(mito_contigs) if remove_mito else set()
         parameters = {"sample_id": sid, "paired": is_paired, "min_mapq": mapq,
                       "mito_contigs": sorted(mito), "bwa_index": bwa_index}
+        if not remove_duplicates:
+            parameters["remove_duplicates"] = False
+        if hic_chimeric:
+            parameters["hic_chimeric"] = True
+        if spikein_bwa_index:
+            parameters["spikein_bwa_index"] = spikein_bwa_index
+        if spikein_contig_prefix:
+            parameters["spikein_contig_prefix"] = spikein_contig_prefix
         manifest = stage_manifest_path(output_dir, f"atac_align_{sid}")
         cached = load_valid_stage_result(
             manifest, expected_inputs=inputs, expected_parameters=parameters)
-        if (cached and Path(cached.get("bam", "")).is_file()
-                and Path(cached["bam"] + ".bai").is_file()):
+        bam_ready = bool(
+            cached
+            and Path(cached.get("bam", "")).is_file()
+            and (hic_chimeric or Path(cached["bam"] + ".bai").is_file())
+        )
+        if bam_ready:
             result = {**cached, "reused_from_stage_manifest": True}
         else:
             Path(manifest).unlink(missing_ok=True)
-            result = _align_sample(
-                sample={**sample, "name": sid}, bwa_index=bwa_index,
-                output_dir=output_dir, threads=threads, mapq=mapq,
-                remove_mito=remove_mito, mito_contigs=tuple(mito),
-                warnings=warnings, allow_mock=allow_mock,
-            )
+            if hic_chimeric:
+                result = _align_hic_chimeric_sample(
+                    sample={**sample, "name": sid},
+                    bwa_index=bwa_index,
+                    output_dir=output_dir,
+                    threads=threads,
+                    warnings=warnings,
+                    allow_mock=allow_mock,
+                )
+            else:
+                result = _align_sample(
+                    sample={**sample, "name": sid}, bwa_index=bwa_index,
+                    output_dir=output_dir, threads=threads, mapq=mapq,
+                    remove_mito=remove_mito, mito_contigs=tuple(mito),
+                    warnings=warnings, allow_mock=allow_mock,
+                    remove_duplicates=remove_duplicates,
+                    spikein_bwa_index=spikein_bwa_index,
+                    spikein_fasta=spikein_fasta,
+                    spikein_contig_prefix=spikein_contig_prefix,
+                    spikein_scale_constant=spikein_scale_constant,
+                )
             result.update({"sample_id": sid, "paired": is_paired,
                            "mapped_reads_post_filter": result.get("n_final"),
                            "reused_from_stage_manifest": False})
             if (result.get("status") == "success" and result.get("bam")
                     and Path(result["bam"]).is_file()
-                    and Path(result["bam"] + ".bai").is_file()):
+                    and (hic_chimeric or Path(result["bam"] + ".bai").is_file())):
                 _save_stage_result(manifest, "atac_align", inputs, parameters, result)
         bam_files.append(result)
 
@@ -200,16 +239,21 @@ def atac_align(params: dict) -> dict:
 
     layouts = {b["paired"] for b in bam_files if b.get("status") == "success"}
     all_paired = layouts == {True}
+    excl_flags = (
+        SAMTOOLS_EXCLUDE_FLAGS if remove_duplicates else SAMTOOLS_EXCLUDE_FLAGS_KEEP_DUP
+    )
     return {
         "status": "success",
+        "data_type": assay_type,
+        "assay_type": assay_type,
         "validation_level": "production",
         "per_sample": bam_files,
         "read_layout": "mixed" if len(layouts) > 1 else "paired" if all_paired else "single",
         "index_built": index_built,
         "filters": {"min_mapq": mapq,
                     "samtools_f": SAMTOOLS_REQUIRE_FLAGS if all_paired else 0,
-                    "samtools_F": SAMTOOLS_EXCLUDE_FLAGS,
-                    "markdup_removed": True,
+                    "samtools_F": excl_flags,
+                    "markdup_removed": remove_duplicates,
                     "mito_stripped": sorted(mito_contigs) if remove_mito else []},
         "bam_files": bam_files,
         "n_aligned": n_ok,
@@ -217,9 +261,10 @@ def atac_align(params: dict) -> dict:
         "aligner": "bwa-mem2",
         "filter": {
             "mapq": mapq,
-            "samtools_F": SAMTOOLS_EXCLUDE_FLAGS,
+            "samtools_F": excl_flags,
             "samtools_f": SAMTOOLS_REQUIRE_FLAGS if all_paired else 0,
             "remove_mito": remove_mito,
+            "remove_duplicates": remove_duplicates,
             "mito_contigs": list(mito_contigs) if remove_mito else [],
         },
         "warnings": warnings,
@@ -251,11 +296,68 @@ def _build_bwa_index(fasta: str, threads: int, warnings: list) -> str:
         return "bwa-mem2 index build timed out (>4h)"
 
 
+def _align_hic_chimeric_sample(
+    sample: dict,
+    bwa_index: str,
+    output_dir: Path,
+    threads: int,
+    warnings: list,
+    allow_mock: bool = False,
+) -> dict:
+    """Align paired Hi-C / Micro-C FASTQs with ``bwa-mem2 mem -SP5M``.
+
+    Preserves read-name grouping, independent mate pairing (``-SP``), 5'-most
+    primary reporting (``-5``), and supplementary chimeric walk segments so
+    downstream ``pairtools parse`` in ``aria-hic-env`` can resolve ligation
+    junctions without coordinate-sort or proper-pair loss.
+    """
+    name = sample["name"]
+    r1 = sample.get("r1_trimmed") or sample.get("r1")
+    r2 = sample.get("r2_trimmed") or sample.get("r2")
+    paired = bool(sample.get("paired", bool(r2)) and r2)
+    sample_dir = output_dir / name
+    sample_dir.mkdir(exist_ok=True)
+    final_bam = sample_dir / f"{name}.chimeric.bam"
+    result = {"name": name, "status": "pending", "paired": paired, "bam": None}
+    if not r1 or not paired or not r2:
+        warnings.append(f"{name}: Hi-C chimeric alignment requires paired R1 + R2 FASTQs")
+        result["status"] = "failed"
+        result["error_type"] = "MissingMateFastq"
+        return result
+    align_cmd = ["bwa-mem2", "mem", "-SP5M", "-t", str(threads), bwa_index, r1, r2]
+    view_cmd = ["samtools", "view", "-b", "-@", str(threads), "-o", str(final_bam), "-"]
+    try:
+        if not _pipe(align_cmd, view_cmd, warnings, name, "hic_chimeric_align"):
+            result["status"] = "failed"
+            return result
+        if not _bam_valid(final_bam):
+            warnings.append(f"{name}: chimeric BAM missing/invalid after alignment")
+            result["status"] = "failed"
+            return result
+        result.update({"status": "success", "bam": str(final_bam), "hic_chimeric": True})
+        metrics = _bam_metrics(final_bam, (), warnings, final_bam=final_bam)
+        result.update(metrics)
+    except FileNotFoundError:
+        if allow_mock:
+            warnings.append("bwa-mem2/samtools not found — mock chimeric BAM (explicit mock mode)")
+            result.update({"status": "success", "bam": str(final_bam), "note": "mock — aligner not installed"})
+        else:
+            warnings.append("bwa-mem2/samtools not found — Hi-C alignment failed")
+            result["status"] = "failed"
+            result["error_type"] = "MissingDependency"
+    return result
+
+
 def _align_sample(sample: dict, bwa_index: str, output_dir: Path,
                   threads: int, mapq: int, remove_mito: bool,
                   mito_contigs: tuple, warnings: list,
-                  allow_mock: bool = False) -> dict:
-    """Align one ATAC sample with bwa-mem2 and apply ATAC filtering.
+                  allow_mock: bool = False,
+                  remove_duplicates: bool = True,
+                  spikein_bwa_index: str = "",
+                  spikein_fasta: str = "",
+                  spikein_contig_prefix: str = "",
+                  spikein_scale_constant: float = 10000.0) -> dict:
+    """Align one chromatin sample with bwa-mem2 and apply assay-aware filtering.
 
     Resume is governed by the caller's content-addressed A4 manifest.
     """
@@ -304,19 +406,41 @@ def _align_sample(sample: dict, bwa_index: str, output_dir: Path,
                 result["status"] = "failed"
                 return result
 
-        # 4. mark + remove duplicates
-        if not _run(["samtools", "markdup", "-r", "-@", str(threads),
-                     str(coordsort), str(markdup)],
-                    warnings, name, "markdup"):
+        # 4. mark duplicates (remove with -r when remove_duplicates=True; keep
+        # marked duplicates when remove_duplicates=False for sparse CUT&RUN/CUT&Tag)
+        markdup_cmd = ["samtools", "markdup"]
+        if remove_duplicates:
+            markdup_cmd.append("-r")
+        markdup_cmd += ["-@", str(threads), str(coordsort), str(markdup)]
+        if not _run(markdup_cmd, warnings, name, "markdup"):
             result["status"] = "failed"
             return result
-        # Filter through SAM text so mitochondrial stripping never depends on an index.
+        excl_flags = (
+            SAMTOOLS_EXCLUDE_FLAGS
+            if remove_duplicates
+            else SAMTOOLS_EXCLUDE_FLAGS_KEEP_DUP
+        )
+        strip_contigs = list(mito_contigs) if remove_mito else []
+        # Filter through SAM text so mitochondrial / spike-in stripping never depends on an index.
         view_cmd = ["samtools", "view", "-h", "-q", str(mapq)]
         if paired:
             view_cmd += ["-f", str(SAMTOOLS_REQUIRE_FLAGS)]
-        view_cmd += ["-F", str(SAMTOOLS_EXCLUDE_FLAGS), str(markdup)]
-        if not _filter_bam(view_cmd, final_bam, mito_contigs if remove_mito else (),
-                           warnings, name):
+        view_cmd += ["-F", str(excl_flags), str(markdup)]
+        filter_ok = (
+            _filter_bam(
+                view_cmd,
+                final_bam,
+                tuple(strip_contigs),
+                warnings,
+                name,
+                exclude_prefix=spikein_contig_prefix,
+            )
+            if spikein_contig_prefix
+            else _filter_bam(
+                view_cmd, final_bam, tuple(strip_contigs), warnings, name
+            )
+        )
+        if not filter_ok:
             result["status"] = "failed"
             return result
         if not _run(["samtools", "index", str(final_bam)], warnings, name, "index_final"):
@@ -329,8 +453,23 @@ def _align_sample(sample: dict, bwa_index: str, output_dir: Path,
             return result
 
         result.update({"status": "success", "bam": str(final_bam)})
+        # Index markdup so idxstats works for mito% and optional composite spike-in contigs
+        _run(["samtools", "index", str(markdup)], warnings, name, "index_markdup")
         result.update(_bam_metrics(markdup, mito_contigs, warnings,
-                                   final_bam=final_bam))
+                                   final_bam=final_bam,
+                                   spikein_contig_prefix=spikein_contig_prefix,
+                                   spikein_scale_constant=spikein_scale_constant))
+        if spikein_bwa_index and "spikein_reads" not in result:
+            sp_reads = _count_spikein_index(
+                r1, r2 if paired else None, spikein_bwa_index, spikein_fasta,
+                threads, warnings, name,
+            )
+            if sp_reads is not None:
+                result["spikein_reads"] = int(sp_reads)
+                result["spikein_scale_factor"] = (
+                    round(float(spikein_scale_constant) / max(1, int(sp_reads)), 6)
+                    if sp_reads > 0 else None
+                )
         # Tidy intermediates (keep final + markdup for transparency)
         for tmp in (namesort, fixmate, coordsort):
             try:
@@ -353,24 +492,34 @@ def _align_sample(sample: dict, bwa_index: str, output_dir: Path,
     return result
 
 
-def _strip_mito_sam(lines, mito=DEFAULT_MITO):
-    """Yield SAM headers and alignments outside the explicit mitochondrial set."""
+def _strip_mito_sam(lines, mito=DEFAULT_MITO, exclude_prefix: str = ""):
+    """Yield SAM headers and alignments outside mitochondrial / spike-in contigs."""
     mito = set(mito)
     for line in lines:
+        if line.startswith("@"):
+            if exclude_prefix and line.startswith("@SQ\tSN:" + exclude_prefix):
+                continue
+            yield line
+            continue
         fields = line.split("\t", 3)
-        if line.startswith("@") or (len(fields) >= 3 and fields[2] not in mito):
+        if len(fields) >= 3:
+            rname = fields[2]
+            if rname in mito:
+                continue
+            if exclude_prefix and rname.startswith(exclude_prefix):
+                continue
             yield line
 
 
-def _filter_bam(view_cmd, out_bam, mito, warnings, name):
-    """Stream SAM through the mitochondrial filter, checking both processes."""
+def _filter_bam(view_cmd, out_bam, mito, warnings, name, exclude_prefix: str = ""):
+    """Stream SAM through the mitochondrial/spike-in filter, checking both processes."""
     import tempfile
     with tempfile.TemporaryFile(mode="w+t") as err1, tempfile.TemporaryFile(mode="w+t") as err2:
         with subprocess.Popen(view_cmd, stdout=subprocess.PIPE, stderr=err1, text=True) as src:
             with subprocess.Popen(["samtools", "view", "-b", "-o", str(out_bam), "-"],
                                   stdin=subprocess.PIPE, stderr=err2, text=True) as dst:
                 try:
-                    for line in _strip_mito_sam(src.stdout, mito):
+                    for line in _strip_mito_sam(src.stdout, mito, exclude_prefix=exclude_prefix):
                         dst.stdin.write(line)
                 except BrokenPipeError:
                     pass
@@ -387,8 +536,40 @@ def _filter_bam(view_cmd, out_bam, mito, warnings, name):
     return True
 
 
+def _count_spikein_index(
+    r1: str, r2: str | None, spikein_index: str, spikein_fasta: str,
+    threads: int, warnings: list, name: str,
+) -> int | None:
+    """Align FASTQs against a heterologous spike-in index (e.g. sacCer3/E.coli)
+    and count mapped primary non-duplicate alignments."""
+    if not _bwa_index_exists(spikein_index):
+        if spikein_fasta and Path(spikein_fasta).is_file():
+            if _build_bwa_index(spikein_fasta, threads, warnings) != "ok":
+                return None
+            spikein_index = spikein_fasta
+        else:
+            warnings.append(f"{name}: spikein_bwa_index not found at {spikein_index}")
+            return None
+    align_cmd = ["bwa-mem2", "mem", "-t", str(threads), spikein_index, r1]
+    if r2:
+        align_cmd.append(r2)
+    count_cmd = ["samtools", "view", "-c", "-F", "2308", "-q", "10", "-"]
+    try:
+        with subprocess.Popen(align_cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL) as src:
+            proc = subprocess.run(count_cmd, stdin=src.stdout, capture_output=True, text=True, timeout=7200)
+            src.stdout.close()
+            src.wait()
+        if proc.returncode == 0:
+            return int(proc.stdout.strip())
+    except Exception as exc:
+        warnings.append(f"{name}: spike-in alignment failed: {exc}")
+    return None
+
+
 def _bam_metrics(pre_filter_bam: Path, mito_contigs: tuple, warnings: list,
-                 final_bam: Path | None = None) -> dict:
+                 final_bam: Path | None = None,
+                 spikein_contig_prefix: str = "",
+                 spikein_scale_constant: float = 10000.0) -> dict:
     """Collect alignment QC: total/mapped/dup from flagstat, mito% from idxstats."""
     metrics: dict = {}
     try:
@@ -414,17 +595,25 @@ def _bam_metrics(pre_filter_bam: Path, mito_contigs: tuple, warnings: list,
                              capture_output=True, text=True, timeout=300)
         if idx.returncode == 0:
             mito_lower = {m.lower() for m in mito_contigs}
-            mito = nuc = 0
+            mito = nuc = spike = 0
             for line in idx.stdout.splitlines():
                 f = line.split("\t")
                 if len(f) < 3 or f[0] in ("*", ""):
                     continue
                 n = int(f[2])
-                if f[0].lower() in mito_lower:
+                if spikein_contig_prefix and f[0].startswith(spikein_contig_prefix):
+                    spike += n
+                elif f[0].lower() in mito_lower:
                     mito += n
                 else:
                     nuc += n
             metrics["pct_mito"] = round(mito / max(mito + nuc, 1) * 100, 2)
+            if spikein_contig_prefix:
+                metrics["spikein_reads"] = int(spike)
+                metrics["spikein_scale_factor"] = (
+                    round(float(spikein_scale_constant) / max(1, spike), 6)
+                    if spike > 0 else None
+                )
     except (FileNotFoundError, subprocess.TimeoutExpired, ValueError) as e:
         warnings.append(f"idxstats metrics unavailable: {e}")
 

@@ -21,6 +21,7 @@ from .adapters import (
     bulk_atac_evidence,
     bulk_rna_evidence,
     cross_modal_evidence,
+    hic_evidence,
     integration_evidence,
     scatac_evidence,
     scrna_evidence,
@@ -40,10 +41,10 @@ SPECULATIVE_HEADER = (
 
 
 def _chromatin_signals(agent_results, run_ledger, exp_ctx):
-    """Route the chromatin lane to the bulk ATAC or scATAC adapter (not both)."""
+    """Route the chromatin lane to the bulk chromatin or scATAC adapter (not both)."""
     try:
         from aria.agents.narrative.narrators.chromatin import (
-            _is_bulk_atac,
+            _is_bulk_chromatin,
             unwrap_chromatin_findings,
         )
 
@@ -52,7 +53,7 @@ def _chromatin_signals(agent_results, run_ledger, exp_ctx):
         )
         if not findings:
             return []
-        if _is_bulk_atac(findings):
+        if _is_bulk_chromatin(findings):
             return bulk_atac_evidence(agent_results, run_ledger, exp_ctx)
         return scatac_evidence(agent_results, run_ledger, exp_ctx)
     except Exception as exc:
@@ -77,6 +78,8 @@ def gather_evidence(agent_results, run_ledger=None, exp_ctx=None) -> list:
         signals += scrna_evidence(agent_results, run_ledger, exp_ctx)
     if "chromatin_agent" in agent_results:
         signals += _chromatin_signals(agent_results, run_ledger, exp_ctx)
+    if "genome_arch_agent" in agent_results:
+        signals += hic_evidence(agent_results, run_ledger, exp_ctx)
     if "integration_agent" in agent_results:
         integ_signals = integration_evidence(agent_results, run_ledger, exp_ctx)
         has_paired_cis = any(

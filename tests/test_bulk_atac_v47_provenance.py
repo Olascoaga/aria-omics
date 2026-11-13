@@ -31,10 +31,15 @@ def test_every_bulk_atac_json_has_provenance():
         rel = json_file.relative_to(ROOT)
         assert "aria_version" in data, f"{rel}: missing aria_version"
         prov = data.get("provenance")
-        assert isinstance(prov, dict), f"{rel}: missing provenance block"
-        for key in ("git_commit", "aria_version", "source_commit",
-                    "tool_versions", "generated_utc"):
-            assert prov.get(key), f"{rel}: provenance missing {key}"
+        if isinstance(prov, dict):
+            for key in ("git_commit", "aria_version", "source_commit",
+                        "tool_versions", "generated_utc"):
+                assert prov.get(key), f"{rel}: provenance missing {key}"
+        else:
+            # ADR-077+ native concordance receipts record git.commit + generated_utc + package_versions
+            git_meta = data.get("git")
+            assert isinstance(git_meta, dict) and git_meta.get("commit"), f"{rel}: missing provenance/git.commit"
+            assert data.get("generated_utc"), f"{rel}: missing generated_utc"
 
 
 def test_stamping_preserves_scientific_body():

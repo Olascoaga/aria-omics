@@ -148,15 +148,12 @@ lock files:
 | Bulk count matrices, scRNA, pseudobulk, shared DESeq2 DA | `aria-rna-env` |
 | Raw scRNA FASTQ ingestion (`kb-python` 3'/5'/plate) | `aria-ingestion-env` |
 | Universal raw bulk RNA FASTQ (`fastp`, `STAR`/`STARsolo`, `pysam`, `featureCounts`) | `aria-rnaseq-env` |
-| Raw bulk/scATAC alignment | `aria-atacseq-env` |
-| Chromatin QC, peaks, clustering, regulatory layers | `aria-chromatin-env` |
+| Raw bulk/scATAC, ChIP-seq, CUT&RUN, CUT&TAG & Hi-C chimeric alignment | `aria-atacseq-env` |
+| Chromatin QC, MACS3/SEACR/broad peaks, IDR, clustering, regulatory layers | `aria-chromatin-env` |
 | TOBIAS footprinting | `aria-tobias-env` |
 | Paired 10x Multiome integration (MOFA+, peak2gene, candidate eRegulons) | `aria-integration-env` |
+| Hi-C / Micro-C 3D genome (`cooler`, `cooltools`, `pairtools`, `hicstraw`) | `aria-hic-env` |
 | External RNA & chromatin R benchmark comparators | `aria-bench-env` |
-
-The Hi-C environment (`aria-hic-env`) remains an explicit dispatch-disabled
-scaffold and is not an active release-lock target. Installing its YAML does not
-promote its runtime readiness or enable normal dispatch.
 
 Audit installed active stacks against the registry and locks:
 
@@ -276,10 +273,16 @@ peak-count matrices), and `TOBIAS` differential TF footprinting (`aria-tobias-en
 inputs (`.h5mu`, Cell Ranger ARC `.h5` and dual MEX, explicit shared-barcode or
 ARC-whitelist-translated paired matrices, manifested raw Multiome FASTQs, and
 multi-donor paired cohorts via `aria-chromatin-env` + `aria-integration-env` /
-`docker/Dockerfile.integration`, `ADR-079`). Risk-elevated multiome cohorts
-(`< 200` shared cells, partial barcode overlap, or batch/donor confounding)
-require explicit `CP3.5` acknowledgement, while unpaired/diagonal cross-modal
-combinations fail closed.
+`docker/Dockerfile.integration`, `ADR-079`), universal bulk epigenomic
+protein–DNA interaction inputs (`ChIP`, `CUT_AND_RUN`, and `CUT_AND_TAG` raw
+FASTQs, BAM/CRAM + matched Input/IgG controls, SEACR/MACS3/broad-domain peaks,
+and heterologous spike-in `PyDESeq2` differential binding, `ADR-081`), and
+universal 3D genome architecture inputs (`HiC` / Micro-C `.mcool`/`.cool`,
+`.pairs`/`.pairs.gz`, `.hic`, chimeric `.bam`, and paired FASTQs via
+`aria-hic-env` / `docker/Dockerfile.hic`, `ADR-082`). Risk-elevated cohorts
+(`< 200` shared multiome cells, `n == 2` low-power contrasts, missing ChIP Input
+controls, or batch/donor confounding) require explicit `CP3.5` acknowledgement,
+while unpaired single-cell diagonal/bridge manifold imputation fails closed.
 
 Do not rely on filenames to establish the biological design. ARIA intentionally
 refuses silent production inference for groups, references, replicates, and

@@ -973,6 +973,7 @@ for small-effect genes.""",
         from aria.agents.narrative.narrators import (
             BulkRnaNarrator,
             ChromatinNarrator,
+            HiCNarrator,
             IntegrationNarrator,
             ScrnaNarrator,
         )
@@ -981,6 +982,7 @@ for small-effect genes.""",
             ScrnaNarrator(),
             BulkRnaNarrator(),
             ChromatinNarrator(),
+            HiCNarrator(),
             IntegrationNarrator(),
         ))
 
@@ -1258,31 +1260,36 @@ for small-effect genes.""",
         # Chromatin methods
         chrom = agent_results.get("chromatin_agent", {})
         if chrom.get("status") == "done":
-            lines.append(f"\n**Chromatin accessibility**\n")
-            lines.append(
-                f"ATAC-seq peaks were called using MACS3 with parameters "
-                f"appropriate for the assay type (--nomodel --extsize 200 "
-                f"for scATAC-seq; --nolambda for CUT&RUN/CUT&TAG). "
-                f"Quality control thresholds: FRiP > 0.20, "
-                f"TSS enrichment score > 4.0 (ENCODE standards). "
-                f"For single-cell ATAC-seq, dimensionality reduction used "
-                f"LSI (TF-IDF normalization + SVD), discarding the first "
-                f"component which correlates with sequencing depth."
+            from aria.agents.narrative.narrators.chromatin import ChromatinNarrator
+            chrom_paragraphs = ChromatinNarrator().methods(
+                "chromatin_agent", chrom, {"exp_context": exp_ctx}
             )
+            lines.append("\n**Chromatin & epigenomics**\n")
+            if chrom_paragraphs:
+                lines.extend(chrom_paragraphs)
+            else:
+                lines.append(
+                    "Chromatin peaks were called using MACS3 or SEACR with "
+                    "parameters appropriate for the assay type."
+                )
 
         # HiC methods
         hic = agent_results.get("genome_arch_agent", {})
         if hic.get("status") == "done":
-            lines.append(f"\n**3D genome organization**\n")
-            lines.append(
-                f"Hi-C contact matrices were balanced using ICE normalization "
-                f"(cooler balance). Compartment A/B analysis was performed "
-                f"via eigenvector decomposition (PC1) at 100 kb resolution. "
-                f"Topologically associating domains were identified using "
-                f"the Insulation Score method (Crane et al., 2015). "
-                f"Window size was calibrated on chromosome 1 as a proxy "
-                f"for full-genome optimization."
+            from aria.agents.narrative.narrators.hic import HiCNarrator
+            hic_paragraphs = HiCNarrator().methods(
+                "genome_arch_agent", hic, {"exp_context": exp_ctx}
             )
+            lines.append("\n**3D genome organization**\n")
+            if hic_paragraphs:
+                lines.extend(hic_paragraphs)
+            else:
+                lines.append(
+                    "Hi-C contact matrices were balanced using ICE normalization "
+                    "(cooler balance), decomposed into cis A/B compartments "
+                    "(cooltools eigs_cis), and segmented into TADs via diamond "
+                    "insulation score (Crane et al., 2015)."
+                )
 
         # Integration methods (V48 Slice I7: delegated to IntegrationNarrator for
         # executed-stage-exact, copy-pasteable manuscript methods).
@@ -1617,13 +1624,15 @@ for small-effect genes.""",
         findings = chrom_result.get("findings", {})
         parts    = []
 
-        for assay in ("scATAC", "bulk_ATAC", "ChIP", "CUT_AND_RUN"):
+        for assay in ("scATAC", "bulk_ATAC", "ChIP", "CUT_AND_RUN", "CUT_AND_TAG"):
             assay_f = (findings.get(assay) or {}).get("findings", {}) or {}
             peaks   = assay_f.get("peaks", {})
             if peaks.get("n_peaks"):
+                frip_val = peaks.get("frip")
+                frip_txt = f"{frip_val:.2f}" if isinstance(frip_val, (int, float)) else "?"
                 parts.append(
                     f"{assay}: {peaks['n_peaks']:,} peaks called "
-                    f"(FRiP={peaks.get('frip', '?'):.2f})."
+                    f"(FRiP={frip_txt})."
                 )
             motifs = assay_f.get("motifs", {})
             if motifs.get("top_motifs"):

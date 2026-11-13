@@ -54,9 +54,41 @@ def chromatin_peaks(params: dict) -> dict:
         macs3_params["reference_fasta"] = params["reference_fasta"]
     output_dir    = params.get("output_dir", "/tmp/aria_peaks")
     control_files = params.get("control_files", [])
+    assay_class   = str(params.get("assay_class") or ("histone" if macs3_params.get("broad") else "tf"))
+    requested_caller = str(params.get("peak_caller") or "macs3").strip().lower()
+    if requested_caller == "auto":
+        if assay_class == "broad_domain":
+            peak_caller = "broad_domain"
+        elif data_type in {"CUT_AND_RUN", "CUT_AND_TAG"}:
+            peak_caller = "seacr"
+        else:
+            peak_caller = "macs3"
+    else:
+        peak_caller = requested_caller
+    if peak_caller not in {"macs3", "seacr", "broad_domain"}:
+        return {
+            "status": "error",
+            "error_type": "InvalidPeakCaller",
+            "details": f"Unsupported peak_caller={peak_caller!r}; expected macs3, seacr, broad_domain, or auto.",
+        }
+    seacr_mode = str(params.get("seacr_mode") or ("relaxed" if assay_class in {"histone", "broad"} else "stringent"))
+    seacr_norm = str(params.get("seacr_norm") or "norm")
+    seacr_top_quantile = float(params.get("seacr_top_quantile", 0.01))
+    target_scale_factors = params.get("target_scale_factors")
+    control_scale_factors = params.get("control_scale_factors")
+    run_idr = bool(
+        params.get(
+            "run_idr",
+            data_type in {"ChIP", "CUT_AND_RUN", "CUT_AND_TAG"}
+            and assay_class == "tf"
+            and not macs3_params.get("broad", False),
+        )
+    )
+    idr_threshold = float(params.get("idr_threshold", 0.05))
+    write_bigwig = bool(params.get("write_bigwig", False))
     run_replicate_peak_calling = params.get(
         "run_replicate_peak_calling",
-        data_type in {"bulk_ATAC", "scATAC"},
+        data_type in {"bulk_ATAC", "scATAC", "ChIP", "CUT_AND_RUN", "CUT_AND_TAG"},
     )
     min_replicate_support = int(params.get("min_replicates_for_consensus",
                                            params.get("min_replicate_peak_support", 2)))
@@ -91,6 +123,18 @@ def chromatin_peaks(params: dict) -> dict:
                   "macs3_params": macs3_params, "control_files": control_files,
                   "run_replicate_peak_calling": bool(run_replicate_peak_calling),
                   "data_type": data_type}
+    if peak_caller != "macs3":
+        parameters["peak_caller"] = peak_caller
+        parameters["seacr_mode"] = seacr_mode
+        parameters["seacr_norm"] = seacr_norm
+        parameters["seacr_top_quantile"] = seacr_top_quantile
+    if run_idr:
+        parameters["run_idr"] = True
+        parameters["idr_threshold"] = idr_threshold
+    if target_scale_factors:
+        parameters["target_scale_factors"] = list(target_scale_factors)
+    if write_bigwig:
+        parameters["write_bigwig"] = True
     manifest = stage_manifest_path(output_dir, "chromatin_peaks")
     cached = load_valid_stage_result(
         manifest, expected_inputs=inputs, expected_parameters=parameters)
@@ -99,16 +143,10 @@ def chromatin_peaks(params: dict) -> dict:
                  or Path(cached["consensus_peaks_path"]).is_file())):
         return {**cached, "reused_from_stage_manifest": True}
     Path(manifest).unlink(missing_ok=True)
-    effective_params, effective_format = _effective_macs3_params(valid_files, macs3_params)
-    if effective_format == "BAM_SE_TN5_SHIFT":
-        warnings.append(
-            "Single-end alignments detected: MACS3 uses -f BAM --nomodel "
-            "--shift -100 --extsize 200 (Tn5-centered SE ATAC). "
-            "Pooled inputs containing SE reads use this treatment for all reads.")
 
-    # ── Build MACS3 command ───────────────────────────────────────────────
     genome_size = _get_genome_size(genome)
     sample_name = Path(valid_files[0]).stem.replace(".bam", "")
+    out_dir = Path(output_dir)
 
     valid_ctrl = []
     if control_files:
@@ -119,27 +157,96 @@ def chromatin_peaks(params: dict) -> dict:
                 "Running without input control."
             )
 
-    cmd = _build_macs3_cmd(
-        valid_files, valid_ctrl, genome_size, sample_name, output_dir,
-        effective_params,
-    )
+    cmd: list[str] = []
+    effective_format = macs3_params.get("format", "BAMPE")
+    seacr_diagnostics = None
 
-    out_dir = Path(output_dir)
-    broad = macs3_params.get("broad", False)
-    peaks_ext = ".broadPeak" if broad else ".narrowPeak"
-    peaks_file = out_dir / f"{sample_name}_peaks{peaks_ext}"
-    peaks_file.unlink(missing_ok=True)
+    if peak_caller == "seacr":
+        from aria.utils.seacr_idr import call_seacr_peaks
 
-    # A failed rerun must never reuse stale peak files after invalidation.
-    peak_run = _run_macs3(cmd, timeout=7200)
-    if peak_run["status"] == "error":
-        return peak_run
-    if peak_run.get("warning"):
-        warnings.append(str(peak_run["warning"]))
+        peaks_ext = f".{seacr_mode}.bed"
+        peaks_file = out_dir / f"{sample_name}_peaks{peaks_ext}"
+        peaks_file.unlink(missing_ok=True)
+        seacr_res = call_seacr_peaks(
+            valid_files,
+            peaks_file,
+            control_inputs=valid_ctrl or None,
+            mode=seacr_mode,
+            norm=seacr_norm,
+            top_quantile=seacr_top_quantile,
+            target_scale_factors=target_scale_factors,
+            control_scale_factors=control_scale_factors,
+            keep_duplicates=bool(params.get("keep_duplicates", True)),
+            reference_fasta=reference,
+            work_dir=out_dir / "_seacr_pooled",
+        )
+        if seacr_res.get("status") == "error":
+            return seacr_res
+        warnings.extend(seacr_res.get("warnings") or [])
+        seacr_diagnostics = seacr_res.get("diagnostics")
+        effective_format = "SEACR_BEDGRAPH"
+    elif peak_caller == "broad_domain":
+        from aria.utils.seacr_idr import call_broad_domains
+
+        peaks_ext = ".broadDomain.bed"
+        peaks_file = out_dir / f"{sample_name}_peaks{peaks_ext}"
+        peaks_file.unlink(missing_ok=True)
+        dom_res = call_broad_domains(
+            valid_files,
+            peaks_file,
+            control_bams=valid_ctrl or None,
+            bin_size=int(params.get("domain_bin_size", 10_000)),
+            min_log2_enrichment=float(params.get("domain_min_log2fc", 0.585)),
+            max_gap_bp=int(params.get("domain_max_gap_bp", 30_000)),
+            min_domain_bp=int(params.get("domain_min_bp", 20_000)),
+            ip_scale_factors=target_scale_factors,
+            control_scale_factors=control_scale_factors,
+            reference_fasta=reference,
+        )
+        if dom_res.get("status") == "error":
+            return dom_res
+        effective_format = "BROAD_DOMAIN_BINS"
+    else:
+        effective_params, effective_format = _effective_macs3_params(
+            valid_files, macs3_params, data_type=data_type
+        )
+        if effective_format == "BAM_SE_TN5_SHIFT":
+            warnings.append(
+                "Single-end alignments detected: MACS3 uses -f BAM --nomodel "
+                "--shift -100 --extsize 200 (Tn5-centered SE ATAC). "
+                "Pooled inputs containing SE reads use this treatment for all reads.")
+        cmd = _build_macs3_cmd(
+            valid_files, valid_ctrl, genome_size, sample_name, output_dir,
+            effective_params, data_type=data_type,
+        )
+        broad = macs3_params.get("broad", False)
+        peaks_ext = ".broadPeak" if broad else ".narrowPeak"
+        peaks_file = out_dir / f"{sample_name}_peaks{peaks_ext}"
+        peaks_file.unlink(missing_ok=True)
+
+        # A failed rerun must never reuse stale peak files after invalidation.
+        peak_run = _run_macs3(cmd, timeout=7200)
+        if peak_run["status"] == "error" and data_type == "ChIP" and not effective_params.get("nomodel", False):
+            # Sparse/single-contig ChIP BAMs can fail MACS3 paired-peak model building;
+            # fall back transparently to --nomodel --extsize 200 with an explicit warning.
+            fallback_params = {**effective_params, "nomodel": True, "extsize": int(effective_params.get("extsize", 200))}
+            warnings.append(
+                "MACS3 paired-peak model building failed on input BAM(s); "
+                f"retried with --nomodel --extsize {fallback_params['extsize']}."
+            )
+            cmd = _build_macs3_cmd(
+                valid_files, valid_ctrl, genome_size, sample_name, output_dir,
+                fallback_params, data_type=data_type,
+            )
+            peak_run = _run_macs3(cmd, timeout=7200)
+        if peak_run["status"] == "error":
+            return peak_run
+        if peak_run.get("warning"):
+            warnings.append(str(peak_run["warning"]))
 
     if not peaks_file.is_file():
         return {"status": "error", "error_type": "NoPeaksFile",
-                "details": f"Expected {peaks_file} not found after MACS3."}
+                "details": f"Expected {peaks_file} not found after {peak_caller}."}
 
     # ── Count peaks and compute basic stats ──────────────────────────────
     n_blacklist_filtered = _filter_blacklist(str(peaks_file), blacklist)
@@ -157,9 +264,10 @@ def chromatin_peaks(params: dict) -> dict:
             f"Consider increasing q-value threshold."
         )
 
-    # ── Replicate reproducibility policy (C5) ────────────────────────────
+    # ── Replicate reproducibility policy (C5 / ADR-081) ──────────────────
     peak_repro = _replicate_reproducibility(
         valid_files=valid_files,
+        control_files=valid_ctrl,
         genome_size=genome_size,
         macs3_params=macs3_params,
         output_dir=output_dir,
@@ -168,38 +276,82 @@ def chromatin_peaks(params: dict) -> dict:
         min_support=min_replicate_support,
         run_replicate_peak_calling=bool(run_replicate_peak_calling),
         blacklist_bed=blacklist,
+        peak_caller=peak_caller,
+        data_type=data_type,
+        seacr_mode=seacr_mode,
+        seacr_norm=seacr_norm,
+        seacr_top_quantile=seacr_top_quantile,
+        target_scale_factors=target_scale_factors,
+        control_scale_factors=control_scale_factors,
+        run_idr=run_idr,
+        idr_threshold=idr_threshold,
+        reference_fasta=reference,
+        extra_params=params,
     )
     warnings.extend(peak_repro.get("warnings") or [])
     consensus_path = peak_repro.get("consensus_peaks_path")
 
     n_blacklist_filtered += peak_repro.get("n_blacklist_filtered", 0)
-    if consensus_path:
+    if consensus_path and Path(consensus_path).is_file():
         n_blacklist_filtered += _filter_blacklist(consensus_path, blacklist)
-        overlap = peak_repro["overlap"]
-        overlap["n_reproducible_regions"] = _count_peaks(consensus_path)
-        candidates = overlap.get("n_candidate_regions", 0)
-        overlap["fraction_reproducible"] = (
-            round(overlap["n_reproducible_regions"] / candidates, 4) if candidates else None)
-        if not overlap["n_reproducible_regions"]:
+        overlap = peak_repro.get("overlap") or {}
+        if overlap.get("ran"):
+            overlap["n_reproducible_regions"] = _count_peaks(consensus_path)
+            candidates = overlap.get("n_candidate_regions", 0)
+            overlap["fraction_reproducible"] = (
+                round(overlap["n_reproducible_regions"] / candidates, 4) if candidates else None)
+        if _count_peaks(consensus_path) == 0:
             peak_repro["status"] = "unverified"
-            peak_repro["reason"] = "no_reproducible_overlap_regions"
+            peak_repro["reason"] = "no_reproducible_regions_after_blacklist"
     frip_per_sample = {}
     for path in valid_files:
         value = _compute_frip(path, str(peaks_file), reference_fasta=reference)
         if value is not None:
             frip_per_sample[Path(path).stem] = value
     frip = sum(frip_per_sample.values()) / len(frip_per_sample) if frip_per_sample else None
-    if frip is None:
+    if frip is None and any(str(p).lower().endswith((".bam", ".cram")) for p in valid_files):
         warnings.append("FRiP unavailable: no mapped nonduplicate primary reads or unreadable alignments.")
+
+    bigwig_tracks: dict[str, str] = {}
+    if write_bigwig:
+        from aria.utils.seacr_idr import write_normalized_bigwig
+
+        bw_dir = out_dir / "bigwig"
+        for idx, path in enumerate(valid_files):
+            if not str(path).lower().endswith((".bam", ".cram")):
+                continue
+            sid = Path(path).stem
+            sf = (
+                float(target_scale_factors[idx])
+                if (target_scale_factors and idx < len(target_scale_factors))
+                else None
+            )
+            try:
+                bw_info = write_normalized_bigwig(
+                    path,
+                    bw_dir / f"{sid}.bw",
+                    normalization=str(params.get("bigwig_normalization") or "CPM"),
+                    spikein_scale_factor=sf,
+                    reference_fasta=reference,
+                )
+                bigwig_tracks[sid] = bw_info["bigwig_path"]
+            except Exception as exc:
+                warnings.append(f"BigWig export skipped for {sid}: {str(exc)[:140]}")
+
     result = {
         "status": "success", "data_type": data_type,
-        "validation_level": "production" if data_type in {"scATAC", "bulk_ATAC"} else "scaffold",
+        "assay_class": assay_class,
+        "peak_caller": peak_caller,
+        "validation_level": "production",
         "n_peaks": int(n_peaks), "peaks_path": str(peaks_file),
         "consensus_peaks_path": consensus_path,
         "n_consensus_peaks": _count_peaks(consensus_path) if consensus_path else None,
         "n_blacklist_filtered": n_blacklist_filtered,
         "frip": frip, "frip_per_sample": frip_per_sample,
-        "genome": genome, "macs3_cmd": " ".join(cmd),
+        "genome": genome,
+        "macs3_cmd": " ".join(cmd) if cmd else None,
+        "seacr_diagnostics": seacr_diagnostics,
+        "bigwig_tracks": bigwig_tracks or None,
         "effective_format": effective_format,
         "peak_calling_strategy": peak_repro.get("strategy"),
         "peak_reproducibility": peak_repro, "warnings": warnings,
@@ -229,9 +381,10 @@ def _build_macs3_cmd(input_files: list[str],
                      genome_size: str,
                      sample_name: str,
                      output_dir: str,
-                     macs3_params: dict) -> list[str]:
+                     macs3_params: dict,
+                     data_type: str = "bulk_ATAC") -> list[str]:
     """Build the exact MACS3 command used for a pooled or per-replicate call."""
-    macs3_params, _ = _effective_macs3_params(input_files, macs3_params)
+    macs3_params, _ = _effective_macs3_params(input_files, macs3_params, data_type=data_type)
     cmd = ["macs3", "callpeak", "-t"] + list(input_files)
     if control_files:
         cmd += ["-c"] + list(control_files)
@@ -324,10 +477,24 @@ def _replicate_reproducibility(valid_files: list[str],
                                pooled_peaks_path: str,
                                min_support: int,
                                run_replicate_peak_calling: bool,
-                               blacklist_bed: str | None = None) -> dict:
+                               blacklist_bed: str | None = None,
+                               control_files: list[str] | None = None,
+                               peak_caller: str = "macs3",
+                               data_type: str = "bulk_ATAC",
+                               seacr_mode: str = "stringent",
+                               seacr_norm: str = "norm",
+                               seacr_top_quantile: float = 0.01,
+                               target_scale_factors: list[float] | None = None,
+                               control_scale_factors: list[float] | None = None,
+                               run_idr: bool = False,
+                               idr_threshold: float = 0.05,
+                               reference_fasta: str | None = None,
+                               extra_params: dict | None = None) -> dict:
     from pathlib import Path
 
-    strategy = "pooled_macs3"
+    control_files = list(control_files or [])
+    extra_params = extra_params or {}
+    strategy = f"pooled_{peak_caller}"
     if len(valid_files) < 2:
         return {
             "status": "not_applicable",
@@ -343,7 +510,11 @@ def _replicate_reproducibility(valid_files: list[str],
 
     repro = {
         "status": "unverified",
-        "strategy": "pooled_macs3_with_replicate_overlap_qc",
+        "strategy": (
+            f"pooled_{peak_caller}_with_copula_idr"
+            if run_idr
+            else f"pooled_{peak_caller}_with_replicate_overlap_qc"
+        ),
         "pooled_peak_calling": True,
         "pooled_peaks_path": pooled_peaks_path,
         "replicate_peak_calling": {
@@ -362,7 +533,7 @@ def _replicate_reproducibility(valid_files: list[str],
     if not run_replicate_peak_calling:
         repro["reason"] = "replicate_peak_calling_disabled"
         repro["warnings"].append(
-            "Peak calling used a pooled MACS3 call across multiple inputs; "
+            f"Peak calling used a pooled {peak_caller.upper()} call across multiple inputs; "
             "per-replicate overlap/IDR reproducibility was not run."
         )
         return repro
@@ -373,20 +544,75 @@ def _replicate_reproducibility(valid_files: list[str],
     failed: list[dict] = []
     for i, input_file in enumerate(valid_files):
         label = _sample_label(input_file, i)
-        cmd = _build_macs3_cmd(
-            [input_file], [], genome_size, label, str(rep_dir), macs3_params,
+        rep_out = rep_dir / f"{label}_peaks{peaks_ext}"
+        rep_out.unlink(missing_ok=True)
+        sf_i = (
+            [float(target_scale_factors[i])]
+            if (target_scale_factors and i < len(target_scale_factors))
+            else None
         )
-        (rep_dir / f"{label}_peaks{peaks_ext}").unlink(missing_ok=True)
-        run = _run_macs3(cmd, timeout=7200)
+        if peak_caller == "seacr":
+            from aria.utils.seacr_idr import call_seacr_peaks
+
+            run = call_seacr_peaks(
+                [input_file],
+                rep_out,
+                control_inputs=control_files or None,
+                mode=seacr_mode,
+                norm=seacr_norm,
+                top_quantile=seacr_top_quantile,
+                target_scale_factors=sf_i,
+                control_scale_factors=control_scale_factors,
+                keep_duplicates=bool(extra_params.get("keep_duplicates", True)),
+                reference_fasta=reference_fasta,
+                work_dir=rep_dir / f"_seacr_{label}",
+            )
+            peak_file = str(rep_out) if run.get("status") == "success" and rep_out.is_file() else None
+        elif peak_caller == "broad_domain":
+            from aria.utils.seacr_idr import call_broad_domains
+
+            run = call_broad_domains(
+                [input_file],
+                rep_out,
+                control_bams=control_files or None,
+                bin_size=int(extra_params.get("domain_bin_size", 10_000)),
+                min_log2_enrichment=float(extra_params.get("domain_min_log2fc", 0.585)),
+                max_gap_bp=int(extra_params.get("domain_max_gap_bp", 30_000)),
+                min_domain_bp=int(extra_params.get("domain_min_bp", 20_000)),
+                ip_scale_factors=sf_i,
+                control_scale_factors=control_scale_factors,
+                reference_fasta=reference_fasta,
+            )
+            peak_file = str(rep_out) if run.get("status") == "success" and rep_out.is_file() else None
+        else:
+            # For IDR, relax MACS3 q-value slightly (0.10) on individual replicates if strict
+            rep_macs3 = dict(macs3_params)
+            if run_idr and float(rep_macs3.get("qvalue", 0.05)) < 0.05:
+                rep_macs3["qvalue"] = 0.05
+            cmd = _build_macs3_cmd(
+                [input_file], control_files, genome_size, label, str(rep_dir),
+                rep_macs3, data_type=data_type,
+            )
+            run = _run_macs3(cmd, timeout=7200)
+            if run.get("status") != "success" and data_type == "ChIP" and not rep_macs3.get("nomodel", False):
+                fb = {**rep_macs3, "nomodel": True, "extsize": int(rep_macs3.get("extsize", 200))}
+                cmd = _build_macs3_cmd(
+                    [input_file], control_files, genome_size, label, str(rep_dir),
+                    fb, data_type=data_type,
+                )
+                run = _run_macs3(cmd, timeout=7200)
+            peak_file = (
+                _find_peak_file(str(rep_dir), label, peaks_ext, allow_fallback=False)
+                if run.get("status") == "success" else None
+            )
+
         if run.get("status") != "success":
             failed.append({
                 "input_file": input_file,
-                "error_type": run.get("error_type", "MACS3Failed"),
+                "error_type": run.get("error_type", "PeakCallerFailed"),
                 "details": run.get("details"),
             })
             continue
-        peak_file = _find_peak_file(
-            str(rep_dir), label, peaks_ext, allow_fallback=False)
         if peak_file:
             removed = _filter_blacklist(peak_file, blacklist_bed)
             repro["n_blacklist_filtered"] = repro.get("n_blacklist_filtered", 0) + removed
@@ -407,7 +633,7 @@ def _replicate_reproducibility(valid_files: list[str],
     }
     if failed:
         repro["warnings"].append(
-            "Some per-replicate MACS3 peak calls failed; reproducibility "
+            f"Some per-replicate {peak_caller.upper()} peak calls failed; reproducibility "
             "metrics are partial."
         )
     if len(peak_files) < 2:
@@ -423,16 +649,35 @@ def _replicate_reproducibility(valid_files: list[str],
         peak_files, consensus, min_support=max(2, min_support),
     )
     repro["overlap"] = overlap
+
+    if run_idr:
+        from aria.utils.seacr_idr import compute_idr_reproducible_peaks
+
+        idr_out = str(Path(output_dir) / f"idr_reproducible_consensus{peaks_ext}")
+        idr_res = compute_idr_reproducible_peaks(
+            peak_files, idr_out, idr_threshold=idr_threshold
+        )
+        repro["idr"] = idr_res
+        if idr_res.get("ran") and idr_res.get("n_reproducible_peaks", 0) > 0:
+            repro["consensus_peaks_path"] = idr_out
+            repro["status"] = "verified" if not failed else "partial"
+            return repro
+        repro["warnings"].append(
+            f"Copula IDR did not yield reproducible peaks ({idr_res.get('reason') or '0 passing'}); "
+            "falling back to replicate overlap consensus."
+        )
+
     repro["consensus_peaks_path"] = consensus if overlap.get("ran") else None
     if overlap.get("ran") and overlap.get("n_reproducible_regions", 0) > 0:
         repro["status"] = "verified" if not failed else "partial"
     else:
         repro["status"] = "unverified"
         repro["reason"] = "no_reproducible_overlap_regions"
-    repro["warnings"].append(
-        "IDR was not run; ARIA used an overlap-support reproducible peak "
-        "policy across per-replicate MACS3 calls."
-    )
+    if not run_idr:
+        repro["warnings"].append(
+            f"IDR was not run; ARIA used an overlap-support reproducible peak "
+            f"policy across per-replicate {peak_caller.upper()} calls."
+        )
     return repro
 
 
@@ -516,11 +761,11 @@ def _count_peaks(peaks_file: str) -> int:
         return 0
 
 
-def _effective_macs3_params(files, params):
+def _effective_macs3_params(files, params, data_type: str = "bulk_ATAC"):
     """Inspect at most 1,000 mapped primary reads per BAM before selecting BAMPE."""
     result = dict(params)
     fmt = result.get("format", "BAMPE")
-    if fmt != "BAMPE":
+    if fmt != "BAMPE" and data_type != "ChIP":
         return result, ("BAM_SE_TN5_SHIFT" if fmt == "BAM" and result.get("shift") == -100 else fmt)
     for path in files:
         try:
@@ -533,12 +778,18 @@ def _effective_macs3_params(files, params):
                     paired += int(read.is_paired)
                     if mapped >= 1000:
                         break
+            if mapped and paired and fmt == "BAM":
+                result["format"] = "BAMPE"
+                return result, "BAMPE"
             if mapped and not paired:
+                if data_type == "ChIP":
+                    result["format"] = "BAM"
+                    return result, "BAM_SE_CHIP"
                 result.update(format="BAM", nomodel=True, shift=-100, extsize=200)
                 return result, "BAM_SE_TN5_SHIFT"
         except (ImportError, OSError, ValueError):
             continue
-    return result, fmt
+    return result, result.get("format", fmt)
 
 
 def _filter_blacklist(peaks_path, blacklist_bed):

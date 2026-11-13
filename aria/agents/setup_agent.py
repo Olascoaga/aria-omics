@@ -339,6 +339,8 @@ class SetupAgent(BaseAgent):
                 envs.extend([by_stack["rnaseq"], by_stack["atacseq"]])
         if {"HiC", "Micro-C"} & modality_set:
             envs.append(by_stack["hic"])
+            if has_fastq:
+                envs.extend([by_stack["rnaseq"], by_stack["atacseq"]])
         has_paired_h5mu = any(
             str(f).lower().endswith(".h5mu")
             for files in modalities.values()

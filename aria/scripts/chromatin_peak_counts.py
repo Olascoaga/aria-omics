@@ -351,16 +351,35 @@ def _count_one_sample(bedtools: str, peaks_path: Path, file_path: Path,
     return _parse_bedtools_counts(proc.stdout, peak_ids)
 
 
+_SUPPORTED_BULK_MODALITIES = frozenset({
+    "bulk_ATAC", "ChIP", "CUT_AND_RUN", "CUT_AND_TAG",
+})
+
+
+def _is_control_meta(meta: Any) -> bool:
+    if not isinstance(meta, dict):
+        return False
+    if bool(meta.get("is_control")):
+        return True
+    role = str(meta.get("role") or meta.get("sample_role") or "").strip().lower()
+    return role in {"control", "input", "igg", "mock_igg"}
+
+
 def chromatin_peak_counts(params: dict) -> dict:
-    data_type = params.get("data_type", "bulk_ATAC")
-    if data_type != "bulk_ATAC":
+    data_type = str(params.get("data_type") or "bulk_ATAC")
+    if data_type not in _SUPPORTED_BULK_MODALITIES:
         return _error(
             "UnsupportedDataType",
-            "chromatin_peak_counts currently supports bulk_ATAC only.",
+            f"chromatin_peak_counts supports {sorted(_SUPPORTED_BULK_MODALITIES)}; got {data_type!r}.",
             data_type=data_type,
         )
 
     files = [str(f) for f in (params.get("files") or [])]
+    control_set = {
+        str(Path(c).expanduser().resolve())
+        for c in (params.get("control_files") or [])
+        if c
+    }
     peaks_value = (
         params.get("peaks_path")
         or params.get("consensus_peaks_path")
@@ -385,12 +404,45 @@ def chromatin_peak_counts(params: dict) -> dict:
 
     try:
         sample_ids = _resolve_sample_ids(files, params.get("sample_ids"))
+        raw_meta = params.get("sample_metadata")
+        meta_lookup: dict[str, dict[str, Any]] = {}
+        if isinstance(raw_meta, dict):
+            meta_lookup = {str(k): v for k, v in raw_meta.items() if isinstance(v, dict)}
+        elif isinstance(raw_meta, list):
+            meta_lookup = {
+                str(r.get("sample_id")): r
+                for r in raw_meta
+                if isinstance(r, dict) and r.get("sample_id") is not None
+            }
+        excluded_controls: list[str] = []
+        filtered_pairs: list[tuple[str, str]] = []
+        for sid, fp in zip(sample_ids, files):
+            resolved_fp = str(Path(fp).expanduser().resolve())
+            if resolved_fp in control_set or _is_control_meta(meta_lookup.get(sid)):
+                excluded_controls.append(sid)
+            else:
+                filtered_pairs.append((sid, fp))
+        if excluded_controls:
+            if not filtered_pairs:
+                return _error(
+                    "NoTargetSamples",
+                    "All input alignments were marked as Input/IgG controls; "
+                    "peak counting requires at least one target/IP sample.",
+                    excluded_control_samples=excluded_controls,
+                )
+            sample_ids = [p[0] for p in filtered_pairs]
+            files = [p[1] for p in filtered_pairs]
+            warnings.append(
+                f"Excluded {len(excluded_controls)} Input/IgG control sample(s) "
+                f"from target peak-count matrix: {excluded_controls}"
+            )
         reference_fasta = params.get("reference_fasta")
         manifest_path = stage_manifest_path(output_dir, "chromatin_peak_counts")
         inputs = [file_record(f) for f in [*files, str(peaks_path)]]
         if reference_fasta:
             inputs.append(file_record(reference_fasta))
-        parameters = {"files": files, "peaks_path": str(peaks_path),
+        parameters = {"data_type": data_type,
+                      "files": files, "peaks_path": str(peaks_path),
                       "sample_ids": sample_ids,
                       "sample_metadata": params.get("sample_metadata"),
                       "reference_fasta": reference_fasta}
@@ -459,7 +511,7 @@ def chromatin_peak_counts(params: dict) -> dict:
 
     result = {
         "status": "success",
-        "data_type": "bulk_ATAC",
+        "data_type": data_type,
         "validation_level": "production",
         "analysis": "peak_count_matrix",
         "counting_method": ("pysam CRAM / bedtools coverage -counts"
@@ -475,6 +527,7 @@ def chromatin_peak_counts(params: dict) -> dict:
         "n_peaks": len(peak_ids),
         "n_samples": len(sample_ids),
         "sample_ids": sample_ids,
+        "excluded_control_samples": excluded_controls,
         "warnings": warnings,
     }
 
