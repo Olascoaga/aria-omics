@@ -157,11 +157,11 @@ _SCATAC_CAVEATED_SUBLAYERS = {
     "gene_scores": "exploratory",
     "motif_activity": "scaffold",
     "label_transfer": "exploratory",
-    "differential_tf_footprinting": "beta",
+    "differential_tf_footprinting": "production_associative",
 }
 
 _BULK_ATAC_CAVEATED_SUBLAYERS = {
-    "differential_tf_footprinting": "beta",
+    "differential_tf_footprinting": "production_associative",
 }
 
 
@@ -170,17 +170,15 @@ def _atac_production_readiness(
     *,
     tier_override: str | None = None,
 ) -> dict[str, Any]:
-    """ATAC readiness, ADR-056 / ADR-076 / ADR-077-honest.
+    """ATAC readiness, ADR-056 / ADR-076 / ADR-077 / ADR-078-honest.
 
-    `scATAC` is explicitly promoted to `production` by `ADR-076`, and
-    `bulk_ATAC` is explicitly promoted to `production` by `ADR-077` (universal
-    SE/PE/multi-lane raw `fastp` + `bwa-mem2` alignment, 100% local `pysam` +
-    `bedtools` + local-GTF ENCODE QC including FRiP, TSSe, duplicate rate, and
-    nucleosomal banding, SE/PE `MACS3` + consensus peaks, `bedtools` integer +
-    CPM peak matrices, multi-replicate `pyDESeq2` DA concordant with R
-    `DESeq2`/`edgeR`/`limma-voom`, peak annotation + ORA + JASPAR motifs, `C3`
-    ledger linkage, and `BulkATACAuditAgent` replicate/confounding gating),
-    while optional `TOBIAS` footprinting remains explicitly `beta`.
+    `scATAC` is explicitly promoted to `production` by `ADR-076`,
+    `bulk_ATAC` is explicitly promoted to `production` by `ADR-077`, and
+    `TOBIAS` differential TF footprinting (`chromatin_footprint_tobias.py`) is
+    promoted to `production` (`production_associative`) by `ADR-078` across both
+    lanes (replicate-mean Welch, paired-donor, or batch-adjusted OLS + BH-FDR
+    when `n >= 3` biological replicates/donors per group exist; descriptive-only
+    candidate ranking on pooled/under-replicated runs; capped associative).
     """
     technical_blockers = list(_ATAC_PRODUCTION_BLOCKERS.get(modality, ()))
     effective_tier = tier_override or (

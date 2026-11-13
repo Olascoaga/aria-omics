@@ -117,7 +117,7 @@ def test_scatac_production_promotion_and_scatac_audit_governance(tmp_path):
     ):
         assert SCRIPT_CONTRACTS[script].validation_level == "production", script
 
-    assert SCRIPT_CONTRACTS["aria/scripts/chromatin_footprint_tobias.py"].validation_level == "beta"
+    assert SCRIPT_CONTRACTS["aria/scripts/chromatin_footprint_tobias.py"].validation_level == "production"
     assert SCRIPT_CONTRACTS["aria/scripts/chromatin_peak_counts.py"].validation_level == "production"
 
     h5mu = tmp_path / "cohort.h5mu"
@@ -613,6 +613,7 @@ def test_live_multidonor_multilane_autorc_airgapped_raw_fastq_scatac_e2e(
         "genome_fasta": mini_chromatin_reference["fasta"],
         "genome_fai": mini_chromatin_reference["fai"],
         "gtf": mini_chromatin_reference["gtf"],
+        "enable_footprinting": False,
         "modalities": {"scATAC": all_fastq_files},
         "scatac_fastq_manifest": {"schema_version": "1", "libraries": libraries},
         "design": {
@@ -859,6 +860,7 @@ def test_live_multisample_fragments_cohort_preserves_all_samples(
                 "min_fragments": 15,
                 "genome_fasta": mini_chromatin_reference["fasta"],
                 "genome_fai": mini_chromatin_reference["fai"],
+                "enable_footprinting": False,
                 "sample_ids": ["sampleA", "sampleB"],
                 "sample_metadata": {
                     "sampleA": {"condition": "ctrl", "donor_id": "sampleA"},
@@ -970,6 +972,7 @@ def test_live_multifile_matrix_cohort_consensus_union_and_signac_peak2gene_e2e(
                 "genome_fasta": mini_chromatin_reference["fasta"],
                 "genome_fai": mini_chromatin_reference["fai"],
                 "gtf": mini_chromatin_reference["gtf"],
+                "enable_footprinting": False,
                 "rna_data_path": str(rna_path),
                 "sample_ids": sample_ids,
                 "sample_metadata": sample_metadata,

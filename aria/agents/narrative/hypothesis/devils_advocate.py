@@ -92,6 +92,16 @@ _CONFOUND_TOKENS: dict[str, tuple[str, ...]] = {
         "not establish regulatory",
         "associative cross-cell",
     ),
+    "footprint_associative": (
+        "footprint_associative",
+        "footprint",
+        "occupancy",
+        "tn5",
+        "protected motif",
+        "not causal regulation",
+        "associative occupancy",
+        "paralog",
+    ),
     "paralog_motif_ambiguity": (
         "paralog_motif_ambiguity",
         "paralog",

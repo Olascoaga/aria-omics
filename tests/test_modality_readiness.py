@@ -144,7 +144,7 @@ def test_scatac_default_registry_promoted_to_production_auto_dispatch():
     assert readiness["tier"] == "production"
     assert readiness["promotion_adr"] == "ADR-076"
     assert readiness["caveated_sub_layers"]["per_cluster_marker_peaks"] == "exploratory"
-    assert readiness["caveated_sub_layers"]["differential_tf_footprinting"] == "beta"
+    assert readiness["caveated_sub_layers"]["differential_tf_footprinting"] == "production_associative"
 
 
 def test_scatac_readiness_gates_pseudobulk_replicates_like_scrna():
@@ -260,7 +260,7 @@ def test_bulk_atac_default_registry_promoted_to_production_auto_dispatch():
     assert readiness["tier"] == "production"
     assert readiness["requires_ack"] is False
     assert readiness["promotion_adr"] == "ADR-077"
-    assert readiness["caveated_sub_layers"]["differential_tf_footprinting"] == "beta"
+    assert readiness["caveated_sub_layers"]["differential_tf_footprinting"] == "production_associative"
 
 
 def test_bulk_atac_readiness_gates_replicates_and_confounding():

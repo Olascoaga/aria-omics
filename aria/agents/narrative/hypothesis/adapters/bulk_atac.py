@@ -14,7 +14,9 @@ ATAC replication is typically low, so effects are directional rather than
 FDR-calibrated when the DA layer flagged low power. Raw DA peak coordinates and
 the CSV-backed peak-annotation / ORA gene layers are intentionally not emitted as
 entities here (coordinates are not groundable names; gene/pathway names live only
-in the artifact CSVs). A layer is emitted only when its ledger node actually ran.
+in the artifact CSVs). BH-significant replicate TF footprints (ADR-078) are
+emitted as tf_motif signals carrying ``footprint_associative``. A layer is emitted
+only when its ledger node actually ran.
 """
 
 from __future__ import annotations
@@ -23,7 +25,12 @@ from aria.agents.narrative.run_ledger import _chromatin_findings
 
 from ..caveats import LOW_REPLICATION, MOTIF_NOT_BINDING
 from ..types import EvidenceSignal
-from ._chromatin_common import motif_signals, node_ran
+from ._chromatin_common import (
+    FOOTPRINT_NODE,
+    footprint_signals,
+    motif_signals,
+    node_ran,
+)
 
 _MOTIF_NODE = "ledger://chromatin/motif_enrichment"
 _MAX_MOTIFS = 40
@@ -51,18 +58,33 @@ def bulk_atac_evidence(
     if not findings:
         return []
 
+    signals: list[EvidenceSignal] = []
+    low_power = _low_power(findings)
+
+    # 1. TF-motif enrichment over the DA peak sets.
     motifs = findings.get("motifs") or {}
-    if not (motifs.get("ran") and node_ran(run_ledger, _MOTIF_NODE)):
-        return []
+    if motifs.get("ran") and node_ran(run_ledger, _MOTIF_NODE):
+        caveats = [_ASSOCIATIVE_CAVEAT]
+        if low_power:
+            caveats.append(_LOW_REPLICATION_CAVEAT)
+        signals += motif_signals(
+            motifs,
+            modality="bulk_ATAC",
+            node=_MOTIF_NODE,
+            base_caveats=caveats,
+            max_motifs=_MAX_MOTIFS,
+        )
 
-    caveats = [_ASSOCIATIVE_CAVEAT]
-    if _low_power(findings):
-        caveats.append(_LOW_REPLICATION_CAVEAT)
+    # 2. ADR-078: replicate-inferential differential TF footprinting. Independent
+    # of the motif layer (a run without motif enrichment still grounds its
+    # BH-significant footprints); descriptive footprinting emits nothing.
+    footprinting = findings.get("footprinting") or {}
+    if footprinting.get("ran") and node_ran(run_ledger, FOOTPRINT_NODE):
+        signals += footprint_signals(
+            footprinting,
+            modality="bulk_ATAC",
+            node=FOOTPRINT_NODE,
+            extra_caveats=[LOW_REPLICATION] if low_power else [],
+        )
 
-    return motif_signals(
-        motifs,
-        modality="bulk_ATAC",
-        node=_MOTIF_NODE,
-        base_caveats=caveats,
-        max_motifs=_MAX_MOTIFS,
-    )
+    return signals

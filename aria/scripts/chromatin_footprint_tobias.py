@@ -930,6 +930,8 @@ def _replicate_summary(
     group_b: str,
     out_dir: Path,
     params: dict[str, Any],
+    *,
+    replicate_ids_override: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     results_path = tobias.get("bindetect_results")
     if not results_path:
@@ -943,7 +945,9 @@ def _replicate_summary(
             params.get("min_replicates_per_condition", 3)),
         max_label_permutations=int(params.get("max_label_permutations", 100)),
         random_seed=int(params.get("permutation_seed", 0)),
-        replicate_ids=tobias.get("replicate_ids"),
+        replicate_ids=(replicate_ids_override
+                       if replicate_ids_override is not None
+                       else tobias.get("replicate_ids")),
         replicate_batches=tobias.get("replicate_batches"),
     )
     _write_replicate_inference_table(summary, out_dir)
@@ -1043,6 +1047,7 @@ def _stage_fingerprint(params: dict[str, Any], mode: str,
         "make_aggregate_plots": params.get("make_aggregate_plots", True),
         "make_volcano_plot": params.get("make_volcano_plot", True),
         "replicate_batches": params.get("replicate_batches") or {},
+        "paired_replicates": bool(params.get("paired_replicates", False)),
         "sample_ids": params.get("sample_ids"),
         "condition_bams": params.get("condition_bams") or {},
         "replicate_bams": params.get("replicate_bams") or {},
@@ -1467,7 +1472,17 @@ def chromatin_footprint_tobias_bulk(params: dict) -> dict[str, Any]:
             params.get("replicate_batches") or {}, replicate_groups, original_ids)
         if replicate_batches:
             tobias["replicate_batches"] = replicate_batches
-        summary = _replicate_summary(tobias, str(group_a), str(group_b), out_dir, params)
+        inference_ids = (
+            original_ids
+            if bool(params.get("paired_replicates", False))
+            else {
+                sig: f"{replicate_groups[sig]}::{rid}"
+                for sig, rid in original_ids.items()
+            }
+        )
+        summary = _replicate_summary(
+            tobias, str(group_a), str(group_b), out_dir, params,
+            replicate_ids_override=inference_ids)
         aggregate = {}
         if (params.get("make_aggregate_plots", True) and summary.get("parsed")
                 and tobias.get("bindetect_outdir")):

@@ -1,10 +1,11 @@
-# ARIA TOBIAS footprinting image — BETA (ADR-076).
+# ARIA TOBIAS footprinting image — PRODUCTION / VALIDATED (ADR-078).
 # Builds FROM the common base and adds ONLY the hermetic aria-tobias-env stack
 # (TOBIAS ATACorrect -> ScoreBigwig -> BINDetect, samtools, pysam, pybigwig)
 # used by aria/scripts/chromatin_footprint_tobias.py. TOBIAS pins its own
 # numpy/pysam/pybigwig stack, so it never shares a layer with the chromatin
-# analysis lock. Footprinting stays a beta lane: the image self-stamps
-# ARIA_IMAGE_VALIDATION=beta so a report cannot present it as validated.
+# analysis lock. Promoted to production in ADR-078 (replicate-level Welch,
+# paired-donor, and batch-adjusted OLS inference + BH-FDR; descriptive-only
+# fallback on pooled runs; capped associative).
 #
 # Build:
 #   docker build -f docker/Dockerfile.base -t aria-base:local \
@@ -21,11 +22,11 @@ RUN python -m pip install --no-deps -e /opt/aria
 
 ARG ARIA_IMAGE_ENV_SHA=unknown
 ENV ARIA_IMAGE_KIND=tobias \
-    ARIA_IMAGE_VALIDATION=beta \
+    ARIA_IMAGE_VALIDATION=validated \
     ARIA_IMAGE_ENV_SHA=${ARIA_IMAGE_ENV_SHA}
 
 LABEL org.opencontainers.image.title="aria-tobias" \
-      org.opencontainers.image.description="ARIA TOBIAS footprinting image (BETA)"
+      org.opencontainers.image.description="ARIA TOBIAS differential TF footprinting image (ADR-078)"
 
 WORKDIR /work
 ENTRYPOINT ["/usr/local/bin/_entrypoint.sh"]

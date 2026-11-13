@@ -48,6 +48,20 @@ from aria.agents.chromatin_helpers import (
 log = logging.getLogger("aria.chromatin")
 
 
+def _is_missing(value) -> bool:
+    """True for None / NaN / pandas NA (obs cells that carry no label)."""
+    if value is None:
+        return True
+    if isinstance(value, float):
+        return value != value
+    try:
+        import pandas as pd
+
+        return bool(pd.api.types.is_scalar(value) and pd.isna(value))
+    except Exception:
+        return False
+
+
 def _drop_none(params: dict) -> dict:
     """Omit unset optional params so script input contracts (which reject an
     explicit None for non-empty fields) only see values that actually exist."""
@@ -320,10 +334,23 @@ class ChromatinAgent(BaseAgent):
                 and matrix_attempt.get("output_path")):
             self.publish_status(
                 experiment_id, "scATAC matrix pipeline from fragments...", 0.6)
-            matrix_ctx = exp_ctx
-            if len(files) == 1 and "fragments_file" not in exp_ctx:
-                # Downstream regulatory / TOBIAS layers need the fragments.
-                matrix_ctx = {**exp_ctx, "fragments_file": files[0]}
+            # Downstream regulatory / TOBIAS layers need the fragments (every
+            # cohort file) and the MACS3 peak universe just called (ADR-078).
+            frags = [f for f in files if str(f).lower().endswith(
+                (".tsv", ".tsv.gz", ".bed", ".bed.gz"))]
+            if not frags and len(files) == 1:
+                frags = [files[0]]
+            matrix_ctx = dict(exp_ctx)
+            if frags:
+                matrix_ctx.setdefault("fragments_file", frags[0])
+            if len(frags) > 1:
+                matrix_ctx.setdefault("fragments_files", frags)
+            if (isinstance(peaks_result, dict)
+                    and peaks_result.get("status") == "success"):
+                called_bed = (peaks_result.get("consensus_peaks_path")
+                              or peaks_result.get("peaks_path"))
+                if called_bed:
+                    matrix_ctx.setdefault("peaks_bed", called_bed)
             matrix_result = self._run_scatac_matrix(
                 experiment_id, matrix_ctx, intent,
                 matrix_attempt["output_path"], precomputed_qc=qc_result)
@@ -846,10 +873,13 @@ class ChromatinAgent(BaseAgent):
             )
             findings["regulatory"] = regulatory_result
 
-            footprint_result = self._run_scatac_footprinting(
-                experiment_id, exp_ctx, clustered, out_dir)
-            if footprint_result is not None:
-                findings["footprinting"] = footprint_result
+            # ADR-078: production TOBIAS footprinting runs by default and
+            # self-gates on assets; ``enable_footprinting=False`` opts out.
+            if exp_ctx.get("enable_footprinting") is not False:
+                footprint_result = self._run_scatac_footprinting(
+                    experiment_id, exp_ctx, clustered, out_dir)
+                if footprint_result is not None:
+                    findings["footprinting"] = footprint_result
 
         return {"status": "done", "findings": findings}
 
@@ -1160,6 +1190,21 @@ class ChromatinAgent(BaseAgent):
             if not bam_files:
                 return {"status": "failed", "findings": findings,
                         "reason": "bulk_atac_preprocessing_failed"}
+            # ADR-078: the aligner names each BAM by its declared sample, so
+            # carry that identity forward (counts / replicate design / footprint
+            # batches) instead of re-deriving it from BAM filenames.
+            if (isinstance(preprocessing, dict)
+                    and preprocessing.get("status") == "success"
+                    and not exp_ctx.get("sample_ids")):
+                aligned_sids = [
+                    str(rec.get("sample_id") or rec.get("name"))
+                    for rec in (preprocessing.get("bam_files") or [])
+                    if isinstance(rec, dict) and rec.get("status") == "success"
+                    and rec.get("bam")
+                    and (rec.get("sample_id") or rec.get("name"))
+                ]
+                if len(aligned_sids) == len(bam_files):
+                    exp_ctx = {**exp_ctx, "sample_ids": aligned_sids}
             files = bam_files
 
         # E7: resolve the shared design contract BEFORE deciding whether the
@@ -1392,9 +1437,11 @@ class ChromatinAgent(BaseAgent):
             experiment_id, exp_ctx, da_result, files)
         if ora_result is not None:
             findings["peak_ora"] = ora_result
-        # C2: condition-level TOBIAS footprinting (beta) needs BAMs, so it only
-        # runs on the alignment-level lane; it self-gates on assets/env.
-        if run_footprinting and isinstance(peaks_result, dict):
+        # C2 / ADR-078: condition-level TOBIAS footprinting (production) needs
+        # BAMs, so it only runs on the alignment-level lane; it self-gates on
+        # assets/env, and ``enable_footprinting=False`` opts out.
+        if (run_footprinting and isinstance(peaks_result, dict)
+                and exp_ctx.get("enable_footprinting") is not False):
             footprint_result = self._run_bulk_atac_footprinting(
                 experiment_id, exp_ctx, da_result, peaks_result, files,
                 contract=contract)
@@ -1402,19 +1449,55 @@ class ChromatinAgent(BaseAgent):
                 findings["footprinting"] = footprint_result
 
     def _footprint_common_params(self, exp_ctx: dict, output_dir: str) -> dict:
+        """Shared TOBIAS params with auto-resolved reference assets (ADR-078).
+
+        The genome FASTA (+ sibling ``.fai``) and the versioned MEME motif
+        collection are resolved from the local ARIA stores when not supplied, so
+        the user never has to pass paths. The resolved motif provenance travels as
+        the private ``_motif_source`` key, which the dispatchers pop before IPC and
+        stamp onto the result as ``motif_source``.
+        """
+        from aria.utils import genomes, motifs
+
+        genome_fasta = exp_ctx.get("genome_fasta")
+        if not genome_fasta:
+            try:
+                local, _src = genomes.resolve_local_genome_fasta(
+                    exp_ctx.get("genome") or "hg38")
+            except Exception as exc:  # resolution must never fail the run
+                log.warning("footprint genome resolution failed: %s", exc)
+                local = None
+            if local:
+                genome_fasta = local
+        genome_fai = exp_ctx.get("genome_fai")
+        if (not genome_fai and genome_fasta
+                and Path(f"{genome_fasta}.fai").is_file()):
+            genome_fai = f"{genome_fasta}.fai"
+        motif_meme = (
+            exp_ctx.get("motif_meme")
+            or exp_ctx.get("motif_meme_path")
+            or exp_ctx.get("motif_collection_meme")
+        )
+        motif_source: Optional[dict] = None
+        if not motif_meme:
+            try:
+                loaded = motifs.load_local_motif_collection(
+                    exp_ctx.get("motif_collection") or motifs.DEFAULT_COLLECTION)
+            except Exception as exc:
+                log.warning("footprint motif resolution failed: %s", exc)
+                loaded = None
+            if loaded is not None:
+                motif_meme, motif_source = loaded
         return {
-            "genome_fasta": exp_ctx.get("genome_fasta"),
-            "genome_fai": exp_ctx.get("genome_fai"),
+            "genome_fasta": genome_fasta,
+            "genome_fai": genome_fai,
             "peaks_bed": (
                 exp_ctx.get("peaks_bed")
                 or exp_ctx.get("peaks_path")
                 or exp_ctx.get("peak_universe_bed")
             ),
-            "motif_meme": (
-                exp_ctx.get("motif_meme")
-                or exp_ctx.get("motif_meme_path")
-                or exp_ctx.get("motif_collection_meme")
-            ),
+            "motif_meme": motif_meme,
+            "_motif_source": motif_source,
             "group_a": (
                 exp_ctx.get("footprint_group_a")
                 or exp_ctx.get("tobias_group_a")
@@ -1444,35 +1527,71 @@ class ChromatinAgent(BaseAgent):
             "permutation_seed": int(exp_ctx.get("footprint_permutation_seed", 0)),
             "make_aggregate_plots": bool(
                 exp_ctx.get("footprint_make_aggregate_plots", True)),
+            "make_volcano_plot": bool(
+                exp_ctx.get("footprint_make_volcano_plot", True)),
+            "resume": bool(exp_ctx.get("footprint_resume", True)),
         }
 
     def _run_scatac_footprinting(self, experiment_id: str, exp_ctx: dict,
                                  clustered: str, out_dir: str) -> Optional[dict]:
-        """Inline scATAC TOBIAS dispatch (C3).
+        """Inline scATAC TOBIAS dispatch (C3; production per ADR-078).
 
         The backend refuses uncorrected footprints and returns ran:false for
         missing TOBIAS/assets/groups, so the live flow can attempt footprinting
-        without fabricating a result.
+        without fabricating a result. When the peak BED or the barcode design is
+        not supplied, both are derived from the clustered ``.h5ad`` itself (peak
+        coordinates from ``var_names``; condition/replicate/batch from ``obs``
+        using only the confirmed design columns — never transferred labels).
         """
+        fragments_files = exp_ctx.get("fragments_files")
+        if not (isinstance(fragments_files, list) and fragments_files):
+            fragments_files = None
         fragments_file = (
             exp_ctx.get("fragments_file")
             or exp_ctx.get("fragments_path")
             or exp_ctx.get("fragment_file")
+            or (fragments_files[0] if fragments_files else None)
         )
         barcode_groups = (
             exp_ctx.get("barcode_groups")
             or exp_ctx.get("barcode_groups_tsv")
             or exp_ctx.get("barcode_group_tsv")
         )
+        footprint_dir = Path(out_dir) / "footprinting"
         params = {
-            **self._footprint_common_params(
-                exp_ctx, str(Path(out_dir) / "footprinting")),
+            **self._footprint_common_params(exp_ctx, str(footprint_dir)),
             "mode": "scatac",
             "data_type": "scATAC",
             "data_path": clustered,
-            "fragments_file": fragments_file,
-            "barcode_groups": barcode_groups,
+            "fragments_file": str(fragments_file) if fragments_file else None,
+            "barcode_groups": str(barcode_groups) if barcode_groups else None,
         }
+        motif_source = params.pop("_motif_source", None)
+        if fragments_files:
+            params["fragments_files"] = [str(f) for f in fragments_files]
+        sample_ids = exp_ctx.get("sample_ids")
+        n_frag_files = len(fragments_files) if fragments_files else 1
+        if (isinstance(sample_ids, list) and sample_ids
+                and len(sample_ids) == n_frag_files):
+            params["sample_ids"] = [str(x) for x in sample_ids]
+
+        clustered_ok = bool(clustered) and Path(str(clustered)).is_file()
+        if params.get("peaks_bed") is None and clustered_ok:
+            derived = self._derive_peaks_bed_from_h5ad(
+                clustered, footprint_dir / "derived_peaks.bed")
+            if derived:
+                params["peaks_bed"] = derived
+        if barcode_groups is None and clustered_ok:
+            design = self._derive_scatac_barcode_design(
+                {**exp_ctx, "group_a": params.get("group_a"),
+                 "group_b": params.get("group_b")},
+                clustered, footprint_dir / "derived_barcode_design.tsv")
+            if design is not None:
+                tsv_path, group_a, group_b = design
+                params["barcode_groups"] = tsv_path
+                if group_a and group_b:
+                    params["group_a"], params["group_b"] = group_a, group_b
+
         self.publish_status(
             experiment_id, "scATAC TOBIAS footprinting...", 0.95)
         result = self.env.run_in_stack(
@@ -1483,8 +1602,336 @@ class ChromatinAgent(BaseAgent):
         if isinstance(result, dict):
             result.setdefault("data_type", "scATAC")
             result.setdefault("analysis", "differential_tf_footprinting")
-            result.setdefault("validation_level", "beta")
+            result["validation_level"] = "production"
+            if motif_source and result.get("ran"):
+                result["motif_source"] = motif_source
+            self._attach_footprint_rna_cross_evidence(result, exp_ctx)
         return result
+
+    # ── ADR-078 helpers: design / peak derivation + RNA cross-evidence ──────
+
+    # Labels that must never become an inferential footprint grouping unless the
+    # user names them explicitly via ``footprint_groupby``.
+    _NON_INFERENTIAL_GROUP_COLS = frozenset({
+        "predicted_celltype", "transferred_label", "predicted_label",
+        "predicted_cell_type", "leiden", "louvain", "cluster", "clusters",
+    })
+
+    @staticmethod
+    def _h5_strings(values) -> list:
+        out = []
+        for value in values:
+            if isinstance(value, bytes):
+                value = value.decode("utf-8", errors="replace")
+            out.append(value)
+        return out
+
+    @classmethod
+    def _h5ad_index(cls, group) -> list:
+        """Read the index (obs_names / var_names) of an AnnData h5 group."""
+        key = group.attrs.get("_index", "_index")
+        if isinstance(key, bytes):
+            key = key.decode()
+        if key not in group:
+            return []
+        return [str(v) for v in cls._h5_strings(group[key][()])]
+
+    @classmethod
+    def _h5ad_obs_column(cls, obs, column: str) -> Optional[list]:
+        """Read one ``obs`` column via h5py (modern + legacy categorical)."""
+        if column not in obs:
+            return None
+        node = obs[column]
+        import h5py
+
+        if isinstance(node, h5py.Group):
+            if "categories" in node and "codes" in node:
+                cats = cls._h5_strings(node["categories"][()])
+                return [None if int(c) < 0 else cats[int(c)]
+                        for c in node["codes"][()]]
+            if "values" in node:  # nullable string/int arrays
+                values = cls._h5_strings(node["values"][()])
+                mask = node["mask"][()] if "mask" in node else None
+                return [None if (mask is not None and bool(mask[i])) else v
+                        for i, v in enumerate(values)]
+            return None
+        values = cls._h5_strings(node[()])
+        legacy = obs.get("__categories")
+        if legacy is not None and column in legacy:
+            cats = cls._h5_strings(legacy[column][()])
+            return [None if int(c) < 0 else cats[int(c)] for c in values]
+        return values
+
+    @classmethod
+    def _read_h5ad_obs(cls, h5ad_path) -> tuple[list, dict]:
+        """Return ``(obs_names, {column: values})`` from a clustered ``.h5ad``.
+
+        Uses anndata (backed, read-only) when importable, else a pure h5py
+        reader so the derivation works even in a minimal environment."""
+        try:
+            import anndata
+
+            adata = anndata.read_h5ad(str(h5ad_path), backed="r")
+            try:
+                obs = adata.obs
+                columns = {col: [None if _is_missing(v) else v
+                                 for v in obs[col].tolist()]
+                           for col in obs.columns}
+                return [str(x) for x in obs.index], columns
+            finally:
+                file = getattr(adata, "file", None)
+                if file is not None:
+                    file.close()
+        except Exception:
+            pass
+        import h5py
+
+        with h5py.File(str(h5ad_path), "r") as handle:
+            obs = handle["obs"]
+            names = cls._h5ad_index(obs)
+            columns = {}
+            order = obs.attrs.get("column-order", [])
+            for col in cls._h5_strings(list(order)) or [
+                    k for k in obs.keys() if k not in ("_index", "__categories")]:
+                values = cls._h5ad_obs_column(obs, str(col))
+                if values is not None and len(values) == len(names):
+                    columns[str(col)] = [None if _is_missing(v) else v
+                                         for v in values]
+            return names, columns
+
+    @classmethod
+    def _read_h5ad_var_names(cls, h5ad_path) -> list:
+        try:
+            import h5py
+
+            with h5py.File(str(h5ad_path), "r") as handle:
+                return cls._h5ad_index(handle["var"])
+        except Exception:
+            pass
+        try:
+            import anndata
+
+            adata = anndata.read_h5ad(str(h5ad_path), backed="r")
+            try:
+                return [str(x) for x in adata.var_names]
+            finally:
+                file = getattr(adata, "file", None)
+                if file is not None:
+                    file.close()
+        except Exception:
+            return []
+
+    def _derive_peaks_bed_from_h5ad(self, clustered, dest) -> Optional[str]:
+        """Write a clean 3-column BED from the matrix's peak ``var_names``.
+
+        Accepts ``chr:start-end``, ``chr_start_end`` and ``chr-start-end`` with
+        non-negative integer ``start < end``; anything else is skipped (never
+        guessed). Returns the BED path when at least one interval was written."""
+        import re
+
+        pattern = re.compile(r"^(.+?)[:_-](\d+)[-_:](\d+)$")
+        intervals = []
+        for name in self._read_h5ad_var_names(clustered):
+            match = pattern.match(str(name).strip())
+            if not match:
+                continue
+            chrom, start, end = match.group(1), int(match.group(2)), int(match.group(3))
+            if chrom and 0 <= start < end:
+                intervals.append((chrom, start, end))
+        if not intervals:
+            return None
+        dest = Path(dest)
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        with open(dest, "w", encoding="utf-8") as fh:
+            for chrom, start, end in intervals:
+                fh.write(f"{chrom}\t{start}\t{end}\n")
+        return str(dest)
+
+    @staticmethod
+    def _first_contrast(comparisons) -> tuple[Optional[str], Optional[str]]:
+        for comp in comparisons or []:
+            if isinstance(comp, dict):
+                test, ref = comp.get("test"), comp.get("reference")
+            elif isinstance(comp, (list, tuple)) and len(comp) == 2:
+                test, ref = comp
+            else:
+                continue
+            if test is not None and ref is not None:
+                return str(test), str(ref)
+        return None, None
+
+    def _derive_scatac_barcode_design(self, exp_ctx: dict, clustered,
+                                      dest) -> Optional[tuple]:
+        """Write ``barcode<TAB>group[<TAB>replicate][<TAB>batch]`` from ``obs``.
+
+        The grouping column is the explicit ``footprint_groupby`` or the
+        confirmed design condition (never transferred scRNA labels or Leiden
+        clusters by default), and the contrast must be explicit — ARIA does not
+        guess ``(group_a, group_b)`` from a two-level column. Returns
+        ``(tsv_path, group_a, group_b)`` or ``None`` when no valid grouping
+        column exists."""
+        contract = self._resolve_da_design(exp_ctx)
+        try:
+            barcodes, columns = self._read_h5ad_obs(clustered)
+        except Exception as exc:
+            log.warning("footprint barcode-design derivation failed: %s", exc)
+            return None
+        if not barcodes or not columns:
+            return None
+
+        explicit = exp_ctx.get("footprint_groupby")
+        group_col = None
+        if explicit:
+            group_col = str(explicit) if str(explicit) in columns else None
+        else:
+            for cand in (contract.get("condition_col"), exp_ctx.get("groupby"),
+                         "condition"):
+                if (cand and str(cand) in columns
+                        and str(cand) not in self._NON_INFERENTIAL_GROUP_COLS):
+                    group_col = str(cand)
+                    break
+        if group_col is None:
+            return None
+
+        rep_col = None
+        for cand in (contract.get("replicate_col"), exp_ctx.get("replicate_col"),
+                     "donor", "replicate", "sample_id", "sample"):
+            if cand and str(cand) in columns and str(cand) != group_col:
+                rep_col = str(cand)
+                break
+
+        batch_col = None
+        batch_candidates = list(contract.get("covariates") or [])
+        if exp_ctx.get("batch_key"):
+            batch_candidates.append(exp_ctx["batch_key"])
+        batch_candidates.append("batch")
+        for cand in batch_candidates:
+            if (cand and str(cand) in columns
+                    and str(cand) not in (group_col, rep_col)):
+                batch_col = str(cand)
+                break
+
+        group_a = exp_ctx.get("group_a")
+        group_b = exp_ctx.get("group_b")
+        if not (group_a and group_b):
+            group_a, group_b = self._first_contrast(contract.get("comparisons"))
+        if not (group_a and group_b):
+            group_a, group_b = self._first_contrast(exp_ctx.get("comparisons"))
+
+        def _cell(values, idx):
+            value = values[idx] if values is not None else None
+            return "" if value is None else str(value).strip()
+
+        dest = Path(dest)
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        header = ["barcode", "group"]
+        if rep_col:
+            header.append("replicate")
+        if batch_col:
+            header.append("batch")
+        n_written = 0
+        with open(dest, "w", encoding="utf-8") as fh:
+            fh.write("\t".join(header) + "\n")
+            for idx, barcode in enumerate(barcodes):
+                group = _cell(columns[group_col], idx)
+                if not group or not str(barcode).strip():
+                    continue
+                row = [str(barcode).strip(), group]
+                if rep_col:
+                    row.append(_cell(columns[rep_col], idx))
+                if batch_col:
+                    row.append(_cell(columns[batch_col], idx))
+                fh.write("\t".join(row) + "\n")
+                n_written += 1
+        if n_written == 0:
+            return None
+        return (str(dest),
+                str(group_a) if group_a else None,
+                str(group_b) if group_b else None)
+
+    def _rna_group_means_from_path(self, exp_ctx: dict, genes: list,
+                                   group_a: str, group_b: str) -> Optional[dict]:
+        """Mean RNA expression of candidate TF genes per footprint group, read
+        from the paired scRNA ``.h5ad`` / ``.h5mu`` (``rna`` modality). Returns
+        ``None`` whenever the data or matching group labels are unavailable."""
+        path = exp_ctx.get("rna_data_path") or exp_ctx.get("scrna_data_path")
+        if not path or not Path(str(path)).is_file() or not genes:
+            return None
+        import numpy as np
+
+        if str(path).lower().endswith(".h5mu"):
+            import mudata
+
+            adata = mudata.read_h5mu(str(path))["rna"]
+        else:
+            import anndata
+
+            adata = anndata.read_h5ad(str(path))
+        label_col = next((c for c in (exp_ctx.get("rna_label_col"),
+                                      exp_ctx.get("condition_col"),
+                                      "condition", "cell_type")
+                          if c and c in adata.obs.columns), None)
+        if label_col is None:
+            return None
+        labels = adata.obs[label_col].astype(str).to_numpy()
+        mask_a, mask_b = labels == str(group_a), labels == str(group_b)
+        if not mask_a.any() or not mask_b.any():
+            return None
+        lookup = {str(v).upper(): i for i, v in enumerate(adata.var_names)}
+        means: dict = {}
+        for gene in genes:
+            idx = lookup.get(str(gene).upper())
+            if idx is None:
+                continue
+            column = adata.X[:, idx]
+            column = (np.asarray(column.toarray()).ravel()
+                      if hasattr(column, "toarray") else np.asarray(column).ravel())
+            means[str(gene).upper()] = {
+                str(group_a): float(column[mask_a].mean()),
+                str(group_b): float(column[mask_b].mean()),
+            }
+        return means or None
+
+    def _attach_footprint_rna_cross_evidence(self, result: dict,
+                                             exp_ctx: dict) -> None:
+        """Annotate top differential footprints with paired-RNA concordance.
+
+        Associative cross-modal support only; any failure (no RNA, mismatched
+        labels, missing readers) leaves footprinting untouched."""
+        try:
+            if not (isinstance(result, dict) and result.get("ran")
+                    and isinstance(result.get("differential_summary"), dict)
+                    and result["differential_summary"].get("parsed")):
+                return
+            ga, gb = result.get("group_a"), result.get("group_b")
+            if not ga or not gb:
+                return
+            summary = result["differential_summary"]
+            rna_means = exp_ctx.get("rna_group_means")
+            if not isinstance(rna_means, dict):
+                from aria.agents.narrative.synthesis.footprint_rna import _tf_genes
+
+                genes = []
+                for favored in (ga, gb):
+                    for row in summary.get(f"top_toward_{favored}") or []:
+                        for gene in _tf_genes((row or {}).get("tf", "")):
+                            if gene not in genes:
+                                genes.append(gene)
+                try:
+                    rna_means = self._rna_group_means_from_path(
+                        exp_ctx, genes, str(ga), str(gb))
+                except Exception as exc:
+                    log.info("footprint RNA cross-evidence unavailable: %s", exc)
+                    rna_means = None
+            if isinstance(rna_means, dict) and rna_means:
+                from aria.agents.narrative.synthesis.footprint_rna import (
+                    footprint_rna_concordance,
+                )
+
+                result["rna_cross_evidence"] = footprint_rna_concordance(
+                    summary, rna_means, str(ga), str(gb))
+        except Exception as exc:  # cross-evidence must never fail footprinting
+            log.warning("footprint RNA cross-evidence failed: %s", exc)
 
     def _bulk_condition_bams(self, exp_ctx: dict, files: list,
                              condition_col: str = "condition") -> dict:
@@ -1541,12 +1988,59 @@ class ChromatinAgent(BaseAgent):
                 str(replicate), []).append(str(bam))
         return out
 
+    def _bulk_replicate_batches(self, exp_ctx: dict, files: list,
+                                condition_col: str = "condition",
+                                replicate_col: str = "replicate",
+                                batch_col: Optional[str] = None) -> dict:
+        """``{condition: {replicate: batch}}`` from explicit sample metadata.
+
+        Same strict identity rule as ``_bulk_replicate_bams`` (explicit
+        ``sample_ids`` aligned 1:1 with ``files``; no filename guesses). A
+        biological replicate is batched only when every one of its technical
+        libraries agrees on one non-empty batch; otherwise it is left unadjusted
+        and the backend keeps the unadjusted test."""
+        provided = exp_ctx.get("replicate_batches")
+        if isinstance(provided, dict):
+            return provided
+        if not batch_col:
+            batch_col = next((str(c) for c in (
+                *(exp_ctx.get("covariates") or []),
+                exp_ctx.get("batch_col"), exp_ctx.get("batch_key"), "batch")
+                if c and str(c).strip()), None)
+        sample_metadata = exp_ctx.get("sample_metadata") or {}
+        sample_ids = exp_ctx.get("sample_ids")
+        if (not batch_col or not isinstance(sample_metadata, dict)
+                or not sample_ids or len(sample_ids) != len(files)):
+            return {}
+        condition_col = condition_col or "condition"
+        replicate_col = replicate_col or "replicate"
+        seen: dict[tuple[str, str], set] = {}
+        for sample_id in sample_ids:
+            meta = sample_metadata.get(sample_id) or {}
+            if not isinstance(meta, dict):
+                continue
+            condition = meta.get(condition_col) or meta.get("condition")
+            replicate = meta.get(replicate_col)
+            if replicate is None:
+                replicate = meta.get("replicate")
+            if condition is None or replicate is None:
+                continue
+            batch = meta.get(batch_col)
+            batch = "" if batch is None else str(batch).strip()
+            seen.setdefault((str(condition), str(replicate)), set()).add(batch)
+        out: dict[str, dict[str, str]] = {}
+        for (condition, replicate), batches in seen.items():
+            if len(batches) == 1 and "" not in batches:
+                out.setdefault(condition, {})[replicate] = next(iter(batches))
+        return out
+
     def _run_bulk_atac_footprinting(self, experiment_id: str, exp_ctx: dict,
                                     da_result: dict, peaks_result: dict,
                                     files: list,
                                     contract: Optional[dict] = None,
                                     ) -> Optional[dict]:
-        """Inline bulk ATAC condition-level TOBIAS dispatch (C2, beta)."""
+        """Inline bulk ATAC condition-level TOBIAS dispatch (C2; production
+        per ADR-078)."""
         comparisons = [
             c for c in (da_result.get("comparisons") or [])
             if isinstance(c, dict) and c.get("status") == "success"
@@ -1584,7 +2078,21 @@ class ChromatinAgent(BaseAgent):
                 or peaks_result.get("consensus_peaks_path")
                 or peaks_result.get("peaks_path")
             ),
+            "replicate_batches": self._bulk_replicate_batches(
+                exp_ctx, files, condition_col=condition_col,
+                replicate_col=replicate_col,
+                batch_col=(contract.get("batch_covariate")
+                           or (contract.get("covariates") or [None])[0])),
         }
+        if bool(exp_ctx.get("paired_replicates")
+                or (exp_ctx.get("design") or {}).get("paired")):
+            params["paired_replicates"] = True
+        motif_source = params.pop("_motif_source", None)
+        if any(str(f).lower().endswith(".cram") for f in files):
+            reference_fasta = str(exp_ctx.get("reference_fasta")
+                                  or params.get("genome_fasta") or "")
+            if reference_fasta:
+                params["reference_fasta"] = reference_fasta
         self.publish_status(
             experiment_id, "bulk ATAC TOBIAS footprinting...", 0.99)
         result = self.env.run_in_stack(
@@ -1595,7 +2103,10 @@ class ChromatinAgent(BaseAgent):
         if isinstance(result, dict):
             result.setdefault("data_type", "bulk_ATAC")
             result.setdefault("analysis", "differential_tf_footprinting")
-            result.setdefault("validation_level", "beta")
+            result["validation_level"] = "production"
+            if motif_source and result.get("ran"):
+                result["motif_source"] = motif_source
+            self._attach_footprint_rna_cross_evidence(result, exp_ctx)
         return result
 
     def _run_bulk_atac_motifs(self, experiment_id: str, exp_ctx: dict,

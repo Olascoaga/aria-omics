@@ -66,7 +66,7 @@ TSSe/FRiP gating figures), TF-IDF/LSI clustering, descriptive per-cluster
 accessibility markers, donor-aware `pyDESeq2` pseudobulk condition-DA, genomic peak
 annotation (`chromatin_peak_annotation.py`), local GMT functional ORA
 (`chromatin_peak_ora.py`), `JASPAR2024` motif enrichment, Signac-calibrated cis
-`peak2gene` (`ADR-068`), optional `beta` `TOBIAS` footprinting + RNA cross-evidence,
+`peak2gene` (`ADR-068`), `production` `TOBIAS` differential TF footprinting + RNA cross-evidence (`ADR-078`, associative; replicate-mean Welch/paired/batch-OLS + BH when `n>=3`, `descriptive_only` when pooled),
 caveated `gene_scores`, and `C3`-verified chromatin report blocks (`ledger://chromatin/scatac_preprocessing`) + publication figures.
 
 Missing resources or underpowered designs are reported as skipped/limited analyses,
@@ -80,8 +80,9 @@ raw SE/PE/multi-lane FASTQ cohorts (`rna_fastq_qc.py` `fastp` + `atac_align.py`
 stripping, and `A4` stage-manifest resume), aligned BAM/CRAM cohorts, or
 pre-computed peak-by-sample count matrices (`.tsv`/`.csv`). It is governed by
 `BulkATACAuditAgent` and is not presented as universally publication-grade without
-expert design review; footprinting (`TOBIAS`) remains `beta` and descriptive-only
-when its replicate-aware inference contract is not met. The production spine runs
+expert design review; `TOBIAS` differential TF footprinting (`ADR-078`) is `production`
+(`production_associative`) and downgrades automatically to `descriptive_only`
+when its replicate-aware inference contract (`n>=3` non-confounded replicates per condition) is not met. The production spine runs
 100% local `pysam` + `bedtools` + local-GTF ENCODE QC (per-sample and cohort FRiP,
 BAM-level TSS enrichment, duplicate rate, mitochondrial fraction, and paired-end
 insert-size nucleosomal banding across all samples) → SE/PE auto-detected `MACS3`
@@ -91,7 +92,7 @@ filtering → integer and `CPM` peak-by-sample matrices (`chromatin_peak_counts.
 accessibility (`chromatin_bulk_diffacc.py`, externally concordant with R `DESeq2`,
 `edgeR`, and `limma-voom` on multi-replicate + batch cohorts and ENCODE `K562` vs
 `GM12878`) → genomic peak annotation → local GMT functional ORA → `JASPAR2024` TF
-motif enrichment → optional `beta` `TOBIAS` footprinting → `C3`-verified report
+motif enrichment → `production` `TOBIAS` differential TF footprinting (`ADR-078`) → `C3`-verified report
 blocks (`ledger://chromatin/bulk_atac_preprocessing`) and dual PNG+SVG PCA, QC,
 Volcano, and MA figures (`chromatin_figure_bulk.py`). `n=2` isogenic designs
 require explicit `CP3.5` acknowledgement and run with a low-power warning
@@ -103,7 +104,7 @@ For `scATAC` and `bulk_ATAC` optional layers (core spines are `production` under
 
 - chromVAR per-cell motif activity if that becomes a product goal;
 - independent threshold calibration if `gene_scores` is ever promoted beyond caveated exploratory status;
-- `TOBIAS` footprinting remains `beta` (`Dockerfile.tobias`), descriptive unless `>=3` biological replicates per group are supplied.
+- `TOBIAS` differential TF footprinting is `production` (`ADR-078`, `Dockerfile.tobias`), running replicate-mean Welch, paired-donor, or batch-adjusted OLS + BH-FDR when `>=3` biological replicates per group are supplied and downgrading to `descriptive_only` otherwise.
 
 For ChIP / CUT&RUN / CUT&TAG:
 
@@ -128,8 +129,9 @@ flowchart TD
 
 ## Release Recommendation
 
-`scATAC` (`ADR-076`, `ScATACAuditAgent`) and `bulk_ATAC` (`ADR-077`,
-`BulkATACAuditAgent`) are promoted to **production**, while paired same-cell
-RNA+ATAC integration and `TOBIAS` footprinting remain acknowledgement-gated
-**beta** lanes (`ADR-056`, `ADR-071`); scaffolded chromatin assays
-(ChIP/CUT&RUN/CUT&TAG) remain blocked from publication-looking dispatch.
+`scATAC` (`ADR-076`, `ScATACAuditAgent`), `bulk_ATAC` (`ADR-077`,
+`BulkATACAuditAgent`), and `TOBIAS` differential TF footprinting (`ADR-078`)
+are promoted to **production**, while paired same-cell RNA+ATAC integration
+remains an acknowledgement-gated **beta** lane (`ADR-056`, `ADR-071`);
+scaffolded chromatin assays (ChIP/CUT&RUN/CUT&TAG) remain blocked from
+publication-looking dispatch.

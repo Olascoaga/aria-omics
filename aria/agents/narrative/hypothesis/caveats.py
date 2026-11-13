@@ -29,6 +29,8 @@ LOW_REPLICATION = "low_replication"
 MOTIF_NOT_BINDING = "motif_not_binding"
 GENE_ACTIVITY_PROXY = "gene_activity_proxy"
 PEAK2GENE_ASSOCIATIVE = "peak2gene_associative"
+# Differential TF footprinting (ADR-078): Tn5-protected motif occupancy.
+FOOTPRINT_ASSOCIATIVE = "footprint_associative"
 # Paired cross-modal integration caveats (ADR-072 / V48 Slice I9).
 PARALOG_MOTIF_AMBIGUITY = "paralog_motif_ambiguity"
 DEPTH_CONFOUNDED = "depth_confounded"
@@ -56,6 +58,11 @@ CAVEAT_GLOSSES: dict[str, str] = {
     PEAK2GENE_ASSOCIATIVE: (
         "a peak-to-gene link is an associative cross-cell correlation, not an "
         "established regulatory mechanism"
+    ),
+    FOOTPRINT_ASSOCIATIVE: (
+        "differential TF footprinting measures Tn5-protected motif occupancy, "
+        "which is associative (paralog TFs share motifs) and not causal gene "
+        "regulation"
     ),
     PARALOG_MOTIF_AMBIGUITY: (
         "candidate eRegulon shares motif sequence similarity and cis peaks with "

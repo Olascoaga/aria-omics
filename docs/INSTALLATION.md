@@ -271,9 +271,10 @@ bulk via `aria-rnaseq-env` / `docker/Dockerfile.rnaseq`), 10x `.h5`, complete
 multi-platform `chromap` raw FASTQs via `aria-atacseq-env` + `aria-chromatin-env` /
 `docker/Dockerfile.atacseq` + `docker/Dockerfile.chromatin`), and universal
 `bulk_ATAC` inputs (SE/PE/multi-lane raw FASTQs, BAM/CRAM, and pre-computed
-peak-count matrices). Beta `TOBIAS` footprinting (`docker/Dockerfile.tobias`)
-and paired-multiome entry points require typed metadata, manifests, and `CP3.5`
-acknowledgement where the assay contract needs them.
+peak-count matrices), and `TOBIAS` differential TF footprinting (`aria-tobias-env` /
+`docker/Dockerfile.tobias`, `ADR-078`). Beta paired-multiome entry points require
+typed metadata, manifests, and `CP3.5` acknowledgement where the assay contract
+needs them.
 
 Do not rely on filenames to establish the biological design. ARIA intentionally
 refuses silent production inference for groups, references, replicates, and

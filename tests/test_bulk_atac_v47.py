@@ -187,8 +187,8 @@ def test_bulk_atac_agent_runs_qc_peaks_counts_and_da(tmp_path):
             == "production")
     assert findings["peak_annotation"]["validation_level"] == "production"
     assert findings["peak_ora"]["validation_level"] == "production"
-    # TOBIAS footprinting is NOT promoted by ADR-077.
-    assert findings["footprinting"]["validation_level"] == "beta"
+    # TOBIAS footprinting promoted to production in ADR-078.
+    assert findings["footprinting"]["validation_level"] == "production"
     # Post-peak-calling FRiP closes the QC gate (TSSe still unmeasured here).
     assert findings["qc"]["frip"] == 0.31
     assert not any(str(m).startswith("frip")

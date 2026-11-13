@@ -42,7 +42,12 @@ def test_chromatin_narrator_surfaces_measured_qc_and_marks_not_computed():
     assert len(blocks) == 1
     qc = blocks[0]
     assert qc.modality == "chromatin"
-    assert qc.metadata.get("validation_level") == "scaffold"
+    assert qc.metadata.get("validation_level") == "production"
+    # Unpromoted ChIP/CUT&RUN/CUT&TAG assays remain scaffold by default.
+    chip_blocks = n.collect("chromatin_agent", {"findings": {"qc": {
+        "status": "success", "data_type": "ChIP", "n_cells": 100,
+    }}}, {})
+    assert chip_blocks[0].metadata.get("validation_level") == "scaffold"
     # measured metrics appear as evidence; uncomputed metrics never fabricated
     labels = {e.label for e in qc.evidence}
     assert any("barcode" in lbl.lower() for lbl in labels)

@@ -1,0 +1,271 @@
+{
+  "adr": "ADR-078",
+  "all_gates_pass": true,
+  "alpha": 0.05,
+  "benchmark": "adr078_tobias_replicate_concordance",
+  "description": "Replicate-level differential TF footprint inference (Welch / paired / batch-adjusted OLS + BH across motifs) vs external R stats, null calibration, and a live TOBIAS ATACorrect->ScoreBigwig->BINDetect run.",
+  "environment": {
+    "aria_version": "4.8.0",
+    "r_env": "aria-bench-env",
+    "r_version": "R version 4.3.3 (2024-02-29)",
+    "tobias_env": "aria-tobias-env"
+  },
+  "gates": {
+    "effect_pearson_r_min": 0.999999,
+    "live_max_abs_padj_diff_max": 1e-10,
+    "max_abs_padj_diff_max": 1e-10,
+    "null_false_positive_cohorts_max": 0,
+    "significant_jaccard_min": 1.0
+  },
+  "paths_clean": true,
+  "schema_version": 1,
+  "spec": {
+    "batch": {
+      "batch_offset": 2.5,
+      "batches": [
+        "batch1",
+        "batch2"
+      ],
+      "n_motifs": 40,
+      "n_per_group": 4,
+      "n_planted": 10,
+      "noise_sd": 0.25,
+      "planted_effect": 1.5
+    },
+    "live_tobias": {
+      "genome_length": 40000,
+      "groups": [
+        "Treated",
+        "Control"
+      ],
+      "n_peaks": 20,
+      "n_replicates_per_condition": 3,
+      "peak_width": 500,
+      "protected_tf": "CEBPB",
+      "read_length": 36,
+      "reads_per_replicate": 60000
+    },
+    "null": {
+      "n_cohorts": 20,
+      "n_motifs": 50,
+      "n_per_group": 4,
+      "noise_sd": 1.0
+    },
+    "paired": {
+      "donor_sd": 2.0,
+      "n_donors": 4,
+      "n_motifs": 40,
+      "n_planted": 10,
+      "noise_sd": 0.15,
+      "planted_effect": 1.0
+    },
+    "seed": 20261112,
+    "welch": {
+      "n_motifs": 40,
+      "n_per_group": 4,
+      "n_planted": 10,
+      "noise_sd": 0.25,
+      "planted_effect": 1.5
+    }
+  },
+  "suites": {
+    "batch_adjusted_ols": {
+      "gates": {
+        "aria_batch_adjusted": true,
+        "aria_inference_success": true,
+        "confounded_is_descriptive_only": true,
+        "effect_pearson_r": true,
+        "max_abs_padj_diff": true,
+        "shared_all_motifs": true,
+        "significant_jaccard": true
+      },
+      "metrics": {
+        "aria_test": "ols_t_test_on_replicate_mean_scores_batch_adjusted",
+        "confounded_control": {
+          "reason": "batch_condition_confounded",
+          "status": "descriptive_only"
+        },
+        "effect_pearson_r": 0.9999999992084657,
+        "false_discoveries_aria": 0,
+        "max_abs_effect_diff": 4.9911005848057854e-05,
+        "max_abs_padj_diff": 2.886579864025407e-15,
+        "n_motifs_aria": 40,
+        "n_motifs_r": 40,
+        "n_motifs_shared": 40,
+        "n_planted": 10,
+        "n_significant_aria": 10,
+        "n_significant_r": 10,
+        "planted_recovered_aria": 10,
+        "r_call": "summary(stats::lm(score ~ batch + group))$coefficients['groupA', ]; p.adjust(BH)",
+        "significant_jaccard": 1.0
+      },
+      "pass": true,
+      "status": "ran"
+    },
+    "live_tobias": {
+      "gates": {
+        "independent_replicates_use_welch": true,
+        "inference_success": true,
+        "r_max_abs_padj_diff": true,
+        "r_shared_all_motifs": true,
+        "r_significant_jaccard": true,
+        "ran": true,
+        "stage_manifest": true,
+        "volcano_png_svg": true
+      },
+      "metrics": {
+        "aria_rows": {
+          "MA9001.1": {
+            "change": 170.4639,
+            "padj": 0.019639378888416062,
+            "pvalue": 0.019639378888416062,
+            "tf": "CEBPB"
+          },
+          "MA9002.1": {
+            "change": -215.2972,
+            "padj": 0.005756923865396288,
+            "pvalue": 0.003837949243597525,
+            "tf": "NFKB_BG"
+          },
+          "MA9003.1": {
+            "change": -229.735,
+            "padj": 0.0026264114060693547,
+            "pvalue": 0.0008754704686897849,
+            "tf": "AP1_BG"
+          }
+        },
+        "bindetect_results": "live_tobias/footprinting/bindetect_replicates/bindetect_results.txt",
+        "inference_status": "success",
+        "inference_test": "welch_t_test_on_replicate_mean_scores",
+        "method": "tobias_replicate_atacorrect_scorebigwig_bindetect_welch_bh",
+        "n_motifs_tested": 3,
+        "n_significant": 3,
+        "pairing_status": "independent",
+        "protected_tf": "CEBPB",
+        "r_concordance": {
+          "effect_pearson_r": 0.999999999999994,
+          "max_abs_effect_diff": 4.9999999845340426e-05,
+          "max_abs_padj_diff": 6.591949208711867e-17,
+          "n_motifs_aria": 3,
+          "n_motifs_r": 3,
+          "n_motifs_shared": 3,
+          "n_significant_aria": 3,
+          "n_significant_r": 3,
+          "significant_jaccard": 1.0
+        },
+        "ran": true,
+        "reason": null,
+        "recovery_note": "Not gated: this suite certifies that ARIA's replicate statistics on live TOBIAS output match external R. On this small synthetic genome, unprotected background motifs can also differ because TOBIAS footprint scores are not depth-invariant; recovery is reported, not claimed.",
+        "replicates_per_condition": {
+          "Control": 3,
+          "Treated": 3
+        },
+        "results_table": "live_tobias/footprinting/replicate_footprint_inference.tsv",
+        "significant_tfs": [
+          "AP1_BG",
+          "CEBPB",
+          "NFKB_BG"
+        ],
+        "stage_manifest": "live_tobias/footprinting/chromatin_footprint_tobias.stage_manifest.json",
+        "status": "success",
+        "tobias_version": "0.17.3",
+        "volcano_png": "live_tobias/footprinting/footprint_volcano.png",
+        "volcano_svg": "live_tobias/footprinting/footprint_volcano.svg"
+      },
+      "pass": true,
+      "status": "ran"
+    },
+    "null_calibration": {
+      "gates": {
+        "false_positive_cohorts": true
+      },
+      "metrics": {
+        "false_discoveries_per_cohort": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "false_positive_cohorts": 0,
+        "n_cohorts": 20,
+        "n_motifs_per_cohort": 50,
+        "nominal_cohort_fwer_under_global_null": 0.05,
+        "total_false_discoveries": 0
+      },
+      "pass": true,
+      "status": "ran"
+    },
+    "paired_donor": {
+      "gates": {
+        "aria_inference_success": true,
+        "aria_used_paired_test": true,
+        "effect_pearson_r": true,
+        "max_abs_padj_diff": true,
+        "shared_all_motifs": true,
+        "significant_jaccard": true
+      },
+      "metrics": {
+        "aria_pairing_status": "complete",
+        "aria_test": "paired_t_test_on_within_donor_mean_score_differences",
+        "effect_pearson_r": 0.9999999985406816,
+        "false_discoveries_aria": 1,
+        "max_abs_effect_diff": 4.97684397008924e-05,
+        "max_abs_padj_diff": 3.3306690738754696e-16,
+        "n_motifs_aria": 40,
+        "n_motifs_r": 40,
+        "n_motifs_shared": 40,
+        "n_planted": 10,
+        "n_significant_aria": 11,
+        "n_significant_r": 11,
+        "planted_recovered_aria": 10,
+        "r_call": "stats::t.test(x_a, x_b, paired = TRUE); p.adjust(BH)",
+        "significant_jaccard": 1.0
+      },
+      "pass": true,
+      "status": "ran"
+    },
+    "welch_independent": {
+      "gates": {
+        "aria_inference_success": true,
+        "effect_pearson_r": true,
+        "max_abs_padj_diff": true,
+        "shared_all_motifs": true,
+        "significant_jaccard": true
+      },
+      "metrics": {
+        "aria_test": "welch_t_test_on_replicate_mean_scores",
+        "effect_pearson_r": 0.9999999991660642,
+        "false_discoveries_aria": 0,
+        "max_abs_effect_diff": 4.991895266875934e-05,
+        "max_abs_padj_diff": 9.992007221626409e-16,
+        "n_motifs_aria": 40,
+        "n_motifs_r": 40,
+        "n_motifs_shared": 40,
+        "n_planted": 10,
+        "n_significant_aria": 10,
+        "n_significant_r": 10,
+        "planted_recovered_aria": 10,
+        "r_call": "stats::t.test(x_a, x_b, var.equal = FALSE); p.adjust(BH)",
+        "significant_jaccard": 1.0
+      },
+      "pass": true,
+      "status": "ran"
+    }
+  }
+}

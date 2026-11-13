@@ -1133,11 +1133,7 @@ class ChromatinNarrator:
         group_kind = footprinting.get("group_kind", "cell-type groups")
         inference = summary.get("inference") or {}
         inferential = inference.get("status") == "success"
-        inferential_method = (
-            "paired t-test on within-donor mean-score differences; "
-            if str(inference.get("test", "")).startswith("paired")
-            else "Welch t-test on biological-replicate mean scores; "
-        ) + "Benjamini–Hochberg across motifs"
+        inferential_method = self._footprint_inferential_method(inference)
         n_ranked = summary.get("n_ranked_candidates")
         if n_ranked is None:  # legacy artifacts written before the B7 interim
             n_ranked = summary.get("n_significant")
@@ -1221,6 +1217,11 @@ class ChromatinNarrator:
             )
 
         figures = []
+        volcano_png = (footprinting.get("volcano_plot") or {}).get("png")
+        if isinstance(volcano_png, str) and volcano_png:
+            figures.append({"id": "footprint_volcano", "path": volcano_png,
+                            "caption": f"Differential TF footprint volcano ({ga} vs "
+                                       f"{gb}); associative occupancy contrast."})
         for tf, paths in (footprinting.get("aggregate_plots") or {}).items():
             png = (paths or {}).get("png")
             if png:
@@ -1237,7 +1238,76 @@ class ChromatinNarrator:
             caveats=[Caveat(caveat_text, severity="warning")],
             metrics={"differential_summary": summary,
                      "rna_cross_evidence": cross or None},
+            metadata={"validation_level": (footprinting.get("validation_level")
+                                           or "production")},
         )
+
+    @staticmethod
+    def _footprint_inferential_method(inference: dict) -> str:
+        """Human-readable replicate test actually fitted (Welch / paired / OLS)."""
+        test = str((inference or {}).get("test", ""))
+        if test.startswith("paired"):
+            method = "paired t-test on within-donor mean-score differences"
+        elif ("batch" in test.lower() or "ols" in test.lower()
+              or (inference or {}).get("batch_adjusted")):
+            method = ("batch-adjusted linear model on biological-replicate mean "
+                      "scores")
+        else:
+            method = "Welch t-test on biological-replicate mean scores"
+        return f"{method}; Benjamini–Hochberg across motifs"
+
+    def _footprint_methods_paragraph(self, footprinting: dict) -> str | None:
+        """Copy-pasteable TOBIAS methods text, sourced only from the run result."""
+        if not (isinstance(footprinting, dict) and footprinting.get("ran")):
+            return None
+        summary = footprinting.get("differential_summary") or {}
+        inference = summary.get("inference") or {}
+        src = footprinting.get("motif_source") or {}
+        ga = footprinting.get("group_a", "?")
+        gb = footprinting.get("group_b", "?")
+        collection = src.get("collection")
+        motif_txt = (
+            f"the versioned local {collection} motif collection (release "
+            f"{src.get('release', '?')}"
+            + (f", {src.get('n_motifs')} motifs" if src.get("n_motifs") else "")
+            + ")"
+        ) if collection else "the supplied local MEME motif collection"
+        text = (
+            "Differential TF footprinting: Tn5 insertion bias was corrected with "
+            "TOBIAS ATACorrect, footprint scores were computed with TOBIAS "
+            "ScoreBigwig over the peak set, and motif binding sites were detected "
+            f"and scored with TOBIAS BINDetect against {motif_txt} for {ga} versus "
+            f"{gb}; offline, no network egress.")
+        if inference.get("status") == "success":
+            reps = inference.get("replicates_per_condition") or {}
+            reps_txt = ", ".join(f"{k}: {v}" for k, v in reps.items()) or "?"
+            alpha = summary.get("alpha", inference.get("alpha", 0.05))
+            null = inference.get("null_label_controls") or {}
+            text += (
+                " Statistical inference treated each biological replicate/donor as "
+                "the observational unit: per-replicate BINDetect motif mean scores "
+                f"were tested with a {self._footprint_inferential_method(inference)}"
+                f" (test: {inference.get('test', '?')}; replicates per condition "
+                f"{reps_txt}), and motifs with Benjamini–Hochberg adjusted p <= "
+                f"{alpha} were reported. BINDetect site-level p-values were not "
+                "used for significance. "
+                f"{null.get('n_permutations', 0)} design-respecting condition-label "
+                "permutations were run as calibration diagnostics, not as a "
+                "post-hoc significance gate.")
+            if inference.get("low_power_warning"):
+                text += (" The design had fewer than three replicates per condition "
+                         "and is low power.")
+        else:
+            reason = inference.get("reason")
+            text += (
+                " Biological replicate inference was not possible"
+                + (f" ({reason})" if reason else "")
+                + "; each condition was pooled into one pseudobulk, so the motif "
+                "ranking is descriptive and not FDR-controlled (BINDetect site-level "
+                "p-values ignore biological replication).")
+        text += (" A footprint-occupancy difference is associative and is not "
+                 "evidence of causal gene regulation.")
+        return text
 
     # ── Methods + tables ────────────────────────────────────────────────────
     def _bulk_atac_methods(self, findings: dict) -> list[str]:
@@ -1375,6 +1445,10 @@ class ChromatinNarrator:
                 f"network egress. An enriched motif is an associative database "
                 f"match in the peak set, not evidence of TF activity or "
                 f"regulation.")
+        footprint_txt = self._footprint_methods_paragraph(
+            findings.get("footprinting") or {})
+        if footprint_txt:
+            out.append(footprint_txt)
         return out
 
     def methods(self, agent_name: str, agent_result: dict,
@@ -1420,6 +1494,10 @@ class ChromatinNarrator:
                 "footprinting requires fragments plus a Tn5 bias model, and "
                 "scRNA label transfer is report-only rather than an inferential "
                 "grouping.")
+        footprint_txt = self._footprint_methods_paragraph(
+            findings.get("footprinting") or {})
+        if footprint_txt:
+            out.append(footprint_txt)
         return out
 
     def figures(self, agent_name: str, agent_result: dict,
@@ -1508,4 +1586,19 @@ class ChromatinNarrator:
                 tables.append({"id": f"chromatin.{key}",
                                "path": sub["output_csv"],
                                "label": label})
+        footprinting = findings.get("footprinting") or {}
+        if isinstance(footprinting, dict) and footprinting.get("ran"):
+            fp_summary = footprinting.get("differential_summary") or {}
+            results_table = (footprinting.get("results_table")
+                             or (fp_summary.get("results_table")
+                                 if isinstance(fp_summary, dict) else None))
+            if results_table:
+                tables.append({"id": "chromatin.footprint_inference",
+                               "path": results_table,
+                               "label": "Differential TF footprint replicate "
+                                        "inference"})
+            if footprinting.get("bindetect_results"):
+                tables.append({"id": "chromatin.footprint_bindetect",
+                               "path": footprinting["bindetect_results"],
+                               "label": "TOBIAS BINDetect motif summary"})
         return tables

@@ -9,6 +9,8 @@ Pure and deterministic — no LLM. Flattens the audited scATAC findings into
     NOT RNA expression.
   - peak-to-gene links               -> gene signals, caveated as associative
     correlation, not regulatory mechanism.
+  - differential TF footprinting     -> tf_motif signals, only when replicate/
+    donor inference succeeded (BH-significant motifs; ADR-078).
 
 Per-cluster Wilcoxon DA markers are peak coordinates (not groundable names, like
 bulk ATAC) and are intentionally not emitted as entities. Each layer is emitted
@@ -26,7 +28,13 @@ from ..caveats import (
     PEAK2GENE_ASSOCIATIVE,
 )
 from ..types import EvidenceSignal
-from ._chromatin_common import motif_signals, node_ran, num
+from ._chromatin_common import (
+    FOOTPRINT_NODE,
+    footprint_signals,
+    motif_signals,
+    node_ran,
+    num,
+)
 
 _MOTIF_NODE = "ledger://chromatin/motif_enrichment"
 _REG_NODE = "ledger://chromatin/regulatory_layers"
@@ -128,5 +136,12 @@ def scatac_evidence(
                 n += 1
                 if n >= _MAX_GENES:
                     break
+
+    # 3. ADR-078: BH-significant replicate/donor differential TF footprints.
+    # Descriptive pseudobulk footprinting is never emitted (strict gate).
+    footprinting = findings.get("footprinting") or {}
+    if footprinting.get("ran") and node_ran(run_ledger, FOOTPRINT_NODE):
+        signals += footprint_signals(
+            footprinting, modality="scATAC", node=FOOTPRINT_NODE)
 
     return signals

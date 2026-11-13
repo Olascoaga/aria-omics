@@ -605,3 +605,90 @@ def test_drivers_plumb_batches_and_inferential_cache_requires_results_table(
     assert len(pipeline_calls) == 2
     assert "reused_from_stage_manifest" not in rerun
     assert Path(rerun["differential_summary"]["results_table"]).is_file()
+
+
+def test_bulk_driver_unpaired_by_default_for_shared_replicate_labels_and_opt_in_paired(
+    tmp_path, monkeypatch,
+):
+    """In bulk ATAC, replicate_bams commonly uses generic labels like r1/r2/r3
+    inside each condition. By default they must be modeled as independent
+    condition::replicate units (allowing Welch or batch-adjusted OLS), while
+    paired_replicates=True opts into within-donor paired t-tests."""
+    from aria.scripts import chromatin_footprint_tobias as mod
+
+    for name in ["genome.fa", "peaks.bed", "motifs.meme"]:
+        (tmp_path / name).write_text("input\n", encoding="utf-8")
+    (tmp_path / "genome.fa.fai").write_text("chr1\t1000\n", encoding="utf-8")
+
+    replicate_design = {
+        "Treated": {"r1": ["t1.bam"], "r2": ["t2.bam"], "r3": ["t3.bam"]},
+        "Control": {"r1": ["c1.bam"], "r2": ["c2.bam"], "r3": ["c3.bam"]},
+    }
+    monkeypatch.setattr(mod.shutil, "which", lambda _: "/usr/bin/TOBIAS")
+    monkeypatch.setattr(
+        mod, "_merge_condition_bams",
+        lambda inputs, *args, **kwargs: {
+            k: {"bam": str(tmp_path / f"{k}.bam"), "n_fragments": 100, "n_bams": 1}
+            for k in inputs
+        },
+    )
+
+    def fake_pipeline(bams, replicate_groups, *args, **kwargs):
+        path = tmp_path / "bindetect_results.txt"
+        cols = list(replicate_groups)
+        # Scores with identical delta across r1..r3 (zero paired variance if
+        # falsely paired!) plus a batch shift on r3.
+        vals = []
+        for s in cols:
+            is_t = replicate_groups[s] == "Treated"
+            idx = 0 if "r1" in s else (1 if "r2" in s else 2)
+            batch_shift = 5.0 if idx == 2 else 0.0
+            vals.append(f"{(3.0 if is_t else 0.2) + idx * 0.15 + batch_shift:.4f}")
+        path.write_text(
+            "name\ttotal_tfbs\t" + "\t".join(f"{s}_mean_score" for s in cols)
+            + "\nTF_X\t120\t" + "\t".join(vals) + "\n",
+            encoding="utf-8",
+        )
+        return {
+            "bindetect_results": str(path),
+            "bindetect_outdir": str(tmp_path / "bd"),
+            "replicate_groups": replicate_groups,
+            "corrected_signals": {},
+            "footprint_signals": {},
+        }
+
+    monkeypatch.setattr(mod, "_tobias_replicate_pipeline", fake_pipeline)
+    monkeypatch.setattr(mod, "_aggregate_plots", lambda *args, **kwargs: {})
+
+    base_params = {
+        "replicate_bams": replicate_design,
+        "replicate_batches": {
+            "Treated": {"r1": "b1", "r2": "b1", "r3": "b2"},
+            "Control": {"r1": "b1", "r2": "b1", "r3": "b2"},
+        },
+        "genome_fasta": str(tmp_path / "genome.fa"),
+        "peaks_bed": str(tmp_path / "peaks.bed"),
+        "motif_meme": str(tmp_path / "motifs.meme"),
+        "group_a": "Treated",
+        "group_b": "Control",
+        "make_volcano_plot": False,
+        "make_aggregate_plots": False,
+    }
+    unpaired = mod.chromatin_footprint_tobias_bulk(
+        {**base_params, "output_dir": str(tmp_path / "unpaired")}
+    )
+    inf_u = unpaired["differential_summary"]["inference"]
+    assert inf_u["pairing_status"] == "independent"
+    assert inf_u["batch_adjusted"] is True
+    assert "batch" in inf_u["test"]
+
+    paired = mod.chromatin_footprint_tobias_bulk(
+        {
+            **base_params,
+            "paired_replicates": True,
+            "output_dir": str(tmp_path / "paired"),
+        }
+    )
+    inf_p = paired["differential_summary"]["inference"]
+    assert inf_p["pairing_status"] == "complete"
+    assert inf_p["test"] == "paired_t_test_on_within_donor_mean_score_differences"

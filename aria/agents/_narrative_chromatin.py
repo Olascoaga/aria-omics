@@ -673,4 +673,16 @@ def generate_figures(findings: dict, h5ad_path: Optional[str], output_dir,
         except Exception as e:
             log.warning("chromatin cluster figure subprocess crashed: %s", e)
 
+    # 6. Differential TF footprinting (ADR-078): the volcano + per-TF aggregate
+    # footprints are rendered by the TOBIAS backend; surface only files that exist.
+    footprinting = findings.get("footprinting") or {}
+    if isinstance(footprinting, dict) and footprinting.get("ran"):
+        volcano_png = (footprinting.get("volcano_plot") or {}).get("png")
+        if isinstance(volcano_png, str) and Path(volcano_png).exists():
+            figs["footprint_volcano"] = volcano_png
+        for tf, paths in (footprinting.get("aggregate_plots") or {}).items():
+            png = (paths or {}).get("png") if isinstance(paths, dict) else None
+            if isinstance(png, str) and Path(png).exists():
+                figs[f"footprint_{_safe(tf)}"] = png
+
     return findings

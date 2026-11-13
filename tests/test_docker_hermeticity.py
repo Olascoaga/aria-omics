@@ -79,14 +79,9 @@ def test_scaffold_modalities_are_marked_unvalidated():
 
 
 def test_validated_chromatin_images_are_stamped_validated():
-    for name in ("Dockerfile.chromatin", "Dockerfile.atacseq"):
+    for name in ("Dockerfile.chromatin", "Dockerfile.atacseq", "Dockerfile.tobias"):
         text = (DOCKER / name).read_text()
         assert "ARIA_IMAGE_VALIDATION=validated" in text, \
             f"docker/{name} must stamp ARIA_IMAGE_VALIDATION=validated"
         assert "ARIA_IMAGE_VALIDATION=scaffold" not in text
-
-
-def test_tobias_image_is_stamped_beta():
-    text = (DOCKER / "Dockerfile.tobias").read_text()
-    assert "ARIA_IMAGE_VALIDATION=beta" in text, \
-        "docker/Dockerfile.tobias must stamp ARIA_IMAGE_VALIDATION=beta"
+        assert "ARIA_IMAGE_VALIDATION=beta" not in text

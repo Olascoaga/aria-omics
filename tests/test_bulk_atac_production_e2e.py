@@ -108,7 +108,7 @@ def test_bulk_atac_production_promotion_and_audit_governance(tmp_path):
 
     assert (
         SCRIPT_CONTRACTS["aria/scripts/chromatin_footprint_tobias.py"].validation_level
-        == "beta"
+        == "production"
     )
 
     bam = tmp_path / "cohort_ctrl_1.bam"
@@ -622,6 +622,7 @@ def test_live_paired_end_fastq_to_bam_qc_macs3_da_ora_figures_c3_e2e(
         "genome_fai": mini_bulk_atac_reference["fai"],
         "gtf": mini_bulk_atac_reference["gtf"],
         "blacklist_bed": mini_bulk_atac_reference["blacklist"],
+        "enable_footprinting": False,
         "modalities": {"bulk_ATAC": fastq_files},
         "sample_metadata": sample_metadata,
         "design": {
@@ -909,6 +910,7 @@ def test_live_precomputed_peak_counts_matrix_intake_to_pydeseq2_da(
             "exp_context": {
                 "genome": "hg38",
                 "gtf": mini_bulk_atac_reference["gtf"],
+                "enable_footprinting": False,
                 "modalities": {"bulk_ATAC": [str(mat_tsv)]},
                 "sample_metadata": {
                     s: {"condition": "ctrl" if s.startswith("ctrl") else "treat", "replicate": s}
