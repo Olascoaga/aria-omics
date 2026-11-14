@@ -533,6 +533,9 @@ def _paired_h5mu_records(exp_context: dict[str, Any]) -> list[dict[str, Any]]:
 
     # Filename fallback only marks a candidate when AssayDetector has not
     # already inspected the `.h5mu` path and determined `paired_rna` is false.
+    # When an uninspected `.h5mu` exists on disk (e.g. explicit library_types),
+    # inspect its modalities so ATAC-only `.h5mu` files are not misclassified
+    # as paired RNA+ATAC multiome inputs.
     seen_paths: set[str] = set()
     mods = exp_context.get("modalities") or {}
     for mod_key in ("scATAC", "scRNA"):
@@ -544,6 +547,46 @@ def _paired_h5mu_records(exp_context: dict[str, Any]) -> list[dict[str, Any]]:
                 and p_str not in inspected_h5mu_paths
             ):
                 seen_paths.add(p_str)
+                p_obj = Path(p_str)
+                if p_obj.is_file() and p_obj.stat().st_size > 0:
+                    try:
+                        from aria.utils.mudata_io import read_h5mu_summary
+
+                        summary = read_h5mu_summary(p_str, backed=True)
+                    except Exception:
+                        summary = {}
+                    if summary.get("error_type") == "MuDataToolingMissing":
+                        try:
+                            import h5py
+                            from aria.utils.mudata_io import _ATAC_KEYS, _RNA_KEYS, _match_modality
+
+                            if h5py.is_hdf5(p_str):
+                                with h5py.File(p_str, "r") as hf:
+                                    if "mod" in hf and hasattr(hf["mod"], "keys"):
+                                        mkeys = [str(k) for k in hf["mod"].keys()]
+                                        summary = {
+                                            "status": "success",
+                                            "modalities": {k: {} for k in mkeys},
+                                            "is_paired_rna_atac": bool(
+                                                _match_modality(mkeys, _ATAC_KEYS)
+                                                and _match_modality(mkeys, _RNA_KEYS)
+                                            ),
+                                        }
+                        except Exception:
+                            pass
+                    if summary.get("status") == "success":
+                        if not summary.get("is_paired_rna_atac"):
+                            continue
+                        records.append({
+                            "path": p_str,
+                            "evidence": {
+                                "format": "h5mu",
+                                "modalities": sorted((summary.get("modalities") or {}).keys()),
+                                "paired_rna": True,
+                            },
+                            "confidence": "high",
+                        })
+                        continue
                 records.append({
                     "path": p_str,
                     "evidence": {"format": "h5mu", "paired_rna": True},

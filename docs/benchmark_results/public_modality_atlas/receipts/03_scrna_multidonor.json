@@ -1,0 +1,377 @@
+{
+  "schema_version": "aria.public_modality_atlas.receipt.v1",
+  "modality_id": "03_scrna_multidonor",
+  "aria_modality": "scRNA",
+  "status": "completed",
+  "started_at_utc": "2026-11-14T16:10:28.108261+00:00",
+  "completed_at_utc": "2026-11-14T16:16:02.588698+00:00",
+  "elapsed_seconds": 334.48,
+  "driver_peak_rss_mb": 526.9,
+  "experiment_id": "atlas-03-888b96",
+  "dataset": {
+    "title": "Human Lupus PBMC IFN-beta Stimulation Across 8 Donors",
+    "accession": "GEO GSE96583 / Bioconductor EH2259",
+    "doi": "10.1038/nbt.4042",
+    "citation": "Kang HM et al., Nature Biotechnology 36, 89-94 (2018)",
+    "organism": "Homo sapiens",
+    "genome": "hg38",
+    "design_summary": "8 matched human donors x 2 conditions (control vs ifnb_stimulated, 16 donor-condition libraries, 6,400 singlet PBMCs)",
+    "source_urls": [
+      "https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE96583",
+      "https://experimenthub.bioconductor.org/fetch/2292"
+    ],
+    "verified_files": [
+      {
+        "file": "inputs/kang2018_pbmc_8donors_ifnb.h5ad",
+        "filename": "kang2018_pbmc_8donors_ifnb.h5ad",
+        "size_bytes": 31752496,
+        "sha256": "0b6dd0170be9907694c770f64e8e79ab1442789435bdb0ddbb07c210664161b5"
+      }
+    ]
+  },
+  "prompt": {
+    "user_question": "Characterize single-cell transcriptional states and interferon-beta (ifnb_stimulated versus control) responses across 8 matched human lupus PBMC donors (GEO GSE96583, Homo sapiens hg38). Perform single-cell QC, doublet detection, donor-aware Harmony batch integration, Leiden clustering, cell-type annotation, donor-level pseudobulk pyDESeq2 differential expression comparing ifnb_stimulated versus control, and pathway enrichment.",
+    "reproducible_mode": true,
+    "enable_hypotheses": true,
+    "comparisons": [
+      [
+        "ifnb_stimulated",
+        "control"
+      ]
+    ],
+    "condition_col": "condition",
+    "replicate_col": "donor_id"
+  },
+  "llm_reagent": {
+    "status": "ok",
+    "shim": "tantalus",
+    "shim_version": "0.1.0",
+    "model": "qwen3.6-35b-a3b-ud-q4_k_m",
+    "gguf_sha256": "ac0e2c1189e055faa36eff361580e79c5bd6f8e76bffb4ce547f167d53e31a61",
+    "llama_cpp_version": "b12316",
+    "llama_cpp_commit": "5d4c8eeb2",
+    "backend": "vulkan",
+    "kv_cache_type": "f16",
+    "n_ctx": 16384,
+    "quantization": "UD-Q4_K_M",
+    "architecture": "Qwen3.6-35B-A3B MoE (35B total / 3B active)",
+    "endpoint": "http://127.0.0.1:11435",
+    "zero_cost_audit_passed": true,
+    "active_paid_env_keys": [],
+    "usage": {
+      "total_calls": 6,
+      "live_calls": 6,
+      "cache_hits": 0,
+      "fallback_calls": 0,
+      "prompt_tokens": 16114,
+      "completion_tokens": 6917,
+      "total_tokens": 23031,
+      "estimated_cloud_cost_usd": 0.0,
+      "models_used": [
+        "ollama/tantalus-heavy",
+        "ollama/tantalus-medium"
+      ],
+      "tiers": {
+        "medium": {
+          "calls": 3,
+          "tokens": 3472
+        },
+        "heavy": {
+          "calls": 3,
+          "tokens": 19559
+        }
+      }
+    }
+  },
+  "checkpoints": [
+    {
+      "checkpoint": 1,
+      "question_preview": "\ud83d\udcc1 ARIA found the following data:",
+      "options": [
+        "Confirm and continue",
+        "Confirm and enable air-gapped mode",
+        "Correct metadata",
+        "Cancel"
+      ],
+      "chosen": "Confirm and continue"
+    },
+    {
+      "checkpoint": 2.1,
+      "question_preview": "ARIA proposes the following biological groups:",
+      "options": [
+        "Yes \u2014 confirm groups",
+        "Re\u2011infer groups",
+        "Other \u2014 manually assign groups (e.g. treated=s1,s2,s3; control=s4,s5,s6)",
+        "Cancel experiment"
+      ],
+      "chosen": "Yes \u2014 confirm groups"
+    },
+    {
+      "checkpoint": 2.2,
+      "question_preview": "Please confirm the organism and genome assembly:",
+      "options": [
+        "Homo sapiens (hg38)",
+        "Mus musculus (mm39)",
+        "Rattus norvegicus (rn7)",
+        "Danio rerio (danRer11)",
+        "Other organism / assembly..."
+      ],
+      "chosen": "Homo sapiens (hg38)"
+    },
+    {
+      "checkpoint": 2.3,
+      "question_preview": "Main experimental factor: proposed 'condition'",
+      "options": [
+        "genotype",
+        "treatment",
+        "condition",
+        "stimulation",
+        "time",
+        "Cancel"
+      ],
+      "chosen": "condition"
+    },
+    {
+      "checkpoint": 2.6,
+      "question_preview": "Experimental design ready:",
+      "options": [
+        "Yes \u2014 proceed",
+        "Cancel"
+      ],
+      "chosen": "Yes \u2014 proceed"
+    },
+    {
+      "checkpoint": 2,
+      "question_preview": "ARIA Analysis Plan:",
+      "options": [
+        "Run recommended plan only",
+        "Run recommended + optional supported analyses",
+        "Modify plan",
+        "Cancel"
+      ],
+      "chosen": "Run recommended + optional supported analyses"
+    },
+    {
+      "checkpoint": 3.5,
+      "question_preview": "Quality Audit found dispatch readiness issue(s) that may compromise your results:",
+      "options": [
+        "Proceed anyway",
+        "Cancel analysis"
+      ],
+      "chosen": "Proceed anyway"
+    },
+    {
+      "checkpoint": 3,
+      "question_preview": "\ud83d\udd2c Parameter: [resolution] for leiden_clustering",
+      "options": [
+        "Use recommended (resolution=0.3)",
+        "Other: Enter custom resolution",
+        "Skip clustering"
+      ],
+      "chosen": "Use recommended (resolution=0.3)"
+    },
+    {
+      "checkpoint": 5,
+      "question_preview": "Analysis complete.",
+      "options": [
+        "Accept report",
+        "Request revision",
+        "Export methods"
+      ],
+      "chosen": "Accept report"
+    }
+  ],
+  "run_ledger": {
+    "n_nodes": 12,
+    "nodes": [
+      {
+        "node_id": "ledger://scRNA/qc",
+        "modality": "scRNA",
+        "analysis": "qc",
+        "label": "Quality control",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://scRNA/clustering",
+        "modality": "scRNA",
+        "analysis": "clustering",
+        "label": "Clustering",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://scRNA/annotation",
+        "modality": "scRNA",
+        "analysis": "annotation",
+        "label": "Cell-type annotation",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://scRNA/marker_discovery",
+        "modality": "scRNA",
+        "analysis": "marker_discovery",
+        "label": "Per-cluster marker discovery",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://scRNA/pseudobulk_de",
+        "modality": "scRNA",
+        "analysis": "pseudobulk_de",
+        "label": "Pseudobulk differential expression",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://scRNA/differential_abundance",
+        "modality": "scRNA",
+        "analysis": "differential_abundance",
+        "label": "Differential abundance",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://scRNA/pathway_enrichment",
+        "modality": "scRNA",
+        "analysis": "pathway_enrichment",
+        "label": "Pathway enrichment (ORA/GSEA)",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://scRNA/cell_communication",
+        "modality": "scRNA",
+        "analysis": "cell_communication",
+        "label": "Cell-cell communication",
+        "status": "not_run"
+      },
+      {
+        "node_id": "ledger://scRNA/trajectory",
+        "modality": "scRNA",
+        "analysis": "trajectory",
+        "label": "Trajectory (PAGA/DPT)",
+        "status": "not_run"
+      },
+      {
+        "node_id": "ledger://scRNA/rna_velocity",
+        "modality": "scRNA",
+        "analysis": "rna_velocity",
+        "label": "RNA velocity",
+        "status": "not_run"
+      },
+      {
+        "node_id": "ledger://report/executive_summary",
+        "modality": "report",
+        "analysis": "executive_summary",
+        "label": "Executive summary",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://report/biological_synthesis",
+        "modality": "report",
+        "analysis": "biological_synthesis",
+        "label": "Integrated biological synthesis",
+        "status": "ran"
+      }
+    ]
+  },
+  "claims_audit": {
+    "total_public_claims": 15,
+    "claims_by_tier": {
+      "descriptive": 7,
+      "associative": 8
+    },
+    "speculative_promotion_guard": "pass",
+    "quarantined_hypotheses_count": 0,
+    "representative_claims": [
+      {
+        "claim_id": "executive_summary",
+        "tier": "descriptive",
+        "modality": "report",
+        "analysis": "executive_summary",
+        "text": "ARIA completed the submitted analysis. 7 findings were recorded across all modalities, of which 0 reached HIGH confidence. See the governed claim ledger below for published results.",
+        "ledger_node_id": "ledger://report/executive_summary"
+      },
+      {
+        "claim_id": "scrna.qc",
+        "tier": "descriptive",
+        "modality": "scRNA-seq",
+        "analysis": "qc",
+        "text": "scRNA QC retained 6,015 of 6,317 cells.",
+        "ledger_node_id": "ledger://scRNA/qc"
+      },
+      {
+        "claim_id": "scrna.marker_discovery",
+        "tier": "descriptive",
+        "modality": "scRNA-seq",
+        "analysis": "marker_discovery",
+        "text": "Per-cluster marker discovery ranked candidate marker genes across 8 cluster clusters (Wilcoxon cluster-vs-rest, descriptive ranking only).",
+        "ledger_node_id": "ledger://scRNA/marker_discovery"
+      },
+      {
+        "claim_id": "scrna.composition.ifnb_stimulated_vs_control",
+        "tier": "associative",
+        "modality": "scRNA-seq",
+        "analysis": "differential_abundance",
+        "text": "4 cell type(s) shifted in abundance (FDR < 0.1) for ifnb_stimulated_vs_control.",
+        "ledger_node_id": "ledger://scRNA/differential_abundance"
+      },
+      {
+        "claim_id": "scrna.pseudobulk.B_cells.ifnb_stimulated_vs_control",
+        "tier": "descriptive",
+        "modality": "scRNA-seq",
+        "analysis": "pseudobulk_de",
+        "text": "B cells ifnb_stimulated_vs_control had 234 per-cluster FDR DE genes.",
+        "ledger_node_id": "ledger://scRNA/pseudobulk_de"
+      },
+      {
+        "claim_id": "scrna.pseudobulk.CD16_NK_cells.ifnb_stimulated_vs_control",
+        "tier": "descriptive",
+        "modality": "scRNA-seq",
+        "analysis": "pseudobulk_de",
+        "text": "CD16+ NK cells ifnb_stimulated_vs_control had 170 per-cluster FDR DE genes.",
+        "ledger_node_id": "ledger://scRNA/pseudobulk_de"
+      },
+      {
+        "claim_id": "scrna.pseudobulk.Intermediate_macrophages.ifnb_stimulated_vs_control",
+        "tier": "descriptive",
+        "modality": "scRNA-seq",
+        "analysis": "pseudobulk_de",
+        "text": "Intermediate macrophages ifnb_stimulated_vs_control had 1252 per-cluster FDR DE genes.",
+        "ledger_node_id": "ledger://scRNA/pseudobulk_de"
+      },
+      {
+        "claim_id": "scrna.pseudobulk.Tcm_Naive_helper_T_cells.ifnb_stimulated_vs_control",
+        "tier": "descriptive",
+        "modality": "scRNA-seq",
+        "analysis": "pseudobulk_de",
+        "text": "Tcm/Naive helper T cells ifnb_stimulated_vs_control had 274 per-cluster FDR DE genes.",
+        "ledger_node_id": "ledger://scRNA/pseudobulk_de"
+      },
+      {
+        "claim_id": "scrna.pathway.B_cells_ifnb_stimulated_vs_control",
+        "tier": "associative",
+        "modality": "scRNA-seq",
+        "analysis": "pseudobulk_pathways",
+        "text": "ORA found 54 enriched term(s) for B cells::ifnb_stimulated_vs_control.",
+        "ledger_node_id": "ledger://scRNA/pathway_enrichment"
+      },
+      {
+        "claim_id": "scrna.pathway.CD16_NK_cells_ifnb_stimulated_vs_control",
+        "tier": "associative",
+        "modality": "scRNA-seq",
+        "analysis": "pseudobulk_pathways",
+        "text": "ORA found 50 enriched term(s) for CD16+ NK cells::ifnb_stimulated_vs_control.",
+        "ledger_node_id": "ledger://scRNA/pathway_enrichment"
+      }
+    ]
+  },
+  "reproducibility_capsule": {
+    "schema": "s14.reproducibility_capsule.v2",
+    "verification_status": "verified_portable",
+    "raw_verifier_status": "warning",
+    "files_checked": 44,
+    "relocated_inputs_sha256_matched": "1/1",
+    "ro_crate_present": true,
+    "memory_snapshot_present": true,
+    "memory_snapshot_integrity": "ok",
+    "workflow_hash": "8c34d898a4c30a9724f6f4bb1ae5733232852b748e81c22ffdd2fa838468653e",
+    "report_html_bytes": 4551104,
+    "capsule_zip_bytes": 6318110
+  }
+}

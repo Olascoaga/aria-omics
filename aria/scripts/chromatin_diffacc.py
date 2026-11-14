@@ -352,8 +352,14 @@ def _pseudobulk_da(adata, condition_col, replicate_col, comparisons,
     rows_csv = []
     full_rows = []   # W0.3: every tested peak per comparison (for volcano/MA)
     for comp in comparisons:
-        test = str(comp.get("test", "")).strip()
-        ref = str(comp.get("reference", comp.get("ref", ""))).strip()
+        if isinstance(comp, dict):
+            test = str(comp.get("test", "")).strip()
+            ref = str(comp.get("reference", comp.get("ref", ""))).strip()
+        elif isinstance(comp, (list, tuple)) and len(comp) >= 2:
+            test = str(comp[0]).strip()
+            ref = str(comp[1]).strip()
+        else:
+            test, ref = "", ""
         if not test or not ref:
             comp_results.append({"test": test, "reference": ref,
                                  "status": "skipped",

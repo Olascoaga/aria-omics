@@ -1,0 +1,385 @@
+{
+  "schema_version": "aria.public_modality_atlas.receipt.v1",
+  "modality_id": "04_scatac_multidonor",
+  "aria_modality": "scATAC",
+  "status": "completed",
+  "started_at_utc": "2026-11-14T16:41:43.104271+00:00",
+  "completed_at_utc": "2026-11-14T16:48:42.770636+00:00",
+  "elapsed_seconds": 419.67,
+  "driver_peak_rss_mb": 372.5,
+  "experiment_id": "atlas-04-66dd3c",
+  "dataset": {
+    "title": "Human Hippocampus Lifespan Single-Cell Chromatin Accessibility",
+    "accession": "GEO GSE278576",
+    "doi": "10.1126/science.adt8307",
+    "citation": "Zemke NR et al., Science (2026) doi:10.1126/science.adt8307",
+    "organism": "Homo sapiens",
+    "genome": "hg38",
+    "design_summary": "6 post-mortem human hippocampal donors (3 young_20_39 [hc29, hc77, hc76] vs 3 aged_80_100 [hc11, hc12, hc19], 500 nuclei/donor = 3,000 single-nucleus ATAC profiles across chr6/7/11/17/19)",
+    "source_urls": [
+      "https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE278576"
+    ],
+    "verified_files": [
+      {
+        "file": "inputs/hc11_scatac.h5mu",
+        "filename": "hc11_scatac.h5mu",
+        "size_bytes": 6981721,
+        "sha256": "7692a4f42978e6323a09d213b4823ba8bff1ba53b029a6c919d30bd3c899b394"
+      },
+      {
+        "file": "inputs/hc12_scatac.h5mu",
+        "filename": "hc12_scatac.h5mu",
+        "size_bytes": 11547858,
+        "sha256": "9319b9b08906f3588bb1f9a905797303928c55e0b8e6a699d5fc0a0de463b4d7"
+      },
+      {
+        "file": "inputs/hc19_scatac.h5mu",
+        "filename": "hc19_scatac.h5mu",
+        "size_bytes": 10239302,
+        "sha256": "0d48c99fc3fdb9552ea21dd15e0411172b24f62ed484ac31abbe84e25baa50e8"
+      },
+      {
+        "file": "inputs/hc29_scatac.h5mu",
+        "filename": "hc29_scatac.h5mu",
+        "size_bytes": 12513625,
+        "sha256": "54491c5ad56478a53884d82f085228d57915da31bbe96e8f1d9d6d5aed694770"
+      },
+      {
+        "file": "inputs/hc76_scatac.h5mu",
+        "filename": "hc76_scatac.h5mu",
+        "size_bytes": 14069361,
+        "sha256": "03cef6ee4655dc6caee64108c2a65bb51e18b64c9ed8b18982d2f88da78fc348"
+      },
+      {
+        "file": "inputs/hc77_scatac.h5mu",
+        "filename": "hc77_scatac.h5mu",
+        "size_bytes": 12258980,
+        "sha256": "b6103fe5b6978c42e513b2ad3cf55dbca77868b56a2e6ecb6961b266063aff60"
+      }
+    ]
+  },
+  "prompt": {
+    "user_question": "Investigate single-nucleus chromatin accessibility across 6 post-mortem human hippocampal donors comparing aged_80_100 (hc11, hc12, hc19) versus young_20_39 (hc29, hc77, hc76) individuals (GEO GSE278576, Homo sapiens hg38). Perform scATAC QC, TF-IDF and LSI dimensionality reduction (discarding depth-correlated component 1), donor-aware chromatin clustering, donor-level pseudobulk differential accessibility comparing aged_80_100 versus young_20_39, JASPAR TF motif enrichment, and cis gene annotation.",
+    "reproducible_mode": true,
+    "enable_hypotheses": true,
+    "comparisons": [
+      [
+        "aged_80_100",
+        "young_20_39"
+      ]
+    ],
+    "condition_col": "condition",
+    "replicate_col": "donor_id"
+  },
+  "llm_reagent": {
+    "status": "ok",
+    "shim": "tantalus",
+    "shim_version": "0.1.0",
+    "model": "qwen3.6-35b-a3b-ud-q4_k_m",
+    "gguf_sha256": "ac0e2c1189e055faa36eff361580e79c5bd6f8e76bffb4ce547f167d53e31a61",
+    "llama_cpp_version": "b12316",
+    "llama_cpp_commit": "5d4c8eeb2",
+    "backend": "vulkan",
+    "kv_cache_type": "f16",
+    "n_ctx": 16384,
+    "quantization": "UD-Q4_K_M",
+    "architecture": "Qwen3.6-35B-A3B MoE (35B total / 3B active)",
+    "endpoint": "http://127.0.0.1:11435",
+    "zero_cost_audit_passed": true,
+    "active_paid_env_keys": [],
+    "usage": {
+      "total_calls": 3,
+      "live_calls": 3,
+      "cache_hits": 0,
+      "fallback_calls": 0,
+      "prompt_tokens": 2981,
+      "completion_tokens": 587,
+      "total_tokens": 3568,
+      "estimated_cloud_cost_usd": 0.0,
+      "models_used": [
+        "ollama/tantalus-heavy",
+        "ollama/tantalus-medium"
+      ],
+      "tiers": {
+        "medium": {
+          "calls": 2,
+          "tokens": 2258
+        },
+        "heavy": {
+          "calls": 1,
+          "tokens": 1310
+        }
+      }
+    }
+  },
+  "checkpoints": [
+    {
+      "checkpoint": 1,
+      "question_preview": "\ud83d\udcc1 ARIA found the following data:",
+      "options": [
+        "Confirm and continue",
+        "Confirm and enable air-gapped mode",
+        "Correct metadata",
+        "Cancel"
+      ],
+      "chosen": "Confirm and continue"
+    },
+    {
+      "checkpoint": 2.1,
+      "question_preview": "ARIA proposes the following biological groups:",
+      "options": [
+        "Yes \u2014 confirm groups",
+        "Re\u2011infer groups",
+        "Other \u2014 manually assign groups (e.g. treated=s1,s2,s3; control=s4,s5,s6)",
+        "Cancel experiment"
+      ],
+      "chosen": "Yes \u2014 confirm groups"
+    },
+    {
+      "checkpoint": 2.2,
+      "question_preview": "Please confirm the organism and genome assembly:",
+      "options": [
+        "Homo sapiens (hg38)",
+        "Mus musculus (mm39)",
+        "Rattus norvegicus (rn7)",
+        "Danio rerio (danRer11)",
+        "Other organism / assembly..."
+      ],
+      "chosen": "Homo sapiens (hg38)"
+    },
+    {
+      "checkpoint": 2.3,
+      "question_preview": "Main experimental factor: proposed 'condition'",
+      "options": [
+        "genotype",
+        "treatment",
+        "condition",
+        "stimulation",
+        "time",
+        "Cancel"
+      ],
+      "chosen": "condition"
+    },
+    {
+      "checkpoint": 2.6,
+      "question_preview": "Experimental design ready:",
+      "options": [
+        "Yes \u2014 proceed",
+        "Cancel"
+      ],
+      "chosen": "Yes \u2014 proceed"
+    },
+    {
+      "checkpoint": 2,
+      "question_preview": "ARIA Analysis Plan:",
+      "options": [
+        "Run recommended plan only",
+        "Run recommended + optional supported analyses",
+        "Modify plan",
+        "Cancel"
+      ],
+      "chosen": "Run recommended + optional supported analyses"
+    },
+    {
+      "checkpoint": 5,
+      "question_preview": "Analysis complete.",
+      "options": [
+        "Accept report",
+        "Request revision",
+        "Export methods"
+      ],
+      "chosen": "Accept report"
+    }
+  ],
+  "run_ledger": {
+    "n_nodes": 14,
+    "nodes": [
+      {
+        "node_id": "ledger://chromatin/qc",
+        "modality": "chromatin",
+        "analysis": "qc",
+        "label": "Quality control",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://chromatin/scatac_preprocessing",
+        "modality": "chromatin",
+        "analysis": "scatac_preprocessing",
+        "label": "scATAC raw preprocessing & matrix construction",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://chromatin/bulk_atac_preprocessing",
+        "modality": "chromatin",
+        "analysis": "bulk_atac_preprocessing",
+        "label": "Raw bulk chromatin alignment and filtering",
+        "status": "not_run"
+      },
+      {
+        "node_id": "ledger://chromatin/dimensionality_reduction",
+        "modality": "chromatin",
+        "analysis": "dimensionality_reduction",
+        "label": "Dimensionality reduction (LSI/TF-IDF)",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://chromatin/peak_calling",
+        "modality": "chromatin",
+        "analysis": "peak_calling",
+        "label": "Peak calling",
+        "status": "not_run"
+      },
+      {
+        "node_id": "ledger://chromatin/peak_count_matrix",
+        "modality": "chromatin",
+        "analysis": "peak_count_matrix",
+        "label": "Peak-count matrix",
+        "status": "not_run"
+      },
+      {
+        "node_id": "ledger://chromatin/differential_accessibility",
+        "modality": "chromatin",
+        "analysis": "differential_accessibility",
+        "label": "Differential accessibility / binding",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://chromatin/motif_enrichment",
+        "modality": "chromatin",
+        "analysis": "motif_enrichment",
+        "label": "TF motif enrichment",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://chromatin/regulatory_layers",
+        "modality": "chromatin",
+        "analysis": "regulatory_layers",
+        "label": "Regulatory layers",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://chromatin/matrix_pipeline",
+        "modality": "chromatin",
+        "analysis": "matrix_pipeline",
+        "label": "scATAC matrix pipeline",
+        "status": "not_run"
+      },
+      {
+        "node_id": "ledger://chromatin/peak_annotation",
+        "modality": "chromatin",
+        "analysis": "peak_annotation",
+        "label": "Genomic peak annotation",
+        "status": "skipped"
+      },
+      {
+        "node_id": "ledger://chromatin/peak_ora",
+        "modality": "chromatin",
+        "analysis": "peak_ora",
+        "label": "DA-peak functional enrichment",
+        "status": "skipped"
+      },
+      {
+        "node_id": "ledger://chromatin/differential_tf_footprinting",
+        "modality": "chromatin",
+        "analysis": "differential_tf_footprinting",
+        "label": "Differential TF footprinting",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://report/executive_summary",
+        "modality": "report",
+        "analysis": "executive_summary",
+        "label": "Executive summary",
+        "status": "ran"
+      }
+    ]
+  },
+  "claims_audit": {
+    "total_public_claims": 8,
+    "claims_by_tier": {
+      "descriptive": 2,
+      "associative": 6
+    },
+    "speculative_promotion_guard": "pass",
+    "quarantined_hypotheses_count": 0,
+    "representative_claims": [
+      {
+        "claim_id": "executive_summary",
+        "tier": "descriptive",
+        "modality": "report",
+        "analysis": "executive_summary",
+        "text": "To address age-related chromatin accessibility changes in the human hippocampus, scATAC-seq analysis of 3,000 cells identified 10,022 differentially accessible peaks across 11 clusters with medium confidence. Motif enrichment analysis of these peaks, tested against 879 JASPAR2024 motifs, revealed significant enrichment in 9 of the 11 cluster groups. However, the absence of FRiP and TSS enrichment metrics limits the assessment of data quality and regulatory specificity. Validation of specific peak-to-gene links and functional characterization of the enriched transcription factors are required to establish causal regulatory mechanisms.",
+        "ledger_node_id": "ledger://report/executive_summary"
+      },
+      {
+        "claim_id": "chromatin.scatac_preprocessing",
+        "tier": "associative",
+        "modality": "chromatin",
+        "analysis": "scatac_preprocessing",
+        "text": "scATAC preprocessing completed (cohort matrix union): the resulting matrix has 3000 cell(s) x 40057 peak(s).",
+        "ledger_node_id": "ledger://chromatin/scatac_preprocessing"
+      },
+      {
+        "claim_id": "chromatin.qc.scATAC",
+        "tier": "descriptive",
+        "modality": "chromatin",
+        "analysis": "qc",
+        "text": "scATAC QC measured 3000 cells and 40057 peaks.",
+        "ledger_node_id": "ledger://chromatin/qc"
+      },
+      {
+        "claim_id": "chromatin.clustering",
+        "tier": "associative",
+        "modality": "chromatin",
+        "analysis": "dimensionality_reduction",
+        "text": "TF-IDF/LSI over 40057 peaks in 3000 cells produced 11 clusters after removing 1 depth-associated component(s).",
+        "ledger_node_id": "ledger://chromatin/dimensionality_reduction"
+      },
+      {
+        "claim_id": "chromatin.differential_accessibility.per_cluster",
+        "tier": "associative",
+        "modality": "chromatin",
+        "analysis": "differential_accessibility",
+        "text": "Per-cluster accessibility testing identified 10022 differentially accessible peaks across 11 cluster(s) at padj<0.05, |log2FC|>1.0.",
+        "ledger_node_id": "ledger://chromatin/differential_accessibility"
+      },
+      {
+        "claim_id": "chromatin.differential_accessibility.pseudobulk",
+        "tier": "associative",
+        "modality": "chromatin",
+        "analysis": "differential_accessibility",
+        "text": "Replicate-level pseudobulk DA ran 1 comparison(s) and found 0 differentially accessible peaks via the shared DESeq2 core.",
+        "ledger_node_id": "ledger://chromatin/differential_accessibility"
+      },
+      {
+        "claim_id": "chromatin.motifs",
+        "tier": "associative",
+        "modality": "chromatin",
+        "analysis": "motif_enrichment",
+        "text": "TF motif enrichment (JASPAR2024_CORE_vertebrates, hypergeometric) tested 879 motifs and found enriched motifs in 9 of 11 peak group(s).",
+        "ledger_node_id": "ledger://chromatin/motif_enrichment"
+      },
+      {
+        "claim_id": "chromatin.regulatory_layers",
+        "tier": "associative",
+        "modality": "chromatin",
+        "analysis": "regulatory_layers",
+        "text": "scATAC regulatory-layer analysis ran 1 of 5 optional layer(s); skipped layers are reported with their prerequisites.",
+        "ledger_node_id": "ledger://chromatin/regulatory_layers"
+      }
+    ]
+  },
+  "reproducibility_capsule": {
+    "schema": "s14.reproducibility_capsule.v2",
+    "verification_status": "verified_portable",
+    "raw_verifier_status": "warning",
+    "files_checked": 35,
+    "relocated_inputs_sha256_matched": "6/6",
+    "ro_crate_present": true,
+    "memory_snapshot_present": true,
+    "memory_snapshot_integrity": "ok",
+    "workflow_hash": "df7d8d72405c9f7112c5b3a9aca4584dff206c931bfc39d5ceb96abe753ce221",
+    "report_html_bytes": 146703,
+    "capsule_zip_bytes": 1765062
+  }
+}

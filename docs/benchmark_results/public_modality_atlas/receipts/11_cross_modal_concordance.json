@@ -1,0 +1,513 @@
+{
+  "schema_version": "aria.public_modality_atlas.receipt.v1",
+  "modality_id": "11_cross_modal_concordance",
+  "aria_modality": "Cross_Modal_RNA_x_ATAC",
+  "status": "completed",
+  "started_at_utc": "2026-11-14T02:50:11.560997+00:00",
+  "completed_at_utc": "2026-11-14T03:38:41.874212+00:00",
+  "elapsed_seconds": 3082.38,
+  "driver_peak_rss_mb": 661.5,
+  "experiment_id": "atlas-11-cae376",
+  "dataset": {
+    "title": "ENCODE Matched Human Hematopoietic polyA+ RNA-seq x Bulk ATAC-seq (GM12878 vs K562)",
+    "accession": "ENCODE ENCSR843RJV, ENCSR889TRN, ENCSR594NJP, ENCSR596ACL, ENCSR637XSC, ENCSR483RKN, ENCSR859USB",
+    "doi": "10.1038/s41586-020-2493-4",
+    "citation": "ENCODE Project Consortium, Nature 583, 699-710 (2020)",
+    "organism": "Homo sapiens",
+    "genome": "hg38",
+    "design_summary": "N=6 matched biological units (GM12878_rep1..3 vs K562_rep1..3) profiled across both bulk polyA+ RNA-seq and bulk ATAC-seq on GRCh38 chr6, chr7, chr11, chr17, chr19",
+    "source_urls": [
+      "https://www.encodeproject.org/files/ENCFF700JWD/@@download/ENCFF700JWD.tsv",
+      "https://www.encodeproject.org/files/ENCFF935TRK/@@download/ENCFF935TRK.tsv",
+      "https://www.encodeproject.org/files/ENCFF480HNH/@@download/ENCFF480HNH.tsv",
+      "https://www.encodeproject.org/files/ENCFF643FJJ/@@download/ENCFF643FJJ.tsv",
+      "https://www.encodeproject.org/files/ENCFF939LDL/@@download/ENCFF939LDL.tsv",
+      "https://www.encodeproject.org/files/ENCFF241QPH/@@download/ENCFF241QPH.tsv"
+    ],
+    "verified_files": [
+      {
+        "file": "inputs/GM12878_rep1.bam",
+        "filename": "GM12878_rep1.bam",
+        "size_bytes": 2110984885,
+        "sha256": "786eb09af7c40c84be508d236599568d4b377281dc2a7daa967bd1fa3263b54b"
+      },
+      {
+        "file": "inputs/GM12878_rep2.bam",
+        "filename": "GM12878_rep2.bam",
+        "size_bytes": 1759054627,
+        "sha256": "7f7eb74403ff195f8cd96d029d6372c2ed59ba6617e0007ad68937e74e1d9daa"
+      },
+      {
+        "file": "inputs/GM12878_rep3.bam",
+        "filename": "GM12878_rep3.bam",
+        "size_bytes": 2134120685,
+        "sha256": "32d1685aa2ba66808343b8503c7b3299efb14a8047fe6757c1d388e002585fba"
+      },
+      {
+        "file": "inputs/K562_rep1.bam",
+        "filename": "K562_rep1.bam",
+        "size_bytes": 840054452,
+        "sha256": "117a1af6cdb1e92177b0ab0bf6759d6616f32d11384410906f609a730d8727fe"
+      },
+      {
+        "file": "inputs/K562_rep2.bam",
+        "filename": "K562_rep2.bam",
+        "size_bytes": 792289628,
+        "sha256": "a2363caa9b1a92d85a724e7db63331fb7efd725c1e2becae8e7614fd01d0c18e"
+      },
+      {
+        "file": "inputs/K562_rep3.bam",
+        "filename": "K562_rep3.bam",
+        "size_bytes": 173245367,
+        "sha256": "8fd78d5bb93313d2afae8d736d657dd679115073f6d0e67f9026e558844a3545"
+      },
+      {
+        "file": "inputs/encode_gm12878_vs_k562_counts.tsv",
+        "filename": "encode_gm12878_vs_k562_counts.tsv",
+        "size_bytes": 187869,
+        "sha256": "ed54ed9f85f93a23eb73890fddb35685f0c53c424941d9c21595f7bb5ce02a00"
+      }
+    ]
+  },
+  "prompt": {
+    "user_question": "Evaluate associative cross-modal regulatory concordance across matched ENCODE K562 erythroleukemia and GM12878 B-lymphoblastoid biological replicates (N=6 shared sample IDs, 3 per lineage) profiled independently by bulk polyA+ RNA-seq and bulk ATAC-seq on GRCh38. Run pyDESeq2 differential expression and differential accessibility (K562 versus GM12878), then quantify cis DE x DA directional concordance, TF expression-motif triangulation, shared pathway convergence, and sample-matched cis Spearman correlation without claiming single-cell pairing.",
+    "reproducible_mode": true,
+    "enable_hypotheses": true,
+    "comparisons": [
+      [
+        "K562",
+        "GM12878"
+      ]
+    ],
+    "condition_col": "condition",
+    "replicate_col": "replicate"
+  },
+  "llm_reagent": {
+    "status": "ok",
+    "shim": "tantalus",
+    "shim_version": "0.1.0",
+    "model": "qwen3.6-35b-a3b-ud-q4_k_m",
+    "gguf_sha256": "ac0e2c1189e055faa36eff361580e79c5bd6f8e76bffb4ce547f167d53e31a61",
+    "llama_cpp_version": "b12316",
+    "llama_cpp_commit": "5d4c8eeb2",
+    "backend": "vulkan",
+    "kv_cache_type": "f16",
+    "n_ctx": 16384,
+    "quantization": "UD-Q4_K_M",
+    "architecture": "Qwen3.6-35B-A3B MoE (35B total / 3B active)",
+    "endpoint": "http://127.0.0.1:11435",
+    "zero_cost_audit_passed": true,
+    "active_paid_env_keys": [],
+    "usage": {
+      "total_calls": 3,
+      "live_calls": 3,
+      "cache_hits": 0,
+      "fallback_calls": 0,
+      "prompt_tokens": 12158,
+      "completion_tokens": 4422,
+      "total_tokens": 16580,
+      "estimated_cloud_cost_usd": 0.0,
+      "models_used": [
+        "ollama/tantalus-heavy",
+        "ollama/tantalus-medium"
+      ],
+      "tiers": {
+        "medium": {
+          "calls": 2,
+          "tokens": 2350
+        },
+        "heavy": {
+          "calls": 1,
+          "tokens": 14230
+        }
+      }
+    }
+  },
+  "checkpoints": [
+    {
+      "checkpoint": 1,
+      "question_preview": "\ud83d\udcc1 ARIA found the following data:",
+      "options": [
+        "Confirm and continue",
+        "Confirm and enable air-gapped mode",
+        "Correct metadata",
+        "Cancel"
+      ],
+      "chosen": "Confirm and continue"
+    },
+    {
+      "checkpoint": 2.1,
+      "question_preview": "ARIA proposes the following biological groups:",
+      "options": [
+        "Yes \u2014 confirm groups",
+        "Re\u2011infer groups",
+        "Other \u2014 manually assign groups (e.g. treated=s1,s2,s3; control=s4,s5,s6)",
+        "Cancel experiment"
+      ],
+      "chosen": "Yes \u2014 confirm groups"
+    },
+    {
+      "checkpoint": 2.2,
+      "question_preview": "Please confirm the organism and genome assembly:",
+      "options": [
+        "Homo sapiens (hg38)",
+        "Mus musculus (mm39)",
+        "Rattus norvegicus (rn7)",
+        "Danio rerio (danRer11)",
+        "Other organism / assembly..."
+      ],
+      "chosen": "Homo sapiens (hg38)"
+    },
+    {
+      "checkpoint": 2.3,
+      "question_preview": "Main experimental factor: proposed 'condition'",
+      "options": [
+        "genotype",
+        "treatment",
+        "condition",
+        "stimulation",
+        "time",
+        "Cancel"
+      ],
+      "chosen": "condition"
+    },
+    {
+      "checkpoint": 2.5,
+      "question_preview": "Group(s) GM12878, K562 appear to have samples derived from the same biological source (e.g., technical replicates).",
+      "options": [
+        "Yes \u2014 they are independent biological replicates",
+        "No \u2014 technical replicates; merge by biological unit",
+        "Not sure \u2014 stop and provide a sample sheet"
+      ],
+      "chosen": "Yes \u2014 they are independent biological replicates"
+    },
+    {
+      "checkpoint": 2.6,
+      "question_preview": "Experimental design ready:",
+      "options": [
+        "Yes \u2014 proceed",
+        "Cancel"
+      ],
+      "chosen": "Yes \u2014 proceed"
+    },
+    {
+      "checkpoint": 2,
+      "question_preview": "ARIA Analysis Plan:",
+      "options": [
+        "Run recommended plan only",
+        "Run recommended + optional supported analyses",
+        "Modify plan",
+        "Cancel"
+      ],
+      "chosen": "Run recommended + optional supported analyses"
+    },
+    {
+      "checkpoint": 5,
+      "question_preview": "Analysis complete.",
+      "options": [
+        "Accept report",
+        "Request revision",
+        "Export methods"
+      ],
+      "chosen": "Accept report"
+    }
+  ],
+  "run_ledger": {
+    "n_nodes": 27,
+    "nodes": [
+      {
+        "node_id": "ledger://chromatin/qc",
+        "modality": "chromatin",
+        "analysis": "qc",
+        "label": "Quality control",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://chromatin/scatac_preprocessing",
+        "modality": "chromatin",
+        "analysis": "scatac_preprocessing",
+        "label": "scATAC raw preprocessing & matrix construction",
+        "status": "not_run"
+      },
+      {
+        "node_id": "ledger://chromatin/bulk_atac_preprocessing",
+        "modality": "chromatin",
+        "analysis": "bulk_atac_preprocessing",
+        "label": "Raw bulk chromatin alignment and filtering",
+        "status": "not_run"
+      },
+      {
+        "node_id": "ledger://chromatin/dimensionality_reduction",
+        "modality": "chromatin",
+        "analysis": "dimensionality_reduction",
+        "label": "Dimensionality reduction (LSI/TF-IDF)",
+        "status": "not_run"
+      },
+      {
+        "node_id": "ledger://chromatin/peak_calling",
+        "modality": "chromatin",
+        "analysis": "peak_calling",
+        "label": "Peak calling",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://chromatin/peak_count_matrix",
+        "modality": "chromatin",
+        "analysis": "peak_count_matrix",
+        "label": "Peak-count matrix",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://chromatin/differential_accessibility",
+        "modality": "chromatin",
+        "analysis": "differential_accessibility",
+        "label": "Differential accessibility / binding",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://chromatin/motif_enrichment",
+        "modality": "chromatin",
+        "analysis": "motif_enrichment",
+        "label": "TF motif enrichment",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://chromatin/regulatory_layers",
+        "modality": "chromatin",
+        "analysis": "regulatory_layers",
+        "label": "Regulatory layers",
+        "status": "not_run"
+      },
+      {
+        "node_id": "ledger://chromatin/matrix_pipeline",
+        "modality": "chromatin",
+        "analysis": "matrix_pipeline",
+        "label": "scATAC matrix pipeline",
+        "status": "not_run"
+      },
+      {
+        "node_id": "ledger://chromatin/peak_annotation",
+        "modality": "chromatin",
+        "analysis": "peak_annotation",
+        "label": "Genomic peak annotation",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://chromatin/peak_ora",
+        "modality": "chromatin",
+        "analysis": "peak_ora",
+        "label": "DA-peak functional enrichment",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://chromatin/differential_tf_footprinting",
+        "modality": "chromatin",
+        "analysis": "differential_tf_footprinting",
+        "label": "Differential TF footprinting",
+        "status": "not_run"
+      },
+      {
+        "node_id": "ledger://bulk/preprocessing",
+        "modality": "bulk",
+        "analysis": "preprocessing",
+        "label": "Raw FASTQ preprocessing & alignment",
+        "status": "not_run"
+      },
+      {
+        "node_id": "ledger://bulk/qc",
+        "modality": "bulk",
+        "analysis": "qc",
+        "label": "Sample QC",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://bulk/differential_expression",
+        "modality": "bulk",
+        "analysis": "differential_expression",
+        "label": "Differential expression",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://bulk/pathway_enrichment",
+        "modality": "bulk",
+        "analysis": "pathway_enrichment",
+        "label": "Pathway enrichment (ORA/GSEA)",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://integration/preprocessing",
+        "modality": "integration",
+        "analysis": "preprocessing",
+        "label": "Multiome raw assembly & cohort union",
+        "status": "not_run"
+      },
+      {
+        "node_id": "ledger://integration/paired_qc",
+        "modality": "integration",
+        "analysis": "paired_qc",
+        "label": "Paired multiome QC",
+        "status": "not_run"
+      },
+      {
+        "node_id": "ledger://integration/wnn",
+        "modality": "integration",
+        "analysis": "wnn",
+        "label": "Weighted Nearest Neighbors (WNN)",
+        "status": "not_run"
+      },
+      {
+        "node_id": "ledger://integration/mofa",
+        "modality": "integration",
+        "analysis": "mofa",
+        "label": "MOFA+ factor decomposition",
+        "status": "not_run"
+      },
+      {
+        "node_id": "ledger://integration/peak_to_gene",
+        "modality": "integration",
+        "analysis": "peak_to_gene",
+        "label": "Cis peak-to-gene linkage",
+        "status": "not_run"
+      },
+      {
+        "node_id": "ledger://integration/eregulons",
+        "modality": "integration",
+        "analysis": "eregulons",
+        "label": "Candidate eRegulon inference",
+        "status": "not_run"
+      },
+      {
+        "node_id": "ledger://integration/cross_modal_triangulation",
+        "modality": "integration",
+        "analysis": "cross_modal_triangulation",
+        "label": "Cross-modal evidence triangulation",
+        "status": "not_run"
+      },
+      {
+        "node_id": "ledger://cross_modal/concordance",
+        "modality": "cross_modal",
+        "analysis": "concordance",
+        "label": "Cross-modal contrast & sample concordance",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://report/executive_summary",
+        "modality": "report",
+        "analysis": "executive_summary",
+        "label": "Executive summary",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://report/biological_synthesis",
+        "modality": "report",
+        "analysis": "biological_synthesis",
+        "label": "Integrated biological synthesis",
+        "status": "ran"
+      }
+    ]
+  },
+  "claims_audit": {
+    "total_public_claims": 20,
+    "claims_by_tier": {
+      "descriptive": 4,
+      "associative": 16
+    },
+    "speculative_promotion_guard": "pass",
+    "quarantined_hypotheses_count": 0,
+    "representative_claims": [
+      {
+        "claim_id": "executive_summary",
+        "tier": "descriptive",
+        "modality": "report",
+        "analysis": "executive_summary",
+        "text": "ARIA completed the submitted analysis. 12 findings were recorded across all modalities, of which 0 reached HIGH confidence. See the governed claim ledger below for published results.",
+        "ledger_node_id": "ledger://report/executive_summary"
+      },
+      {
+        "claim_id": "bulk.qc",
+        "tier": "descriptive",
+        "modality": "bulk RNA-seq",
+        "analysis": "sample_qc",
+        "text": "Bulk RNA sample QC evaluated 6 samples with 0 outlier(s) flagged; primary DE retained all samples and sensitivity removed 0.",
+        "ledger_node_id": "ledger://bulk/qc"
+      },
+      {
+        "claim_id": "bulk.contrast.K562_vs_GM12878",
+        "tier": "descriptive",
+        "modality": "bulk RNA-seq",
+        "analysis": "differential_expression",
+        "text": "Bulk contrast K562 vs GM12878 had 1833 DE genes.",
+        "ledger_node_id": "ledger://bulk/differential_expression"
+      },
+      {
+        "claim_id": "bulk.pathway.K562_vs_GM12878",
+        "tier": "associative",
+        "modality": "bulk RNA-seq",
+        "analysis": "pathway_enrichment",
+        "text": "Pathway enrichment found 80 term(s) for K562 vs GM12878.",
+        "ledger_node_id": "ledger://bulk/pathway_enrichment"
+      },
+      {
+        "claim_id": "bulk.gsea.K562_vs_GM12878",
+        "tier": "associative",
+        "modality": "bulk RNA-seq",
+        "analysis": "gsea_preranked",
+        "text": "Preranked GSEA generated ranked pathway support for K562 vs GM12878.",
+        "ledger_node_id": "ledger://bulk/pathway_enrichment"
+      },
+      {
+        "claim_id": "bulk.power",
+        "tier": "descriptive",
+        "modality": "bulk RNA-seq",
+        "analysis": "power",
+        "text": "Approximate bulk RNA power ranged from 29% to 29% across analyzable contrasts.",
+        "ledger_node_id": "ledger://bulk/differential_expression"
+      },
+      {
+        "claim_id": "chromatin.qc.bulk_ATAC",
+        "tier": "associative",
+        "modality": "chromatin",
+        "analysis": "qc",
+        "text": "Bulk ATAC QC measured 6 sample(s) with mean mitochondrial fraction 0.0.",
+        "ledger_node_id": "ledger://chromatin/qc"
+      },
+      {
+        "claim_id": "chromatin.peak_calling.bulk_ATAC",
+        "tier": "associative",
+        "modality": "chromatin",
+        "analysis": "peak_calling",
+        "text": "MACS3 peak calling for bulk ATAC identified 87078 peaks.",
+        "ledger_node_id": "ledger://chromatin/peak_calling"
+      },
+      {
+        "claim_id": "chromatin.peak_count_matrix.bulk_ATAC",
+        "tier": "associative",
+        "modality": "chromatin",
+        "analysis": "peak_count_matrix",
+        "text": "Bulk ATAC peak counting produced a matrix with 47022 peaks across 6 samples.",
+        "ledger_node_id": "ledger://chromatin/peak_count_matrix"
+      },
+      {
+        "claim_id": "chromatin.differential_accessibility.bulk_atac",
+        "tier": "associative",
+        "modality": "chromatin",
+        "analysis": "differential_accessibility",
+        "text": "Bulk ATAC DESeq2 differential accessibility ran 1 comparison(s) over 6 replicate samples and found 13706 differentially accessible peaks.",
+        "ledger_node_id": "ledger://chromatin/differential_accessibility"
+      }
+    ]
+  },
+  "reproducibility_capsule": {
+    "schema": "s14.reproducibility_capsule.v2",
+    "verification_status": "verified_portable",
+    "raw_verifier_status": "warning",
+    "files_checked": 66,
+    "relocated_inputs_sha256_matched": "7/7",
+    "ro_crate_present": true,
+    "memory_snapshot_present": true,
+    "memory_snapshot_integrity": "ok",
+    "workflow_hash": "1bdec8d3ba051cec44f49b09c14a6f9dd6c992e614d71f5ae7d206fb178901fe",
+    "report_html_bytes": 4603837,
+    "capsule_zip_bytes": 15905759
+  }
+}

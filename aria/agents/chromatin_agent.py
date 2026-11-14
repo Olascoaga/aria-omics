@@ -982,6 +982,7 @@ class ChromatinAgent(BaseAgent):
             "fastq_files": [str(f) for f in fastq_files],
             "output_dir": str(out_dir / "qc"),
             "threads": 8,
+            "min_length": int(exp_ctx.get("fastq_min_length", 20)),
         }
         for key in ("bulk_fastq_manifest", "sample_ids"):
             if exp_ctx.get(key):

@@ -1,0 +1,450 @@
+{
+  "schema_version": "aria.public_modality_atlas.receipt.v1",
+  "modality_id": "08_cut_and_tag",
+  "aria_modality": "CUT_AND_TAG",
+  "status": "completed",
+  "started_at_utc": "2026-11-14T16:26:13.805537+00:00",
+  "completed_at_utc": "2026-11-14T16:41:23.815482+00:00",
+  "elapsed_seconds": 910.01,
+  "driver_peak_rss_mb": 313.3,
+  "experiment_id": "atlas-08-92afa1",
+  "dataset": {
+    "title": "Founding Human CUT&Tag Polycomb H3K27me3 Profiling (H1 hESC vs K562 + IgG)",
+    "accession": "GEO GSE124557 / ENA PRJNA512492",
+    "doi": "10.1038/s41467-019-09982-5",
+    "citation": "Kaya-Okur HS, Wu SJ, Codomo CA, Pledger ES, Bryson TD, Henikoff JG, Ahmad K, Henikoff S, Nature Communications 10, 1930 (2019)",
+    "organism": "Homo sapiens",
+    "genome": "hg38",
+    "design_summary": "Full unmodified ENA paired-end FASTQ libraries: 2 H1 hESC vs 2 K562 H3K27me3 biological replicates + matched IgG negative controls",
+    "source_urls": [
+      "https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR838/002/SRR8383482/SRR8383482_1.fastq.gz",
+      "https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR838/002/SRR8383482/SRR8383482_2.fastq.gz",
+      "https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR838/003/SRR8383483/SRR8383483_1.fastq.gz",
+      "https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR838/003/SRR8383483/SRR8383483_2.fastq.gz",
+      "https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR838/000/SRR8383510/SRR8383510_1.fastq.gz",
+      "https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR838/000/SRR8383510/SRR8383510_2.fastq.gz",
+      "https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR838/001/SRR8383511/SRR8383511_1.fastq.gz",
+      "https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR838/001/SRR8383511/SRR8383511_2.fastq.gz",
+      "https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR843/008/SRR8435038/SRR8435038_1.fastq.gz",
+      "https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR843/008/SRR8435038/SRR8435038_2.fastq.gz",
+      "https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR843/001/SRR8435051/SRR8435051_1.fastq.gz",
+      "https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR843/001/SRR8435051/SRR8435051_2.fastq.gz"
+    ],
+    "verified_files": [
+      {
+        "file": "inputs/H1_H3K27me3_rep1_cuttag_R1.fastq.gz",
+        "filename": "H1_H3K27me3_rep1_cuttag_R1.fastq.gz",
+        "size_bytes": 77044488,
+        "sha256": "6b92a3104d9e7debfb03d22901c97fa875a29e266a670d392a8ba7b602744eaa"
+      },
+      {
+        "file": "inputs/H1_H3K27me3_rep1_cuttag_R2.fastq.gz",
+        "filename": "H1_H3K27me3_rep1_cuttag_R2.fastq.gz",
+        "size_bytes": 80018762,
+        "sha256": "88f4fcabd955d84665c2d46774ac5d9de81a79d99e46109dd65841bbca692d84"
+      },
+      {
+        "file": "inputs/H1_H3K27me3_rep2_cuttag_R1.fastq.gz",
+        "filename": "H1_H3K27me3_rep2_cuttag_R1.fastq.gz",
+        "size_bytes": 78487420,
+        "sha256": "1200cbcb3f9a4169c68f49f03d639e92859efa8ed52dca2783fc8b52cc224c94"
+      },
+      {
+        "file": "inputs/H1_H3K27me3_rep2_cuttag_R2.fastq.gz",
+        "filename": "H1_H3K27me3_rep2_cuttag_R2.fastq.gz",
+        "size_bytes": 82655196,
+        "sha256": "d5835afaa42bce14e436a15aeb04b3c300ed574df6bf720825cb433d6af84041"
+      },
+      {
+        "file": "inputs/H1_IgG_ctrl_cuttag_R1.fastq.gz",
+        "filename": "H1_IgG_ctrl_cuttag_R1.fastq.gz",
+        "size_bytes": 25672651,
+        "sha256": "85593ab5bd4884b7915b578b4dea17e282146c26873796b112adc958237bfa9d"
+      },
+      {
+        "file": "inputs/H1_IgG_ctrl_cuttag_R2.fastq.gz",
+        "filename": "H1_IgG_ctrl_cuttag_R2.fastq.gz",
+        "size_bytes": 26277923,
+        "sha256": "c918ebb697cdbb087f36dd4ea91c29b70c804af0aa18af8942e1fc931925c2e8"
+      },
+      {
+        "file": "inputs/K562_H3K27me3_rep1_cuttag_R1.fastq.gz",
+        "filename": "K562_H3K27me3_rep1_cuttag_R1.fastq.gz",
+        "size_bytes": 87346123,
+        "sha256": "2ca99c6bf5ce6325a717b0011357de8d2a81211676441495dacc7202a9fe0994"
+      },
+      {
+        "file": "inputs/K562_H3K27me3_rep1_cuttag_R2.fastq.gz",
+        "filename": "K562_H3K27me3_rep1_cuttag_R2.fastq.gz",
+        "size_bytes": 89687298,
+        "sha256": "e38c3e90fae018448583eee5e0897aaf11d7e894f1a9e6a933c6a98de79e27b2"
+      },
+      {
+        "file": "inputs/K562_H3K27me3_rep2_cuttag_R1.fastq.gz",
+        "filename": "K562_H3K27me3_rep2_cuttag_R1.fastq.gz",
+        "size_bytes": 86044983,
+        "sha256": "de8332312bfdf69a81587c3a03c0f3d08a108b6e9d7767a43928fe7e6177bf9c"
+      },
+      {
+        "file": "inputs/K562_H3K27me3_rep2_cuttag_R2.fastq.gz",
+        "filename": "K562_H3K27me3_rep2_cuttag_R2.fastq.gz",
+        "size_bytes": 88341165,
+        "sha256": "522087d8d2645120200b530f2f77e529df509f992dd954c38fc2e0947940ec1f"
+      },
+      {
+        "file": "inputs/K562_IgG_ctrl_cuttag_R1.fastq.gz",
+        "filename": "K562_IgG_ctrl_cuttag_R1.fastq.gz",
+        "size_bytes": 38155677,
+        "sha256": "9c73062d9aa0418a958990c426f9690e4316f279707027e0a8e435a3eff9a076"
+      },
+      {
+        "file": "inputs/K562_IgG_ctrl_cuttag_R2.fastq.gz",
+        "filename": "K562_IgG_ctrl_cuttag_R2.fastq.gz",
+        "size_bytes": 39282586,
+        "sha256": "d866520697e3bdbeeba523ee7ea9939d34f20ad326b370329cefb2d1671de35a"
+      }
+    ]
+  },
+  "prompt": {
+    "user_question": "Compare Polycomb H3K27me3 repressive chromatin domains between human K562 erythroleukemia cells and H1 embryonic stem cells using the founding Kaya-Okur et al. 2019 paired-end CUT&Tag FASTQ replicates calibrated against matched IgG negative controls on GRCh38 (GEO GSE124557). Execute fastp QC, Tn5-aware bwa-mem2 alignment, fragment-size and FRiP QC, IgG-calibrated SEACR peak calling, consensus quantification, pyDESeq2 differential binding (K562 versus H1, disclosing n=2 replicate power), and cis gene/pathway annotation.",
+    "reproducible_mode": true,
+    "enable_hypotheses": true,
+    "comparisons": [
+      [
+        "K562",
+        "H1"
+      ]
+    ],
+    "condition_col": "condition",
+    "replicate_col": "replicate"
+  },
+  "llm_reagent": {
+    "status": "ok",
+    "shim": "tantalus",
+    "shim_version": "0.1.0",
+    "model": "qwen3.6-35b-a3b-ud-q4_k_m",
+    "gguf_sha256": "ac0e2c1189e055faa36eff361580e79c5bd6f8e76bffb4ce547f167d53e31a61",
+    "llama_cpp_version": "b12316",
+    "llama_cpp_commit": "5d4c8eeb2",
+    "backend": "vulkan",
+    "kv_cache_type": "f16",
+    "n_ctx": 16384,
+    "quantization": "UD-Q4_K_M",
+    "architecture": "Qwen3.6-35B-A3B MoE (35B total / 3B active)",
+    "endpoint": "http://127.0.0.1:11435",
+    "zero_cost_audit_passed": true,
+    "active_paid_env_keys": [],
+    "usage": {
+      "total_calls": 4,
+      "live_calls": 4,
+      "cache_hits": 0,
+      "fallback_calls": 0,
+      "prompt_tokens": 9217,
+      "completion_tokens": 5297,
+      "total_tokens": 14514,
+      "estimated_cloud_cost_usd": 0.0,
+      "models_used": [
+        "ollama/tantalus-heavy",
+        "ollama/tantalus-medium"
+      ],
+      "tiers": {
+        "medium": {
+          "calls": 2,
+          "tokens": 2185
+        },
+        "heavy": {
+          "calls": 2,
+          "tokens": 12329
+        }
+      }
+    }
+  },
+  "checkpoints": [
+    {
+      "checkpoint": 1,
+      "question_preview": "\ud83d\udcc1 ARIA found the following data:",
+      "options": [
+        "Confirm and continue",
+        "Confirm and enable air-gapped mode",
+        "Correct metadata",
+        "Cancel"
+      ],
+      "chosen": "Confirm and continue"
+    },
+    {
+      "checkpoint": 2.1,
+      "question_preview": "ARIA proposes the following biological groups:",
+      "options": [
+        "Yes \u2014 confirm groups",
+        "Re\u2011infer groups",
+        "Other \u2014 manually assign groups (e.g. treated=s1,s2,s3; control=s4,s5,s6)",
+        "Cancel experiment"
+      ],
+      "chosen": "Yes \u2014 confirm groups"
+    },
+    {
+      "checkpoint": 2.2,
+      "question_preview": "Please confirm the organism and genome assembly:",
+      "options": [
+        "Homo sapiens (hg38)",
+        "Mus musculus (mm39)",
+        "Rattus norvegicus (rn7)",
+        "Danio rerio (danRer11)",
+        "Other organism / assembly..."
+      ],
+      "chosen": "Homo sapiens (hg38)"
+    },
+    {
+      "checkpoint": 2.3,
+      "question_preview": "Main experimental factor: proposed 'condition'",
+      "options": [
+        "genotype",
+        "treatment",
+        "condition",
+        "stimulation",
+        "time",
+        "Cancel"
+      ],
+      "chosen": "condition"
+    },
+    {
+      "checkpoint": 2.6,
+      "question_preview": "Experimental design ready:",
+      "options": [
+        "Yes \u2014 proceed",
+        "Cancel"
+      ],
+      "chosen": "Yes \u2014 proceed"
+    },
+    {
+      "checkpoint": 2,
+      "question_preview": "ARIA Analysis Plan:",
+      "options": [
+        "Run recommended plan only",
+        "Run recommended + optional supported analyses",
+        "Modify plan",
+        "Cancel"
+      ],
+      "chosen": "Run recommended + optional supported analyses"
+    },
+    {
+      "checkpoint": 3.5,
+      "question_preview": "Quality Audit found dispatch readiness issue(s) that may compromise your results:",
+      "options": [
+        "Proceed anyway",
+        "Cancel analysis"
+      ],
+      "chosen": "Proceed anyway"
+    },
+    {
+      "checkpoint": 5,
+      "question_preview": "Analysis complete.",
+      "options": [
+        "Accept report",
+        "Request revision",
+        "Export methods"
+      ],
+      "chosen": "Accept report"
+    }
+  ],
+  "run_ledger": {
+    "n_nodes": 14,
+    "nodes": [
+      {
+        "node_id": "ledger://chromatin/qc",
+        "modality": "chromatin",
+        "analysis": "qc",
+        "label": "Quality control",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://chromatin/scatac_preprocessing",
+        "modality": "chromatin",
+        "analysis": "scatac_preprocessing",
+        "label": "scATAC raw preprocessing & matrix construction",
+        "status": "not_run"
+      },
+      {
+        "node_id": "ledger://chromatin/bulk_atac_preprocessing",
+        "modality": "chromatin",
+        "analysis": "bulk_atac_preprocessing",
+        "label": "Raw bulk chromatin alignment and filtering",
+        "status": "executed"
+      },
+      {
+        "node_id": "ledger://chromatin/dimensionality_reduction",
+        "modality": "chromatin",
+        "analysis": "dimensionality_reduction",
+        "label": "Dimensionality reduction (LSI/TF-IDF)",
+        "status": "not_run"
+      },
+      {
+        "node_id": "ledger://chromatin/peak_calling",
+        "modality": "chromatin",
+        "analysis": "peak_calling",
+        "label": "Peak calling",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://chromatin/peak_count_matrix",
+        "modality": "chromatin",
+        "analysis": "peak_count_matrix",
+        "label": "Peak-count matrix",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://chromatin/differential_accessibility",
+        "modality": "chromatin",
+        "analysis": "differential_accessibility",
+        "label": "Differential accessibility / binding",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://chromatin/motif_enrichment",
+        "modality": "chromatin",
+        "analysis": "motif_enrichment",
+        "label": "TF motif enrichment",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://chromatin/regulatory_layers",
+        "modality": "chromatin",
+        "analysis": "regulatory_layers",
+        "label": "Regulatory layers",
+        "status": "not_run"
+      },
+      {
+        "node_id": "ledger://chromatin/matrix_pipeline",
+        "modality": "chromatin",
+        "analysis": "matrix_pipeline",
+        "label": "scATAC matrix pipeline",
+        "status": "not_run"
+      },
+      {
+        "node_id": "ledger://chromatin/peak_annotation",
+        "modality": "chromatin",
+        "analysis": "peak_annotation",
+        "label": "Genomic peak annotation",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://chromatin/peak_ora",
+        "modality": "chromatin",
+        "analysis": "peak_ora",
+        "label": "DA-peak functional enrichment",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://chromatin/differential_tf_footprinting",
+        "modality": "chromatin",
+        "analysis": "differential_tf_footprinting",
+        "label": "Differential TF footprinting",
+        "status": "not_run"
+      },
+      {
+        "node_id": "ledger://report/executive_summary",
+        "modality": "report",
+        "analysis": "executive_summary",
+        "label": "Executive summary",
+        "status": "ran"
+      }
+    ]
+  },
+  "claims_audit": {
+    "total_public_claims": 9,
+    "claims_by_tier": {
+      "descriptive": 1,
+      "associative": 4,
+      "weak_mechanistic": 4
+    },
+    "speculative_promotion_guard": "pass",
+    "quarantined_hypotheses_count": 0,
+    "representative_claims": [
+      {
+        "claim_id": "executive_summary",
+        "tier": "descriptive",
+        "modality": "report",
+        "analysis": "executive_summary",
+        "text": "ARIA completed the submitted analysis. 3 findings were recorded across all modalities, of which 0 reached HIGH confidence. See the governed claim ledger below for published results.",
+        "ledger_node_id": "ledger://report/executive_summary"
+      },
+      {
+        "claim_id": "chromatin.bulk_atac_preprocessing",
+        "tier": "associative",
+        "modality": "chromatin",
+        "analysis": "bulk_atac_preprocessing",
+        "text": "Raw bulk chromatin read preprocessing trimmed and aligned 6 sample(s) (paired layout), retaining filtered non-mitochondrial alignments for peak calling.",
+        "ledger_node_id": "ledger://chromatin/bulk_atac_preprocessing"
+      },
+      {
+        "claim_id": "chromatin.qc.CUT_AND_TAG",
+        "tier": "weak_mechanistic",
+        "modality": "chromatin",
+        "analysis": "qc",
+        "text": "CUT&TAG QC measured 4 sample(s) with mean mitochondrial fraction 0.0.",
+        "ledger_node_id": "ledger://chromatin/qc"
+      },
+      {
+        "claim_id": "chromatin.peak_calling.CUT_AND_TAG",
+        "tier": "weak_mechanistic",
+        "modality": "chromatin",
+        "analysis": "peak_calling",
+        "text": "SEACR peak calling for CUT&TAG identified 30560 peaks.",
+        "ledger_node_id": "ledger://chromatin/peak_calling"
+      },
+      {
+        "claim_id": "chromatin.peak_count_matrix.CUT_AND_TAG",
+        "tier": "weak_mechanistic",
+        "modality": "chromatin",
+        "analysis": "peak_count_matrix",
+        "text": "CUT&TAG peak counting produced a matrix with 19229 peaks across 4 samples.",
+        "ledger_node_id": "ledger://chromatin/peak_count_matrix"
+      },
+      {
+        "claim_id": "chromatin.differential_accessibility.CUT_AND_TAG",
+        "tier": "weak_mechanistic",
+        "modality": "chromatin",
+        "analysis": "differential_accessibility",
+        "text": "CUT&TAG DESeq2 differential binding ran 1 comparison(s) over 4 replicate samples and found 1792 differential peaks.",
+        "ledger_node_id": "ledger://chromatin/differential_accessibility"
+      },
+      {
+        "claim_id": "chromatin.motifs",
+        "tier": "associative",
+        "modality": "chromatin",
+        "analysis": "motif_enrichment",
+        "text": "TF motif enrichment (JASPAR2024_CORE_vertebrates, hypergeometric) tested 879 motifs and found enriched motifs in 2 of 2 peak group(s).",
+        "ledger_node_id": "ledger://chromatin/motif_enrichment"
+      },
+      {
+        "claim_id": "chromatin.peak_annotation",
+        "tier": "associative",
+        "modality": "chromatin",
+        "analysis": "peak_annotation",
+        "text": "Genomic annotation classified 1792 CUT&TAG differentially accessible peak(s) by feature; 681 (38%) fall in promoter regions.",
+        "ledger_node_id": "ledger://chromatin/peak_annotation"
+      },
+      {
+        "claim_id": "chromatin.peak_ora",
+        "tier": "associative",
+        "modality": "chromatin",
+        "analysis": "peak_ora",
+        "text": "Functional ORA (local_hypergeometric) of genes near CUT&TAG differentially accessible peaks found 70 enriched term(s) across 4 database(s).",
+        "ledger_node_id": "ledger://chromatin/peak_ora"
+      }
+    ]
+  },
+  "reproducibility_capsule": {
+    "schema": "s14.reproducibility_capsule.v2",
+    "verification_status": "verified_portable",
+    "raw_verifier_status": "warning",
+    "files_checked": 38,
+    "relocated_inputs_sha256_matched": "12/12",
+    "ro_crate_present": true,
+    "memory_snapshot_present": true,
+    "memory_snapshot_integrity": "ok",
+    "workflow_hash": "df7d8d72405c9f7112c5b3a9aca4584dff206c931bfc39d5ceb96abe753ce221",
+    "report_html_bytes": 158268,
+    "capsule_zip_bytes": 1106616
+  }
+}

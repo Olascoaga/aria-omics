@@ -1,0 +1,440 @@
+{
+  "schema_version": "aria.public_modality_atlas.receipt.v1",
+  "modality_id": "07_cut_and_run_spikein",
+  "aria_modality": "CUT_AND_RUN",
+  "status": "completed",
+  "started_at_utc": "2026-11-14T16:22:56.940101+00:00",
+  "completed_at_utc": "2026-11-14T16:26:11.735063+00:00",
+  "elapsed_seconds": 194.79,
+  "driver_peak_rss_mb": 314.1,
+  "experiment_id": "atlas-07-4053d0",
+  "dataset": {
+    "title": "Human U2OS SCAF1-AID Acute Auxin Degron CUT&RUN with Heterologous E. coli Spike-In",
+    "accession": "GEO GSE273126 / ENA PRJNA1140214",
+    "doi": "10.1016/j.molcel.2024.09.018",
+    "citation": "GSE273126 \u2014 SCAF1-AID Auxin Degron HA CUT&RUN in Human U2OS Cells (hg38 + E. coli K-12 MG1655 spike-in)",
+    "organism": "Homo sapiens",
+    "genome": "hg38",
+    "design_summary": "3 Control vs 3 Auxin (1 uM, 6h) biological replicates + 1 Untagged negative control (first 350,000 paired-end reads/library preserving human + heterologous E. coli MG1655 spike-in reads)",
+    "source_urls": [
+      "https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR299/064/SRR29997464/SRR29997464_1.fastq.gz",
+      "https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR299/064/SRR29997464/SRR29997464_2.fastq.gz",
+      "https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR299/062/SRR29997462/SRR29997462_1.fastq.gz",
+      "https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR299/062/SRR29997462/SRR29997462_2.fastq.gz",
+      "https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR299/060/SRR29997460/SRR29997460_1.fastq.gz",
+      "https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR299/060/SRR29997460/SRR29997460_2.fastq.gz",
+      "https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR299/063/SRR29997463/SRR29997463_1.fastq.gz",
+      "https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR299/063/SRR29997463/SRR29997463_2.fastq.gz",
+      "https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR299/061/SRR29997461/SRR29997461_1.fastq.gz",
+      "https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR299/061/SRR29997461/SRR29997461_2.fastq.gz",
+      "https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR299/059/SRR29997459/SRR29997459_1.fastq.gz",
+      "https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR299/059/SRR29997459/SRR29997459_2.fastq.gz",
+      "https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR299/058/SRR29997458/SRR29997458_1.fastq.gz",
+      "https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR299/058/SRR29997458/SRR29997458_2.fastq.gz"
+    ],
+    "verified_files": [
+      {
+        "file": "inputs/Auxin_rep1_cutnrun_R1.fastq.gz",
+        "filename": "Auxin_rep1_cutnrun_R1.fastq.gz",
+        "size_bytes": 7405159,
+        "sha256": "016cec586f37bb629764635795053593c078ae2182cbc8c8070407235e0cd604"
+      },
+      {
+        "file": "inputs/Auxin_rep1_cutnrun_R2.fastq.gz",
+        "filename": "Auxin_rep1_cutnrun_R2.fastq.gz",
+        "size_bytes": 15526897,
+        "sha256": "b32678583cade997eb098e672e3debb28615db1121062cb351caaddc2681a082"
+      },
+      {
+        "file": "inputs/Auxin_rep2_cutnrun_R1.fastq.gz",
+        "filename": "Auxin_rep2_cutnrun_R1.fastq.gz",
+        "size_bytes": 7357830,
+        "sha256": "0f8746adf353a1ef59718284dbe352aa6de3aef0b62d8570672251ce8ae8b4d8"
+      },
+      {
+        "file": "inputs/Auxin_rep2_cutnrun_R2.fastq.gz",
+        "filename": "Auxin_rep2_cutnrun_R2.fastq.gz",
+        "size_bytes": 15741691,
+        "sha256": "cf55e8d33d3696b39cc2dc6dd700ad0f37fb387557a2bf94f1a44f9a0128e99a"
+      },
+      {
+        "file": "inputs/Auxin_rep3_cutnrun_R1.fastq.gz",
+        "filename": "Auxin_rep3_cutnrun_R1.fastq.gz",
+        "size_bytes": 7203249,
+        "sha256": "6148d6674f0ae7fa0cfabc1d0f8884e225a757c8682c1733807dffa6456a6c71"
+      },
+      {
+        "file": "inputs/Auxin_rep3_cutnrun_R2.fastq.gz",
+        "filename": "Auxin_rep3_cutnrun_R2.fastq.gz",
+        "size_bytes": 15284380,
+        "sha256": "4d01e3f58d0a9784ccbcd0e00a3a505a0a7561d739a5de1a09d58c22feb8b2d6"
+      },
+      {
+        "file": "inputs/Control_rep1_cutnrun_R1.fastq.gz",
+        "filename": "Control_rep1_cutnrun_R1.fastq.gz",
+        "size_bytes": 9009389,
+        "sha256": "beaa11c1d51d852ef436a1fd5c8a2c53cc4f5ccbfd0d1c6d43d017d4887266bc"
+      },
+      {
+        "file": "inputs/Control_rep1_cutnrun_R2.fastq.gz",
+        "filename": "Control_rep1_cutnrun_R2.fastq.gz",
+        "size_bytes": 17526287,
+        "sha256": "13b132d700beecf0d4e9d66b06bb216220ce968f56dd7cf5bd54cd64c852ddf4"
+      },
+      {
+        "file": "inputs/Control_rep2_cutnrun_R1.fastq.gz",
+        "filename": "Control_rep2_cutnrun_R1.fastq.gz",
+        "size_bytes": 7577615,
+        "sha256": "c7bdd7d248be09a0bc9e5280e3ae4284138374018050350b849827a1c87564f6"
+      },
+      {
+        "file": "inputs/Control_rep2_cutnrun_R2.fastq.gz",
+        "filename": "Control_rep2_cutnrun_R2.fastq.gz",
+        "size_bytes": 16158933,
+        "sha256": "5b97f84b415a91d3cd8230423171ce0f9b9007360c1d91ec21bcb6f3daf04524"
+      },
+      {
+        "file": "inputs/Control_rep3_cutnrun_R1.fastq.gz",
+        "filename": "Control_rep3_cutnrun_R1.fastq.gz",
+        "size_bytes": 7521908,
+        "sha256": "0ec1f748bfe2aa3d6e28c037066af692667e9b027622e80ed5bdfface96c43e3"
+      },
+      {
+        "file": "inputs/Control_rep3_cutnrun_R2.fastq.gz",
+        "filename": "Control_rep3_cutnrun_R2.fastq.gz",
+        "size_bytes": 16179460,
+        "sha256": "fc35eba3a7374478ef76b55c9e9f58659f81783d1f34b54957c4964cb341a9c9"
+      },
+      {
+        "file": "inputs/IgG_Untagged_ctrl_cutnrun_R1.fastq.gz",
+        "filename": "IgG_Untagged_ctrl_cutnrun_R1.fastq.gz",
+        "size_bytes": 7510437,
+        "sha256": "81d223dc8179a45686ff3e4b518135e1bf7effd1c02fbafc31a8150bbfd23346"
+      },
+      {
+        "file": "inputs/IgG_Untagged_ctrl_cutnrun_R2.fastq.gz",
+        "filename": "IgG_Untagged_ctrl_cutnrun_R2.fastq.gz",
+        "size_bytes": 15878285,
+        "sha256": "d0c197dac0afe2418faaea4cd665987acc4ff416d48c39b40173352f2707f46e"
+      }
+    ]
+  },
+  "prompt": {
+    "user_question": "Evaluate acute auxin-induced SCAF1-AID degradation effects on chromatin occupancy in human U2OS cells comparing Auxin versus Control across 3 biological CUT&RUN replicates per group plus an Untagged negative control, using heterologous E. coli K-12 MG1655 spike-in normalization on GRCh38 (GEO GSE273126). Run paired-end FASTQ QC, bwa-mem2 human + E. coli spike-in alignment, nucleosomal fragment and IgG calibration QC, SEACR peak calling, spike-in scaled differential binding (Auxin versus Control), motif enrichment, and cis gene annotation.",
+    "reproducible_mode": true,
+    "enable_hypotheses": true,
+    "comparisons": [
+      [
+        "Auxin",
+        "Control"
+      ]
+    ],
+    "condition_col": "condition",
+    "replicate_col": "replicate"
+  },
+  "llm_reagent": {
+    "status": "ok",
+    "shim": "tantalus",
+    "shim_version": "0.1.0",
+    "model": "qwen3.6-35b-a3b-ud-q4_k_m",
+    "gguf_sha256": "ac0e2c1189e055faa36eff361580e79c5bd6f8e76bffb4ce547f167d53e31a61",
+    "llama_cpp_version": "b12316",
+    "llama_cpp_commit": "5d4c8eeb2",
+    "backend": "vulkan",
+    "kv_cache_type": "f16",
+    "n_ctx": 16384,
+    "quantization": "UD-Q4_K_M",
+    "architecture": "Qwen3.6-35B-A3B MoE (35B total / 3B active)",
+    "endpoint": "http://127.0.0.1:11435",
+    "zero_cost_audit_passed": true,
+    "active_paid_env_keys": [],
+    "usage": {
+      "total_calls": 3,
+      "live_calls": 3,
+      "cache_hits": 0,
+      "fallback_calls": 0,
+      "prompt_tokens": 2910,
+      "completion_tokens": 459,
+      "total_tokens": 3369,
+      "estimated_cloud_cost_usd": 0.0,
+      "models_used": [
+        "ollama/tantalus-heavy",
+        "ollama/tantalus-medium"
+      ],
+      "tiers": {
+        "medium": {
+          "calls": 2,
+          "tokens": 2138
+        },
+        "heavy": {
+          "calls": 1,
+          "tokens": 1231
+        }
+      }
+    }
+  },
+  "checkpoints": [
+    {
+      "checkpoint": 1,
+      "question_preview": "\ud83d\udcc1 ARIA found the following data:",
+      "options": [
+        "Confirm and continue",
+        "Confirm and enable air-gapped mode",
+        "Correct metadata",
+        "Cancel"
+      ],
+      "chosen": "Confirm and continue"
+    },
+    {
+      "checkpoint": 2.1,
+      "question_preview": "ARIA proposes the following biological groups:",
+      "options": [
+        "Yes \u2014 confirm groups",
+        "Re\u2011infer groups",
+        "Other \u2014 manually assign groups (e.g. treated=s1,s2,s3; control=s4,s5,s6)",
+        "Cancel experiment"
+      ],
+      "chosen": "Yes \u2014 confirm groups"
+    },
+    {
+      "checkpoint": 2.2,
+      "question_preview": "Please confirm the organism and genome assembly:",
+      "options": [
+        "Homo sapiens (hg38)",
+        "Mus musculus (mm39)",
+        "Rattus norvegicus (rn7)",
+        "Danio rerio (danRer11)",
+        "Other organism / assembly..."
+      ],
+      "chosen": "Homo sapiens (hg38)"
+    },
+    {
+      "checkpoint": 2.3,
+      "question_preview": "Main experimental factor: proposed 'condition'",
+      "options": [
+        "genotype",
+        "treatment",
+        "condition",
+        "stimulation",
+        "time",
+        "Cancel"
+      ],
+      "chosen": "condition"
+    },
+    {
+      "checkpoint": 2.6,
+      "question_preview": "Experimental design ready:",
+      "options": [
+        "Yes \u2014 proceed",
+        "Cancel"
+      ],
+      "chosen": "Yes \u2014 proceed"
+    },
+    {
+      "checkpoint": 2,
+      "question_preview": "ARIA Analysis Plan:",
+      "options": [
+        "Run recommended plan only",
+        "Run recommended + optional supported analyses",
+        "Modify plan",
+        "Cancel"
+      ],
+      "chosen": "Run recommended + optional supported analyses"
+    },
+    {
+      "checkpoint": 3.5,
+      "question_preview": "Quality Audit found dispatch readiness issue(s) that may compromise your results:",
+      "options": [
+        "Proceed anyway",
+        "Cancel analysis"
+      ],
+      "chosen": "Proceed anyway"
+    },
+    {
+      "checkpoint": 5,
+      "question_preview": "Analysis complete.",
+      "options": [
+        "Accept report",
+        "Request revision",
+        "Export methods"
+      ],
+      "chosen": "Accept report"
+    }
+  ],
+  "run_ledger": {
+    "n_nodes": 14,
+    "nodes": [
+      {
+        "node_id": "ledger://chromatin/qc",
+        "modality": "chromatin",
+        "analysis": "qc",
+        "label": "Quality control",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://chromatin/scatac_preprocessing",
+        "modality": "chromatin",
+        "analysis": "scatac_preprocessing",
+        "label": "scATAC raw preprocessing & matrix construction",
+        "status": "not_run"
+      },
+      {
+        "node_id": "ledger://chromatin/bulk_atac_preprocessing",
+        "modality": "chromatin",
+        "analysis": "bulk_atac_preprocessing",
+        "label": "Raw bulk chromatin alignment and filtering",
+        "status": "executed"
+      },
+      {
+        "node_id": "ledger://chromatin/dimensionality_reduction",
+        "modality": "chromatin",
+        "analysis": "dimensionality_reduction",
+        "label": "Dimensionality reduction (LSI/TF-IDF)",
+        "status": "not_run"
+      },
+      {
+        "node_id": "ledger://chromatin/peak_calling",
+        "modality": "chromatin",
+        "analysis": "peak_calling",
+        "label": "Peak calling",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://chromatin/peak_count_matrix",
+        "modality": "chromatin",
+        "analysis": "peak_count_matrix",
+        "label": "Peak-count matrix",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://chromatin/differential_accessibility",
+        "modality": "chromatin",
+        "analysis": "differential_accessibility",
+        "label": "Differential accessibility / binding",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://chromatin/motif_enrichment",
+        "modality": "chromatin",
+        "analysis": "motif_enrichment",
+        "label": "TF motif enrichment",
+        "status": "not_run"
+      },
+      {
+        "node_id": "ledger://chromatin/regulatory_layers",
+        "modality": "chromatin",
+        "analysis": "regulatory_layers",
+        "label": "Regulatory layers",
+        "status": "not_run"
+      },
+      {
+        "node_id": "ledger://chromatin/matrix_pipeline",
+        "modality": "chromatin",
+        "analysis": "matrix_pipeline",
+        "label": "scATAC matrix pipeline",
+        "status": "not_run"
+      },
+      {
+        "node_id": "ledger://chromatin/peak_annotation",
+        "modality": "chromatin",
+        "analysis": "peak_annotation",
+        "label": "Genomic peak annotation",
+        "status": "skipped"
+      },
+      {
+        "node_id": "ledger://chromatin/peak_ora",
+        "modality": "chromatin",
+        "analysis": "peak_ora",
+        "label": "DA-peak functional enrichment",
+        "status": "skipped"
+      },
+      {
+        "node_id": "ledger://chromatin/differential_tf_footprinting",
+        "modality": "chromatin",
+        "analysis": "differential_tf_footprinting",
+        "label": "Differential TF footprinting",
+        "status": "not_run"
+      },
+      {
+        "node_id": "ledger://report/executive_summary",
+        "modality": "report",
+        "analysis": "executive_summary",
+        "label": "Executive summary",
+        "status": "ran"
+      }
+    ]
+  },
+  "claims_audit": {
+    "total_public_claims": 6,
+    "claims_by_tier": {
+      "descriptive": 1,
+      "associative": 1,
+      "weak_mechanistic": 4
+    },
+    "speculative_promotion_guard": "pass",
+    "quarantined_hypotheses_count": 0,
+    "representative_claims": [
+      {
+        "claim_id": "executive_summary",
+        "tier": "descriptive",
+        "modality": "report",
+        "analysis": "executive_summary",
+        "text": "ARIA completed the submitted analysis. 3 findings were recorded across all modalities, of which 0 reached HIGH confidence. See the governed claim ledger below for published results.",
+        "ledger_node_id": "ledger://report/executive_summary"
+      },
+      {
+        "claim_id": "chromatin.bulk_atac_preprocessing",
+        "tier": "associative",
+        "modality": "chromatin",
+        "analysis": "bulk_atac_preprocessing",
+        "text": "Raw bulk chromatin read preprocessing trimmed and aligned 7 sample(s) (paired layout), retaining filtered non-mitochondrial alignments for peak calling.",
+        "ledger_node_id": "ledger://chromatin/bulk_atac_preprocessing"
+      },
+      {
+        "claim_id": "chromatin.qc.CUT_AND_RUN",
+        "tier": "weak_mechanistic",
+        "modality": "chromatin",
+        "analysis": "qc",
+        "text": "CUT&RUN QC measured 6 sample(s) with mean mitochondrial fraction 0.0.",
+        "ledger_node_id": "ledger://chromatin/qc"
+      },
+      {
+        "claim_id": "chromatin.peak_calling.CUT_AND_RUN",
+        "tier": "weak_mechanistic",
+        "modality": "chromatin",
+        "analysis": "peak_calling",
+        "text": "SEACR peak calling for CUT&RUN identified 29456 peaks.",
+        "ledger_node_id": "ledger://chromatin/peak_calling"
+      },
+      {
+        "claim_id": "chromatin.peak_count_matrix.CUT_AND_RUN",
+        "tier": "weak_mechanistic",
+        "modality": "chromatin",
+        "analysis": "peak_count_matrix",
+        "text": "CUT&RUN peak counting produced a matrix with 36 peaks across 6 samples.",
+        "ledger_node_id": "ledger://chromatin/peak_count_matrix"
+      },
+      {
+        "claim_id": "chromatin.differential_accessibility.CUT_AND_RUN",
+        "tier": "weak_mechanistic",
+        "modality": "chromatin",
+        "analysis": "differential_accessibility",
+        "text": "CUT&RUN DESeq2 differential binding ran 1 comparison(s) over 6 replicate samples and found 0 differential peaks.",
+        "ledger_node_id": "ledger://chromatin/differential_accessibility"
+      }
+    ]
+  },
+  "reproducibility_capsule": {
+    "schema": "s14.reproducibility_capsule.v2",
+    "verification_status": "verified_portable",
+    "raw_verifier_status": "warning",
+    "files_checked": 33,
+    "relocated_inputs_sha256_matched": "14/14",
+    "ro_crate_present": true,
+    "memory_snapshot_present": true,
+    "memory_snapshot_integrity": "ok",
+    "workflow_hash": "1f1da6a0aa5be79355d0a40830f843fa458f8e38287f574676402afcbf177f90",
+    "report_html_bytes": 147875,
+    "capsule_zip_bytes": 421082
+  }
+}

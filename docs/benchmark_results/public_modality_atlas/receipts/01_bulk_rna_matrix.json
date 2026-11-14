@@ -1,0 +1,309 @@
+{
+  "schema_version": "aria.public_modality_atlas.receipt.v1",
+  "modality_id": "01_bulk_rna_matrix",
+  "aria_modality": "bulk_RNA",
+  "status": "completed",
+  "started_at_utc": "2026-11-13T22:24:54.582384+00:00",
+  "completed_at_utc": "2026-11-13T22:27:07.560660+00:00",
+  "elapsed_seconds": 137.84,
+  "driver_peak_rss_mb": 362.6,
+  "experiment_id": "atlas-01-1658e4",
+  "dataset": {
+    "title": "SEQC/MAQC-III Human Reference Transcriptomes (UHRR vs HBRR, BGI Center)",
+    "accession": "GEO GSE47792",
+    "doi": "10.1038/nbt.2957",
+    "citation": "SEQC/MAQC-III Consortium, Nature Biotechnology 32, 903-914 (2014)",
+    "organism": "Homo sapiens",
+    "genome": "hg38",
+    "design_summary": "4 Universal Human Reference RNA (UHRR) vs 4 Human Brain Reference RNA (HBRR) replicates (ERCC synthetic spike-ins excluded)",
+    "source_urls": [
+      "https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE47792"
+    ],
+    "verified_files": [
+      {
+        "file": "inputs/seqc_uhrr_vs_hbrr_counts.tsv",
+        "filename": "seqc_uhrr_vs_hbrr_counts.tsv",
+        "size_bytes": 900008,
+        "sha256": "729735ace9d40424e4dd62ce6596daaaf6cd5bec67f5f4233dba358c03b7b912"
+      }
+    ]
+  },
+  "prompt": {
+    "user_question": "Compare Human Brain Reference RNA (HBRR) versus Universal Human Reference RNA (UHRR) across the four SEQC/MAQC-III BGI biological replicates per group (GEO GSE47792) on Homo sapiens (hg38). Perform library QC, pyDESeq2 differential expression (HBRR versus UHRR), ORA and prerank GSEA pathway enrichment, and report transcriptome-wide concordance without causal extrapolation.",
+    "reproducible_mode": true,
+    "enable_hypotheses": true,
+    "comparisons": [
+      [
+        "HBRR",
+        "UHRR"
+      ]
+    ],
+    "condition_col": "condition",
+    "replicate_col": "replicate"
+  },
+  "llm_reagent": {
+    "status": "ok",
+    "shim": "tantalus",
+    "shim_version": "0.1.0",
+    "model": "qwen3.6-35b-a3b-ud-q4_k_m",
+    "gguf_sha256": "ac0e2c1189e055faa36eff361580e79c5bd6f8e76bffb4ce547f167d53e31a61",
+    "llama_cpp_version": "b12316",
+    "llama_cpp_commit": "5d4c8eeb2",
+    "backend": "vulkan",
+    "kv_cache_type": "f16",
+    "n_ctx": 16384,
+    "quantization": "UD-Q4_K_M",
+    "architecture": "Qwen3.6-35B-A3B MoE (35B total / 3B active)",
+    "endpoint": "http://127.0.0.1:11435",
+    "zero_cost_audit_passed": true,
+    "active_paid_env_keys": [],
+    "usage": {
+      "total_calls": 3,
+      "live_calls": 3,
+      "cache_hits": 0,
+      "fallback_calls": 0,
+      "prompt_tokens": 4720,
+      "completion_tokens": 3078,
+      "total_tokens": 7798,
+      "estimated_cloud_cost_usd": 0.0,
+      "models_used": [
+        "ollama/tantalus-heavy",
+        "ollama/tantalus-medium"
+      ],
+      "tiers": {
+        "medium": {
+          "calls": 2,
+          "tokens": 2033
+        },
+        "heavy": {
+          "calls": 1,
+          "tokens": 5765
+        }
+      }
+    }
+  },
+  "checkpoints": [
+    {
+      "checkpoint": 1,
+      "question_preview": "\ud83d\udcc1 ARIA found the following data:",
+      "options": [
+        "Confirm and continue",
+        "Confirm and enable air-gapped mode",
+        "Correct metadata",
+        "Cancel"
+      ],
+      "chosen": "Confirm and continue"
+    },
+    {
+      "checkpoint": 2.1,
+      "question_preview": "ARIA proposes the following biological groups:",
+      "options": [
+        "Yes \u2014 confirm groups",
+        "Re\u2011infer groups",
+        "Other \u2014 manually assign groups (e.g. treated=s1,s2,s3; control=s4,s5,s6)",
+        "Cancel experiment"
+      ],
+      "chosen": "Yes \u2014 confirm groups"
+    },
+    {
+      "checkpoint": 2.2,
+      "question_preview": "Please confirm the organism and genome assembly:",
+      "options": [
+        "Homo sapiens (hg38)",
+        "Mus musculus (mm39)",
+        "Rattus norvegicus (rn7)",
+        "Danio rerio (danRer11)",
+        "Other organism / assembly..."
+      ],
+      "chosen": "Homo sapiens (hg38)"
+    },
+    {
+      "checkpoint": 2.3,
+      "question_preview": "Main experimental factor: proposed 'condition'",
+      "options": [
+        "genotype",
+        "treatment",
+        "condition",
+        "stimulation",
+        "time",
+        "Cancel"
+      ],
+      "chosen": "condition"
+    },
+    {
+      "checkpoint": 2.5,
+      "question_preview": "Group(s) UHRR, HBRR appear to have samples derived from the same biological source (e.g., technical replicates).",
+      "options": [
+        "Yes \u2014 they are independent biological replicates",
+        "No \u2014 technical replicates; merge by biological unit",
+        "Not sure \u2014 stop and provide a sample sheet"
+      ],
+      "chosen": "Yes \u2014 they are independent biological replicates"
+    },
+    {
+      "checkpoint": 2.6,
+      "question_preview": "Experimental design ready:",
+      "options": [
+        "Yes \u2014 proceed",
+        "Cancel"
+      ],
+      "chosen": "Yes \u2014 proceed"
+    },
+    {
+      "checkpoint": 2,
+      "question_preview": "ARIA Analysis Plan:",
+      "options": [
+        "Run recommended plan only",
+        "Run recommended + optional supported analyses",
+        "Modify plan",
+        "Cancel"
+      ],
+      "chosen": "Run recommended + optional supported analyses"
+    },
+    {
+      "checkpoint": 5,
+      "question_preview": "Analysis complete.",
+      "options": [
+        "Accept report",
+        "Request revision",
+        "Export methods"
+      ],
+      "chosen": "Accept report"
+    }
+  ],
+  "run_ledger": {
+    "n_nodes": 6,
+    "nodes": [
+      {
+        "node_id": "ledger://bulk/preprocessing",
+        "modality": "bulk",
+        "analysis": "preprocessing",
+        "label": "Raw FASTQ preprocessing & alignment",
+        "status": "not_run"
+      },
+      {
+        "node_id": "ledger://bulk/qc",
+        "modality": "bulk",
+        "analysis": "qc",
+        "label": "Sample QC",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://bulk/differential_expression",
+        "modality": "bulk",
+        "analysis": "differential_expression",
+        "label": "Differential expression",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://bulk/pathway_enrichment",
+        "modality": "bulk",
+        "analysis": "pathway_enrichment",
+        "label": "Pathway enrichment (ORA/GSEA)",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://report/executive_summary",
+        "modality": "report",
+        "analysis": "executive_summary",
+        "label": "Executive summary",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://report/biological_synthesis",
+        "modality": "report",
+        "analysis": "biological_synthesis",
+        "label": "Integrated biological synthesis",
+        "status": "ran"
+      }
+    ]
+  },
+  "claims_audit": {
+    "total_public_claims": 8,
+    "claims_by_tier": {
+      "descriptive": 3,
+      "associative": 5
+    },
+    "speculative_promotion_guard": "pass",
+    "quarantined_hypotheses_count": 0,
+    "representative_claims": [
+      {
+        "claim_id": "executive_summary",
+        "tier": "descriptive",
+        "modality": "report",
+        "analysis": "executive_summary",
+        "text": "ARIA completed the submitted analysis. 8 findings were recorded across all modalities, of which 0 reached HIGH confidence. See the governed claim ledger below for published results.",
+        "ledger_node_id": "ledger://report/executive_summary"
+      },
+      {
+        "claim_id": "bulk.qc",
+        "tier": "descriptive",
+        "modality": "bulk RNA-seq",
+        "analysis": "sample_qc",
+        "text": "Bulk RNA sample QC evaluated 8 samples with 0 outlier(s) flagged; primary DE retained all samples and sensitivity removed 0.",
+        "ledger_node_id": "ledger://bulk/qc"
+      },
+      {
+        "claim_id": "bulk.contrast.HBRR_vs_UHRR",
+        "tier": "associative",
+        "modality": "bulk RNA-seq",
+        "analysis": "differential_expression",
+        "text": "Bulk contrast HBRR vs UHRR had 9863 DE genes.",
+        "ledger_node_id": "ledger://bulk/differential_expression"
+      },
+      {
+        "claim_id": "bulk.pathway.HBRR_vs_UHRR",
+        "tier": "associative",
+        "modality": "bulk RNA-seq",
+        "analysis": "pathway_enrichment",
+        "text": "Pathway enrichment found 80 term(s) for HBRR vs UHRR.",
+        "ledger_node_id": "ledger://bulk/pathway_enrichment"
+      },
+      {
+        "claim_id": "bulk.gsea.HBRR_vs_UHRR",
+        "tier": "associative",
+        "modality": "bulk RNA-seq",
+        "analysis": "gsea_preranked",
+        "text": "Preranked GSEA generated ranked pathway support for HBRR vs UHRR.",
+        "ledger_node_id": "ledger://bulk/pathway_enrichment"
+      },
+      {
+        "claim_id": "bulk.power",
+        "tier": "descriptive",
+        "modality": "bulk RNA-seq",
+        "analysis": "power",
+        "text": "Approximate bulk RNA power ranged from 57% to 57% across analyzable contrasts.",
+        "ledger_node_id": "ledger://bulk/differential_expression"
+      },
+      {
+        "claim_id": "integration.signal",
+        "tier": "associative",
+        "modality": "integrated synthesis",
+        "analysis": "integrated_signal",
+        "text": "Across 1 analyzable contrast(s), 1 produced significant differential expression accompanied by functional pathway enrichment, indicating a coordinated transcriptional response.",
+        "ledger_node_id": "ledger://report/biological_synthesis"
+      },
+      {
+        "claim_id": "integration.limitations",
+        "tier": "associative",
+        "modality": "integrated synthesis",
+        "analysis": "integration_limitations",
+        "text": "These integrated results are associative and do not establish causality or direct regulation; cross-analysis agreement prioritizes candidates for independent experimental validation rather than proving a mechanism. Approximate statistical power ranged from 0.568 to 0.568 across contrasts.",
+        "ledger_node_id": "ledger://report/biological_synthesis"
+      }
+    ]
+  },
+  "reproducibility_capsule": {
+    "schema": "s14.reproducibility_capsule.v2",
+    "verification_status": "verified_portable",
+    "raw_verifier_status": "warning",
+    "files_checked": 44,
+    "relocated_inputs_sha256_matched": "1/1",
+    "ro_crate_present": true,
+    "memory_snapshot_present": true,
+    "memory_snapshot_integrity": "ok",
+    "workflow_hash": "1bdec8d3ba051cec44f49b09c14a6f9dd6c992e614d71f5ae7d206fb178901fe",
+    "report_html_bytes": 5546035,
+    "capsule_zip_bytes": 5471822
+  }
+}

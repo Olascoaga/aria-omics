@@ -83,9 +83,13 @@ def chromatin_qc(params: dict) -> dict:
     # MuData file. Route a .h5mu through the real MuData reader rather than the
     # fragments-file path, which would not detect it.
     h5mu_files = [f for f in valid_files if str(f).lower().endswith(".h5mu")]
+    h5ad_files = [f for f in valid_files if str(f).lower().endswith(".h5ad")]
     if data_type == "scATAC":
         if h5mu_files:
             return {**_h5mu_atac_qc(h5mu_files[0], genome, organism, warnings),
+                    "validation_level": "production"}
+        if h5ad_files:
+            return {**_h5ad_atac_qc(h5ad_files[0], genome, organism, warnings),
                     "validation_level": "production"}
         if any(str(f).lower().endswith((".bam", ".cram")) for f in valid_files):
             return _bulk_chromatin_qc(valid_files, data_type, genome, assay_class,
@@ -326,6 +330,95 @@ def _h5mu_atac_qc(h5mu_path: str, genome: str,
         "metrics_not_computed": not_computed,
         "pass_qc":         None,
         "warnings":        warnings,
+    }
+
+
+def _h5ad_atac_qc(h5ad_path: str, genome: str,
+                  organism: str, warnings: list) -> dict:
+    """scATAC QC entry for a cell x peak `.h5ad` matrix (e.g. merged multi-donor
+    cohort union matrix or fragments->matrix bridge output). Reports genuine
+    matrix dimensions and available per-cell fragment/mito obs columns without
+    fabricating fragment-level TSSe or FRiP (ADR-002)."""
+    import numpy as np
+    from aria.utils.mudata_io import _FRAG_COL_HINTS, _MITO_COL_HINTS
+
+    try:
+        from aria.utils.safe_h5ad import read_h5ad
+        adata = read_h5ad(str(h5ad_path))
+    except ImportError as exc:
+        return {
+            "status": "error",
+            "error_type": "MissingDependency",
+            "details": f"scATAC .h5ad QC requires anndata: {exc}",
+        }
+    except Exception as exc:
+        return {
+            "status": "error",
+            "error_type": "H5adReadFailed",
+            "details": f"{type(exc).__name__}: {str(exc)[:200]}",
+        }
+
+    obs = adata.obs
+
+    def _find_col(hints):
+        for col in obs.columns:
+            low = str(col).lower()
+            if any(h in low for h in hints):
+                return str(col)
+        return None
+
+    frag_col = _find_col(_FRAG_COL_HINTS)
+    mito_col = _find_col(_MITO_COL_HINTS)
+    median_frags = None
+    median_mito = None
+    try:
+        if frag_col is not None:
+            vals = np.asarray(obs[frag_col].values, dtype=float)
+            vals = vals[np.isfinite(vals)]
+            if vals.size:
+                median_frags = float(np.median(vals))
+        if mito_col is not None:
+            vals = np.asarray(obs[mito_col].values, dtype=float)
+            vals = vals[np.isfinite(vals)]
+            if vals.size:
+                median_mito = float(np.median(vals))
+    except Exception:
+        pass
+
+    not_computed = [
+        "tss_enrichment (requires raw fragment file + reference TSS annotation)",
+        "frip (requires raw fragment file + called peaks)",
+    ]
+    if frag_col is None:
+        not_computed.append(
+            "median_fragments_per_cell (no per-cell fragment obs column found)"
+        )
+    if mito_col is None:
+        not_computed.append(
+            "mito_fraction (no per-cell mitochondrial obs column found)"
+        )
+
+    warnings.append(
+        "scATAC peak-matrix QC on .h5ad: cell/peak dimensions and available obs "
+        "metrics were read directly; TSSe and FRiP require raw fragments."
+    )
+    return {
+        "status": "success",
+        "data_type": "scATAC",
+        "input_kind": "h5ad",
+        "n_cells": int(adata.n_obs),
+        "n_peaks": int(adata.n_vars),
+        "n_cells_after": None,
+        "frip": None,
+        "tss_enrichment": None,
+        "fragment_count_col": frag_col,
+        "median_fragments_per_cell": median_frags,
+        "mito_obs_col": mito_col,
+        "median_mito_obs": median_mito,
+        "qc_complete": False,
+        "metrics_not_computed": not_computed,
+        "pass_qc": None,
+        "warnings": warnings,
     }
 
 

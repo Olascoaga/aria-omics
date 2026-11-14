@@ -1,0 +1,470 @@
+{
+  "schema_version": "aria.public_modality_atlas.receipt.v1",
+  "modality_id": "10_paired_multiome",
+  "aria_modality": "Paired_Multiome",
+  "status": "completed",
+  "started_at_utc": "2026-11-14T02:35:12.342595+00:00",
+  "completed_at_utc": "2026-11-14T02:50:11.551085+00:00",
+  "elapsed_seconds": 949.35,
+  "driver_peak_rss_mb": 582.8,
+  "experiment_id": "atlas-10-abbabb",
+  "dataset": {
+    "title": "Human Hippocampus Same-Cell 10x Multiome RNA+ATAC Cohort (3v3 Donors)",
+    "accession": "GEO GSE278576",
+    "doi": "10.1126/science.adt8307",
+    "citation": "Zemke NR et al., Science (2026) doi:10.1126/science.adt8307",
+    "organism": "Homo sapiens",
+    "genome": "hg38",
+    "design_summary": "6 post-mortem human hippocampal donors (3 young_20_39 [hc29, hc77, hc76] vs 3 aged_80_100 [hc11, hc12, hc19], 400 paired same-cell nuclei/donor = 2,400 paired nuclei across chr1/6/7/11/17/19)",
+    "source_urls": [
+      "https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE278576"
+    ],
+    "verified_files": [
+      {
+        "file": "inputs/hc11_paired_multiome.h5mu",
+        "filename": "hc11_paired_multiome.h5mu",
+        "size_bytes": 25252046,
+        "sha256": "5af99305a2013205471501b99d8aaa65caab9eb0f8341326e885844729a924e5"
+      },
+      {
+        "file": "inputs/hc12_paired_multiome.h5mu",
+        "filename": "hc12_paired_multiome.h5mu",
+        "size_bytes": 32123896,
+        "sha256": "e3c1fd0a26087b07548969c40d890b67c1276a64dc5a5468f4e5d95bc9d144c6"
+      },
+      {
+        "file": "inputs/hc19_paired_multiome.h5mu",
+        "filename": "hc19_paired_multiome.h5mu",
+        "size_bytes": 31063020,
+        "sha256": "d2f34d86000f69f8c47b110aca65ca137e24eaf837b92965c9f9410374cac0a9"
+      },
+      {
+        "file": "inputs/hc29_paired_multiome.h5mu",
+        "filename": "hc29_paired_multiome.h5mu",
+        "size_bytes": 35558770,
+        "sha256": "0a99dc100734ba0263ff4a611e3cac3330eed9d43eab53d13fc97ea1432f5033"
+      },
+      {
+        "file": "inputs/hc76_paired_multiome.h5mu",
+        "filename": "hc76_paired_multiome.h5mu",
+        "size_bytes": 35757826,
+        "sha256": "b5b57aba7a8b0a95fe823bfe6482e4b50471e35db18e5adc7f85d9d6ca689800"
+      },
+      {
+        "file": "inputs/hc77_paired_multiome.h5mu",
+        "filename": "hc77_paired_multiome.h5mu",
+        "size_bytes": 32506000,
+        "sha256": "5609bbade21bdbc4e5abdd1da9aff588ee8146a8f23fbe6b8d5170fa5f7ad9d8"
+      }
+    ]
+  },
+  "prompt": {
+    "user_question": "Perform joint same-cell 10x Multiome (scRNA-seq + scATAC-seq) integration across 6 human hippocampal donors comparing aged_80_100 (hc11, hc12, hc19) versus young_20_39 (hc29, hc77, hc76) individuals (GEO GSE278576, Homo sapiens hg38). Execute multi-donor cohort assembly, paired joint RNA+ATAC QC, Weighted Nearest Neighbor (WNN) multimodal graph construction, cis peak-to-gene regulatory linkage, candidate TF->peak->gene eRegulon assembly, and MOFA+ multi-view latent factor decomposition.",
+    "reproducible_mode": true,
+    "enable_hypotheses": true,
+    "comparisons": [
+      [
+        "aged_80_100",
+        "young_20_39"
+      ]
+    ],
+    "condition_col": "condition",
+    "replicate_col": "donor_id"
+  },
+  "llm_reagent": {
+    "status": "ok",
+    "shim": "tantalus",
+    "shim_version": "0.1.0",
+    "model": "qwen3.6-35b-a3b-ud-q4_k_m",
+    "gguf_sha256": "ac0e2c1189e055faa36eff361580e79c5bd6f8e76bffb4ce547f167d53e31a61",
+    "llama_cpp_version": "b12316",
+    "llama_cpp_commit": "5d4c8eeb2",
+    "backend": "vulkan",
+    "kv_cache_type": "f16",
+    "n_ctx": 16384,
+    "quantization": "UD-Q4_K_M",
+    "architecture": "Qwen3.6-35B-A3B MoE (35B total / 3B active)",
+    "endpoint": "http://127.0.0.1:11435",
+    "zero_cost_audit_passed": true,
+    "active_paid_env_keys": [],
+    "usage": {
+      "total_calls": 19,
+      "live_calls": 19,
+      "cache_hits": 0,
+      "fallback_calls": 0,
+      "prompt_tokens": 56585,
+      "completion_tokens": 9192,
+      "total_tokens": 65777,
+      "estimated_cloud_cost_usd": 0.0,
+      "models_used": [
+        "ollama/tantalus-heavy",
+        "ollama/tantalus-medium"
+      ],
+      "tiers": {
+        "medium": {
+          "calls": 15,
+          "tokens": 49478
+        },
+        "heavy": {
+          "calls": 4,
+          "tokens": 16299
+        }
+      }
+    }
+  },
+  "checkpoints": [
+    {
+      "checkpoint": 1,
+      "question_preview": "\ud83d\udcc1 ARIA found the following data:",
+      "options": [
+        "Confirm and continue",
+        "Confirm and enable air-gapped mode",
+        "Correct metadata",
+        "Cancel"
+      ],
+      "chosen": "Confirm and continue"
+    },
+    {
+      "checkpoint": 2.1,
+      "question_preview": "ARIA proposes the following biological groups:",
+      "options": [
+        "Yes \u2014 confirm groups",
+        "Re\u2011infer groups",
+        "Other \u2014 manually assign groups (e.g. treated=s1,s2,s3; control=s4,s5,s6)",
+        "Cancel experiment"
+      ],
+      "chosen": "Yes \u2014 confirm groups"
+    },
+    {
+      "checkpoint": 2.2,
+      "question_preview": "Please confirm the organism and genome assembly:",
+      "options": [
+        "Homo sapiens (hg38)",
+        "Mus musculus (mm39)",
+        "Rattus norvegicus (rn7)",
+        "Danio rerio (danRer11)",
+        "Other organism / assembly..."
+      ],
+      "chosen": "Homo sapiens (hg38)"
+    },
+    {
+      "checkpoint": 2.3,
+      "question_preview": "Main experimental factor: proposed 'condition'",
+      "options": [
+        "genotype",
+        "treatment",
+        "condition",
+        "stimulation",
+        "time",
+        "Cancel"
+      ],
+      "chosen": "condition"
+    },
+    {
+      "checkpoint": 2.6,
+      "question_preview": "Experimental design ready:",
+      "options": [
+        "Yes \u2014 proceed",
+        "Cancel"
+      ],
+      "chosen": "Yes \u2014 proceed"
+    },
+    {
+      "checkpoint": 2,
+      "question_preview": "ARIA Analysis Plan:",
+      "options": [
+        "Run recommended plan only",
+        "Run recommended + optional supported analyses",
+        "Modify plan",
+        "Cancel"
+      ],
+      "chosen": "Run recommended + optional supported analyses"
+    },
+    {
+      "checkpoint": 3,
+      "question_preview": "WNN Integration \u2014 k Parameter",
+      "options": [
+        "Use recommended k=20",
+        "Other: Enter custom k value",
+        "Skip WNN integration"
+      ],
+      "chosen": "Use recommended k=20"
+    },
+    {
+      "checkpoint": 3,
+      "question_preview": "MOFA+ factor count",
+      "options": [
+        "Use recommended n_factors=10",
+        "Other: Enter custom n_factors",
+        "Skip MOFA+"
+      ],
+      "chosen": "Use recommended n_factors=10"
+    },
+    {
+      "checkpoint": 5,
+      "question_preview": "Analysis complete.",
+      "options": [
+        "Accept report",
+        "Request revision",
+        "Export methods"
+      ],
+      "chosen": "Accept report"
+    }
+  ],
+  "run_ledger": {
+    "n_nodes": 21,
+    "nodes": [
+      {
+        "node_id": "ledger://chromatin/qc",
+        "modality": "chromatin",
+        "analysis": "qc",
+        "label": "Quality control",
+        "status": "error"
+      },
+      {
+        "node_id": "ledger://chromatin/scatac_preprocessing",
+        "modality": "chromatin",
+        "analysis": "scatac_preprocessing",
+        "label": "scATAC raw preprocessing & matrix construction",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://chromatin/bulk_atac_preprocessing",
+        "modality": "chromatin",
+        "analysis": "bulk_atac_preprocessing",
+        "label": "Raw bulk chromatin alignment and filtering",
+        "status": "not_run"
+      },
+      {
+        "node_id": "ledger://chromatin/dimensionality_reduction",
+        "modality": "chromatin",
+        "analysis": "dimensionality_reduction",
+        "label": "Dimensionality reduction (LSI/TF-IDF)",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://chromatin/peak_calling",
+        "modality": "chromatin",
+        "analysis": "peak_calling",
+        "label": "Peak calling",
+        "status": "not_run"
+      },
+      {
+        "node_id": "ledger://chromatin/peak_count_matrix",
+        "modality": "chromatin",
+        "analysis": "peak_count_matrix",
+        "label": "Peak-count matrix",
+        "status": "not_run"
+      },
+      {
+        "node_id": "ledger://chromatin/differential_accessibility",
+        "modality": "chromatin",
+        "analysis": "differential_accessibility",
+        "label": "Differential accessibility / binding",
+        "status": "error"
+      },
+      {
+        "node_id": "ledger://chromatin/motif_enrichment",
+        "modality": "chromatin",
+        "analysis": "motif_enrichment",
+        "label": "TF motif enrichment",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://chromatin/regulatory_layers",
+        "modality": "chromatin",
+        "analysis": "regulatory_layers",
+        "label": "Regulatory layers",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://chromatin/matrix_pipeline",
+        "modality": "chromatin",
+        "analysis": "matrix_pipeline",
+        "label": "scATAC matrix pipeline",
+        "status": "not_run"
+      },
+      {
+        "node_id": "ledger://chromatin/peak_annotation",
+        "modality": "chromatin",
+        "analysis": "peak_annotation",
+        "label": "Genomic peak annotation",
+        "status": "not_run"
+      },
+      {
+        "node_id": "ledger://chromatin/peak_ora",
+        "modality": "chromatin",
+        "analysis": "peak_ora",
+        "label": "DA-peak functional enrichment",
+        "status": "not_run"
+      },
+      {
+        "node_id": "ledger://chromatin/differential_tf_footprinting",
+        "modality": "chromatin",
+        "analysis": "differential_tf_footprinting",
+        "label": "Differential TF footprinting",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://integration/preprocessing",
+        "modality": "integration",
+        "analysis": "preprocessing",
+        "label": "Multiome raw assembly & cohort union",
+        "status": "executed"
+      },
+      {
+        "node_id": "ledger://integration/paired_qc",
+        "modality": "integration",
+        "analysis": "paired_qc",
+        "label": "Paired multiome QC",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://integration/wnn",
+        "modality": "integration",
+        "analysis": "wnn",
+        "label": "Weighted Nearest Neighbors (WNN)",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://integration/mofa",
+        "modality": "integration",
+        "analysis": "mofa",
+        "label": "MOFA+ factor decomposition",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://integration/peak_to_gene",
+        "modality": "integration",
+        "analysis": "peak_to_gene",
+        "label": "Cis peak-to-gene linkage",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://integration/eregulons",
+        "modality": "integration",
+        "analysis": "eregulons",
+        "label": "Candidate eRegulon inference",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://integration/cross_modal_triangulation",
+        "modality": "integration",
+        "analysis": "cross_modal_triangulation",
+        "label": "Cross-modal evidence triangulation",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://report/executive_summary",
+        "modality": "report",
+        "analysis": "executive_summary",
+        "label": "Executive summary",
+        "status": "ran"
+      }
+    ]
+  },
+  "claims_audit": {
+    "total_public_claims": 11,
+    "claims_by_tier": {
+      "descriptive": 4,
+      "associative": 7
+    },
+    "speculative_promotion_guard": "pass",
+    "quarantined_hypotheses_count": 0,
+    "representative_claims": [
+      {
+        "claim_id": "executive_summary",
+        "tier": "descriptive",
+        "modality": "report",
+        "analysis": "executive_summary",
+        "text": "Paired multiome QC retained 1828 of 2400 shared barcodes across 36601 RNA genes and 55385 ATAC peaks. WNN manifold integration identified 7 joint clusters (WNN vs RNA ARI 0.6702, WNN vs ATAC ARI 0.5765, guardrail status pass). MOFA+ retained 6 of 10 fitted factors (1 confounder factor(s) quarantined); cis peak-to-gene linkage identified 21 BH-FDR associations; candidate eRegulon inference retained 103 associative modules across 3971 triplets. All cross-modal links and candidate eRegulons represent observational co-variation rather than proof of transcriptional causation, and single-modality analyses remain the primary reference.",
+        "ledger_node_id": "ledger://report/executive_summary"
+      },
+      {
+        "claim_id": "chromatin.scatac_preprocessing",
+        "tier": "associative",
+        "modality": "chromatin",
+        "analysis": "scatac_preprocessing",
+        "text": "scATAC preprocessing completed (cohort matrix union): the resulting matrix has 2400 cell(s) x 55385 peak(s).",
+        "ledger_node_id": "ledger://chromatin/scatac_preprocessing"
+      },
+      {
+        "claim_id": "chromatin.clustering",
+        "tier": "associative",
+        "modality": "chromatin",
+        "analysis": "dimensionality_reduction",
+        "text": "TF-IDF/LSI over 55385 peaks in 2400 cells produced 11 clusters after removing 1 depth-associated component(s).",
+        "ledger_node_id": "ledger://chromatin/dimensionality_reduction"
+      },
+      {
+        "claim_id": "chromatin.regulatory_layers",
+        "tier": "associative",
+        "modality": "chromatin",
+        "analysis": "regulatory_layers",
+        "text": "scATAC regulatory-layer analysis ran 1 of 5 optional layer(s); skipped layers are reported with their prerequisites.",
+        "ledger_node_id": "ledger://chromatin/regulatory_layers"
+      },
+      {
+        "claim_id": "multiome.preprocessing",
+        "tier": "descriptive",
+        "modality": "integration",
+        "analysis": "preprocessing",
+        "text": "Multiome intake (paired_cohort_merge, platform paired_multiome) produced a paired RNA+ATAC container with 6 sample(s), 2400 cells, 36601 RNA genes, 55385 consensus ATAC peaks under barcode translation shared_mudata_obs.",
+        "ledger_node_id": "ledger://integration/preprocessing"
+      },
+      {
+        "claim_id": "multiome.paired_qc",
+        "tier": "descriptive",
+        "modality": "integration",
+        "analysis": "paired_qc",
+        "text": "Paired multiome QC retained 1828 of 2400 shared barcodes (23.83% removed) across 36601 RNA genes and 55385 ATAC peaks.",
+        "ledger_node_id": "ledger://integration/paired_qc"
+      },
+      {
+        "claim_id": "multiome.wnn",
+        "tier": "descriptive",
+        "modality": "integration",
+        "analysis": "wnn",
+        "text": "WNN integration across 1828 shared cells identified 7 joint clusters (vs 8 RNA-only and 6 ATAC-only), mean RNA weight 0.5821 and mean ATAC weight 0.4179, with WNN vs RNA ARI 0.6702 (NMI 0.8854), WNN vs ATAC ARI 0.5765 (NMI 0.7086), 0 discordant cluster(s), and guardrail status pass.",
+        "ledger_node_id": "ledger://integration/wnn"
+      },
+      {
+        "claim_id": "multiome.mofa",
+        "tier": "associative",
+        "modality": "integration",
+        "analysis": "mofa",
+        "text": "MOFA+ decomposition across 1828 cells (10 fitted factors) retained 6 active factors (4 shared and 1 modality-specific), quarantined 1 technical or cell-cycle confounder factor(s), and explained non-additive R2 of 45.52% in RNA and 4.39% in ATAC.",
+        "ledger_node_id": "ledger://integration/mofa"
+      },
+      {
+        "claim_id": "multiome.peak_to_gene",
+        "tier": "associative",
+        "modality": "integration",
+        "analysis": "peak_to_gene",
+        "text": "Cis peak-to-gene linkage within 500 kb tested 335963 candidate pairs across 1828 shared cells and identified 21 BH-FDR cis associations (21 positive and 0 negative; 6 promoter-proximal and 15 distal cis).",
+        "ledger_node_id": "ledger://integration/peak_to_gene"
+      },
+      {
+        "claim_id": "multiome.eregulons",
+        "tier": "associative",
+        "modality": "integration",
+        "analysis": "eregulons",
+        "text": "Candidate eRegulon inference across 1828 shared cells tested 1100 motif-linked modules and retained 103 BH-FDR candidate eRegulons (56 pos_tf_pos_p2g and 47 neg_tf_pos_p2g) spanning 103 unique TFs and 3971 TF-enhancer-gene triplets (12 paralog-ambiguous, 0 depth-confounded).",
+        "ledger_node_id": "ledger://integration/eregulons"
+      }
+    ]
+  },
+  "reproducibility_capsule": {
+    "schema": "s14.reproducibility_capsule.v2",
+    "verification_status": "verified_portable",
+    "raw_verifier_status": "warning",
+    "files_checked": 40,
+    "relocated_inputs_sha256_matched": "6/6",
+    "ro_crate_present": true,
+    "memory_snapshot_present": true,
+    "memory_snapshot_integrity": "ok",
+    "workflow_hash": "1bdec8d3ba051cec44f49b09c14a6f9dd6c992e614d71f5ae7d206fb178901fe",
+    "report_html_bytes": 1664189,
+    "capsule_zip_bytes": 3067000
+  }
+}

@@ -1,0 +1,375 @@
+{
+  "schema_version": "aria.public_modality_atlas.receipt.v1",
+  "modality_id": "09_hic_3d_genome",
+  "aria_modality": "HiC",
+  "status": "completed",
+  "started_at_utc": "2026-11-14T06:18:15.345344+00:00",
+  "completed_at_utc": "2026-11-14T06:49:29.355639+00:00",
+  "elapsed_seconds": 2003.67,
+  "driver_peak_rss_mb": 260.5,
+  "experiment_id": "atlas-09-b671d4",
+  "dataset": {
+    "title": "Human RPE-1 Whole-Genome Duplication 3D Chromatin Organization (Diploid vs Tetraploid G1)",
+    "accession": "GEO GSE345433",
+    "doi": "NCBI GEO GSE345433",
+    "citation": "GSE345433 \u2014 Whole genome duplication through mitotic slippage 3D Hi-C in human RPE-1 cells (GRCh38 .mcool)",
+    "organism": "Homo sapiens",
+    "genome": "hg38",
+    "design_summary": "3 Diploid_G1 vs 3 Tetraploid_G1 biological replicates (multi-resolution GRCh38 .mcool matrices)",
+    "source_urls": [
+      "https://ftp.ncbi.nlm.nih.gov/geo/samples/GSM10003nnn/GSM10003420/suppl/GSM10003420_RPE_2N-MS02_hic_1.mcool",
+      "https://ftp.ncbi.nlm.nih.gov/geo/samples/GSM10003nnn/GSM10003421/suppl/GSM10003421_RPE_2N-MS02_hic_2.mcool",
+      "https://ftp.ncbi.nlm.nih.gov/geo/samples/GSM10003nnn/GSM10003422/suppl/GSM10003422_RPE_2N-MS1_hic_1.mcool",
+      "https://ftp.ncbi.nlm.nih.gov/geo/samples/GSM10003nnn/GSM10003424/suppl/GSM10003424_RPE_4N-MS02_hic_1.mcool",
+      "https://ftp.ncbi.nlm.nih.gov/geo/samples/GSM10003nnn/GSM10003425/suppl/GSM10003425_RPE_4N-MS02_hic_2.mcool",
+      "https://ftp.ncbi.nlm.nih.gov/geo/samples/GSM10003nnn/GSM10003426/suppl/GSM10003426_RPE_4N-MS1_hic_1.mcool"
+    ],
+    "verified_files": [
+      {
+        "file": "inputs/Diploid_rep1.mcool",
+        "filename": "Diploid_rep1.mcool",
+        "size_bytes": 445936960,
+        "sha256": "e6c1711a604e308f5d01ba4e72236660e5618cd76af29527ee3fb8fe03736a30"
+      },
+      {
+        "file": "inputs/Diploid_rep2.mcool",
+        "filename": "Diploid_rep2.mcool",
+        "size_bytes": 490297183,
+        "sha256": "53b2bd3ab1ed2dab44ab53f03cade53b8e1b1c12b7df1ae430a314f54901f630"
+      },
+      {
+        "file": "inputs/Diploid_rep3.mcool",
+        "filename": "Diploid_rep3.mcool",
+        "size_bytes": 438680166,
+        "sha256": "020488272b6809b653766d2da6fa59f4f0dbd355c2a7616049632b95859c8308"
+      },
+      {
+        "file": "inputs/Tetraploid_rep1.mcool",
+        "filename": "Tetraploid_rep1.mcool",
+        "size_bytes": 456144325,
+        "sha256": "0125d5711c9605ec7b37cc4ffbf66bab673fe9d5d29f11ec3aec1419ca8e2319"
+      },
+      {
+        "file": "inputs/Tetraploid_rep2.mcool",
+        "filename": "Tetraploid_rep2.mcool",
+        "size_bytes": 120133024,
+        "sha256": "0289c4c0bbd3b3326f2271911d84642e5d7e9ab89aa71604e7353d65b69009b7"
+      },
+      {
+        "file": "inputs/Tetraploid_rep3.mcool",
+        "filename": "Tetraploid_rep3.mcool",
+        "size_bytes": 468928569,
+        "sha256": "e0328166b50e445ccdcb1b6ffa573af9834894dde7b985b0e7453df6348aaae3"
+      }
+    ]
+  },
+  "prompt": {
+    "user_question": "Assess 3D genome reorganization following whole-genome duplication in human RPE-1 G1 cells comparing Tetraploid versus Diploid across 3 biological Hi-C replicates per ploidy state on GRCh38 (GEO GSE345433). Perform ICE contact balancing, P(s) distance-decay polymer scaling and HiCRep stratum-adjusted correlation QC, GC-phased A/B compartment decomposition, Crane multi-scale insulation TAD boundary calling, chromatin loop calling, and replicate-aware differential compartment (Delta E1) and insulation shifts.",
+    "reproducible_mode": true,
+    "enable_hypotheses": true,
+    "comparisons": [
+      [
+        "Tetraploid",
+        "Diploid"
+      ]
+    ],
+    "condition_col": "condition",
+    "replicate_col": "replicate"
+  },
+  "llm_reagent": {
+    "status": "ok",
+    "shim": "tantalus",
+    "shim_version": "0.1.0",
+    "model": "qwen3.6-35b-a3b-ud-q4_k_m",
+    "gguf_sha256": "ac0e2c1189e055faa36eff361580e79c5bd6f8e76bffb4ce547f167d53e31a61",
+    "llama_cpp_version": "b12316",
+    "llama_cpp_commit": "5d4c8eeb2",
+    "backend": "vulkan",
+    "kv_cache_type": "f16",
+    "n_ctx": 16384,
+    "quantization": "UD-Q4_K_M",
+    "architecture": "Qwen3.6-35B-A3B MoE (35B total / 3B active)",
+    "endpoint": "http://127.0.0.1:11435",
+    "zero_cost_audit_passed": true,
+    "active_paid_env_keys": [],
+    "usage": {
+      "total_calls": 5,
+      "live_calls": 5,
+      "cache_hits": 0,
+      "fallback_calls": 0,
+      "prompt_tokens": 4966,
+      "completion_tokens": 750,
+      "total_tokens": 5716,
+      "estimated_cloud_cost_usd": 0.0,
+      "models_used": [
+        "ollama/tantalus-heavy",
+        "ollama/tantalus-medium"
+      ],
+      "tiers": {
+        "medium": {
+          "calls": 2,
+          "tokens": 2191
+        },
+        "heavy": {
+          "calls": 3,
+          "tokens": 3525
+        }
+      }
+    }
+  },
+  "checkpoints": [
+    {
+      "checkpoint": 1,
+      "question_preview": "\ud83d\udcc1 ARIA found the following data:",
+      "options": [
+        "Confirm and continue",
+        "Confirm and enable air-gapped mode",
+        "Correct metadata",
+        "Cancel"
+      ],
+      "chosen": "Confirm and continue"
+    },
+    {
+      "checkpoint": 2.1,
+      "question_preview": "ARIA proposes the following biological groups:",
+      "options": [
+        "Yes \u2014 confirm groups",
+        "Re\u2011infer groups",
+        "Other \u2014 manually assign groups (e.g. treated=s1,s2,s3; control=s4,s5,s6)",
+        "Cancel experiment"
+      ],
+      "chosen": "Yes \u2014 confirm groups"
+    },
+    {
+      "checkpoint": 2.2,
+      "question_preview": "Please confirm the organism and genome assembly:",
+      "options": [
+        "Homo sapiens (hg38)",
+        "Mus musculus (mm39)",
+        "Rattus norvegicus (rn7)",
+        "Danio rerio (danRer11)",
+        "Other organism / assembly..."
+      ],
+      "chosen": "Homo sapiens (hg38)"
+    },
+    {
+      "checkpoint": 2.3,
+      "question_preview": "Main experimental factor: proposed 'condition'",
+      "options": [
+        "genotype",
+        "treatment",
+        "condition",
+        "stimulation",
+        "time",
+        "Cancel"
+      ],
+      "chosen": "condition"
+    },
+    {
+      "checkpoint": 2.5,
+      "question_preview": "Group(s) Diploid, Tetraploid appear to have samples derived from the same biological source (e.g., technical replicates).",
+      "options": [
+        "Yes \u2014 they are independent biological replicates",
+        "No \u2014 technical replicates; merge by biological unit",
+        "Not sure \u2014 stop and provide a sample sheet"
+      ],
+      "chosen": "Yes \u2014 they are independent biological replicates"
+    },
+    {
+      "checkpoint": 2.6,
+      "question_preview": "Experimental design ready:",
+      "options": [
+        "Yes \u2014 proceed",
+        "Cancel"
+      ],
+      "chosen": "Yes \u2014 proceed"
+    },
+    {
+      "checkpoint": 2,
+      "question_preview": "ARIA Analysis Plan:",
+      "options": [
+        "Run recommended plan only",
+        "Run recommended + optional supported analyses",
+        "Modify plan",
+        "Cancel"
+      ],
+      "chosen": "Run recommended + optional supported analyses"
+    },
+    {
+      "checkpoint": 2,
+      "question_preview": "Hi-C Resolution Selection",
+      "options": [
+        "Use recommended resolution (50,000bp)",
+        "Select different resolution",
+        "Skip 3D genome analysis"
+      ],
+      "chosen": "Use recommended resolution (50,000bp)"
+    },
+    {
+      "checkpoint": 5,
+      "question_preview": "Analysis complete.",
+      "options": [
+        "Accept report",
+        "Request revision",
+        "Export methods"
+      ],
+      "chosen": "Accept report"
+    },
+    {
+      "checkpoint": 3,
+      "question_preview": "Insulation Score Window Size (resolution: 50,000bp)",
+      "options": [
+        "Use recommended window (500,000bp)",
+        "Enter custom window size",
+        "Skip TAD calling"
+      ],
+      "chosen": "Use recommended window (500,000bp)"
+    },
+    {
+      "checkpoint": 5,
+      "question_preview": "Analysis complete.",
+      "options": [
+        "Accept report",
+        "Request revision",
+        "Export methods"
+      ],
+      "chosen": "Accept report"
+    },
+    {
+      "checkpoint": 5,
+      "question_preview": "Analysis complete.",
+      "options": [
+        "Accept report",
+        "Request revision",
+        "Export methods"
+      ],
+      "chosen": "Accept report"
+    }
+  ],
+  "run_ledger": {
+    "n_nodes": 7,
+    "nodes": [
+      {
+        "node_id": "ledger://hic/preprocessing",
+        "modality": "hic",
+        "analysis": "preprocessing",
+        "label": "3D contact preprocessing & cooler build",
+        "status": "not_run"
+      },
+      {
+        "node_id": "ledger://hic/qc",
+        "modality": "hic",
+        "analysis": "qc",
+        "label": "Hi-C contact QC, ICE balancing & P(s)/SCC",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://hic/compartments",
+        "modality": "hic",
+        "analysis": "compartments",
+        "label": "A/B compartment decomposition (E1)",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://hic/tads",
+        "modality": "hic",
+        "analysis": "tads",
+        "label": "Topologically associating domains (insulation)",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://hic/loops",
+        "modality": "hic",
+        "analysis": "loops",
+        "label": "Chromatin loop calling (donut enrichment)",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://hic/differential_3d",
+        "modality": "hic",
+        "analysis": "differential_3d",
+        "label": "Differential 3D compartment & insulation",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://report/executive_summary",
+        "modality": "report",
+        "analysis": "executive_summary",
+        "label": "Executive summary",
+        "status": "ran"
+      }
+    ]
+  },
+  "claims_audit": {
+    "total_public_claims": 6,
+    "claims_by_tier": {
+      "descriptive": 4,
+      "associative": 2
+    },
+    "speculative_promotion_guard": "pass",
+    "quarantined_hypotheses_count": 0,
+    "representative_claims": [
+      {
+        "claim_id": "executive_summary",
+        "tier": "descriptive",
+        "modality": "report",
+        "analysis": "executive_summary",
+        "text": "ARIA completed the submitted analysis. 6 findings were recorded across all modalities, of which 0 reached HIGH confidence. See the governed claim ledger below for published results.",
+        "ledger_node_id": "ledger://report/executive_summary"
+      },
+      {
+        "claim_id": "hic.qc",
+        "tier": "descriptive",
+        "modality": "hic",
+        "analysis": "qc",
+        "text": "Hi-C contact QC and ICE balancing evaluated 6 sample(s) with 463783660 valid contact pairs and cis/trans ratio 0.782.",
+        "ledger_node_id": "ledger://hic/qc"
+      },
+      {
+        "claim_id": "hic.compartments",
+        "tier": "descriptive",
+        "modality": "hic",
+        "analysis": "compartments",
+        "text": "Hi-C cis eigenvector compartment decomposition at 100000 bp resolution classified 48.21% active and 51.79% inactive compartment bins.",
+        "ledger_node_id": "ledger://hic/compartments"
+      },
+      {
+        "claim_id": "hic.tads",
+        "tier": "descriptive",
+        "modality": "hic",
+        "analysis": "tads",
+        "text": "Hi-C diamond insulation score analysis identified 568 TAD intervals with median size 1150.0 kb.",
+        "ledger_node_id": "ledger://hic/tads"
+      },
+      {
+        "claim_id": "hic.loops",
+        "tier": "associative",
+        "modality": "hic",
+        "analysis": "loops",
+        "text": "Hi-C donut local background enrichment at 10000 bp resolution identified 0 chromatin loop(s).",
+        "ledger_node_id": "ledger://hic/loops"
+      },
+      {
+        "claim_id": "hic.differential_3d",
+        "tier": "associative",
+        "modality": "hic",
+        "analysis": "differential_3d",
+        "text": "Hi-C replicate-level differential topology testing across 1 contrast(s) identified 0 differential compartment bin(s), including 0 compartment switch(es), and 2 differential insulation bin(s).",
+        "ledger_node_id": "ledger://hic/differential_3d"
+      }
+    ]
+  },
+  "reproducibility_capsule": {
+    "schema": "s14.reproducibility_capsule.v2",
+    "verification_status": "verified_portable",
+    "raw_verifier_status": "warning",
+    "files_checked": 30,
+    "relocated_inputs_sha256_matched": "6/6",
+    "ro_crate_present": true,
+    "memory_snapshot_present": true,
+    "memory_snapshot_integrity": "ok",
+    "workflow_hash": "1bdec8d3ba051cec44f49b09c14a6f9dd6c992e614d71f5ae7d206fb178901fe",
+    "report_html_bytes": 1434983,
+    "capsule_zip_bytes": 2416042
+  }
+}

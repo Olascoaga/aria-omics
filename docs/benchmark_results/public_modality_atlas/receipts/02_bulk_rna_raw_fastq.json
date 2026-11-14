@@ -1,0 +1,471 @@
+{
+  "schema_version": "aria.public_modality_atlas.receipt.v1",
+  "modality_id": "02_bulk_rna_raw_fastq",
+  "aria_modality": "bulk_RNA_raw",
+  "status": "completed",
+  "started_at_utc": "2026-11-13T22:27:38.528909+00:00",
+  "completed_at_utc": "2026-11-13T22:44:13.106110+00:00",
+  "elapsed_seconds": 1034.71,
+  "driver_peak_rss_mb": 292.5,
+  "experiment_id": "atlas-02-303972",
+  "dataset": {
+    "title": "Human Airway Smooth Muscle Glucocorticoid (Dexamethasone) Response",
+    "accession": "GEO GSE52778 / ENA SRP033351",
+    "doi": "10.1371/journal.pone.0099625",
+    "citation": "Himes BE et al., PLOS ONE 9(6): e99625 (2014)",
+    "organism": "Homo sapiens",
+    "genome": "hg38",
+    "design_summary": "4 untreated vs 4 dexamethasone-treated primary human airway smooth muscle donor lines (first 250,000 paired-end reads per ENA run)",
+    "source_urls": [
+      "https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR103/008/SRR1039508/SRR1039508_1.fastq.gz",
+      "https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR103/008/SRR1039508/SRR1039508_2.fastq.gz",
+      "https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR103/002/SRR1039512/SRR1039512_1.fastq.gz",
+      "https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR103/002/SRR1039512/SRR1039512_2.fastq.gz",
+      "https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR103/006/SRR1039516/SRR1039516_1.fastq.gz",
+      "https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR103/006/SRR1039516/SRR1039516_2.fastq.gz",
+      "https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR103/000/SRR1039520/SRR1039520_1.fastq.gz",
+      "https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR103/000/SRR1039520/SRR1039520_2.fastq.gz",
+      "https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR103/009/SRR1039509/SRR1039509_1.fastq.gz",
+      "https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR103/009/SRR1039509/SRR1039509_2.fastq.gz",
+      "https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR103/003/SRR1039513/SRR1039513_1.fastq.gz",
+      "https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR103/003/SRR1039513/SRR1039513_2.fastq.gz",
+      "https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR103/007/SRR1039517/SRR1039517_1.fastq.gz",
+      "https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR103/007/SRR1039517/SRR1039517_2.fastq.gz",
+      "https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR103/001/SRR1039521/SRR1039521_1.fastq.gz",
+      "https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR103/001/SRR1039521/SRR1039521_2.fastq.gz"
+    ],
+    "verified_files": [
+      {
+        "file": "inputs/dexamethasone_rep1_R1.fastq.gz",
+        "filename": "dexamethasone_rep1_R1.fastq.gz",
+        "size_bytes": 13149559,
+        "sha256": "3611e84670f2cd23c8c78651c1da9ae640e8a310a19a6abbc46c3aacf9f67335"
+      },
+      {
+        "file": "inputs/dexamethasone_rep1_R2.fastq.gz",
+        "filename": "dexamethasone_rep1_R2.fastq.gz",
+        "size_bytes": 13229210,
+        "sha256": "bd183ca98113a05440f7e30d70ad9ca899222874346e1d28b4ac025ed6d2dff1"
+      },
+      {
+        "file": "inputs/dexamethasone_rep2_R1.fastq.gz",
+        "filename": "dexamethasone_rep2_R1.fastq.gz",
+        "size_bytes": 13183802,
+        "sha256": "6880ae8f31d05160638e7948f6ff4a17751bf5c88589a254f6c49395528031b2"
+      },
+      {
+        "file": "inputs/dexamethasone_rep2_R2.fastq.gz",
+        "filename": "dexamethasone_rep2_R2.fastq.gz",
+        "size_bytes": 13275526,
+        "sha256": "7ca5b4d86afcf325816f4152855b9d237585ada78b59d64338899ecfa89e7472"
+      },
+      {
+        "file": "inputs/dexamethasone_rep3_R1.fastq.gz",
+        "filename": "dexamethasone_rep3_R1.fastq.gz",
+        "size_bytes": 14341373,
+        "sha256": "6d617ee92a4ed859919915947d7351502f7b81222f4006af560f8b4abd54ffd4"
+      },
+      {
+        "file": "inputs/dexamethasone_rep3_R2.fastq.gz",
+        "filename": "dexamethasone_rep3_R2.fastq.gz",
+        "size_bytes": 14461397,
+        "sha256": "4f36ef81542ff6ee907a46b491c2807069debf96d31cc9163717677d353b66d8"
+      },
+      {
+        "file": "inputs/dexamethasone_rep4_R1.fastq.gz",
+        "filename": "dexamethasone_rep4_R1.fastq.gz",
+        "size_bytes": 13237122,
+        "sha256": "bb851b0c1a14a6a687cf324ac870be15569705c1ddf91405f4e937017943281c"
+      },
+      {
+        "file": "inputs/dexamethasone_rep4_R2.fastq.gz",
+        "filename": "dexamethasone_rep4_R2.fastq.gz",
+        "size_bytes": 13326759,
+        "sha256": "c2a41b371eec3489532d2596b58287eda8a23fb6cb430c902a928f255b7be1e9"
+      },
+      {
+        "file": "inputs/untreated_rep1_R1.fastq.gz",
+        "filename": "untreated_rep1_R1.fastq.gz",
+        "size_bytes": 13153585,
+        "sha256": "5a3de7a4efadee493cb4ef8d98cce05217e70af32421826f68c61eba1c850231"
+      },
+      {
+        "file": "inputs/untreated_rep1_R2.fastq.gz",
+        "filename": "untreated_rep1_R2.fastq.gz",
+        "size_bytes": 13032053,
+        "sha256": "f5a4e6acc497c12b78292800e6b0f4776b8b879396e66dc4cb8572433a5707e6"
+      },
+      {
+        "file": "inputs/untreated_rep2_R1.fastq.gz",
+        "filename": "untreated_rep2_R1.fastq.gz",
+        "size_bytes": 13735329,
+        "sha256": "bc7b1821771218564bf3dc6ceef54b6ae80860f5bd239abb8c2232b73e607c6e"
+      },
+      {
+        "file": "inputs/untreated_rep2_R2.fastq.gz",
+        "filename": "untreated_rep2_R2.fastq.gz",
+        "size_bytes": 13879452,
+        "sha256": "1871199ece7a2e6349d1cbfe551789f1194f2bb6cdf3c99f1d30aaa9209cfe0b"
+      },
+      {
+        "file": "inputs/untreated_rep3_R1.fastq.gz",
+        "filename": "untreated_rep3_R1.fastq.gz",
+        "size_bytes": 13060742,
+        "sha256": "5fbee1a2c1c433505e12970b7e8db555ba5e967464776fcf45095a713710e6c2"
+      },
+      {
+        "file": "inputs/untreated_rep3_R2.fastq.gz",
+        "filename": "untreated_rep3_R2.fastq.gz",
+        "size_bytes": 13225146,
+        "sha256": "8504958d380667e40cec502422b88499459d0551ea83046deee0e45c7ebc38d3"
+      },
+      {
+        "file": "inputs/untreated_rep4_R1.fastq.gz",
+        "filename": "untreated_rep4_R1.fastq.gz",
+        "size_bytes": 13212798,
+        "sha256": "b21425d623094a5dbe80df6614b4c7120198dade6af1e46bdf5852fcba7a53a1"
+      },
+      {
+        "file": "inputs/untreated_rep4_R2.fastq.gz",
+        "filename": "untreated_rep4_R2.fastq.gz",
+        "size_bytes": 13301174,
+        "sha256": "e7cca50406548895acf2a5deb84fa5cbc1d4ab78f3d6595f3b6924e04a403f08"
+      }
+    ]
+  },
+  "prompt": {
+    "user_question": "Analyze the paired-end raw RNA-seq FASTQ libraries from primary human airway smooth muscle cells treated with dexamethasone versus untreated controls across four biological donor lines (GEO GSE52778 / ENA SRP033351, Homo sapiens hg38). Execute fastp read trimming and QC, STAR splice-aware alignment, featureCounts gene quantification, pyDESeq2 differential expression comparing dexamethasone versus untreated, and functional pathway enrichment.",
+    "reproducible_mode": true,
+    "enable_hypotheses": true,
+    "comparisons": [
+      [
+        "dexamethasone",
+        "untreated"
+      ]
+    ],
+    "condition_col": "condition",
+    "replicate_col": "replicate"
+  },
+  "llm_reagent": {
+    "status": "ok",
+    "shim": "tantalus",
+    "shim_version": "0.1.0",
+    "model": "qwen3.6-35b-a3b-ud-q4_k_m",
+    "gguf_sha256": "ac0e2c1189e055faa36eff361580e79c5bd6f8e76bffb4ce547f167d53e31a61",
+    "llama_cpp_version": "b12316",
+    "llama_cpp_commit": "5d4c8eeb2",
+    "backend": "vulkan",
+    "kv_cache_type": "f16",
+    "n_ctx": 16384,
+    "quantization": "UD-Q4_K_M",
+    "architecture": "Qwen3.6-35B-A3B MoE (35B total / 3B active)",
+    "endpoint": "http://127.0.0.1:11435",
+    "zero_cost_audit_passed": true,
+    "active_paid_env_keys": [],
+    "usage": {
+      "total_calls": 3,
+      "live_calls": 3,
+      "cache_hits": 0,
+      "fallback_calls": 0,
+      "prompt_tokens": 4017,
+      "completion_tokens": 2795,
+      "total_tokens": 6812,
+      "estimated_cloud_cost_usd": 0.0,
+      "models_used": [
+        "ollama/tantalus-heavy",
+        "ollama/tantalus-medium"
+      ],
+      "tiers": {
+        "medium": {
+          "calls": 2,
+          "tokens": 2059
+        },
+        "heavy": {
+          "calls": 1,
+          "tokens": 4753
+        }
+      }
+    }
+  },
+  "checkpoints": [
+    {
+      "checkpoint": 1,
+      "question_preview": "\ud83d\udcc1 ARIA found the following data:",
+      "options": [
+        "Confirm and continue",
+        "Confirm and enable air-gapped mode",
+        "Correct metadata",
+        "Cancel"
+      ],
+      "chosen": "Confirm and continue"
+    },
+    {
+      "checkpoint": 2.1,
+      "question_preview": "ARIA proposes the following biological groups:",
+      "options": [
+        "Yes \u2014 confirm groups",
+        "Re\u2011infer groups",
+        "Other \u2014 manually assign groups (e.g. treated=s1,s2,s3; control=s4,s5,s6)",
+        "Cancel experiment"
+      ],
+      "chosen": "Yes \u2014 confirm groups"
+    },
+    {
+      "checkpoint": 2.2,
+      "question_preview": "Please confirm the organism and genome assembly:",
+      "options": [
+        "Homo sapiens (hg38)",
+        "Mus musculus (mm39)",
+        "Rattus norvegicus (rn7)",
+        "Danio rerio (danRer11)",
+        "Other organism / assembly..."
+      ],
+      "chosen": "Homo sapiens (hg38)"
+    },
+    {
+      "checkpoint": 2.3,
+      "question_preview": "Main experimental factor: proposed 'condition'",
+      "options": [
+        "genotype",
+        "treatment",
+        "condition",
+        "stimulation",
+        "time",
+        "Cancel"
+      ],
+      "chosen": "condition"
+    },
+    {
+      "checkpoint": 2.5,
+      "question_preview": "Group(s) untreated, dexamethasone appear to have samples derived from the same biological source (e.g., technical replicates).",
+      "options": [
+        "Yes \u2014 they are independent biological replicates",
+        "No \u2014 technical replicates; merge by biological unit",
+        "Not sure \u2014 stop and provide a sample sheet"
+      ],
+      "chosen": "Yes \u2014 they are independent biological replicates"
+    },
+    {
+      "checkpoint": 2.6,
+      "question_preview": "Experimental design ready:",
+      "options": [
+        "Yes \u2014 proceed",
+        "Cancel"
+      ],
+      "chosen": "Yes \u2014 proceed"
+    },
+    {
+      "checkpoint": 2,
+      "question_preview": "ARIA Analysis Plan:",
+      "options": [
+        "Run recommended plan only",
+        "Run recommended + optional supported analyses",
+        "Modify plan",
+        "Cancel"
+      ],
+      "chosen": "Run recommended + optional supported analyses"
+    },
+    {
+      "checkpoint": 5,
+      "question_preview": "Analysis complete.",
+      "options": [
+        "Accept report",
+        "Request revision",
+        "Export methods"
+      ],
+      "chosen": "Accept report"
+    }
+  ],
+  "run_ledger": {
+    "n_nodes": 13,
+    "nodes": [
+      {
+        "node_id": "ledger://bulk/preprocessing",
+        "modality": "bulk",
+        "analysis": "preprocessing",
+        "label": "Raw FASTQ preprocessing & alignment",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://bulk/qc",
+        "modality": "bulk",
+        "analysis": "qc",
+        "label": "Sample QC",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://bulk/differential_expression",
+        "modality": "bulk",
+        "analysis": "differential_expression",
+        "label": "Differential expression",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://bulk/pathway_enrichment",
+        "modality": "bulk",
+        "analysis": "pathway_enrichment",
+        "label": "Pathway enrichment (ORA/GSEA)",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://integration/preprocessing",
+        "modality": "integration",
+        "analysis": "preprocessing",
+        "label": "Multiome raw assembly & cohort union",
+        "status": "not_run"
+      },
+      {
+        "node_id": "ledger://integration/paired_qc",
+        "modality": "integration",
+        "analysis": "paired_qc",
+        "label": "Paired multiome QC",
+        "status": "not_run"
+      },
+      {
+        "node_id": "ledger://integration/wnn",
+        "modality": "integration",
+        "analysis": "wnn",
+        "label": "Weighted Nearest Neighbors (WNN)",
+        "status": "not_run"
+      },
+      {
+        "node_id": "ledger://integration/mofa",
+        "modality": "integration",
+        "analysis": "mofa",
+        "label": "MOFA+ factor decomposition",
+        "status": "not_run"
+      },
+      {
+        "node_id": "ledger://integration/peak_to_gene",
+        "modality": "integration",
+        "analysis": "peak_to_gene",
+        "label": "Cis peak-to-gene linkage",
+        "status": "not_run"
+      },
+      {
+        "node_id": "ledger://integration/eregulons",
+        "modality": "integration",
+        "analysis": "eregulons",
+        "label": "Candidate eRegulon inference",
+        "status": "not_run"
+      },
+      {
+        "node_id": "ledger://integration/cross_modal_triangulation",
+        "modality": "integration",
+        "analysis": "cross_modal_triangulation",
+        "label": "Cross-modal evidence triangulation",
+        "status": "not_run"
+      },
+      {
+        "node_id": "ledger://report/executive_summary",
+        "modality": "report",
+        "analysis": "executive_summary",
+        "label": "Executive summary",
+        "status": "ran"
+      },
+      {
+        "node_id": "ledger://report/biological_synthesis",
+        "modality": "report",
+        "analysis": "biological_synthesis",
+        "label": "Integrated biological synthesis",
+        "status": "ran"
+      }
+    ]
+  },
+  "claims_audit": {
+    "total_public_claims": 9,
+    "claims_by_tier": {
+      "descriptive": 4,
+      "associative": 5
+    },
+    "speculative_promotion_guard": "pass",
+    "quarantined_hypotheses_count": 0,
+    "representative_claims": [
+      {
+        "claim_id": "executive_summary",
+        "tier": "descriptive",
+        "modality": "report",
+        "analysis": "executive_summary",
+        "text": "ARIA completed the submitted analysis. 9 findings were recorded across all modalities, of which 0 reached HIGH confidence. See the governed claim ledger below for published results.",
+        "ledger_node_id": "ledger://report/executive_summary"
+      },
+      {
+        "claim_id": "bulk.preprocessing",
+        "tier": "descriptive",
+        "modality": "bulk RNA-seq",
+        "analysis": "preprocessing",
+        "text": "Raw FASTQ preprocessing (full_length) quantified 16551 genes across 8 samples.",
+        "ledger_node_id": "ledger://bulk/preprocessing"
+      },
+      {
+        "claim_id": "bulk.qc",
+        "tier": "descriptive",
+        "modality": "bulk RNA-seq",
+        "analysis": "sample_qc",
+        "text": "Bulk RNA sample QC evaluated 8 samples with 0 outlier(s) flagged; primary DE retained all samples and sensitivity removed 0.",
+        "ledger_node_id": "ledger://bulk/qc"
+      },
+      {
+        "claim_id": "bulk.contrast.dexamethasone_vs_untreated",
+        "tier": "associative",
+        "modality": "bulk RNA-seq",
+        "analysis": "differential_expression",
+        "text": "Bulk contrast dexamethasone vs untreated had 18 DE genes.",
+        "ledger_node_id": "ledger://bulk/differential_expression"
+      },
+      {
+        "claim_id": "bulk.pathway.dexamethasone_vs_untreated",
+        "tier": "associative",
+        "modality": "bulk RNA-seq",
+        "analysis": "pathway_enrichment",
+        "text": "Pathway enrichment found 12 term(s) for dexamethasone vs untreated.",
+        "ledger_node_id": "ledger://bulk/pathway_enrichment"
+      },
+      {
+        "claim_id": "bulk.gsea.dexamethasone_vs_untreated",
+        "tier": "associative",
+        "modality": "bulk RNA-seq",
+        "analysis": "gsea_preranked",
+        "text": "Preranked GSEA generated ranked pathway support for dexamethasone vs untreated.",
+        "ledger_node_id": "ledger://bulk/pathway_enrichment"
+      },
+      {
+        "claim_id": "bulk.power",
+        "tier": "descriptive",
+        "modality": "bulk RNA-seq",
+        "analysis": "power",
+        "text": "Approximate bulk RNA power ranged from 85% to 85% across analyzable contrasts.",
+        "ledger_node_id": "ledger://bulk/differential_expression"
+      },
+      {
+        "claim_id": "integration.signal",
+        "tier": "associative",
+        "modality": "integrated synthesis",
+        "analysis": "integrated_signal",
+        "text": "Across 1 analyzable contrast(s), 1 produced significant differential expression accompanied by functional pathway enrichment, indicating a coordinated transcriptional response.",
+        "ledger_node_id": "ledger://report/biological_synthesis"
+      },
+      {
+        "claim_id": "integration.limitations",
+        "tier": "associative",
+        "modality": "integrated synthesis",
+        "analysis": "integration_limitations",
+        "text": "These integrated results are associative and do not establish causality or direct regulation; cross-analysis agreement prioritizes candidates for independent experimental validation rather than proving a mechanism. Approximate statistical power ranged from 0.85 to 0.85 across contrasts.",
+        "ledger_node_id": "ledger://report/biological_synthesis"
+      }
+    ]
+  },
+  "reproducibility_capsule": {
+    "schema": "s14.reproducibility_capsule.v2",
+    "verification_status": "verified_portable",
+    "raw_verifier_status": "warning",
+    "files_checked": 41,
+    "relocated_inputs_sha256_matched": "16/16",
+    "ro_crate_present": true,
+    "memory_snapshot_present": true,
+    "memory_snapshot_integrity": "ok",
+    "workflow_hash": "1bdec8d3ba051cec44f49b09c14a6f9dd6c992e614d71f5ae7d206fb178901fe",
+    "report_html_bytes": 2381092,
+    "capsule_zip_bytes": 2345324
+  }
+}
