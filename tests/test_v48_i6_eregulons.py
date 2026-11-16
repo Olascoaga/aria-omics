@@ -1,7 +1,7 @@
 """V48 Slice I6 — Candidate eRegulons (`eregulon_core` + `integration_eregulons`) tests.
 
 Covers all statistical, algorithmic, IPC, concordance, and governance invariants
-mandated by `ADR-064` and Council `concilio_20261111_200904_d9842f`:
+mandated by `ADR-064` and `ADR-069`:
   1. Offline MEME PWM parsing & 1-to-1 TF symbol resolution (`exact`, unique
      `case_folded`, `(var.N)` stripping, `::` heterodimer subunit completeness,
      and unmapped/low-prevalence logging without hardcoded gene dictionaries).

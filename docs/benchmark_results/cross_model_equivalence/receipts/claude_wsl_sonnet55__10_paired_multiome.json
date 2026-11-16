@@ -1,0 +1,143 @@
+{
+  "schema_version": "aria.cross_model_equivalence.receipt.v1",
+  "cell_id": "claude_wsl_sonnet55__10_paired_multiome",
+  "stage": "stage2a_wsl",
+  "model_key": "claude_wsl_sonnet55",
+  "model_label": "Claude Sonnet 5.5 (WSL System Tool)",
+  "model_family": "Claude Sonnet 5.5",
+  "served_model": "claude-sonnet-5-5",
+  "transport": "wsl_cli_shim",
+  "modality_id": "10_paired_multiome",
+  "aria_modality": "Paired_Multiome",
+  "status": "completed",
+  "started_at_utc": "2026-11-14T18:39:52.585849+00:00",
+  "completed_at_utc": "2026-11-14T18:51:51.465105+00:00",
+  "elapsed_seconds": 735.36,
+  "driver_peak_rss_mb": 569.4,
+  "experiment_id": "eq-claude-10-dee1b",
+  "usage": {
+    "total_calls": 13,
+    "fallback_calls": 0,
+    "models_used": [
+      "openai/wsl-claude-sonnet-5-5"
+    ],
+    "prompt_tokens": 32627,
+    "completion_tokens": 10697,
+    "total_tokens": 43324,
+    "billed_api_cost_usd": 0.0,
+    "projected_list_cost_usd": 0.172224
+  },
+  "shim_telemetry": {
+    "cli_calls": 13,
+    "cli_raw_input_tokens": 51145,
+    "cli_raw_cached_tokens": 3855,
+    "cli_raw_output_tokens": 17535,
+    "cli_thinking_tokens": 730,
+    "cli_reported_cost_usd": 0.380264,
+    "cli_reported_cost_available": true,
+    "projected_api_list_cost_usd": 0.172224
+  },
+  "claims_audit": {
+    "total_public_claims": 15,
+    "claims_by_tier": {
+      "descriptive": 5,
+      "associative": 10
+    },
+    "speculative_promotion_guard": "pass",
+    "quarantined_hypotheses_count": 0
+  },
+  "capsule_verification": "verified_portable_ext_inputs",
+  "raw_capsule_status": "warning",
+  "archive": {
+    "archived_report_rel": "idea2_reports/claude_wsl_sonnet55/10_paired_multiome/report.html",
+    "report_html_bytes": 1841449,
+    "report_html_sha256": "f0134d707ef5c3d1026c93f3ddb66f4a94aacbc0194953235140bbf96db7136c",
+    "capsule_zip_bytes": 4679203,
+    "capsule_zip_sha256": "36afac98d67c95db8da9c06c1e17e707c3ecb8897eaba3546be77e2904ff81c9"
+  },
+  "fingerprints": {
+    "active_stages": [
+      "chromatin/differential_accessibility",
+      "chromatin/differential_tf_footprinting",
+      "chromatin/dimensionality_reduction",
+      "chromatin/motif_enrichment",
+      "chromatin/qc",
+      "chromatin/regulatory_layers",
+      "chromatin/scatac_preprocessing",
+      "integration/cross_modal_triangulation",
+      "integration/eregulons",
+      "integration/mofa",
+      "integration/paired_qc",
+      "integration/peak_to_gene",
+      "integration/preprocessing",
+      "integration/wnn",
+      "report/executive_summary"
+    ],
+    "error_stages": [],
+    "n_statistical_claims": 14,
+    "statistical_claims": [
+      "Candidate eRegulon inference across 1828 shared cells tested 1100 motif-linked modules and retained 103 BH-FDR candidate eRegulons (56 pos_tf_pos_p2g and 47 neg_tf_pos_p2g) spanning 103 unique TFs and 3971 TF-enhancer-gene triplets (12 paralog-ambiguous, 0 depth-confounded).",
+      "Cis peak-to-gene linkage within 500 kb tested 335963 candidate pairs across 1828 shared cells and identified 21 BH-FDR cis associations (21 positive and 0 negative; 6 promoter-proximal and 15 distal cis).",
+      "Cross-modal evidence triangulation across 5 integration stage(s) linked 213 nodes and 290 associative edges into 43 regulatory or latent axes (18 convergent, 12 associative cis candidates, 6 discordant, and 7 caveated ambiguous; WNN guardrail pass).",
+      "MOFA+ decomposition across 1828 cells (10 fitted factors) retained 6 active factors (4 shared and 1 modality-specific), quarantined 1 technical or cell-cycle confounder factor(s), and explained non-additive R2 of 45.52% in RNA and 4.39% in ATAC.",
+      "Multiome intake (paired_cohort_merge, platform paired_multiome) produced a paired RNA+ATAC container with 6 sample(s), 2400 cells, 36601 RNA genes, 55385 consensus ATAC peaks under barcode translation shared_mudata_obs.",
+      "Paired multiome QC retained 1828 of 2400 shared barcodes (23.83% removed) across 36601 RNA genes and 55385 ATAC peaks.",
+      "Per-cluster accessibility testing identified 8862 differentially accessible peaks across 11 cluster(s) at padj<0.05, |log2FC|>1.0.",
+      "Replicate-level pseudobulk DA ran 1 comparison(s) and found 0 differentially accessible peaks via the shared DESeq2 core.",
+      "TF motif enrichment (JASPAR2024_CORE_vertebrates, hypergeometric) tested 879 motifs and found enriched motifs in 9 of 11 peak group(s).",
+      "TF-IDF/LSI over 55385 peaks in 2400 cells produced 11 clusters after removing 1 depth-associated component(s).",
+      "WNN integration across 1828 shared cells identified 7 joint clusters (vs 8 RNA-only and 6 ATAC-only), mean RNA weight 0.5821 and mean ATAC weight 0.4179, with WNN vs RNA ARI 0.6702 (NMI 0.8854), WNN vs ATAC ARI 0.5765 (NMI 0.7086), 0 discordant cluster(s), and guardrail status pass.",
+      "scATAC QC measured 2400 cells and 55385 peaks.",
+      "scATAC preprocessing completed (cohort matrix union): the resulting matrix has 2400 cell(s) x 55385 peak(s).",
+      "scATAC regulatory-layer analysis ran 1 of 5 optional layer(s); skipped layers are reported with their prerequisites."
+    ],
+    "executive_summary_preview": "Paired multiome QC retained 1828 of 2400 shared barcodes across 36601 RNA genes and 55385 ATAC peaks. WNN manifold integration identified 7 joint clusters (WNN vs RNA ARI 0.6702, WNN vs ATAC ARI 0.5765, guardrail status pass). MOFA+ retained 6 of 10 fitted factors (1 confounder factor(s) quarantined); cis peak-to-gene linkage identified 21 BH-FDR associations; candidate eRegulo",
+    "tables": {
+      "eregulon_triplets.csv": {
+        "rows": 3971,
+        "bytes": 787279,
+        "sha256": "32bd5a8edbae839e2ada4244458aba23a5b7ed436786f8e27021e4194fbdd2d4"
+      },
+      "eregulons.csv": {
+        "rows": 103,
+        "bytes": 49226,
+        "sha256": "fe8a2b3dad1496f3dedc8ca1655e3295feefbbeca49e9e7b06069c25b66914e1"
+      },
+      "mofa_factor_loadings.csv": {
+        "rows": 500,
+        "bytes": 28023,
+        "sha256": "a3a4b4fe14fc911b539688ceaada94515213d0b458b0c991736f3cc7b5a6fdd0"
+      },
+      "peak_gene_links.csv": {
+        "rows": 21,
+        "bytes": 3851,
+        "sha256": "56b34e1ce198152ad8655f66292109b58367b674f2ec85a4db3d4401a15bb169"
+      }
+    },
+    "n_figures": 22,
+    "figures": [
+      "da_ma_aged_80_100_vs_young_20_39.png",
+      "da_ma_aged_80_100_vs_young_20_39.svg",
+      "da_volcano_aged_80_100_vs_young_20_39.png",
+      "da_volcano_aged_80_100_vs_young_20_39.svg",
+      "marker_heatmap.png",
+      "marker_heatmap.svg",
+      "mofa_variance_explained.png",
+      "mofa_variance_explained.svg",
+      "motif_dotplot.png",
+      "motif_dotplot.svg",
+      "qc_depth_violin.png",
+      "qc_depth_violin.svg",
+      "regulatory_triangulation_summary.png",
+      "regulatory_triangulation_summary.svg",
+      "umap_condition.png",
+      "umap_leiden.png",
+      "umap_log10_n_fragments.png",
+      "umap_sample_id.png",
+      "wnn_joint_vs_modality_umap.png",
+      "wnn_joint_vs_modality_umap.svg",
+      "wnn_modality_weights_by_cluster.png",
+      "wnn_modality_weights_by_cluster.svg"
+    ]
+  }
+}

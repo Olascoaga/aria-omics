@@ -1,0 +1,164 @@
+{
+  "schema_version": "aria.cross_model_equivalence.receipt.v1",
+  "cell_id": "tantalus_local__08_cut_and_tag",
+  "stage": "baseline",
+  "model_key": "tantalus_local",
+  "model_label": "Tantalus Local (Qwen3.6-35B-A3B Q4_K_M)",
+  "model_family": "Qwen3.6-35B-A3B",
+  "served_model": "qwen3.6-35b-a3b-ud-q4_k_m",
+  "transport": "local_tantalus_gguf",
+  "modality_id": "08_cut_and_tag",
+  "aria_modality": "CUT_AND_TAG",
+  "status": "completed",
+  "source": "imported_verified_public_atlas_run",
+  "experiment_id": "atlas-08-92afa1",
+  "elapsed_seconds": 910.01,
+  "usage": {
+    "total_calls": 4,
+    "prompt_tokens": 9217,
+    "completion_tokens": 5297,
+    "total_tokens": 14514,
+    "billed_api_cost_usd": 0.0,
+    "projected_list_cost_usd": 0.0
+  },
+  "shim_telemetry": null,
+  "claims_audit": {
+    "total_public_claims": 9,
+    "claims_by_tier": {
+      "descriptive": 1,
+      "associative": 4,
+      "weak_mechanistic": 4
+    },
+    "speculative_promotion_guard": "pass",
+    "quarantined_hypotheses_count": 0,
+    "representative_claims": [
+      {
+        "claim_id": "executive_summary",
+        "tier": "descriptive",
+        "modality": "report",
+        "analysis": "executive_summary",
+        "text": "ARIA completed the submitted analysis. 3 findings were recorded across all modalities, of which 0 reached HIGH confidence. See the governed claim ledger below for published results.",
+        "ledger_node_id": "ledger://report/executive_summary"
+      },
+      {
+        "claim_id": "chromatin.bulk_atac_preprocessing",
+        "tier": "associative",
+        "modality": "chromatin",
+        "analysis": "bulk_atac_preprocessing",
+        "text": "Raw bulk chromatin read preprocessing trimmed and aligned 6 sample(s) (paired layout), retaining filtered non-mitochondrial alignments for peak calling.",
+        "ledger_node_id": "ledger://chromatin/bulk_atac_preprocessing"
+      },
+      {
+        "claim_id": "chromatin.qc.CUT_AND_TAG",
+        "tier": "weak_mechanistic",
+        "modality": "chromatin",
+        "analysis": "qc",
+        "text": "CUT&TAG QC measured 4 sample(s) with mean mitochondrial fraction 0.0.",
+        "ledger_node_id": "ledger://chromatin/qc"
+      },
+      {
+        "claim_id": "chromatin.peak_calling.CUT_AND_TAG",
+        "tier": "weak_mechanistic",
+        "modality": "chromatin",
+        "analysis": "peak_calling",
+        "text": "SEACR peak calling for CUT&TAG identified 30560 peaks.",
+        "ledger_node_id": "ledger://chromatin/peak_calling"
+      },
+      {
+        "claim_id": "chromatin.peak_count_matrix.CUT_AND_TAG",
+        "tier": "weak_mechanistic",
+        "modality": "chromatin",
+        "analysis": "peak_count_matrix",
+        "text": "CUT&TAG peak counting produced a matrix with 19229 peaks across 4 samples.",
+        "ledger_node_id": "ledger://chromatin/peak_count_matrix"
+      },
+      {
+        "claim_id": "chromatin.differential_accessibility.CUT_AND_TAG",
+        "tier": "weak_mechanistic",
+        "modality": "chromatin",
+        "analysis": "differential_accessibility",
+        "text": "CUT&TAG DESeq2 differential binding ran 1 comparison(s) over 4 replicate samples and found 1792 differential peaks.",
+        "ledger_node_id": "ledger://chromatin/differential_accessibility"
+      },
+      {
+        "claim_id": "chromatin.motifs",
+        "tier": "associative",
+        "modality": "chromatin",
+        "analysis": "motif_enrichment",
+        "text": "TF motif enrichment (JASPAR2024_CORE_vertebrates, hypergeometric) tested 879 motifs and found enriched motifs in 2 of 2 peak group(s).",
+        "ledger_node_id": "ledger://chromatin/motif_enrichment"
+      },
+      {
+        "claim_id": "chromatin.peak_annotation",
+        "tier": "associative",
+        "modality": "chromatin",
+        "analysis": "peak_annotation",
+        "text": "Genomic annotation classified 1792 CUT&TAG differentially accessible peak(s) by feature; 681 (38%) fall in promoter regions.",
+        "ledger_node_id": "ledger://chromatin/peak_annotation"
+      },
+      {
+        "claim_id": "chromatin.peak_ora",
+        "tier": "associative",
+        "modality": "chromatin",
+        "analysis": "peak_ora",
+        "text": "Functional ORA (local_hypergeometric) of genes near CUT&TAG differentially accessible peaks found 70 enriched term(s) across 4 database(s).",
+        "ledger_node_id": "ledger://chromatin/peak_ora"
+      }
+    ]
+  },
+  "capsule_verification": "verified_portable_ext_inputs",
+  "raw_capsule_status": "warning",
+  "archive": {
+    "archived_report_rel": "idea2_reports/tantalus_local/08_cut_and_tag/report.html",
+    "report_html_bytes": 158268,
+    "report_html_sha256": "44f11bd4cf60169eb7d247f31c7845203051aba4946bf428b60d00140d2c7da0",
+    "capsule_zip_bytes": 1106616,
+    "capsule_zip_sha256": "cc88a336b77119f4173ada66027c44bd1f6b43b5e36a5d9c5fdd4c0ed977fb1d"
+  },
+  "fingerprints": {
+    "active_stages": [
+      "chromatin/bulk_atac_preprocessing",
+      "chromatin/differential_accessibility",
+      "chromatin/motif_enrichment",
+      "chromatin/peak_annotation",
+      "chromatin/peak_calling",
+      "chromatin/peak_count_matrix",
+      "chromatin/peak_ora",
+      "chromatin/qc",
+      "report/executive_summary"
+    ],
+    "error_stages": [],
+    "n_statistical_claims": 8,
+    "statistical_claims": [
+      "CUT&TAG DESeq2 differential binding ran 1 comparison(s) over 4 replicate samples and found 1792 differential peaks.",
+      "CUT&TAG QC measured 4 sample(s) with mean mitochondrial fraction 0.0.",
+      "CUT&TAG peak counting produced a matrix with 19229 peaks across 4 samples.",
+      "Functional ORA (local_hypergeometric) of genes near CUT&TAG differentially accessible peaks found 70 enriched term(s) across 4 database(s).",
+      "Genomic annotation classified 1792 CUT&TAG differentially accessible peak(s) by feature; 681 (38%) fall in promoter regions.",
+      "Raw bulk chromatin read preprocessing trimmed and aligned 6 sample(s) (paired layout), retaining filtered non-mitochondrial alignments for peak calling.",
+      "SEACR peak calling for CUT&TAG identified 30560 peaks.",
+      "TF motif enrichment (JASPAR2024_CORE_vertebrates, hypergeometric) tested 879 motifs and found enriched motifs in 2 of 2 peak group(s)."
+    ],
+    "executive_summary_preview": "ARIA completed the submitted analysis. 3 findings were recorded across all modalities, of which 0 reached HIGH confidence. See the governed claim ledger below for published results.",
+    "tables": {},
+    "n_figures": 16,
+    "figures": [
+      "bulk_atac_pca.png",
+      "bulk_atac_pca.svg",
+      "bulk_atac_peak_annotation.png",
+      "bulk_atac_peak_annotation.svg",
+      "bulk_atac_qc_summary.png",
+      "bulk_atac_qc_summary.svg",
+      "bulk_atac_sample_correlation.png",
+      "bulk_atac_sample_correlation.svg",
+      "da_ma_K562_vs_H1.png",
+      "da_ma_K562_vs_H1.svg",
+      "da_volcano_K562_vs_H1.png",
+      "da_volcano_K562_vs_H1.svg",
+      "fragment_size.png",
+      "fragment_size.svg",
+      "motif_dotplot.png",
+      "motif_dotplot.svg"
+    ]
+  }
+}

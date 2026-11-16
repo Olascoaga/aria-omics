@@ -1,0 +1,113 @@
+{
+  "schema_version": "aria.cross_model_equivalence.receipt.v1",
+  "cell_id": "claude_api_sonnet55__01_bulk_rna_matrix",
+  "stage": "stage2b_commercial",
+  "model_key": "claude_api_sonnet55",
+  "model_label": "Claude Sonnet 5.5 (Direct Anthropic REST API)",
+  "model_family": "Claude Sonnet 5.5",
+  "served_model": "claude-sonnet-5-5",
+  "transport": "direct_rest_api",
+  "modality_id": "01_bulk_rna_matrix",
+  "aria_modality": "bulk_RNA",
+  "status": "completed",
+  "started_at_utc": "2026-11-14T21:32:36.734329+00:00",
+  "completed_at_utc": "2026-11-14T21:33:36.893515+00:00",
+  "elapsed_seconds": 61.68,
+  "driver_peak_rss_mb": 574.0,
+  "experiment_id": "eq-claude-01-9fba8",
+  "usage": {
+    "total_calls": 3,
+    "fallback_calls": 0,
+    "models_used": [
+      "anthropic/claude-sonnet-5-5"
+    ],
+    "prompt_tokens": 6529,
+    "completion_tokens": 5563,
+    "total_tokens": 12092,
+    "billed_api_cost_usd": 0.068688,
+    "projected_list_cost_usd": 0.068688
+  },
+  "shim_telemetry": null,
+  "claims_audit": {
+    "total_public_claims": 8,
+    "claims_by_tier": {
+      "descriptive": 3,
+      "associative": 5
+    },
+    "speculative_promotion_guard": "pass",
+    "quarantined_hypotheses_count": 0
+  },
+  "capsule_verification": "verified_portable_ext_inputs",
+  "raw_capsule_status": "warning",
+  "archive": {
+    "archived_report_rel": "idea2_reports/claude_api_sonnet55/01_bulk_rna_matrix/report.html",
+    "report_html_bytes": 5546318,
+    "report_html_sha256": "f0c8a7ccac578acef6a12eb21c0aa93dc661c2e427f098448df866a6e1935ef2",
+    "capsule_zip_bytes": 5473736,
+    "capsule_zip_sha256": "5094fc7b6fb73d90b5e2c132bfc8e730fe21c63f1ddbee101e10ce1d71c5e849"
+  },
+  "fingerprints": {
+    "active_stages": [
+      "bulk/differential_expression",
+      "bulk/pathway_enrichment",
+      "bulk/qc",
+      "report/biological_synthesis",
+      "report/executive_summary"
+    ],
+    "error_stages": [],
+    "n_statistical_claims": 7,
+    "statistical_claims": [
+      "Across 1 analyzable contrast(s), 1 produced significant differential expression accompanied by functional pathway enrichment, indicating a coordinated transcriptional response.",
+      "Approximate bulk RNA power ranged from 57% to 57% across analyzable contrasts.",
+      "Bulk RNA sample QC evaluated 8 samples with 0 outlier(s) flagged; primary DE retained all samples and sensitivity removed 0.",
+      "Bulk contrast HBRR vs UHRR had 9863 DE genes.",
+      "Pathway enrichment found 80 term(s) for HBRR vs UHRR.",
+      "Preranked GSEA generated ranked pathway support for HBRR vs UHRR.",
+      "These integrated results are associative and do not establish causality or direct regulation; cross-analysis agreement prioritizes candidates for independent experimental validation rather than proving a mechanism. Approximate statistical power ranged from 0.568 to 0.568 across contrasts."
+    ],
+    "executive_summary_preview": "ARIA completed the submitted analysis. 8 findings were recorded across all modalities, of which 0 reached HIGH confidence. See the governed claim ledger below for published results.",
+    "tables": {
+      "counts_tpm.tsv": {
+        "rows": 0,
+        "bytes": 85,
+        "sha256": "1b54c0f8875a0b49834e081a09f08a559f011f23f8ec2d59f7c1b1fa3495d18f"
+      },
+      "hbrr_vs_uhrr_de_all_genes.tsv": {
+        "rows": 20082,
+        "bytes": 2068792,
+        "sha256": "381fc1ceca88432ba04e26236fc37b9eca21fad85a05c58ddd932d1ff0e9a0bb"
+      },
+      "hbrr_vs_uhrr_de_genes.tsv": {
+        "rows": 9863,
+        "bytes": 1210547,
+        "sha256": "b3085cb7ec6688b745d9d4e5cdbd4abbdea4f194360356fb206782a41d61e3f4"
+      },
+      "hbrr_vs_uhrr_pathways.tsv": {
+        "rows": 80,
+        "bytes": 10311,
+        "sha256": "5a02927c2c40c4349d7f2526854545efcc52bccb6b9c7b2511c9ba86af29fa11"
+      }
+    },
+    "n_figures": 18,
+    "figures": [
+      "hbrr_vs_uhrr/gsea_results.csv",
+      "hbrr_vs_uhrr/gsea_running_sum_1.png",
+      "hbrr_vs_uhrr/gsea_running_sum_2.png",
+      "hbrr_vs_uhrr/gsea_running_sum_3.png",
+      "hbrr_vs_uhrr/gsea_top_table.png",
+      "hbrr_vs_uhrr/heatmap_lfc.svg",
+      "hbrr_vs_uhrr/heatmap_padj.svg",
+      "hbrr_vs_uhrr/pathway_dotplot_go_bp.png",
+      "hbrr_vs_uhrr/pathway_dotplot_kegg.png",
+      "hbrr_vs_uhrr/pathway_dotplot_kegg_down.png",
+      "hbrr_vs_uhrr/pathway_dotplot_kegg_up.png",
+      "hbrr_vs_uhrr/pathway_dotplot_reactome.png",
+      "hbrr_vs_uhrr/volcano.svg",
+      "mds.svg",
+      "mds_all_samples.svg",
+      "pca.svg",
+      "pca_all_samples.svg",
+      "pca_mds.svg"
+    ]
+  }
+}

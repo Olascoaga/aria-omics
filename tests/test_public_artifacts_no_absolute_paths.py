@@ -13,12 +13,14 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 BENCH_DIR = ROOT / "docs" / "benchmark_results"
+VIGNETTES_DIR = ROOT / "docs" / "vignettes"
 
 # Prefixes that indicate a machine-absolute filesystem path (not a URL route or
 # a repo-relative path). Conservative on purpose to avoid false positives.
 _ABSOLUTE_PREFIXES = (
     "/home/", "/Users/", "/root/", "/tmp/", "/mnt/", "/private/", "/data/",
 )
+_SECRET_PREFIXES = ("sk-proj-", "sk-ant-", "AIzaSy")
 
 
 def _iter_strings(obj):
@@ -51,6 +53,30 @@ def test_public_benchmark_json_has_no_absolute_paths():
     assert not offenders, (
         "absolute machine paths in public benchmark artifacts "
         "(use repo-relative paths): " + "; ".join(f"{f}: {v}" for f, v in offenders)
+    )
+
+
+def test_public_docs_have_no_secrets_or_machine_home_paths():
+    offenders: list[str] = []
+    for scan_dir in (BENCH_DIR, VIGNETTES_DIR):
+        if not scan_dir.exists():
+            continue
+        for doc_file in sorted(scan_dir.rglob("*")):
+            if not doc_file.is_file() or doc_file.suffix not in {".json", ".md"}:
+                continue
+            text = doc_file.read_text(encoding="utf-8", errors="replace")
+            rel = str(doc_file.relative_to(ROOT))
+            for secret in _SECRET_PREFIXES:
+                if secret in text:
+                    offenders.append(f"{rel}: leaked secret prefix {secret!r}")
+            if "/home/medusa" in text:
+                offenders.append(f"{rel}: leaked machine home path '/home/medusa'")
+    assert not offenders, "privacy/secret leak in public docs: " + "; ".join(offenders)
+
+
+def test_no_internal_planning_dir_in_public_docs():
+    assert not (ROOT / "docs" / "roadmap").exists(), (
+        "Internal planning files must remain untracked outside docs/."
     )
 
 

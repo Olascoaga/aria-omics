@@ -1,0 +1,204 @@
+{
+  "schema_version": "aria.cross_model_equivalence.receipt.v1",
+  "cell_id": "tantalus_local__03_scrna_multidonor",
+  "stage": "baseline",
+  "model_key": "tantalus_local",
+  "model_label": "Tantalus Local (Qwen3.6-35B-A3B Q4_K_M)",
+  "model_family": "Qwen3.6-35B-A3B",
+  "served_model": "qwen3.6-35b-a3b-ud-q4_k_m",
+  "transport": "local_tantalus_gguf",
+  "modality_id": "03_scrna_multidonor",
+  "aria_modality": "scRNA",
+  "status": "completed",
+  "source": "imported_verified_public_atlas_run",
+  "experiment_id": "atlas-03-888b96",
+  "elapsed_seconds": 334.48,
+  "usage": {
+    "total_calls": 6,
+    "prompt_tokens": 16114,
+    "completion_tokens": 6917,
+    "total_tokens": 23031,
+    "billed_api_cost_usd": 0.0,
+    "projected_list_cost_usd": 0.0
+  },
+  "shim_telemetry": null,
+  "claims_audit": {
+    "total_public_claims": 15,
+    "claims_by_tier": {
+      "descriptive": 7,
+      "associative": 8
+    },
+    "speculative_promotion_guard": "pass",
+    "quarantined_hypotheses_count": 0,
+    "representative_claims": [
+      {
+        "claim_id": "executive_summary",
+        "tier": "descriptive",
+        "modality": "report",
+        "analysis": "executive_summary",
+        "text": "ARIA completed the submitted analysis. 7 findings were recorded across all modalities, of which 0 reached HIGH confidence. See the governed claim ledger below for published results.",
+        "ledger_node_id": "ledger://report/executive_summary"
+      },
+      {
+        "claim_id": "scrna.qc",
+        "tier": "descriptive",
+        "modality": "scRNA-seq",
+        "analysis": "qc",
+        "text": "scRNA QC retained 6,015 of 6,317 cells.",
+        "ledger_node_id": "ledger://scRNA/qc"
+      },
+      {
+        "claim_id": "scrna.marker_discovery",
+        "tier": "descriptive",
+        "modality": "scRNA-seq",
+        "analysis": "marker_discovery",
+        "text": "Per-cluster marker discovery ranked candidate marker genes across 8 cluster clusters (Wilcoxon cluster-vs-rest, descriptive ranking only).",
+        "ledger_node_id": "ledger://scRNA/marker_discovery"
+      },
+      {
+        "claim_id": "scrna.composition.ifnb_stimulated_vs_control",
+        "tier": "associative",
+        "modality": "scRNA-seq",
+        "analysis": "differential_abundance",
+        "text": "4 cell type(s) shifted in abundance (FDR < 0.1) for ifnb_stimulated_vs_control.",
+        "ledger_node_id": "ledger://scRNA/differential_abundance"
+      },
+      {
+        "claim_id": "scrna.pseudobulk.B_cells.ifnb_stimulated_vs_control",
+        "tier": "descriptive",
+        "modality": "scRNA-seq",
+        "analysis": "pseudobulk_de",
+        "text": "B cells ifnb_stimulated_vs_control had 234 per-cluster FDR DE genes.",
+        "ledger_node_id": "ledger://scRNA/pseudobulk_de"
+      },
+      {
+        "claim_id": "scrna.pseudobulk.CD16_NK_cells.ifnb_stimulated_vs_control",
+        "tier": "descriptive",
+        "modality": "scRNA-seq",
+        "analysis": "pseudobulk_de",
+        "text": "CD16+ NK cells ifnb_stimulated_vs_control had 170 per-cluster FDR DE genes.",
+        "ledger_node_id": "ledger://scRNA/pseudobulk_de"
+      },
+      {
+        "claim_id": "scrna.pseudobulk.Intermediate_macrophages.ifnb_stimulated_vs_control",
+        "tier": "descriptive",
+        "modality": "scRNA-seq",
+        "analysis": "pseudobulk_de",
+        "text": "Intermediate macrophages ifnb_stimulated_vs_control had 1252 per-cluster FDR DE genes.",
+        "ledger_node_id": "ledger://scRNA/pseudobulk_de"
+      },
+      {
+        "claim_id": "scrna.pseudobulk.Tcm_Naive_helper_T_cells.ifnb_stimulated_vs_control",
+        "tier": "descriptive",
+        "modality": "scRNA-seq",
+        "analysis": "pseudobulk_de",
+        "text": "Tcm/Naive helper T cells ifnb_stimulated_vs_control had 274 per-cluster FDR DE genes.",
+        "ledger_node_id": "ledger://scRNA/pseudobulk_de"
+      },
+      {
+        "claim_id": "scrna.pathway.B_cells_ifnb_stimulated_vs_control",
+        "tier": "associative",
+        "modality": "scRNA-seq",
+        "analysis": "pseudobulk_pathways",
+        "text": "ORA found 54 enriched term(s) for B cells::ifnb_stimulated_vs_control.",
+        "ledger_node_id": "ledger://scRNA/pathway_enrichment"
+      },
+      {
+        "claim_id": "scrna.pathway.CD16_NK_cells_ifnb_stimulated_vs_control",
+        "tier": "associative",
+        "modality": "scRNA-seq",
+        "analysis": "pseudobulk_pathways",
+        "text": "ORA found 50 enriched term(s) for CD16+ NK cells::ifnb_stimulated_vs_control.",
+        "ledger_node_id": "ledger://scRNA/pathway_enrichment"
+      }
+    ]
+  },
+  "capsule_verification": "verified_portable_ext_inputs",
+  "raw_capsule_status": "warning",
+  "archive": {
+    "archived_report_rel": "idea2_reports/tantalus_local/03_scrna_multidonor/report.html",
+    "report_html_bytes": 4551104,
+    "report_html_sha256": "25f23d002410a78497811410034fef75d3d909799389fd54a1636ece93496334",
+    "capsule_zip_bytes": 6318110,
+    "capsule_zip_sha256": "647de650f6656d7c3720cf4d15414ab680fed67ae638b805d9544c081cc2855f"
+  },
+  "fingerprints": {
+    "active_stages": [
+      "report/biological_synthesis",
+      "report/executive_summary",
+      "scRNA/annotation",
+      "scRNA/clustering",
+      "scRNA/differential_abundance",
+      "scRNA/marker_discovery",
+      "scRNA/pathway_enrichment",
+      "scRNA/pseudobulk_de",
+      "scRNA/qc"
+    ],
+    "error_stages": [],
+    "n_statistical_claims": 14,
+    "statistical_claims": [
+      "4 cell type(s) shifted in abundance (FDR < 0.1) for ifnb_stimulated_vs_control.",
+      "B cells ifnb_stimulated_vs_control had 234 per-cluster FDR DE genes.",
+      "CD16+ NK cells ifnb_stimulated_vs_control had 170 per-cluster FDR DE genes.",
+      "Intermediate macrophages ifnb_stimulated_vs_control had 1252 per-cluster FDR DE genes.",
+      "ORA found 46 enriched term(s) for Intermediate macrophages::ifnb_stimulated_vs_control.",
+      "ORA found 50 enriched term(s) for CD16+ NK cells::ifnb_stimulated_vs_control.",
+      "ORA found 54 enriched term(s) for B cells::ifnb_stimulated_vs_control.",
+      "ORA found 59 enriched term(s) for Tcm/Naive helper T cells::ifnb_stimulated_vs_control.",
+      "Per-cluster marker discovery ranked candidate marker genes across 8 cluster clusters (Wilcoxon cluster-vs-rest, descriptive ranking only).",
+      "Tcm/Naive helper T cells ifnb_stimulated_vs_control had 274 per-cluster FDR DE genes.",
+      "The scRNA synthesis is association-only and does not establish causality, cell-state transitions, or molecular function. Pseudobulk power ranged from 0.226 to 0.408 across supported DE blocks.",
+      "The strongest scRNA signal was Intermediate macrophages ifnb_stimulated_vs_control, with 1252 replicate-aware DE gene(s) and 46 enriched term(s) at cell-type resolution. Top DE genes include ISG20, CXCL10, IL1RN, DYNLT1, and PLSCR1. ORA support includes cellular response to cytokine stimulus, cellular response to interferon-beta, and cellular response to interferon-gamma.",
+      "scRNA QC retained 6,015 of 6,317 cells.",
+      "scRNA context layers reported 4 abundance-shifted group(s), 0 LIANA interaction candidate(s), and 0 trajectory graph connection(s). Abundance shifts included Non-classical monocytes, Intermediate macrophages, B cells, and Tcm/Naive helper T cells."
+    ],
+    "executive_summary_preview": "ARIA completed the submitted analysis. 7 findings were recorded across all modalities, of which 0 reached HIGH confidence. See the governed claim ledger below for published results.",
+    "tables": {
+      "scrna_cell_types.tsv": {
+        "rows": 8,
+        "bytes": 2383,
+        "sha256": "d647cbc8d264f6bdbe527a901e7c906da56c024914b31136aa556b58f7051d2d"
+      },
+      "scrna_cluster_markers.tsv": {
+        "rows": 160,
+        "bytes": 5386,
+        "sha256": "e9d45a5bec7f5c0f152250445157db9bcf34587383a6ce79275af94e40379068"
+      },
+      "scrna_pathway_enrichment.tsv": {
+        "rows": 485,
+        "bytes": 81053,
+        "sha256": "ade61915038519e988e83c4def52d61b64c818b30c77761125e112b53076a29b"
+      },
+      "scrna_pseudobulk_de_genes.tsv": {
+        "rows": 1930,
+        "bytes": 302477,
+        "sha256": "7a6ef687a0bab68bd9c1d1f07848e811b69ee9353cb9a5468a27ed0fefa40baf"
+      },
+      "scrna_pseudobulk_de_summary.tsv": {
+        "rows": 4,
+        "bytes": 535,
+        "sha256": "7b188cc1f9aa7f7e2bab5c7952a5b35cc4e1800c1cd5db730f948bbba25d5f84"
+      }
+    },
+    "n_figures": 17,
+    "figures": [
+      "pathways/pathway_B_cells__ifnb_stimulated_vs_control__GO_BP.png",
+      "pathways/pathway_B_cells__ifnb_stimulated_vs_control__KEGG.png",
+      "pathways/pathway_B_cells__ifnb_stimulated_vs_control__Reactome.png",
+      "pathways/pathway_CD16+_NK_cells__ifnb_stimulated_vs_control__GO_BP.png",
+      "pathways/pathway_CD16+_NK_cells__ifnb_stimulated_vs_control__KEGG.png",
+      "pathways/pathway_CD16+_NK_cells__ifnb_stimulated_vs_control__Reactome.png",
+      "pathways/pathway_Intermediate_macrophages__ifnb_stimulated_vs_control__GO_BP.png",
+      "pathways/pathway_Intermediate_macrophages__ifnb_stimulated_vs_control__KEGG.png",
+      "pathways/pathway_Intermediate_macrophages__ifnb_stimulated_vs_control__Reactome.png",
+      "pathways/pathway_Tcm_Naive_helper_T_cells__ifnb_stimulated_vs_control__GO_BP.png",
+      "pathways/pathway_Tcm_Naive_helper_T_cells__ifnb_stimulated_vs_control__KEGG.png",
+      "pathways/pathway_Tcm_Naive_helper_T_cells__ifnb_stimulated_vs_control__Reactome.png",
+      "pseudobulk_de_per_celltype_bar.png",
+      "umap_cell_type_celltypist.png",
+      "umap_condition.png",
+      "umap_leiden.png",
+      "umap_sample_id.png"
+    ]
+  }
+}

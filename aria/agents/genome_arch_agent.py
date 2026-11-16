@@ -311,6 +311,7 @@ class GenomeArchAgent(BaseAgent):
                 "Skip 3D genome analysis",
             ],
             context={
+                "agent_parameter_checkpoint": True,
                 "file_info": file_info,
                 "resolution_decision": resolution_decision,
             },
@@ -346,7 +347,7 @@ class GenomeArchAgent(BaseAgent):
                     "Continue — warnings noted in report",
                     "Abort — data quality insufficient",
                 ],
-                context={"qc": qc_result},
+                context={"agent_parameter_checkpoint": True, "qc": qc_result},
             )
 
         topology_files = (
@@ -786,7 +787,7 @@ class GenomeArchAgent(BaseAgent):
                 "Enter custom window size",
                 "Skip TAD calling",
             ],
-            context={"window_decision": decision},
+            context={"agent_parameter_checkpoint": True, "window_decision": decision},
         )
         return decision
 

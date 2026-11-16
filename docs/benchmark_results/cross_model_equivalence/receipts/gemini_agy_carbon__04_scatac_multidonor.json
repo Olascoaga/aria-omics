@@ -1,0 +1,100 @@
+{
+  "schema_version": "aria.cross_model_equivalence.receipt.v1",
+  "cell_id": "gemini_agy_carbon__04_scatac_multidonor",
+  "stage": "stage2a_wsl",
+  "model_key": "gemini_agy_carbon",
+  "model_label": "Gemini 4 Carbon Low (Antigravity WSL Tool)",
+  "model_family": "Gemini 4 Carbon",
+  "served_model": "gemini-4-carbon-low",
+  "transport": "wsl_cli_shim",
+  "modality_id": "04_scatac_multidonor",
+  "aria_modality": "scATAC",
+  "status": "completed",
+  "started_at_utc": "2026-11-14T18:35:22.486453+00:00",
+  "completed_at_utc": "2026-11-14T18:39:52.561481+00:00",
+  "elapsed_seconds": 276.38,
+  "driver_peak_rss_mb": 544.3,
+  "experiment_id": "eq-gemini-04-78031",
+  "usage": {
+    "total_calls": 4,
+    "fallback_calls": 0,
+    "models_used": [
+      "openai/wsl-agy-gemini-4-carbon-low"
+    ],
+    "prompt_tokens": 8024,
+    "completion_tokens": 3282,
+    "total_tokens": 11306,
+    "billed_api_cost_usd": 0.0,
+    "projected_list_cost_usd": 0.04285
+  },
+  "shim_telemetry": {
+    "cli_calls": 4,
+    "cli_raw_input_tokens": 45986,
+    "cli_raw_cached_tokens": 0,
+    "cli_raw_output_tokens": 3819,
+    "cli_thinking_tokens": 0,
+    "cli_reported_cost_usd": 0.0,
+    "cli_reported_cost_available": false,
+    "projected_api_list_cost_usd": 0.04285
+  },
+  "claims_audit": {
+    "total_public_claims": 8,
+    "claims_by_tier": {
+      "descriptive": 2,
+      "associative": 6
+    },
+    "speculative_promotion_guard": "pass",
+    "quarantined_hypotheses_count": 0
+  },
+  "capsule_verification": "verified_portable_ext_inputs",
+  "raw_capsule_status": "warning",
+  "archive": {
+    "archived_report_rel": "idea2_reports/gemini_agy_carbon/04_scatac_multidonor/report.html",
+    "report_html_bytes": 148181,
+    "report_html_sha256": "1344bd12202273e6d289936ac194744cb30d80978576c0da0ea4088b3a52d086",
+    "capsule_zip_bytes": 1777294,
+    "capsule_zip_sha256": "9eecb34994a637af6e004935d4ecf54306b10bdf62d30d172df69efadd40f437"
+  },
+  "fingerprints": {
+    "active_stages": [
+      "chromatin/differential_accessibility",
+      "chromatin/differential_tf_footprinting",
+      "chromatin/dimensionality_reduction",
+      "chromatin/motif_enrichment",
+      "chromatin/qc",
+      "chromatin/regulatory_layers",
+      "chromatin/scatac_preprocessing",
+      "report/executive_summary"
+    ],
+    "error_stages": [],
+    "n_statistical_claims": 7,
+    "statistical_claims": [
+      "Per-cluster accessibility testing identified 10022 differentially accessible peaks across 11 cluster(s) at padj<0.05, |log2FC|>1.0.",
+      "Replicate-level pseudobulk DA ran 1 comparison(s) and found 0 differentially accessible peaks via the shared DESeq2 core.",
+      "TF motif enrichment (JASPAR2024_CORE_vertebrates, hypergeometric) tested 879 motifs and found enriched motifs in 9 of 11 peak group(s).",
+      "TF-IDF/LSI over 40057 peaks in 3000 cells produced 11 clusters after removing 1 depth-associated component(s).",
+      "scATAC QC measured 3000 cells and 40057 peaks.",
+      "scATAC preprocessing completed (cohort matrix union): the resulting matrix has 3000 cell(s) x 40057 peak(s).",
+      "scATAC regulatory-layer analysis ran 1 of 5 optional layer(s); skipped layers are reported with their prerequisites."
+    ],
+    "executive_summary_preview": "ARIA completed the submitted analysis. 2 findings were recorded across all modalities, of which 0 reached HIGH confidence. See the governed claim ledger below for published results.",
+    "tables": {},
+    "n_figures": 14,
+    "figures": [
+      "da_ma_aged_80_100_vs_young_20_39.png",
+      "da_ma_aged_80_100_vs_young_20_39.svg",
+      "da_volcano_aged_80_100_vs_young_20_39.png",
+      "da_volcano_aged_80_100_vs_young_20_39.svg",
+      "marker_heatmap.png",
+      "marker_heatmap.svg",
+      "motif_dotplot.png",
+      "motif_dotplot.svg",
+      "qc_depth_violin.png",
+      "qc_depth_violin.svg",
+      "umap_condition.png",
+      "umap_leiden.png",
+      "umap_log10_n_fragments.png",
+      "umap_sample_id.png"
+    ]
+  }
+}

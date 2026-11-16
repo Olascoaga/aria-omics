@@ -15,3 +15,7 @@ Every vignette below documents a complete, unattended end-to-end execution of AR
 | `09_hic_3d_genome` | `HiC` | `GEO GSE345433` | `completed` | `2003.67` | `6` | `verified_portable` | [`09_hic_3d_genome.md`](./09_hic_3d_genome.md) |
 | `10_paired_multiome` | `Paired_Multiome` | `GEO GSE278576` | `completed` | `949.35` | `11` | `verified_portable` | [`10_paired_multiome.md`](./10_paired_multiome.md) |
 | `11_cross_modal_concordance` | `Cross_Modal_RNA_x_ATAC` | `ENCODE ENCSR843RJV, ENCSR889TRN, ENCSR594NJP, ENCSR596ACL, ENCSR637XSC, ENCSR483RKN, ENCSR859USB` | `completed` | `3082.38` | `20` | `verified_portable` | [`11_cross_modal_concordance.md`](./11_cross_modal_concordance.md) |
+
+## Cross-Model Equivalence & Commercial API Cost Benchmark (`30 / 30` Cells)
+
+Vignette [`12_cross_model_equivalence.md`](./12_cross_model_equivalence.md) evaluates ARIA's model-invariance hypothesis (`Claim 6` / `ADR-011`) across `30` end-to-end `(model × modality)` executions comparing local `Tantalus` (`$0.00`), local WSL system-tool harnesses (`Claude Sonnet 5.5`, `GPT-5.6-Sol`, `Gemini 4 Carbon`, `$0.00` cash spend), and direct commercial REST APIs (`anthropic/claude-sonnet-5-5` `$0.6718` total across `7` workflows; `openai/gpt-5.6-sol` `$0.7890` total across `7` workflows). Full per-cell receipts and live dashboard reside in [`../benchmark_results/cross_model_equivalence/STATUS.md`](../benchmark_results/cross_model_equivalence/STATUS.md).

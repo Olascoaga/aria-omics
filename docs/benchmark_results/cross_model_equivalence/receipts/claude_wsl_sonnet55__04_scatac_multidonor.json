@@ -1,0 +1,100 @@
+{
+  "schema_version": "aria.cross_model_equivalence.receipt.v1",
+  "cell_id": "claude_wsl_sonnet55__04_scatac_multidonor",
+  "stage": "stage2a_wsl",
+  "model_key": "claude_wsl_sonnet55",
+  "model_label": "Claude Sonnet 5.5 (WSL System Tool)",
+  "model_family": "Claude Sonnet 5.5",
+  "served_model": "claude-sonnet-5-5",
+  "transport": "wsl_cli_shim",
+  "modality_id": "04_scatac_multidonor",
+  "aria_modality": "scATAC",
+  "status": "completed",
+  "started_at_utc": "2026-11-14T18:26:47.035221+00:00",
+  "completed_at_utc": "2026-11-14T18:30:58.316359+00:00",
+  "elapsed_seconds": 256.7,
+  "driver_peak_rss_mb": 544.3,
+  "experiment_id": "eq-claude-04-004d0",
+  "usage": {
+    "total_calls": 4,
+    "fallback_calls": 0,
+    "models_used": [
+      "openai/wsl-claude-sonnet-5-5"
+    ],
+    "prompt_tokens": 8031,
+    "completion_tokens": 2307,
+    "total_tokens": 10338,
+    "billed_api_cost_usd": 0.0,
+    "projected_list_cost_usd": 0.039132
+  },
+  "shim_telemetry": {
+    "cli_calls": 4,
+    "cli_raw_input_tokens": 12149,
+    "cli_raw_cached_tokens": 2111,
+    "cli_raw_output_tokens": 4169,
+    "cli_thinking_tokens": 503,
+    "cli_reported_cost_usd": 0.090481,
+    "cli_reported_cost_available": true,
+    "projected_api_list_cost_usd": 0.039132
+  },
+  "claims_audit": {
+    "total_public_claims": 8,
+    "claims_by_tier": {
+      "descriptive": 2,
+      "associative": 6
+    },
+    "speculative_promotion_guard": "pass",
+    "quarantined_hypotheses_count": 0
+  },
+  "capsule_verification": "verified_portable_ext_inputs",
+  "raw_capsule_status": "warning",
+  "archive": {
+    "archived_report_rel": "idea2_reports/claude_wsl_sonnet55/04_scatac_multidonor/report.html",
+    "report_html_bytes": 148985,
+    "report_html_sha256": "21c1da0c9e61e5f7df3564cf774baad8c9ad5d115095da1ead2651203633a8a8",
+    "capsule_zip_bytes": 1777982,
+    "capsule_zip_sha256": "21b96c42d3338775811e61944c86fc30f3f239d2a3a621e033b45c8142b48265"
+  },
+  "fingerprints": {
+    "active_stages": [
+      "chromatin/differential_accessibility",
+      "chromatin/differential_tf_footprinting",
+      "chromatin/dimensionality_reduction",
+      "chromatin/motif_enrichment",
+      "chromatin/qc",
+      "chromatin/regulatory_layers",
+      "chromatin/scatac_preprocessing",
+      "report/executive_summary"
+    ],
+    "error_stages": [],
+    "n_statistical_claims": 7,
+    "statistical_claims": [
+      "Per-cluster accessibility testing identified 10022 differentially accessible peaks across 11 cluster(s) at padj<0.05, |log2FC|>1.0.",
+      "Replicate-level pseudobulk DA ran 1 comparison(s) and found 0 differentially accessible peaks via the shared DESeq2 core.",
+      "TF motif enrichment (JASPAR2024_CORE_vertebrates, hypergeometric) tested 879 motifs and found enriched motifs in 9 of 11 peak group(s).",
+      "TF-IDF/LSI over 40057 peaks in 3000 cells produced 11 clusters after removing 1 depth-associated component(s).",
+      "scATAC QC measured 3000 cells and 40057 peaks.",
+      "scATAC preprocessing completed (cohort matrix union): the resulting matrix has 3000 cell(s) x 40057 peak(s).",
+      "scATAC regulatory-layer analysis ran 1 of 5 optional layer(s); skipped layers are reported with their prerequisites."
+    ],
+    "executive_summary_preview": "The pipeline did not answer the question of age-associated chromatin accessibility in human hippocampus. It ran cluster-level differential accessibility on 3,000 cells x 40,057 peaks (11 clusters over 49 LSI components, 1 depth-associated component removed) and called 10,022 DA peaks across the 11 clusters, but no donor-aware age contrast is reported, so these peaks reflect cel",
+    "tables": {},
+    "n_figures": 14,
+    "figures": [
+      "da_ma_aged_80_100_vs_young_20_39.png",
+      "da_ma_aged_80_100_vs_young_20_39.svg",
+      "da_volcano_aged_80_100_vs_young_20_39.png",
+      "da_volcano_aged_80_100_vs_young_20_39.svg",
+      "marker_heatmap.png",
+      "marker_heatmap.svg",
+      "motif_dotplot.png",
+      "motif_dotplot.svg",
+      "qc_depth_violin.png",
+      "qc_depth_violin.svg",
+      "umap_condition.png",
+      "umap_leiden.png",
+      "umap_log10_n_fragments.png",
+      "umap_sample_id.png"
+    ]
+  }
+}

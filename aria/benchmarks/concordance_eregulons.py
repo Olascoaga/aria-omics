@@ -5,7 +5,7 @@ eRegulons (`aria/scripts/integration_eregulons.py`, `aria/utils/eregulon_core.py
 against an external enhancer-GRN reference execution (`scenicplus==1.0.0`) as well
 as quantifying SCENIC+'s own multi-seed stochastic GBM ceiling (`seed_a` vs `seed_b`).
 
-Evaluates four complementary concordance tiers (`ADR-064`, `Concilio d9842f`):
+Evaluates four complementary concordance tiers (`ADR-064`, `ADR-069`):
   1. Shared testable TF & `(TF, sign_class)` module discovery (precision, recall,
      F1, Jaccard, exact analytical hypergeometric expected Jaccard, fold enrichment,
      and Fisher exact one-sided p-value).

@@ -1,0 +1,147 @@
+{
+  "schema_version": "aria.cross_model_equivalence.receipt.v1",
+  "cell_id": "tantalus_local__09_hic_3d_genome",
+  "stage": "baseline",
+  "model_key": "tantalus_local",
+  "model_label": "Tantalus Local (Qwen3.6-35B-A3B Q4_K_M)",
+  "model_family": "Qwen3.6-35B-A3B",
+  "served_model": "qwen3.6-35b-a3b-ud-q4_k_m",
+  "transport": "local_tantalus_gguf",
+  "modality_id": "09_hic_3d_genome",
+  "aria_modality": "HiC",
+  "status": "completed",
+  "source": "imported_verified_public_atlas_run",
+  "experiment_id": "atlas-09-b671d4",
+  "elapsed_seconds": 2003.67,
+  "usage": {
+    "total_calls": 5,
+    "prompt_tokens": 4966,
+    "completion_tokens": 750,
+    "total_tokens": 5716,
+    "billed_api_cost_usd": 0.0,
+    "projected_list_cost_usd": 0.0
+  },
+  "shim_telemetry": null,
+  "claims_audit": {
+    "total_public_claims": 6,
+    "claims_by_tier": {
+      "descriptive": 4,
+      "associative": 2
+    },
+    "speculative_promotion_guard": "pass",
+    "quarantined_hypotheses_count": 0,
+    "representative_claims": [
+      {
+        "claim_id": "executive_summary",
+        "tier": "descriptive",
+        "modality": "report",
+        "analysis": "executive_summary",
+        "text": "ARIA completed the submitted analysis. 6 findings were recorded across all modalities, of which 0 reached HIGH confidence. See the governed claim ledger below for published results.",
+        "ledger_node_id": "ledger://report/executive_summary"
+      },
+      {
+        "claim_id": "hic.qc",
+        "tier": "descriptive",
+        "modality": "hic",
+        "analysis": "qc",
+        "text": "Hi-C contact QC and ICE balancing evaluated 6 sample(s) with 463783660 valid contact pairs and cis/trans ratio 0.782.",
+        "ledger_node_id": "ledger://hic/qc"
+      },
+      {
+        "claim_id": "hic.compartments",
+        "tier": "descriptive",
+        "modality": "hic",
+        "analysis": "compartments",
+        "text": "Hi-C cis eigenvector compartment decomposition at 100000 bp resolution classified 48.21% active and 51.79% inactive compartment bins.",
+        "ledger_node_id": "ledger://hic/compartments"
+      },
+      {
+        "claim_id": "hic.tads",
+        "tier": "descriptive",
+        "modality": "hic",
+        "analysis": "tads",
+        "text": "Hi-C diamond insulation score analysis identified 568 TAD intervals with median size 1150.0 kb.",
+        "ledger_node_id": "ledger://hic/tads"
+      },
+      {
+        "claim_id": "hic.loops",
+        "tier": "associative",
+        "modality": "hic",
+        "analysis": "loops",
+        "text": "Hi-C donut local background enrichment at 10000 bp resolution identified 0 chromatin loop(s).",
+        "ledger_node_id": "ledger://hic/loops"
+      },
+      {
+        "claim_id": "hic.differential_3d",
+        "tier": "associative",
+        "modality": "hic",
+        "analysis": "differential_3d",
+        "text": "Hi-C replicate-level differential topology testing across 1 contrast(s) identified 0 differential compartment bin(s), including 0 compartment switch(es), and 2 differential insulation bin(s).",
+        "ledger_node_id": "ledger://hic/differential_3d"
+      }
+    ]
+  },
+  "capsule_verification": "verified_portable_ext_inputs",
+  "raw_capsule_status": "warning",
+  "archive": {
+    "archived_report_rel": "idea2_reports/tantalus_local/09_hic_3d_genome/report.html",
+    "report_html_bytes": 1434983,
+    "report_html_sha256": "0c20eb9a2371a08b45afb982030c7b167e3623b7a3f85b55e455740c28446299",
+    "capsule_zip_bytes": 2416042,
+    "capsule_zip_sha256": "a2010656c09b9fb943565bd020f4385970674bebaba6fdced1facaf228b62f21"
+  },
+  "fingerprints": {
+    "active_stages": [
+      "hic/compartments",
+      "hic/differential_3d",
+      "hic/loops",
+      "hic/qc",
+      "hic/tads",
+      "report/executive_summary"
+    ],
+    "error_stages": [],
+    "n_statistical_claims": 5,
+    "statistical_claims": [
+      "Hi-C cis eigenvector compartment decomposition at 100000 bp resolution classified 48.21% active and 51.79% inactive compartment bins.",
+      "Hi-C contact QC and ICE balancing evaluated 6 sample(s) with 463783660 valid contact pairs and cis/trans ratio 0.782.",
+      "Hi-C diamond insulation score analysis identified 568 TAD intervals with median size 1150.0 kb.",
+      "Hi-C donut local background enrichment at 10000 bp resolution identified 0 chromatin loop(s).",
+      "Hi-C replicate-level differential topology testing across 1 contrast(s) identified 0 differential compartment bin(s), including 0 compartment switch(es), and 2 differential insulation bin(s)."
+    ],
+    "executive_summary_preview": "ARIA completed the submitted analysis. 6 findings were recorded across all modalities, of which 0 reached HIGH confidence. See the governed claim ledger below for published results.",
+    "tables": {
+      "Diploid_rep1.expected_cis.tsv": {
+        "rows": 4986,
+        "bytes": 208505,
+        "sha256": "e97a8ab51274d78d29881233c5837c03bfd8c6bfdf7aadd2a859cbf75e1190a2"
+      },
+      "compartments.tsv": {
+        "rows": 8552,
+        "bytes": 381294,
+        "sha256": "551a7bdd62e941f1e70dc161391ed39adc7fb5af2b61589cf5875125cb84a7d2"
+      },
+      "hicrep_scc_matrix.tsv": {
+        "rows": 6,
+        "bytes": 407,
+        "sha256": "ab8059ea2f3d7594357d7a2eba6c987717fb914cc46ac92a8c3b35e6c69eadd8"
+      },
+      "insulation.tsv": {
+        "rows": 17100,
+        "bytes": 1154682,
+        "sha256": "7471cefa2b9312e82253a8fc15c8648c46e9a86f11dce4cf910eb92eefac235d"
+      },
+      "tads.bed": {
+        "rows": 567,
+        "bytes": 24527,
+        "sha256": "a8d2107e8b151f0b27aea479f57073b9654376da85895deaae5b04b76530697a"
+      }
+    },
+    "n_figures": 4,
+    "figures": [
+      "hic_compartment_insulation_track.png",
+      "hic_contact_decay_ps.png",
+      "hic_contact_map.png",
+      "hic_differential_compartments.png"
+    ]
+  }
+}

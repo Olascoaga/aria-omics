@@ -1,0 +1,137 @@
+{
+  "schema_version": "aria.cross_model_equivalence.receipt.v1",
+  "cell_id": "claude_wsl_sonnet55__03_scrna_multidonor",
+  "stage": "stage2a_wsl",
+  "model_key": "claude_wsl_sonnet55",
+  "model_label": "Claude Sonnet 5.5 (WSL System Tool)",
+  "model_family": "Claude Sonnet 5.5",
+  "served_model": "claude-sonnet-5-5",
+  "transport": "wsl_cli_shim",
+  "modality_id": "03_scrna_multidonor",
+  "aria_modality": "scRNA",
+  "status": "completed",
+  "started_at_utc": "2026-11-14T18:19:14.956167+00:00",
+  "completed_at_utc": "2026-11-14T18:21:21.826688+00:00",
+  "elapsed_seconds": 129.11,
+  "driver_peak_rss_mb": 515.7,
+  "experiment_id": "eq-claude-03-1aff8",
+  "usage": {
+    "total_calls": 6,
+    "fallback_calls": 0,
+    "models_used": [
+      "openai/wsl-claude-sonnet-5-5"
+    ],
+    "prompt_tokens": 13331,
+    "completion_tokens": 4328,
+    "total_tokens": 17659,
+    "billed_api_cost_usd": 0.0,
+    "projected_list_cost_usd": 0.069942
+  },
+  "shim_telemetry": {
+    "cli_calls": 6,
+    "cli_raw_input_tokens": 22077,
+    "cli_raw_cached_tokens": 1196,
+    "cli_raw_output_tokens": 6755,
+    "cli_thinking_tokens": 0,
+    "cli_reported_cost_usd": 0.155954,
+    "cli_reported_cost_available": true,
+    "projected_api_list_cost_usd": 0.069942
+  },
+  "claims_audit": {
+    "total_public_claims": 15,
+    "claims_by_tier": {
+      "descriptive": 7,
+      "associative": 8
+    },
+    "speculative_promotion_guard": "pass",
+    "quarantined_hypotheses_count": 0
+  },
+  "capsule_verification": "verified_portable_ext_inputs",
+  "raw_capsule_status": "warning",
+  "archive": {
+    "archived_report_rel": "idea2_reports/claude_wsl_sonnet55/03_scrna_multidonor/report.html",
+    "report_html_bytes": 4565768,
+    "report_html_sha256": "f65b72d0f81418635716cb7f35cd3c23d92b32c18ebd5fa81dd40fa9f0edfead",
+    "capsule_zip_bytes": 6341496,
+    "capsule_zip_sha256": "7eca6f88dccc131175bb4ffe5ecf94b29727f1f0dbae7235f1a2aa04a39bc3bc"
+  },
+  "fingerprints": {
+    "active_stages": [
+      "report/biological_synthesis",
+      "report/executive_summary",
+      "scRNA/annotation",
+      "scRNA/clustering",
+      "scRNA/differential_abundance",
+      "scRNA/marker_discovery",
+      "scRNA/pathway_enrichment",
+      "scRNA/pseudobulk_de",
+      "scRNA/qc"
+    ],
+    "error_stages": [],
+    "n_statistical_claims": 14,
+    "statistical_claims": [
+      "4 cell type(s) shifted in abundance (FDR < 0.1) for ifnb_stimulated_vs_control.",
+      "B cells ifnb_stimulated_vs_control had 250 per-cluster FDR DE genes.",
+      "CD16+ NK cells ifnb_stimulated_vs_control had 165 per-cluster FDR DE genes.",
+      "Intermediate macrophages ifnb_stimulated_vs_control had 1251 per-cluster FDR DE genes.",
+      "ORA found 46 enriched term(s) for Intermediate macrophages::ifnb_stimulated_vs_control.",
+      "ORA found 49 enriched term(s) for CD16+ NK cells::ifnb_stimulated_vs_control.",
+      "ORA found 53 enriched term(s) for B cells::ifnb_stimulated_vs_control.",
+      "ORA found 57 enriched term(s) for Tcm/Naive helper T cells::ifnb_stimulated_vs_control.",
+      "Per-cluster marker discovery ranked candidate marker genes across 6 cluster clusters (Wilcoxon cluster-vs-rest, descriptive ranking only).",
+      "Tcm/Naive helper T cells ifnb_stimulated_vs_control had 260 per-cluster FDR DE genes.",
+      "The scRNA synthesis is association-only and does not establish causality, cell-state transitions, or molecular function. Pseudobulk power ranged from 0.225 to 0.408 across supported DE blocks.",
+      "The strongest scRNA signal was Intermediate macrophages ifnb_stimulated_vs_control, with 1251 replicate-aware DE gene(s) and 46 enriched term(s) at cell-type resolution. Top DE genes include ISG20, CXCL10, IL1RN, DYNLT1, and PLSCR1. ORA support includes cellular response to cytokine stimulus, cellular response to interferon-beta, and cellular response to interferon-gamma.",
+      "scRNA QC retained 6,015 of 6,317 cells.",
+      "scRNA context layers reported 4 abundance-shifted group(s), 0 LIANA interaction candidate(s), and 0 trajectory graph connection(s). Abundance shifts included Non-classical monocytes, Intermediate macrophages, B cells, and Tcm/Naive helper T cells."
+    ],
+    "executive_summary_preview": "ARIA completed the submitted analysis. 7 findings were recorded across all modalities, of which 0 reached HIGH confidence. See the governed claim ledger below for published results.",
+    "tables": {
+      "scrna_cell_types.tsv": {
+        "rows": 6,
+        "bytes": 2206,
+        "sha256": "16717f83e296b40fd1094ab19801dde8923a2591d25dbf58e2745f0a41b3fa3a"
+      },
+      "scrna_cluster_markers.tsv": {
+        "rows": 120,
+        "bytes": 3973,
+        "sha256": "86b08c53f404aaca9a32c204b5c36773f2eb55e89057c9ab7c31d61b4616914e"
+      },
+      "scrna_pathway_enrichment.tsv": {
+        "rows": 440,
+        "bytes": 75150,
+        "sha256": "4c92f07287f08385cd96e9da8b66ace95caa6543e8e68a34e710c565f3598455"
+      },
+      "scrna_pseudobulk_de_genes.tsv": {
+        "rows": 1926,
+        "bytes": 301635,
+        "sha256": "a69f38fdd0de4ad117433b4ddb38cd0b33bc98333e5dbb42370617db97734377"
+      },
+      "scrna_pseudobulk_de_summary.tsv": {
+        "rows": 4,
+        "bytes": 535,
+        "sha256": "04be0beba05b2ed3f581dbb04ba4bd178c1f5350ff12d66ae5ae61f1c03b0b3d"
+      }
+    },
+    "n_figures": 17,
+    "figures": [
+      "pathways/pathway_B_cells__ifnb_stimulated_vs_control__GO_BP.png",
+      "pathways/pathway_B_cells__ifnb_stimulated_vs_control__KEGG.png",
+      "pathways/pathway_B_cells__ifnb_stimulated_vs_control__Reactome.png",
+      "pathways/pathway_CD16+_NK_cells__ifnb_stimulated_vs_control__GO_BP.png",
+      "pathways/pathway_CD16+_NK_cells__ifnb_stimulated_vs_control__KEGG.png",
+      "pathways/pathway_CD16+_NK_cells__ifnb_stimulated_vs_control__Reactome.png",
+      "pathways/pathway_Intermediate_macrophages__ifnb_stimulated_vs_control__GO_BP.png",
+      "pathways/pathway_Intermediate_macrophages__ifnb_stimulated_vs_control__KEGG.png",
+      "pathways/pathway_Intermediate_macrophages__ifnb_stimulated_vs_control__Reactome.png",
+      "pathways/pathway_Tcm_Naive_helper_T_cells__ifnb_stimulated_vs_control__GO_BP.png",
+      "pathways/pathway_Tcm_Naive_helper_T_cells__ifnb_stimulated_vs_control__KEGG.png",
+      "pathways/pathway_Tcm_Naive_helper_T_cells__ifnb_stimulated_vs_control__Reactome.png",
+      "pseudobulk_de_per_celltype_bar.png",
+      "umap_cell_type_celltypist.png",
+      "umap_condition.png",
+      "umap_leiden.png",
+      "umap_sample_id.png"
+    ]
+  }
+}

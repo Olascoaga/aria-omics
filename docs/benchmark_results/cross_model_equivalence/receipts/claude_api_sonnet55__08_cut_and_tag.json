@@ -1,0 +1,96 @@
+{
+  "schema_version": "aria.cross_model_equivalence.receipt.v1",
+  "cell_id": "claude_api_sonnet55__08_cut_and_tag",
+  "stage": "stage2b_commercial",
+  "model_key": "claude_api_sonnet55",
+  "model_label": "Claude Sonnet 5.5 (Direct Anthropic REST API)",
+  "model_family": "Claude Sonnet 5.5",
+  "served_model": "claude-sonnet-5-5",
+  "transport": "direct_rest_api",
+  "modality_id": "08_cut_and_tag",
+  "aria_modality": "CUT_AND_TAG",
+  "status": "completed",
+  "started_at_utc": "2026-11-14T21:34:20.739141+00:00",
+  "completed_at_utc": "2026-11-14T21:47:15.317080+00:00",
+  "elapsed_seconds": 801.9,
+  "driver_peak_rss_mb": 576.9,
+  "experiment_id": "eq-claude-08-9a626",
+  "usage": {
+    "total_calls": 4,
+    "fallback_calls": 0,
+    "models_used": [
+      "anthropic/claude-sonnet-5-5"
+    ],
+    "prompt_tokens": 12244,
+    "completion_tokens": 6594,
+    "total_tokens": 18838,
+    "billed_api_cost_usd": 0.090428,
+    "projected_list_cost_usd": 0.090428
+  },
+  "shim_telemetry": null,
+  "claims_audit": {
+    "total_public_claims": 9,
+    "claims_by_tier": {
+      "descriptive": 1,
+      "associative": 4,
+      "weak_mechanistic": 4
+    },
+    "speculative_promotion_guard": "pass",
+    "quarantined_hypotheses_count": 0
+  },
+  "capsule_verification": "verified_portable_ext_inputs",
+  "raw_capsule_status": "warning",
+  "archive": {
+    "archived_report_rel": "idea2_reports/claude_api_sonnet55/08_cut_and_tag/report.html",
+    "report_html_bytes": 158068,
+    "report_html_sha256": "75d32df95e77848cfa4447b1a091167ca1671c2f6beac9e2b89ad6deb2ee0329",
+    "capsule_zip_bytes": 1107466,
+    "capsule_zip_sha256": "a97b153e2aea193bfdd60c45570f729849ff89b50e9dd38611dfb7730cda64cd"
+  },
+  "fingerprints": {
+    "active_stages": [
+      "chromatin/bulk_atac_preprocessing",
+      "chromatin/differential_accessibility",
+      "chromatin/motif_enrichment",
+      "chromatin/peak_annotation",
+      "chromatin/peak_calling",
+      "chromatin/peak_count_matrix",
+      "chromatin/peak_ora",
+      "chromatin/qc",
+      "report/executive_summary"
+    ],
+    "error_stages": [],
+    "n_statistical_claims": 8,
+    "statistical_claims": [
+      "CUT&TAG DESeq2 differential binding ran 1 comparison(s) over 4 replicate samples and found 1792 differential peaks.",
+      "CUT&TAG QC measured 4 sample(s) with mean mitochondrial fraction 0.0.",
+      "CUT&TAG peak counting produced a matrix with 19229 peaks across 4 samples.",
+      "Functional ORA (local_hypergeometric) of genes near CUT&TAG differentially accessible peaks found 70 enriched term(s) across 4 database(s).",
+      "Genomic annotation classified 1792 CUT&TAG differentially accessible peak(s) by feature; 681 (38%) fall in promoter regions.",
+      "Raw bulk chromatin read preprocessing trimmed and aligned 6 sample(s) (paired layout), retaining filtered non-mitochondrial alignments for peak calling.",
+      "SEACR peak calling for CUT&TAG identified 30560 peaks.",
+      "TF motif enrichment (JASPAR2024_CORE_vertebrates, hypergeometric) tested 879 motifs and found enriched motifs in 2 of 2 peak group(s)."
+    ],
+    "executive_summary_preview": "ARIA completed the submitted analysis. 3 findings were recorded across all modalities, of which 0 reached HIGH confidence. See the governed claim ledger below for published results.",
+    "tables": {},
+    "n_figures": 16,
+    "figures": [
+      "bulk_atac_pca.png",
+      "bulk_atac_pca.svg",
+      "bulk_atac_peak_annotation.png",
+      "bulk_atac_peak_annotation.svg",
+      "bulk_atac_qc_summary.png",
+      "bulk_atac_qc_summary.svg",
+      "bulk_atac_sample_correlation.png",
+      "bulk_atac_sample_correlation.svg",
+      "da_ma_K562_vs_H1.png",
+      "da_ma_K562_vs_H1.svg",
+      "da_volcano_K562_vs_H1.png",
+      "da_volcano_K562_vs_H1.svg",
+      "fragment_size.png",
+      "fragment_size.svg",
+      "motif_dotplot.png",
+      "motif_dotplot.svg"
+    ]
+  }
+}

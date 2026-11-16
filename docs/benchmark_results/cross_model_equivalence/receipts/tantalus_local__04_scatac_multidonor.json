@@ -1,0 +1,151 @@
+{
+  "schema_version": "aria.cross_model_equivalence.receipt.v1",
+  "cell_id": "tantalus_local__04_scatac_multidonor",
+  "stage": "baseline",
+  "model_key": "tantalus_local",
+  "model_label": "Tantalus Local (Qwen3.6-35B-A3B Q4_K_M)",
+  "model_family": "Qwen3.6-35B-A3B",
+  "served_model": "qwen3.6-35b-a3b-ud-q4_k_m",
+  "transport": "local_tantalus_gguf",
+  "modality_id": "04_scatac_multidonor",
+  "aria_modality": "scATAC",
+  "status": "completed",
+  "source": "imported_verified_public_atlas_run",
+  "experiment_id": "atlas-04-66dd3c",
+  "elapsed_seconds": 419.67,
+  "usage": {
+    "total_calls": 3,
+    "prompt_tokens": 2981,
+    "completion_tokens": 587,
+    "total_tokens": 3568,
+    "billed_api_cost_usd": 0.0,
+    "projected_list_cost_usd": 0.0
+  },
+  "shim_telemetry": null,
+  "claims_audit": {
+    "total_public_claims": 8,
+    "claims_by_tier": {
+      "descriptive": 2,
+      "associative": 6
+    },
+    "speculative_promotion_guard": "pass",
+    "quarantined_hypotheses_count": 0,
+    "representative_claims": [
+      {
+        "claim_id": "executive_summary",
+        "tier": "descriptive",
+        "modality": "report",
+        "analysis": "executive_summary",
+        "text": "To address age-related chromatin accessibility changes in the human hippocampus, scATAC-seq analysis of 3,000 cells identified 10,022 differentially accessible peaks across 11 clusters with medium confidence. Motif enrichment analysis of these peaks, tested against 879 JASPAR2024 motifs, revealed significant enrichment in 9 of the 11 cluster groups. However, the absence of FRiP and TSS enrichment metrics limits the assessment of data quality and regulatory specificity. Validation of specific peak-to-gene links and functional characterization of the enriched transcription factors are required to establish causal regulatory mechanisms.",
+        "ledger_node_id": "ledger://report/executive_summary"
+      },
+      {
+        "claim_id": "chromatin.scatac_preprocessing",
+        "tier": "associative",
+        "modality": "chromatin",
+        "analysis": "scatac_preprocessing",
+        "text": "scATAC preprocessing completed (cohort matrix union): the resulting matrix has 3000 cell(s) x 40057 peak(s).",
+        "ledger_node_id": "ledger://chromatin/scatac_preprocessing"
+      },
+      {
+        "claim_id": "chromatin.qc.scATAC",
+        "tier": "descriptive",
+        "modality": "chromatin",
+        "analysis": "qc",
+        "text": "scATAC QC measured 3000 cells and 40057 peaks.",
+        "ledger_node_id": "ledger://chromatin/qc"
+      },
+      {
+        "claim_id": "chromatin.clustering",
+        "tier": "associative",
+        "modality": "chromatin",
+        "analysis": "dimensionality_reduction",
+        "text": "TF-IDF/LSI over 40057 peaks in 3000 cells produced 11 clusters after removing 1 depth-associated component(s).",
+        "ledger_node_id": "ledger://chromatin/dimensionality_reduction"
+      },
+      {
+        "claim_id": "chromatin.differential_accessibility.per_cluster",
+        "tier": "associative",
+        "modality": "chromatin",
+        "analysis": "differential_accessibility",
+        "text": "Per-cluster accessibility testing identified 10022 differentially accessible peaks across 11 cluster(s) at padj<0.05, |log2FC|>1.0.",
+        "ledger_node_id": "ledger://chromatin/differential_accessibility"
+      },
+      {
+        "claim_id": "chromatin.differential_accessibility.pseudobulk",
+        "tier": "associative",
+        "modality": "chromatin",
+        "analysis": "differential_accessibility",
+        "text": "Replicate-level pseudobulk DA ran 1 comparison(s) and found 0 differentially accessible peaks via the shared DESeq2 core.",
+        "ledger_node_id": "ledger://chromatin/differential_accessibility"
+      },
+      {
+        "claim_id": "chromatin.motifs",
+        "tier": "associative",
+        "modality": "chromatin",
+        "analysis": "motif_enrichment",
+        "text": "TF motif enrichment (JASPAR2024_CORE_vertebrates, hypergeometric) tested 879 motifs and found enriched motifs in 9 of 11 peak group(s).",
+        "ledger_node_id": "ledger://chromatin/motif_enrichment"
+      },
+      {
+        "claim_id": "chromatin.regulatory_layers",
+        "tier": "associative",
+        "modality": "chromatin",
+        "analysis": "regulatory_layers",
+        "text": "scATAC regulatory-layer analysis ran 1 of 5 optional layer(s); skipped layers are reported with their prerequisites.",
+        "ledger_node_id": "ledger://chromatin/regulatory_layers"
+      }
+    ]
+  },
+  "capsule_verification": "verified_portable_ext_inputs",
+  "raw_capsule_status": "warning",
+  "archive": {
+    "archived_report_rel": "idea2_reports/tantalus_local/04_scatac_multidonor/report.html",
+    "report_html_bytes": 146703,
+    "report_html_sha256": "cadf5fe308966b2e039e4d5047405abd192ab97a1351b9b70ea9275fdf161475",
+    "capsule_zip_bytes": 1765062,
+    "capsule_zip_sha256": "18d18eee7c8a523bacadcf1942e70d593c6d2bbc093050390b4c68b7b0654694"
+  },
+  "fingerprints": {
+    "active_stages": [
+      "chromatin/differential_accessibility",
+      "chromatin/differential_tf_footprinting",
+      "chromatin/dimensionality_reduction",
+      "chromatin/motif_enrichment",
+      "chromatin/qc",
+      "chromatin/regulatory_layers",
+      "chromatin/scatac_preprocessing",
+      "report/executive_summary"
+    ],
+    "error_stages": [],
+    "n_statistical_claims": 7,
+    "statistical_claims": [
+      "Per-cluster accessibility testing identified 10022 differentially accessible peaks across 11 cluster(s) at padj<0.05, |log2FC|>1.0.",
+      "Replicate-level pseudobulk DA ran 1 comparison(s) and found 0 differentially accessible peaks via the shared DESeq2 core.",
+      "TF motif enrichment (JASPAR2024_CORE_vertebrates, hypergeometric) tested 879 motifs and found enriched motifs in 9 of 11 peak group(s).",
+      "TF-IDF/LSI over 40057 peaks in 3000 cells produced 11 clusters after removing 1 depth-associated component(s).",
+      "scATAC QC measured 3000 cells and 40057 peaks.",
+      "scATAC preprocessing completed (cohort matrix union): the resulting matrix has 3000 cell(s) x 40057 peak(s).",
+      "scATAC regulatory-layer analysis ran 1 of 5 optional layer(s); skipped layers are reported with their prerequisites."
+    ],
+    "executive_summary_preview": "To address age-related chromatin accessibility changes in the human hippocampus, scATAC-seq analysis of 3,000 cells identified 10,022 differentially accessible peaks across 11 clusters with medium confidence. Motif enrichment analysis of these peaks, tested against 879 JASPAR2024 motifs, revealed significant enrichment in 9 of the 11 cluster groups. However, the absence of FRiP",
+    "tables": {},
+    "n_figures": 14,
+    "figures": [
+      "da_ma_aged_80_100_vs_young_20_39.png",
+      "da_ma_aged_80_100_vs_young_20_39.svg",
+      "da_volcano_aged_80_100_vs_young_20_39.png",
+      "da_volcano_aged_80_100_vs_young_20_39.svg",
+      "marker_heatmap.png",
+      "marker_heatmap.svg",
+      "motif_dotplot.png",
+      "motif_dotplot.svg",
+      "qc_depth_violin.png",
+      "qc_depth_violin.svg",
+      "umap_condition.png",
+      "umap_leiden.png",
+      "umap_log10_n_fragments.png",
+      "umap_sample_id.png"
+    ]
+  }
+}

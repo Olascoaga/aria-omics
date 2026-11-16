@@ -369,7 +369,7 @@ print(json.dumps({"bg": bg_res, "dom": dom_res, "bw": bw_res}))
 
 
 def test_codex_adversarial_edge_cases_seacr_idr_and_spikein(tmp_path):
-    """Regression guard for Codex Triad adversarial audit findings on ADR-081."""
+    """Regression guard for adversarial edge-case audit findings on ADR-081."""
     from aria.utils.epigenomic_spikein_de import resolve_replicate_spikein_size_factors
     from aria.utils.seacr_idr import _pair_two_replicate_peaks, call_seacr_peaks
 

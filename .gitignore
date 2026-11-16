@@ -18,6 +18,8 @@ ARIA_CONTEXT.md
 CLAUDE.md
 AGENTS.md
 memory/
+docs/roadmap/
+roadmap/
 memory/datasets/scrna/
 memory/datasets/scatac/
 *.db

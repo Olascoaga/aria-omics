@@ -1,0 +1,173 @@
+{
+  "schema_version": "aria.cross_model_equivalence.receipt.v1",
+  "cell_id": "tantalus_local__01_bulk_rna_matrix",
+  "stage": "baseline",
+  "model_key": "tantalus_local",
+  "model_label": "Tantalus Local (Qwen3.6-35B-A3B Q4_K_M)",
+  "model_family": "Qwen3.6-35B-A3B",
+  "served_model": "qwen3.6-35b-a3b-ud-q4_k_m",
+  "transport": "local_tantalus_gguf",
+  "modality_id": "01_bulk_rna_matrix",
+  "aria_modality": "bulk_RNA",
+  "status": "completed",
+  "source": "imported_verified_public_atlas_run",
+  "experiment_id": "atlas-01-1658e4",
+  "elapsed_seconds": 137.84,
+  "usage": {
+    "total_calls": 3,
+    "prompt_tokens": 4720,
+    "completion_tokens": 3078,
+    "total_tokens": 7798,
+    "billed_api_cost_usd": 0.0,
+    "projected_list_cost_usd": 0.0
+  },
+  "shim_telemetry": null,
+  "claims_audit": {
+    "total_public_claims": 8,
+    "claims_by_tier": {
+      "descriptive": 3,
+      "associative": 5
+    },
+    "speculative_promotion_guard": "pass",
+    "quarantined_hypotheses_count": 0,
+    "representative_claims": [
+      {
+        "claim_id": "executive_summary",
+        "tier": "descriptive",
+        "modality": "report",
+        "analysis": "executive_summary",
+        "text": "ARIA completed the submitted analysis. 8 findings were recorded across all modalities, of which 0 reached HIGH confidence. See the governed claim ledger below for published results.",
+        "ledger_node_id": "ledger://report/executive_summary"
+      },
+      {
+        "claim_id": "bulk.qc",
+        "tier": "descriptive",
+        "modality": "bulk RNA-seq",
+        "analysis": "sample_qc",
+        "text": "Bulk RNA sample QC evaluated 8 samples with 0 outlier(s) flagged; primary DE retained all samples and sensitivity removed 0.",
+        "ledger_node_id": "ledger://bulk/qc"
+      },
+      {
+        "claim_id": "bulk.contrast.HBRR_vs_UHRR",
+        "tier": "associative",
+        "modality": "bulk RNA-seq",
+        "analysis": "differential_expression",
+        "text": "Bulk contrast HBRR vs UHRR had 9863 DE genes.",
+        "ledger_node_id": "ledger://bulk/differential_expression"
+      },
+      {
+        "claim_id": "bulk.pathway.HBRR_vs_UHRR",
+        "tier": "associative",
+        "modality": "bulk RNA-seq",
+        "analysis": "pathway_enrichment",
+        "text": "Pathway enrichment found 80 term(s) for HBRR vs UHRR.",
+        "ledger_node_id": "ledger://bulk/pathway_enrichment"
+      },
+      {
+        "claim_id": "bulk.gsea.HBRR_vs_UHRR",
+        "tier": "associative",
+        "modality": "bulk RNA-seq",
+        "analysis": "gsea_preranked",
+        "text": "Preranked GSEA generated ranked pathway support for HBRR vs UHRR.",
+        "ledger_node_id": "ledger://bulk/pathway_enrichment"
+      },
+      {
+        "claim_id": "bulk.power",
+        "tier": "descriptive",
+        "modality": "bulk RNA-seq",
+        "analysis": "power",
+        "text": "Approximate bulk RNA power ranged from 57% to 57% across analyzable contrasts.",
+        "ledger_node_id": "ledger://bulk/differential_expression"
+      },
+      {
+        "claim_id": "integration.signal",
+        "tier": "associative",
+        "modality": "integrated synthesis",
+        "analysis": "integrated_signal",
+        "text": "Across 1 analyzable contrast(s), 1 produced significant differential expression accompanied by functional pathway enrichment, indicating a coordinated transcriptional response.",
+        "ledger_node_id": "ledger://report/biological_synthesis"
+      },
+      {
+        "claim_id": "integration.limitations",
+        "tier": "associative",
+        "modality": "integrated synthesis",
+        "analysis": "integration_limitations",
+        "text": "These integrated results are associative and do not establish causality or direct regulation; cross-analysis agreement prioritizes candidates for independent experimental validation rather than proving a mechanism. Approximate statistical power ranged from 0.568 to 0.568 across contrasts.",
+        "ledger_node_id": "ledger://report/biological_synthesis"
+      }
+    ]
+  },
+  "capsule_verification": "verified_portable_ext_inputs",
+  "raw_capsule_status": "warning",
+  "archive": {
+    "archived_report_rel": "idea2_reports/tantalus_local/01_bulk_rna_matrix/report.html",
+    "report_html_bytes": 5546035,
+    "report_html_sha256": "44e0550fbec4855818efc21ad70e46830ef1c5340b974643b95df9e3e89c9bab",
+    "capsule_zip_bytes": 5471822,
+    "capsule_zip_sha256": "086035eee4638d991a6d5c00cfced608257ec3916221fcdecb5e1588763741a7"
+  },
+  "fingerprints": {
+    "active_stages": [
+      "bulk/differential_expression",
+      "bulk/pathway_enrichment",
+      "bulk/qc",
+      "report/biological_synthesis",
+      "report/executive_summary"
+    ],
+    "error_stages": [],
+    "n_statistical_claims": 7,
+    "statistical_claims": [
+      "Across 1 analyzable contrast(s), 1 produced significant differential expression accompanied by functional pathway enrichment, indicating a coordinated transcriptional response.",
+      "Approximate bulk RNA power ranged from 57% to 57% across analyzable contrasts.",
+      "Bulk RNA sample QC evaluated 8 samples with 0 outlier(s) flagged; primary DE retained all samples and sensitivity removed 0.",
+      "Bulk contrast HBRR vs UHRR had 9863 DE genes.",
+      "Pathway enrichment found 80 term(s) for HBRR vs UHRR.",
+      "Preranked GSEA generated ranked pathway support for HBRR vs UHRR.",
+      "These integrated results are associative and do not establish causality or direct regulation; cross-analysis agreement prioritizes candidates for independent experimental validation rather than proving a mechanism. Approximate statistical power ranged from 0.568 to 0.568 across contrasts."
+    ],
+    "executive_summary_preview": "ARIA completed the submitted analysis. 8 findings were recorded across all modalities, of which 0 reached HIGH confidence. See the governed claim ledger below for published results.",
+    "tables": {
+      "counts_tpm.tsv": {
+        "rows": 0,
+        "bytes": 85,
+        "sha256": "1b54c0f8875a0b49834e081a09f08a559f011f23f8ec2d59f7c1b1fa3495d18f"
+      },
+      "hbrr_vs_uhrr_de_all_genes.tsv": {
+        "rows": 20082,
+        "bytes": 2068792,
+        "sha256": "381fc1ceca88432ba04e26236fc37b9eca21fad85a05c58ddd932d1ff0e9a0bb"
+      },
+      "hbrr_vs_uhrr_de_genes.tsv": {
+        "rows": 9863,
+        "bytes": 1210547,
+        "sha256": "b3085cb7ec6688b745d9d4e5cdbd4abbdea4f194360356fb206782a41d61e3f4"
+      },
+      "hbrr_vs_uhrr_pathways.tsv": {
+        "rows": 80,
+        "bytes": 10311,
+        "sha256": "5a02927c2c40c4349d7f2526854545efcc52bccb6b9c7b2511c9ba86af29fa11"
+      }
+    },
+    "n_figures": 18,
+    "figures": [
+      "hbrr_vs_uhrr/gsea_results.csv",
+      "hbrr_vs_uhrr/gsea_running_sum_1.png",
+      "hbrr_vs_uhrr/gsea_running_sum_2.png",
+      "hbrr_vs_uhrr/gsea_running_sum_3.png",
+      "hbrr_vs_uhrr/gsea_top_table.png",
+      "hbrr_vs_uhrr/heatmap_lfc.svg",
+      "hbrr_vs_uhrr/heatmap_padj.svg",
+      "hbrr_vs_uhrr/pathway_dotplot_go_bp.png",
+      "hbrr_vs_uhrr/pathway_dotplot_kegg.png",
+      "hbrr_vs_uhrr/pathway_dotplot_kegg_down.png",
+      "hbrr_vs_uhrr/pathway_dotplot_kegg_up.png",
+      "hbrr_vs_uhrr/pathway_dotplot_reactome.png",
+      "hbrr_vs_uhrr/volcano.svg",
+      "mds.svg",
+      "mds_all_samples.svg",
+      "pca.svg",
+      "pca_all_samples.svg",
+      "pca_mds.svg"
+    ]
+  }
+}

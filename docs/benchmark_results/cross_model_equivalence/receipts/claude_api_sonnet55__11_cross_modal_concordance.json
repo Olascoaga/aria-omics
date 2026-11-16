@@ -1,0 +1,94 @@
+{
+  "schema_version": "aria.cross_model_equivalence.receipt.v1",
+  "cell_id": "claude_api_sonnet55__11_cross_modal_concordance",
+  "stage": "stage2b_commercial",
+  "model_key": "claude_api_sonnet55",
+  "model_label": "Claude Sonnet 5.5 (Direct Anthropic REST API)",
+  "model_family": "Claude Sonnet 5.5",
+  "served_model": "claude-sonnet-5-5",
+  "transport": "direct_rest_api",
+  "modality_id": "11_cross_modal_concordance",
+  "aria_modality": "Cross_Modal_RNA_x_ATAC",
+  "status": "completed",
+  "memory_isolated": true,
+  "started_at_utc": "2026-11-15T00:16:24.199653+00:00",
+  "completed_at_utc": "2026-11-15T01:01:57.961896+00:00",
+  "elapsed_seconds": 2863.72,
+  "driver_peak_rss_mb": 463.5,
+  "experiment_id": "eq-claude-11-1bed3",
+  "usage": {
+    "total_calls": 4,
+    "fallback_calls": 0,
+    "models_used": [
+      "anthropic/claude-sonnet-5-5"
+    ],
+    "prompt_tokens": 11220,
+    "completion_tokens": 6804,
+    "total_tokens": 18024,
+    "billed_api_cost_usd": 0.09048,
+    "projected_list_cost_usd": 0.09048
+  },
+  "shim_telemetry": null,
+  "claims_audit": {
+    "total_public_claims": 8,
+    "claims_by_tier": {
+      "descriptive": 1,
+      "associative": 7
+    },
+    "speculative_promotion_guard": "pass",
+    "quarantined_hypotheses_count": 0
+  },
+  "capsule_verification": "verified_portable_ext_inputs",
+  "raw_capsule_status": "warning",
+  "archive": {
+    "archived_report_rel": "idea2_reports/claude_api_sonnet55/11_cross_modal_concordance/report.html",
+    "report_html_bytes": 153941,
+    "report_html_sha256": "97409d5cd1eae2fd89cd0dd3aef4db2be995d5795d27e69df1b8f96afd5b7a23",
+    "capsule_zip_bytes": 1832898,
+    "capsule_zip_sha256": "4b5f84fbda031399dce76e8a326b9ff780629668a899bdf3d8b71cb595ab1b19"
+  },
+  "fingerprints": {
+    "active_stages": [
+      "chromatin/differential_accessibility",
+      "chromatin/motif_enrichment",
+      "chromatin/peak_annotation",
+      "chromatin/peak_calling",
+      "chromatin/peak_count_matrix",
+      "chromatin/peak_ora",
+      "chromatin/qc",
+      "report/executive_summary"
+    ],
+    "error_stages": [],
+    "n_statistical_claims": 7,
+    "statistical_claims": [
+      "Bulk ATAC DESeq2 differential accessibility ran 1 comparison(s) over 6 replicate samples and found 13706 differentially accessible peaks.",
+      "Bulk ATAC QC measured 6 sample(s) with mean mitochondrial fraction 0.0.",
+      "Bulk ATAC peak counting produced a matrix with 47022 peaks across 6 samples.",
+      "Functional ORA (local_hypergeometric) of genes near bulk ATAC differentially accessible peaks found 79 enriched term(s) across 5 database(s).",
+      "Genomic annotation classified 13706 bulk ATAC differentially accessible peak(s) by feature; 1996 (15%) fall in promoter regions.",
+      "MACS3 peak calling for bulk ATAC identified 87078 peaks.",
+      "TF motif enrichment (JASPAR2024_CORE_vertebrates, hypergeometric) tested 879 motifs and found enriched motifs in 2 of 2 peak group(s)."
+    ],
+    "executive_summary_preview": "ARIA completed the submitted analysis. 5 findings were recorded across all modalities, of which 0 reached HIGH confidence. See the governed claim ledger below for published results.",
+    "tables": {},
+    "n_figures": 16,
+    "figures": [
+      "bulk_atac_pca.png",
+      "bulk_atac_pca.svg",
+      "bulk_atac_peak_annotation.png",
+      "bulk_atac_peak_annotation.svg",
+      "bulk_atac_qc_summary.png",
+      "bulk_atac_qc_summary.svg",
+      "bulk_atac_sample_correlation.png",
+      "bulk_atac_sample_correlation.svg",
+      "da_ma_K562_vs_GM12878.png",
+      "da_ma_K562_vs_GM12878.svg",
+      "da_volcano_K562_vs_GM12878.png",
+      "da_volcano_K562_vs_GM12878.svg",
+      "fragment_size.png",
+      "fragment_size.svg",
+      "motif_dotplot.png",
+      "motif_dotplot.svg"
+    ]
+  }
+}

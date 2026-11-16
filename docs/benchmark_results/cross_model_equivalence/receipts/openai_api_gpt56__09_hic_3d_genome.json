@@ -1,0 +1,103 @@
+{
+  "schema_version": "aria.cross_model_equivalence.receipt.v1",
+  "cell_id": "openai_api_gpt56__09_hic_3d_genome",
+  "stage": "stage2b_commercial",
+  "model_key": "openai_api_gpt56",
+  "model_label": "GPT-5.6-Sol (Direct OpenAI REST API)",
+  "model_family": "GPT-5.6-Sol",
+  "served_model": "gpt-5.6-sol",
+  "transport": "direct_rest_api",
+  "modality_id": "09_hic_3d_genome",
+  "aria_modality": "HiC",
+  "status": "completed",
+  "started_at_utc": "2026-11-14T22:04:01.858663+00:00",
+  "completed_at_utc": "2026-11-14T22:37:09.004602+00:00",
+  "elapsed_seconds": 2062.32,
+  "driver_peak_rss_mb": 266.2,
+  "experiment_id": "eq-openai-09-e12f5",
+  "usage": {
+    "total_calls": 3,
+    "fallback_calls": 0,
+    "models_used": [
+      "openai/gpt-5.6-sol"
+    ],
+    "prompt_tokens": 2641,
+    "completion_tokens": 1309,
+    "total_tokens": 3950,
+    "billed_api_cost_usd": 0.036744,
+    "projected_list_cost_usd": 0.036744
+  },
+  "shim_telemetry": null,
+  "claims_audit": {
+    "total_public_claims": 6,
+    "claims_by_tier": {
+      "descriptive": 4,
+      "associative": 2
+    },
+    "speculative_promotion_guard": "pass",
+    "quarantined_hypotheses_count": 0
+  },
+  "capsule_verification": "verified_portable_ext_inputs",
+  "raw_capsule_status": "warning",
+  "archive": {
+    "archived_report_rel": "idea2_reports/openai_api_gpt56/09_hic_3d_genome/report.html",
+    "report_html_bytes": 1433749,
+    "report_html_sha256": "b49041e2039f713a915f038ddd3c9444fa675353832ef639f718e6cf2e763e2e",
+    "capsule_zip_bytes": 2416245,
+    "capsule_zip_sha256": "16b07bc729fd79bd389667658565b2d5a0bc47cce83d05dff3e6663937942b06"
+  },
+  "fingerprints": {
+    "active_stages": [
+      "hic/compartments",
+      "hic/differential_3d",
+      "hic/loops",
+      "hic/qc",
+      "hic/tads",
+      "report/executive_summary"
+    ],
+    "error_stages": [],
+    "n_statistical_claims": 5,
+    "statistical_claims": [
+      "Hi-C cis eigenvector compartment decomposition at 100000 bp resolution classified 48.21% active and 51.79% inactive compartment bins.",
+      "Hi-C contact QC and ICE balancing evaluated 6 sample(s) with 463783660 valid contact pairs and cis/trans ratio 0.782.",
+      "Hi-C diamond insulation score analysis identified 568 TAD intervals with median size 1150.0 kb.",
+      "Hi-C donut local background enrichment at 10000 bp resolution identified 0 chromatin loop(s).",
+      "Hi-C replicate-level differential topology testing across 1 contrast(s) identified 0 differential compartment bin(s), including 0 compartment switch(es), and 2 differential insulation bin(s)."
+    ],
+    "executive_summary_preview": "ARIA completed the submitted analysis. 4 findings were recorded across all modalities, of which 0 reached HIGH confidence. See the governed claim ledger below for published results.",
+    "tables": {
+      "Diploid_rep1.expected_cis.tsv": {
+        "rows": 4986,
+        "bytes": 208505,
+        "sha256": "e97a8ab51274d78d29881233c5837c03bfd8c6bfdf7aadd2a859cbf75e1190a2"
+      },
+      "compartments.tsv": {
+        "rows": 8552,
+        "bytes": 381234,
+        "sha256": "c2389bd897e471e258dafde268146d0579f4c599498727049186b0c107ccef7f"
+      },
+      "hicrep_scc_matrix.tsv": {
+        "rows": 6,
+        "bytes": 407,
+        "sha256": "ab8059ea2f3d7594357d7a2eba6c987717fb914cc46ac92a8c3b35e6c69eadd8"
+      },
+      "insulation.tsv": {
+        "rows": 17100,
+        "bytes": 1154682,
+        "sha256": "7471cefa2b9312e82253a8fc15c8648c46e9a86f11dce4cf910eb92eefac235d"
+      },
+      "tads.bed": {
+        "rows": 567,
+        "bytes": 24527,
+        "sha256": "a8d2107e8b151f0b27aea479f57073b9654376da85895deaae5b04b76530697a"
+      }
+    },
+    "n_figures": 4,
+    "figures": [
+      "hic_compartment_insulation_track.png",
+      "hic_contact_decay_ps.png",
+      "hic_contact_map.png",
+      "hic_differential_compartments.png"
+    ]
+  }
+}

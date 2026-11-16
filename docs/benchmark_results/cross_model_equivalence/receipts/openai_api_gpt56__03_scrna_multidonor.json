@@ -1,0 +1,128 @@
+{
+  "schema_version": "aria.cross_model_equivalence.receipt.v1",
+  "cell_id": "openai_api_gpt56__03_scrna_multidonor",
+  "stage": "stage2b_commercial",
+  "model_key": "openai_api_gpt56",
+  "model_label": "GPT-5.6-Sol (Direct OpenAI REST API)",
+  "model_family": "GPT-5.6-Sol",
+  "served_model": "gpt-5.6-sol",
+  "transport": "direct_rest_api",
+  "modality_id": "03_scrna_multidonor",
+  "aria_modality": "scRNA",
+  "status": "completed",
+  "started_at_utc": "2026-11-14T19:19:55.773754+00:00",
+  "completed_at_utc": "2026-11-14T19:21:54.881981+00:00",
+  "elapsed_seconds": 121.85,
+  "driver_peak_rss_mb": 626.5,
+  "experiment_id": "eq-openai-03-78b22",
+  "usage": {
+    "total_calls": 6,
+    "fallback_calls": 0,
+    "models_used": [
+      "openai/gpt-5.6-sol"
+    ],
+    "prompt_tokens": 14213,
+    "completion_tokens": 4965,
+    "total_tokens": 19178,
+    "billed_api_cost_usd": 0.156152,
+    "projected_list_cost_usd": 0.156152
+  },
+  "shim_telemetry": null,
+  "claims_audit": {
+    "total_public_claims": 15,
+    "claims_by_tier": {
+      "descriptive": 7,
+      "associative": 8
+    },
+    "speculative_promotion_guard": "pass",
+    "quarantined_hypotheses_count": 0
+  },
+  "capsule_verification": "verified_portable_ext_inputs",
+  "raw_capsule_status": "warning",
+  "archive": {
+    "archived_report_rel": "idea2_reports/openai_api_gpt56/03_scrna_multidonor/report.html",
+    "report_html_bytes": 4565358,
+    "report_html_sha256": "3bcb6e4fb0e2aa1deb162b919f9d80e30f4d3a054977212e6f3188209a4779a9",
+    "capsule_zip_bytes": 6327480,
+    "capsule_zip_sha256": "45055d7f274fc698a10664e15fd81b74014da04c2a3f5ec0139f9f661d3ef7e9"
+  },
+  "fingerprints": {
+    "active_stages": [
+      "report/biological_synthesis",
+      "report/executive_summary",
+      "scRNA/annotation",
+      "scRNA/clustering",
+      "scRNA/differential_abundance",
+      "scRNA/marker_discovery",
+      "scRNA/pathway_enrichment",
+      "scRNA/pseudobulk_de",
+      "scRNA/qc"
+    ],
+    "error_stages": [],
+    "n_statistical_claims": 14,
+    "statistical_claims": [
+      "4 cell type(s) shifted in abundance (FDR < 0.1) for ifnb_stimulated_vs_control.",
+      "B cells ifnb_stimulated_vs_control had 234 per-cluster FDR DE genes.",
+      "CD16+ NK cells ifnb_stimulated_vs_control had 170 per-cluster FDR DE genes.",
+      "Intermediate macrophages ifnb_stimulated_vs_control had 1252 per-cluster FDR DE genes.",
+      "ORA found 46 enriched term(s) for Intermediate macrophages::ifnb_stimulated_vs_control.",
+      "ORA found 50 enriched term(s) for CD16+ NK cells::ifnb_stimulated_vs_control.",
+      "ORA found 54 enriched term(s) for B cells::ifnb_stimulated_vs_control.",
+      "ORA found 59 enriched term(s) for Tcm/Naive helper T cells::ifnb_stimulated_vs_control.",
+      "Per-cluster marker discovery ranked candidate marker genes across 8 cluster clusters (Wilcoxon cluster-vs-rest, descriptive ranking only).",
+      "Tcm/Naive helper T cells ifnb_stimulated_vs_control had 274 per-cluster FDR DE genes.",
+      "The scRNA synthesis is association-only and does not establish causality, cell-state transitions, or molecular function. Pseudobulk power ranged from 0.226 to 0.408 across supported DE blocks.",
+      "The strongest scRNA signal was Intermediate macrophages ifnb_stimulated_vs_control, with 1252 replicate-aware DE gene(s) and 46 enriched term(s) at cell-type resolution. Top DE genes include ISG20, CXCL10, IL1RN, DYNLT1, and PLSCR1. ORA support includes cellular response to cytokine stimulus, cellular response to interferon-beta, and cellular response to interferon-gamma.",
+      "scRNA QC retained 6,015 of 6,317 cells.",
+      "scRNA context layers reported 4 abundance-shifted group(s), 0 LIANA interaction candidate(s), and 0 trajectory graph connection(s). Abundance shifts included Non-classical monocytes, Intermediate macrophages, B cells, and Tcm/Naive helper T cells."
+    ],
+    "executive_summary_preview": "ARIA completed the submitted analysis. 7 findings were recorded across all modalities, of which 0 reached HIGH confidence. See the governed claim ledger below for published results.",
+    "tables": {
+      "scrna_cell_types.tsv": {
+        "rows": 8,
+        "bytes": 1986,
+        "sha256": "737e02e2b039a4a89a9b3fd3f4c84e13c2867bdc6fde9f9ac9fdfe03e9b67f5d"
+      },
+      "scrna_cluster_markers.tsv": {
+        "rows": 160,
+        "bytes": 5386,
+        "sha256": "e9d45a5bec7f5c0f152250445157db9bcf34587383a6ce79275af94e40379068"
+      },
+      "scrna_pathway_enrichment.tsv": {
+        "rows": 485,
+        "bytes": 81053,
+        "sha256": "ade61915038519e988e83c4def52d61b64c818b30c77761125e112b53076a29b"
+      },
+      "scrna_pseudobulk_de_genes.tsv": {
+        "rows": 1930,
+        "bytes": 302477,
+        "sha256": "7a6ef687a0bab68bd9c1d1f07848e811b69ee9353cb9a5468a27ed0fefa40baf"
+      },
+      "scrna_pseudobulk_de_summary.tsv": {
+        "rows": 4,
+        "bytes": 535,
+        "sha256": "7b188cc1f9aa7f7e2bab5c7952a5b35cc4e1800c1cd5db730f948bbba25d5f84"
+      }
+    },
+    "n_figures": 17,
+    "figures": [
+      "pathways/pathway_B_cells__ifnb_stimulated_vs_control__GO_BP.png",
+      "pathways/pathway_B_cells__ifnb_stimulated_vs_control__KEGG.png",
+      "pathways/pathway_B_cells__ifnb_stimulated_vs_control__Reactome.png",
+      "pathways/pathway_CD16+_NK_cells__ifnb_stimulated_vs_control__GO_BP.png",
+      "pathways/pathway_CD16+_NK_cells__ifnb_stimulated_vs_control__KEGG.png",
+      "pathways/pathway_CD16+_NK_cells__ifnb_stimulated_vs_control__Reactome.png",
+      "pathways/pathway_Intermediate_macrophages__ifnb_stimulated_vs_control__GO_BP.png",
+      "pathways/pathway_Intermediate_macrophages__ifnb_stimulated_vs_control__KEGG.png",
+      "pathways/pathway_Intermediate_macrophages__ifnb_stimulated_vs_control__Reactome.png",
+      "pathways/pathway_Tcm_Naive_helper_T_cells__ifnb_stimulated_vs_control__GO_BP.png",
+      "pathways/pathway_Tcm_Naive_helper_T_cells__ifnb_stimulated_vs_control__KEGG.png",
+      "pathways/pathway_Tcm_Naive_helper_T_cells__ifnb_stimulated_vs_control__Reactome.png",
+      "pseudobulk_de_per_celltype_bar.png",
+      "umap_cell_type_celltypist.png",
+      "umap_condition.png",
+      "umap_leiden.png",
+      "umap_sample_id.png"
+    ]
+  }
+}

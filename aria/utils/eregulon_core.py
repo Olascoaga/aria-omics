@@ -216,7 +216,7 @@ def resolve_motifs_to_expressed_tfs(
 ) -> tuple[list[ResolvedMotifTF], list[dict[str, str]]]:
     """Map MEME motifs strictly to expressed dataset genes (zero hardcoded panels).
 
-    Rules (`ADR-005`, `ADR-011`, `Concilio d9842f`):
+    Rules (`ADR-005`, `ADR-011`, `ADR-069`):
       - Strip JASPAR technical variant suffix `(var.N)` (recorded in `variant_tag`).
       - Split `::` heterodimers; require ALL subunits to map uniquely to expressed
         dataset genes (`>= min_cells_detected` cells) before assigning the dimer
@@ -586,7 +586,7 @@ def scan_motifs_in_sequences(
 ) -> tuple[np.ndarray, str]:
     """Scan selected `motif_Indices` across `sequences`, returning `(hits_bool, backend_used)`.
 
-    Never mixes backends within a call (`Concilio d9842f`).
+    Never mixes backends within a call (`ADR-069`).
     """
     if not (0.0 < float(pvalue) < 1.0):
         raise ValueError(f"motif pvalue must be strictly in (0, 1), got {pvalue}")
@@ -663,7 +663,7 @@ def compute_gc_stratified_motif_enrichment(
     """One-sided Cochran-Mantel-Haenszel GC-stratified motif enrichment across peaks.
 
     Controls for CpG-island / GC-composition differences between cis-linked peaks
-    and unlinked background peaks (`Concilio d9842f` Blocking #1).
+    and unlinked background peaks (`ADR-069`).
     """
     n_motifs, n_peaks = motif_hit_matrix.shape
     fg = np.asarray(foreground_mask, dtype=bool)
@@ -757,7 +757,7 @@ def _extract_weighted_gsea_leading_edge(
     """Deterministic weighted-KS leading-edge extraction along signed `r_tf_gene`.
 
     Used strictly to prune trailing low-coexpression targets inside a candidate
-    module (`Concilio d9842f` Blocking #2); module significance comes from the
+    module (`ADR-069`); module significance comes from the
     `(mean_expr, cells_detected)` bin-stratified null.
     """
     signed = gene_scores if positive_direction else -gene_scores

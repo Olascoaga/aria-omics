@@ -1,0 +1,91 @@
+{
+  "schema_version": "aria.cross_model_equivalence.receipt.v1",
+  "cell_id": "claude_api_sonnet55__04_scatac_multidonor",
+  "stage": "stage2b_commercial",
+  "model_key": "claude_api_sonnet55",
+  "model_label": "Claude Sonnet 5.5 (Direct Anthropic REST API)",
+  "model_family": "Claude Sonnet 5.5",
+  "served_model": "claude-sonnet-5-5",
+  "transport": "direct_rest_api",
+  "modality_id": "04_scatac_multidonor",
+  "aria_modality": "scATAC",
+  "status": "completed",
+  "started_at_utc": "2026-11-14T21:02:58.088438+00:00",
+  "completed_at_utc": "2026-11-14T21:07:17.811643+00:00",
+  "elapsed_seconds": 267.58,
+  "driver_peak_rss_mb": 361.3,
+  "experiment_id": "eq-claude-04-8b6d2",
+  "usage": {
+    "total_calls": 4,
+    "fallback_calls": 0,
+    "models_used": [
+      "anthropic/claude-sonnet-5-5"
+    ],
+    "prompt_tokens": 12136,
+    "completion_tokens": 5793,
+    "total_tokens": 17929,
+    "billed_api_cost_usd": 0.082202,
+    "projected_list_cost_usd": 0.082202
+  },
+  "shim_telemetry": null,
+  "claims_audit": {
+    "total_public_claims": 8,
+    "claims_by_tier": {
+      "descriptive": 2,
+      "associative": 6
+    },
+    "speculative_promotion_guard": "pass",
+    "quarantined_hypotheses_count": 0
+  },
+  "capsule_verification": "verified_portable_ext_inputs",
+  "raw_capsule_status": "warning",
+  "archive": {
+    "archived_report_rel": "idea2_reports/claude_api_sonnet55/04_scatac_multidonor/report.html",
+    "report_html_bytes": 146467,
+    "report_html_sha256": "ab9a89433b1bd4542012d0dafd9268fa9350cb643efe44620b040beeb637e3a5",
+    "capsule_zip_bytes": 1766072,
+    "capsule_zip_sha256": "9d2b73c63ba510d4385413c32cfb2f680f8ee463358338a51d82f45c45c8afae"
+  },
+  "fingerprints": {
+    "active_stages": [
+      "chromatin/differential_accessibility",
+      "chromatin/differential_tf_footprinting",
+      "chromatin/dimensionality_reduction",
+      "chromatin/motif_enrichment",
+      "chromatin/qc",
+      "chromatin/regulatory_layers",
+      "chromatin/scatac_preprocessing",
+      "report/executive_summary"
+    ],
+    "error_stages": [],
+    "n_statistical_claims": 7,
+    "statistical_claims": [
+      "Per-cluster accessibility testing identified 10022 differentially accessible peaks across 11 cluster(s) at padj<0.05, |log2FC|>1.0.",
+      "Replicate-level pseudobulk DA ran 1 comparison(s) and found 0 differentially accessible peaks via the shared DESeq2 core.",
+      "TF motif enrichment (JASPAR2024_CORE_vertebrates, hypergeometric) tested 879 motifs and found enriched motifs in 9 of 11 peak group(s).",
+      "TF-IDF/LSI over 40057 peaks in 3000 cells produced 11 clusters after removing 1 depth-associated component(s).",
+      "scATAC QC measured 3000 cells and 40057 peaks.",
+      "scATAC preprocessing completed (cohort matrix union): the resulting matrix has 3000 cell(s) x 40057 peak(s).",
+      "scATAC regulatory-layer analysis ran 1 of 5 optional layer(s); skipped layers are reported with their prerequisites."
+    ],
+    "executive_summary_preview": "ARIA completed the submitted analysis. 2 findings were recorded across all modalities, of which 0 reached HIGH confidence. See the governed claim ledger below for published results.",
+    "tables": {},
+    "n_figures": 14,
+    "figures": [
+      "da_ma_aged_80_100_vs_young_20_39.png",
+      "da_ma_aged_80_100_vs_young_20_39.svg",
+      "da_volcano_aged_80_100_vs_young_20_39.png",
+      "da_volcano_aged_80_100_vs_young_20_39.svg",
+      "marker_heatmap.png",
+      "marker_heatmap.svg",
+      "motif_dotplot.png",
+      "motif_dotplot.svg",
+      "qc_depth_violin.png",
+      "qc_depth_violin.svg",
+      "umap_condition.png",
+      "umap_leiden.png",
+      "umap_log10_n_fragments.png",
+      "umap_sample_id.png"
+    ]
+  }
+}

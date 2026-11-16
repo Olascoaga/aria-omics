@@ -477,7 +477,7 @@ def test_live_genome_arch_agent_pairs_to_mcool_topology_diff3d_and_report(tmp_pa
 
 
 def test_codex_adversarial_edge_cases_audit_and_narrator():
-    """Regression guard for Codex Triad adversarial audit findings on ADR-081/082."""
+    """Regression guard for adversarial edge-case audit findings on ADR-081/082."""
     from aria.agents.modality_audit import CutAndRunAuditAgent, HiCAuditAgent
     from aria.agents.narrative.narrators.hic import HiCNarrator
 

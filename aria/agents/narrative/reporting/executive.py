@@ -29,6 +29,8 @@ class ExecutiveSummaryMixin:
                 continue
 
         violations: list[str] = []
+        if not text.strip():
+            violations.append("empty LLM summary")
         causal_hit = find_causal_language(text, exclude=named_entities)
         if causal_hit:
             violations.append("unlicensed causal language")

@@ -58,6 +58,7 @@ litellm.drop_params = True
 # control — so the call does not depend on litellm.drop_params and the recorded
 # provenance is honest about whether a seed was applied.
 _SEED_SUPPORTED_PROVIDERS = {"openai", "ollama", "vllm"}
+_MODELS_REJECTING_TEMPERATURE: set[str] = set()
 
 
 # ── Routing tiers ────────────────────────────────────────────────────────────
@@ -83,6 +84,7 @@ class ModelConfig:
     context_window: int         # max tokens this model handles reliably
     is_local:    bool = False   # True for Ollama/vLLM (no API cost)
     api_base:    Optional[str] = None  # for local endpoints
+    extra_params: dict = field(default_factory=dict)
 
 
 # ── Default model profiles (overridden by config.yaml) ───────────────────────
@@ -480,13 +482,16 @@ class LLMProvider:
             )
 
         # Seed only where the provider honors it (Anthropic/Gemini reject it).
+        temp_controlled = cfg.model not in _MODELS_REJECTING_TEMPERATURE
         kwargs = dict(
             model=cfg.model,
             messages=msgs,
             max_tokens=max_tokens,
-            temperature=self.DETERMINISTIC_TEMPERATURE,
             timeout=self._timeout_s,   # R3: bound a hung provider
+            **(cfg.extra_params or {}),
         )
+        if temp_controlled:
+            kwargs["temperature"] = self.DETERMINISTIC_TEMPERATURE
         if seed_applied:
             kwargs["seed"] = self.DETERMINISTIC_SEED
 
@@ -494,13 +499,27 @@ class LLMProvider:
         if cfg.api_base:
             kwargs["api_base"] = cfg.api_base
 
-        # Inject API key for cloud providers
+        # Inject API key for cloud providers (or loopback placeholder for local OpenAI shims)
         api_key = self.api_keys.get(cfg.provider) or \
                   os.environ.get(self._key_env(cfg.provider))
         if api_key and not cfg.is_local:
             kwargs["api_key"] = api_key
+        elif cfg.is_local and cfg.api_base and cfg.provider == "openai":
+            kwargs["api_key"] = "local-loopback-shim"
 
-        response = completion(**kwargs)
+        try:
+            response = completion(**kwargs)
+        except Exception as exc:
+            err_l = str(exc).lower()
+            if "temperature" in err_l and "temperature" in kwargs:
+                _MODELS_REJECTING_TEMPERATURE.add(cfg.model)
+                temp_controlled = False
+                kwargs.pop("temperature", None)
+                response = completion(**kwargs)
+            else:
+                raise
+
+        effective_deterministic = bool(deterministic and temp_controlled)
         text = response.choices[0].message.content
         try:
             finish_reason = getattr(response.choices[0], "finish_reason", None)
@@ -514,7 +533,9 @@ class LLMProvider:
             or (prompt_tokens + completion_tokens)
         )
         try:
-            cost = float(litellm.completion_cost(completion_response=response) or 0.0)
+            cost = 0.0 if cfg.is_local else float(
+                litellm.completion_cost(completion_response=response) or 0.0
+            )
         except Exception:
             cost = 0.0
         self._record_usage({
@@ -522,12 +543,14 @@ class LLMProvider:
             "provider": cfg.provider,
             "model": cfg.model,
             "tier": tier.value,
-            "temperature": self.DETERMINISTIC_TEMPERATURE,
-            "temperature_controlled": True,
+            "temperature": (
+                self.DETERMINISTIC_TEMPERATURE if temp_controlled else None
+            ),
+            "temperature_controlled": temp_controlled,
             "seed": seed_value,
             "seed_applied": seed_applied,
             "seed_deterministic": seed_deterministic,
-            "deterministic": deterministic,
+            "deterministic": effective_deterministic,
             "cache_replay_deterministic": False,
             "cache_hit": False,
             "prompt_tokens": prompt_tokens,
@@ -541,10 +564,10 @@ class LLMProvider:
             "model": cfg.model,
             "cache_hit": False,
             "finish_reason": finish_reason,
-            "temperature_controlled": True,
+            "temperature_controlled": temp_controlled,
             "seed_applied": seed_applied,
             "seed_deterministic": seed_deterministic,
-            "deterministic": deterministic,
+            "deterministic": effective_deterministic,
             **degradation,
         }
         if cache_key is not None and text:

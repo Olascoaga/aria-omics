@@ -153,3 +153,112 @@ def test_paired_h5mu_records_excludes_on_disk_atac_only_h5mu(tmp_path, monkeypat
     )
     assert contract["object_type"] != "paired_mudata"
     assert contract["same_cell"] is False
+
+
+def test_llm_provider_retries_without_temperature_and_records_honest_provenance(
+    tmp_path, monkeypatch
+):
+    pytest.importorskip("litellm")
+    import json
+    import aria.llm.provider as prov_mod
+    from aria.llm.provider import LLMProvider, ModelConfig, TaskTier
+
+    calls: list[dict] = []
+
+    def _fake_completion(**kwargs):
+        calls.append(dict(kwargs))
+        if "temperature" in kwargs:
+            raise ValueError("Unsupported parameter: 'temperature' is deprecated for this model.")
+        return SimpleNamespace(
+            choices=[
+                SimpleNamespace(
+                    message=SimpleNamespace(content="ok-frontier"),
+                    finish_reason="stop",
+                )
+            ],
+            usage=SimpleNamespace(prompt_tokens=12, completion_tokens=4, total_tokens=16),
+        )
+
+    monkeypatch.setattr(prov_mod, "completion", _fake_completion)
+    monkeypatch.setattr(prov_mod, "_MODELS_REJECTING_TEMPERATURE", set())
+    monkeypatch.setenv("ARIA_LLM_CACHE", "0")
+
+    usage_log = tmp_path / "llm_usage.jsonl"
+    cfg = ModelConfig(
+        provider="openai",
+        model="openai/wsl-test-frontier",
+        context_window=128_000,
+        is_local=True,
+        api_base="http://127.0.0.1:11436/v1",
+        extra_params={"reasoning_effort": "low"},
+    )
+    llm = LLMProvider(
+        models={TaskTier.MEDIUM: [cfg]},
+        api_keys={},
+        experiment_id="exp-temp-test",
+        usage_log=usage_log,
+    )
+    out = llm.complete("Hello", system="Sys", tier=TaskTier.MEDIUM, max_tokens=64)
+    assert out == "ok-frontier"
+    assert len(calls) == 2
+    assert "temperature" in calls[0]
+    assert "temperature" not in calls[1]
+    assert calls[1]["api_key"] == "local-loopback-shim"
+    assert calls[1]["reasoning_effort"] == "low"
+
+    row = json.loads(usage_log.read_text(encoding="utf-8").strip())
+    assert row["temperature"] is None
+    assert row["temperature_controlled"] is False
+    assert row["deterministic"] is False
+    assert row["estimated_cost_usd"] == 0.0
+
+
+def test_govern_executive_summary_replaces_empty_llm_output_with_fallback():
+    pytest.importorskip("litellm")
+    from aria.agents.narrative_agent import NarrativeAgent
+
+    agent = NarrativeAgent.__new__(NarrativeAgent)
+    grouped = {"high": [], "medium": [{"summary": "ok"}], "low": [], "insufficient": []}
+    summary, warning, block = agent._build_executive_summary_block(
+        *(
+            *agent._govern_executive_summary(
+                executive_summary="   ",
+                grouped_findings=grouped,
+                intent={},
+                agent_results={},
+                narrative_blocks=[],
+            ),
+            grouped,
+            {},
+            {},
+            {},
+            [],
+        )
+    )
+    assert summary.strip() != ""
+    assert "empty LLM summary" in warning
+    assert block.claim.strip() == summary.strip()
+
+
+def test_genome_arch_escalations_mark_agent_parameter_checkpoint():
+    import ast
+    from pathlib import Path
+
+    src = Path(__file__).resolve().parents[1] / "aria" / "agents" / "genome_arch_agent.py"
+    tree = ast.parse(src.read_text(encoding="utf-8"))
+    escalation_contexts = []
+    for node in ast.walk(tree):
+        if (
+            isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Attribute)
+            and node.func.attr == "publish_escalation"
+        ):
+            for kw in node.keywords:
+                if kw.arg == "context" and isinstance(kw.value, ast.Dict):
+                    keys = [
+                        k.value for k in kw.value.keys if isinstance(k, ast.Constant)
+                    ]
+                    escalation_contexts.append(keys)
+    assert len(escalation_contexts) >= 3
+    for keys in escalation_contexts:
+        assert "agent_parameter_checkpoint" in keys
