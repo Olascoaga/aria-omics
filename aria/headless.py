@@ -227,7 +227,10 @@ def run_headless(data_dir: str, question: str,
         memory.close()
         return HeadlessResult(experiment_id, "failed")
 
-    orch.run_audit(experiment_id)
+    audit_res = orch.run_audit(experiment_id)
+    if isinstance(audit_res, dict) and audit_res.get("status") == "error":
+        memory.close()
+        return HeadlessResult(experiment_id, "failed")
 
     status, decisions = drain_pending_checkpoints(orch, experiment_id, policy, log)
     if status == "cancelled":
