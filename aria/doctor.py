@@ -211,7 +211,7 @@ def _check_llm() -> list[IntegrityIssue]:
         from aria.utils.privacy import air_gapped_enabled, egress_allowed
     except Exception:
         air_gapped_enabled = lambda: bool(os.environ.get("ARIA_AIR_GAPPED"))  # noqa: E731
-        egress_allowed = lambda *a, **k: not air_gapped_enabled()  # noqa: E731
+        egress_allowed = lambda: not air_gapped_enabled()  # noqa: E731
 
     air_gapped = bool(air_gapped_enabled())
     issues.append(IntegrityIssue(
@@ -257,7 +257,7 @@ def _check_llm() -> list[IntegrityIssue]:
 
     # Optional, gated latency probe: plain TCP, no LLM call, no cost.
     if os.environ.get("ARIA_DOCTOR_LLM_PROBE") == "1":
-        if air_gapped or not egress_allowed("llm"):
+        if air_gapped or not egress_allowed():
             issues.append(IntegrityIssue(
                 "llm_latency",
                 "latency probe skipped (egress not allowed).", severity="info"))

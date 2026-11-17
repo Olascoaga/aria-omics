@@ -162,6 +162,7 @@ def _build_headless_context(
 ) -> dict:
     """Build the explicit headless context, including typed assay manifests."""
     ctx = dict(context_overrides or {})
+    ctx.pop("memory_db_path", None)
     ctx.setdefault("decision_actor", "headless_policy")
     ctx.update({
         "data_dir": str(data_dir),
@@ -180,7 +181,8 @@ def run_headless(data_dir: str, question: str,
                  log: Callable[[str], None] = print,
                  *,
                  context_overrides: dict | None = None,
-                 llm_provider=None) -> HeadlessResult:
+                 llm_provider=None,
+                 memory_db_path: Optional[str] = None) -> HeadlessResult:
     """Run a full ARIA analysis without a TTY.
 
     Drives the orchestrator through audit, the design checkpoint state machine,
@@ -195,12 +197,21 @@ def run_headless(data_dir: str, question: str,
     builds the configured provider from ``config.yaml`` as before. This is the
     seam the B3-multi reproducibility harness uses to drive one analysis under
     different providers without touching scientific computations.
+
+    ``memory_db_path`` (or ``context_overrides["memory_db_path"]`` /
+    ``ARIA_MEMORY_DB``) isolates SQLite ``ARIAMemory`` state per project or
+    batch run so historical parameter decisions never leak across cohorts.
     """
     from aria.memory.memory import ARIAMemory
     from aria.agents.orchestrator_agent import OrchestratorAgent
 
     experiment_id = str(uuid.uuid4())[:12]
-    memory = ARIAMemory()
+    resolved_db = (
+        memory_db_path
+        if memory_db_path is not None
+        else (context_overrides or {}).get("memory_db_path")
+    )
+    memory = ARIAMemory(db_path=resolved_db) if resolved_db is not None else ARIAMemory()
     orch = OrchestratorAgent(memory, llm=llm_provider)
 
     ctx = _build_headless_context(

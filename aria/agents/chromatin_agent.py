@@ -2778,7 +2778,7 @@ class ChromatinAgent(BaseAgent):
                 tool="TF-IDF + SVD (episcanpy/muon)",
             )
             self.memory.store_finding(
-                finding_id=str(uuid.uuid4())[:8],
+                finding_id=uuid.uuid4().hex,
                 room_id=f"{room_id}_lsi",
                 content=json.dumps(decision),
                 confidence="high",

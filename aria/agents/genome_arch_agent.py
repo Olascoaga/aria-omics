@@ -520,7 +520,7 @@ class GenomeArchAgent(BaseAgent):
 
         try:
             self.memory.store_decision(
-                decision_id=str(uuid.uuid4())[:8],
+                decision_id=uuid.uuid4().hex,
                 wing_id=experiment_id,
                 checkpoint=2,
                 question=f"Hi-C resolution for {analysis}",
@@ -767,7 +767,7 @@ class GenomeArchAgent(BaseAgent):
 
         try:
             self.memory.store_decision(
-                decision_id=str(uuid.uuid4())[:8],
+                decision_id=uuid.uuid4().hex,
                 wing_id=experiment_id,
                 checkpoint=3,
                 question=f"Insulation Score window_size at {resolution:,}bp",

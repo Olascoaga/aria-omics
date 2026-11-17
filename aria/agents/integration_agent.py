@@ -1152,7 +1152,7 @@ class IntegrationAgent(BaseAgent):
             if abs(corr_val) >= 0.4:
                 try:
                     self.memory.create_tunnel(
-                        tunnel_id=str(uuid.uuid4())[:8],
+                        tunnel_id=uuid.uuid4().hex,
                         wing_id=experiment_id,
                         from_hall=f"{experiment_id}_scATAC",
                         to_hall=f"{experiment_id}_scRNA",
@@ -1367,7 +1367,7 @@ class IntegrationAgent(BaseAgent):
             amb_flag = bool(reg.get("motif_family_ambiguity"))
             try:
                 self.memory.create_tunnel(
-                    tunnel_id=str(uuid.uuid4())[:8],
+                    tunnel_id=uuid.uuid4().hex,
                     wing_id=experiment_id,
                     from_hall=f"{experiment_id}_scATAC",
                     to_hall=f"{experiment_id}_scRNA",
@@ -1605,7 +1605,7 @@ class IntegrationAgent(BaseAgent):
         chosen_factors = override if override is not None else n_factors
 
         self.memory.store_decision(
-            decision_id=str(uuid.uuid4())[:8],
+            decision_id=uuid.uuid4().hex,
             wing_id=experiment_id,
             checkpoint=3,
             question="MOFA+ number of factors",

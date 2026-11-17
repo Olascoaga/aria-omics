@@ -77,6 +77,21 @@ GENOME_REGISTRY = {
         "star_sa_bases":  14,
         "size_gb":        2.7,
     },
+    "mm10": {
+        "organism":       "Mus musculus",
+        "aliases":        ["mm10", "grcm38"],
+        "fasta_url":      (
+            "https://ftp.ensembl.org/pub/release-102/fasta/"
+            "mus_musculus/dna/"
+            "Mus_musculus.GRCm38.dna.primary_assembly.fa.gz"
+        ),
+        "gtf_url": (
+            "https://ftp.ensembl.org/pub/release-102/gtf/"
+            "mus_musculus/Mus_musculus.GRCm38.102.gtf.gz"
+        ),
+        "star_sa_bases":  14,
+        "size_gb":        2.7,
+    },
     "rn7": {
         "organism":       "Rattus norvegicus",
         "aliases":        ["rat", "rattus norvegicus", "rn7"],
@@ -168,7 +183,10 @@ class SetupAgent(BaseAgent):
             )
 
         # ── 3. Reference genome + GTF ─────────────────────────────────────
-        genome_key = self._detect_genome(organism, intent)
+        audited_genome = exp_ctx.get("genome")
+        genome_key = self._detect_genome(
+            organism, intent, audited_genome=audited_genome
+        )
         genome_cfg = {}
 
         if genome_key:
@@ -192,6 +210,10 @@ class SetupAgent(BaseAgent):
                     genome_key, genome_cfg,
                     conda_cmd, experiment_id, actions, warnings
                 )
+        elif str(audited_genome or "").strip().lower() not in {"", "unknown", "none"}:
+            genome_cfg = self._local_staged_genome_cfg(
+                str(audited_genome).strip(), warnings
+            )
 
         self.publish_status(experiment_id, "Environment ready.", 1.0)
 
@@ -411,10 +433,50 @@ class SetupAgent(BaseAgent):
 
     # ── Reference genome ─────────────────────────────────────────────────
 
+    _CANONICAL_ASSEMBLY_ALIASES = {
+        "hg38": "hg38",
+        "grch38": "hg38",
+        "hg19": "hg19",
+        "grch37": "hg19",
+        "mm39": "mm39",
+        "grcm39": "mm39",
+        "mm10": "mm10",
+        "grcm38": "mm10",
+        "rn7": "rn7",
+        "mratbn7.2": "rn7",
+        "danrer11": "danRer11",
+        "grcz11": "danRer11",
+        "dm6": "dm6",
+        "ce11": "ce11",
+        "saccer3": "sacCer3",
+    }
+
     def _detect_genome(self, organism: str,
-                        intent: dict) -> Optional[str]:
-        """Infer genome key from organism name or biological question."""
-        text = (organism + " " + intent.get("summary", "")).lower()
+                        intent: dict,
+                        audited_genome: Optional[str] = None) -> Optional[str]:
+        """Resolve genome key honoring DataAuditAgent's audited assembly first.
+
+        Never substitutes a different assembly of the same species when an
+        explicit ``audited_genome`` (e.g. ``mm10`` or ``hg19``) was declared.
+        """
+        raw_audited = str(audited_genome or "").strip()
+        if raw_audited.lower() not in {"", "unknown", "none"}:
+            canonical = self._CANONICAL_ASSEMBLY_ALIASES.get(
+                raw_audited.lower(), raw_audited
+            )
+            return canonical if canonical in GENOME_REGISTRY else None
+
+        text = " ".join([
+            str(organism or ""),
+            str((intent or {}).get("summary", "")),
+            str((intent or {}).get("user_question", "")),
+        ]).lower()
+
+        # Check explicit assembly tokens BEFORE generic species names so
+        # e.g. "mouse mm10" resolves to mm10 rather than generic mouse -> mm39.
+        for token, canonical in self._CANONICAL_ASSEMBLY_ALIASES.items():
+            if token in text:
+                return canonical if canonical in GENOME_REGISTRY else None
 
         for key, info in GENOME_REGISTRY.items():
             if any(alias in text for alias in info["aliases"]):
@@ -429,6 +491,41 @@ class SetupAgent(BaseAgent):
             return "rn7"
 
         return None
+
+    def _local_staged_genome_cfg(self, audited_genome: str,
+                                  warnings: list) -> dict:
+        """Inspect ~/.aria/genomes/<key> for locally staged non-registry assemblies."""
+        canonical = self._CANONICAL_ASSEMBLY_ALIASES.get(
+            audited_genome.lower(), audited_genome
+        )
+        gdir = self.genomes_dir / canonical
+        fasta = gdir / "genome.fa"
+        fasta_gz = gdir / "genome.fa.gz"
+        gtf = gdir / "annotation.gtf"
+        gtf_gz = gdir / "annotation.gtf.gz"
+        star_idx = gdir / "star_index"
+        fasta_ready = fasta.exists() and fasta.stat().st_size > 0
+        gtf_ready = gtf.exists() and gtf.stat().st_size > 0
+        index_ready = (star_idx / "SA").exists()
+        if not fasta_ready:
+            warnings.append(
+                f"Audited assembly '{canonical}' is not auto-provisioned by "
+                f"SetupAgent and was not found under {gdir}; refusing to "
+                f"substitute another assembly."
+            )
+        return {
+            "genome_key":  canonical,
+            "genome_dir":  str(gdir),
+            "fasta":       str(fasta),
+            "fasta_gz":    str(fasta_gz),
+            "gtf":         str(gtf),
+            "gtf_gz":      str(gtf_gz),
+            "star_index":  str(star_idx),
+            "fasta_ready": fasta_ready,
+            "gtf_ready":   gtf_ready,
+            "index_ready": index_ready,
+            "strand":      "auto",
+        }
 
     def _ensure_genome(self, genome_key: str,
                         experiment_id: str,

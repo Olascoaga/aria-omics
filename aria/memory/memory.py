@@ -91,17 +91,40 @@ CREATE TABLE IF NOT EXISTS decisions (
 """
 
 
+DEFAULT_MEMORY_DB = "~/.aria/memory.db"
+
+
+def resolve_memory_db_path(db_path: Optional[str] = None) -> str:
+    """Resolve the active ARIAMemory SQLite path.
+
+    Precedence:
+      1. Explicit ``db_path`` argument (including ``":memory:"``).
+      2. ``ARIA_MEMORY_DB`` environment variable (enabling per-project isolation
+         across CLI, TUI, and headless batch sweeps).
+      3. ``DEFAULT_MEMORY_DB`` (``~/.aria/memory.db``).
+    """
+    raw = (
+        db_path
+        if db_path is not None
+        else (os.environ.get("ARIA_MEMORY_DB", "").strip() or DEFAULT_MEMORY_DB)
+    )
+    if raw == ":memory:":
+        return raw
+    return str(Path(raw).expanduser())
+
+
 class ARIAMemory:
     """
-    Persistent memory for a single ARIA installation.
-    One SQLite file per lab, multiple wings (experiments).
+    Persistent memory for a single ARIA installation or isolated project.
+    One SQLite file per lab/project, multiple wings (experiments).
     """
 
-    def __init__(self, db_path: str = "~/.aria/memory.db"):
-        if db_path == ":memory:":
-            self.db_path = db_path
+    def __init__(self, db_path: Optional[str] = None):
+        resolved = resolve_memory_db_path(db_path)
+        if resolved == ":memory:":
+            self.db_path = resolved
         else:
-            self.db_path = str(Path(db_path).expanduser())
+            self.db_path = resolved
             Path(self.db_path).parent.mkdir(parents=True, exist_ok=True)
 
         # Agents run on background threads (Orchestrator._dispatch_agents);

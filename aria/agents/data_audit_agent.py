@@ -115,22 +115,24 @@ SIGNATURES = {
 }
 
 GENOME_HINTS = {
-    "hg38": ["hg38", "GRCh38", "human", "homo sapiens"],
+    "hg38": ["hg38", "GRCh38"],
     "hg19": ["hg19", "GRCh37"],
-    "mm10": ["mm10", "GRCm38", "mouse"],
     "mm39": ["mm39", "GRCm39"],
+    "mm10": ["mm10", "GRCm38"],
+    "rn7":  ["rn7", "mRatBN7.2"],
     "dm6":  ["dm6", "drosophila"],
     "ce11": ["ce11", "worm", "elegans"],
-    "danRer11": ["danRer11", "zebrafish"],
+    "danRer11": ["danRer11", "GRCz11", "zebrafish"],
     "sacCer3": ["sacCer3", "yeast"],
 }
 
 ORGANISM_HINTS = {
-    "Homo sapiens":        ["hg38", "hg19", "human", "sapiens"],
-    "Mus musculus":        ["mm10", "mm39", "mouse", "musculus"],
+    "Homo sapiens":        ["hg38", "grch38", "hg19", "grch37", "human", "sapiens"],
+    "Mus musculus":        ["mm39", "grcm39", "mm10", "grcm38", "mouse", "musculus", "murine"],
+    "Rattus norvegicus":   ["rn7", "mratbn7.2", "rat", "rattus"],
     "Drosophila melanogaster": ["dm6", "drosophila"],
     "C. elegans":          ["ce11", "elegans", "worm"],
-    "Danio rerio":         ["danRer11", "zebrafish"],
+    "Danio rerio":         ["danRer11", "grcz11", "zebrafish"],
     "S. cerevisiae":       ["sacCer3", "yeast", "cerevisiae"],
 }
 
@@ -140,10 +142,12 @@ ORGANISM_HINTS = {
 SUPPORTED_MODALITIES = list(SIGNATURES.keys())
 
 # Canonical reference genome per organism (the default an alignment-based
-# pipeline uses); the first assembly in each organism's hint list.
+# pipeline uses when no explicit assembly token is declared; aligned across
+# DataAuditAgent, SetupAgent, DesignAgent, and GEOConnector).
 _DEFAULT_GENOME = {
     "Homo sapiens": "hg38",
-    "Mus musculus": "mm10",
+    "Mus musculus": "mm39",
+    "Rattus norvegicus": "rn7",
     "Drosophila melanogaster": "dm6",
     "C. elegans": "ce11",
     "Danio rerio": "danRer11",
@@ -301,6 +305,10 @@ def apply_metadata_corrections(exp_context: dict, corrections: dict | None) -> d
         exp_context["organism"] = corrections["organism"]
     if corrections.get("genome"):
         exp_context["genome"] = corrections["genome"]
+    elif corrections.get("organism") and exp_context.get("genome") in (None, "", "unknown"):
+        default_g = default_genome_for_organism(corrections["organism"])
+        if default_g:
+            exp_context["genome"] = default_g
     manifest_edit = (
         corrections.get("scatac_fastq_manifest")
         or corrections.get("scatac_fastq_manifest_path")
@@ -1427,12 +1435,15 @@ class DataAuditAgent(BaseAgent):
             genome_to_org = {
                 "hg38": "Homo sapiens", "hg19": "Homo sapiens",
                 "mm10": "Mus musculus", "mm39": "Mus musculus",
+                "rn7":  "Rattus norvegicus",
                 "dm6":  "Drosophila melanogaster",
                 "ce11": "C. elegans",
                 "danRer11": "Danio rerio",
                 "sacCer3": "S. cerevisiae",
             }
             organism = genome_to_org.get(genome, "unknown")
+        elif genome == "unknown" and organism != "unknown":
+            genome = default_genome_for_organism(organism) or "unknown"
 
         return genome, organism
 

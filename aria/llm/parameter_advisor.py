@@ -21,6 +21,7 @@ not because we programmed it, but because the PI's approvals trained it.
 from __future__ import annotations
 
 import json
+import os
 import uuid
 import logging
 from dataclasses import dataclass, field
@@ -405,8 +406,12 @@ class ParameterAdvisor:
             experiment_id, "leiden_clustering", biological_context
         )
 
-        # Choose best candidate
-        recommended = self._choose_best(candidates, historical)
+        # Choose best candidate (historical bonus disabled in reproducible/batch mode)
+        recommended = self._choose_best(
+            candidates,
+            historical,
+            disable_historical_bonus=self._historical_bonus_disabled(biological_context),
+        )
         recommended.recommended = True
 
         # Build justification via LLM (MEDIUM tier — reasoning required)
@@ -421,7 +426,7 @@ class ParameterAdvisor:
         warnings = [f for c in candidates if c.recommended for f in c.flags]
 
         decision = ParameterDecision(
-            decision_id=str(uuid.uuid4())[:8],
+            decision_id=uuid.uuid4().hex,
             experiment_id=experiment_id,
             analysis_type="leiden_clustering",
             parameter_name="resolution",
@@ -458,7 +463,11 @@ class ParameterAdvisor:
         historical = self._recall_similar_decisions(
             experiment_id, "wnn_integration", biological_context
         )
-        recommended = self._choose_best(candidates, historical)
+        recommended = self._choose_best(
+            candidates,
+            historical,
+            disable_historical_bonus=self._historical_bonus_disabled(biological_context),
+        )
         recommended.recommended = True
 
         justification = self._justify_decision(
@@ -470,7 +479,7 @@ class ParameterAdvisor:
         )
 
         decision = ParameterDecision(
-            decision_id=str(uuid.uuid4())[:8],
+            decision_id=uuid.uuid4().hex,
             experiment_id=experiment_id,
             analysis_type="wnn_integration",
             parameter_name="k",
@@ -737,15 +746,29 @@ class ParameterAdvisor:
             log.warning(f"Memory recall failed: {e}")
             return []
 
+    @staticmethod
+    def _historical_bonus_disabled(bio_context: Optional[dict] = None) -> bool:
+        """Disable cross-run historical score bonus in reproducible or isolated batch mode."""
+        ctx = bio_context or {}
+        if ctx.get("reproducible_mode") or ctx.get("disable_historical_bonus"):
+            return True
+        return os.environ.get("ARIA_DISABLE_HISTORICAL_BONUS", "").strip().lower() in {
+            "1", "true", "yes", "on",
+        }
+
     def _choose_best(
         self,
         candidates: list[ParameterCandidate],
         historical: list[dict],
+        *,
+        disable_historical_bonus: bool = False,
     ) -> ParameterCandidate:
         """
         Choose the best candidate, weighted by:
           - objective score (primary)
-          - historical approval frequency (secondary, strictly BOUNDED bonus)
+          - historical approval frequency (secondary, strictly BOUNDED bonus;
+            suppressed when ``disable_historical_bonus`` / ``reproducible_mode``
+            is active so batch & reproducible runs never drift across runs)
 
         P1-14: the historical bonus is capped (`HISTORICAL_BONUS_CAP`) so it can
         only break a near-tie — it can never dominate a real difference in the
@@ -754,12 +777,13 @@ class ParameterAdvisor:
         """
         # Build historical value frequency
         hist_values = {}
-        for h in historical:
-            try:
-                val = float(h.get("decision", 0))
-                hist_values[val] = hist_values.get(val, 0) + 1
-            except (ValueError, TypeError):
-                pass
+        if not disable_historical_bonus:
+            for h in historical:
+                try:
+                    val = float(h.get("decision", 0))
+                    hist_values[val] = hist_values.get(val, 0) + 1
+                except (ValueError, TypeError):
+                    pass
 
         best = None
         best_score = -1.0

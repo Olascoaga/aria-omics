@@ -503,7 +503,7 @@ class OrchestratorAgent(BaseAgent):
                 Confidence.HIGH,
             )
             self.memory.store_decision(
-                decision_id=str(uuid.uuid4())[:8],
+                decision_id=uuid.uuid4().hex,
                 wing_id=experiment_id,
                 checkpoint=1,
                 question="Correct data-audit metadata",
@@ -535,7 +535,7 @@ class OrchestratorAgent(BaseAgent):
                 Confidence.HIGH,
             )
             self.memory.store_decision(
-                decision_id=str(uuid.uuid4())[:8],
+                decision_id=uuid.uuid4().hex,
                 wing_id=experiment_id,
                 checkpoint=1,
                 question="Data sensitivity / egress policy",
@@ -548,7 +548,7 @@ class OrchestratorAgent(BaseAgent):
             )
 
         self.memory.store_decision(
-            decision_id=str(uuid.uuid4())[:8],
+            decision_id=uuid.uuid4().hex,
             wing_id=experiment_id,
             checkpoint=1,
             question=msg.payload.get("question", ""),
@@ -629,7 +629,7 @@ class OrchestratorAgent(BaseAgent):
             rationale_suffix = " Optional supported analyses were not added."
 
         self.memory.store_decision(
-            decision_id=str(uuid.uuid4())[:8],
+            decision_id=uuid.uuid4().hex,
             wing_id=experiment_id,
             checkpoint=2,
             question="Analysis plan confirmed",
@@ -687,7 +687,7 @@ class OrchestratorAgent(BaseAgent):
             rationale = "User enforced High Sensitivity analytical thresholds (padj < 0.10, LFC > 0.58) to maximize target discovery."
 
         self.memory.store_decision(
-            decision_id=str(uuid.uuid4())[:8],
+            decision_id=uuid.uuid4().hex,
             wing_id=experiment_id,
             checkpoint=3,
             question="Statistical Threshold Tuning (padj & log2FC)",
@@ -910,7 +910,11 @@ class OrchestratorAgent(BaseAgent):
         self.publish_status(experiment_id, "Dispatching agents...", 0.1)
 
         modalities    = exp_context.get("modalities", {})
-        intent        = self._experiment_plans.get(experiment_id, {}).get("intent", {})
+        intent        = dict(self._experiment_plans.get(experiment_id, {}).get("intent", {}) or {})
+        if exp_context.get("reproducible_mode"):
+            intent.setdefault("reproducible_mode", True)
+        if exp_context.get("organism") and exp_context.get("organism") != "unknown":
+            intent.setdefault("organism", exp_context["organism"])
         agent_results = {}
 
         if "bulk_RNA_raw" in modalities:
@@ -996,6 +1000,8 @@ class OrchestratorAgent(BaseAgent):
         if setup_result.get("status") == "done":
             genome_config = setup_result.get("genome_config", {})
             exp_context   = {**exp_context, "genome_config": genome_config}
+            if exp_context.get("genome") in (None, "", "unknown") and genome_config.get("genome_key"):
+                exp_context["genome"] = genome_config["genome_key"]
 
         raw_ingestion_result = self._run_agent(
             agent_name="raw_ingestion_agent",

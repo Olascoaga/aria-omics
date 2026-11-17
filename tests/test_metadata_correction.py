@@ -52,7 +52,8 @@ def test_supported_modalities_offers_rna_and_atac_and_chromatin():
 
 def test_default_genome_for_organism():
     assert default_genome_for_organism("Homo sapiens") == "hg38"
-    assert default_genome_for_organism("Mus musculus") == "mm10"
+    assert default_genome_for_organism("Mus musculus") == "mm39"
+    assert default_genome_for_organism("Rattus norvegicus") == "rn7"
     assert default_genome_for_organism("Totally unknown organism") is None
 
 
