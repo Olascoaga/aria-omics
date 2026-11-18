@@ -101,6 +101,19 @@ def test_setup_agent_honors_audited_genome_and_refuses_cross_assembly_substituti
     assert cfg["fasta_ready"] is False
     assert any("refusing to substitute" in w for w in warnings)
 
+    # Chromatin FASTQ runs must NOT trigger STAR RNA-seq index generation
+    star_called = []
+    sa.publish_status = lambda *a, **k: None
+    sa.publish_finding = lambda *a, **k: None
+    sa._ensure_conda = lambda *a, **k: "conda"
+    sa._needed_envs = lambda *a, **k: []
+    sa._ensure_genome = lambda *a, **k: {"genome_key": "mm39", "fasta_ready": True, "gtf_ready": True}
+    sa._ensure_star_index = lambda *a, **k: star_called.append(True)
+    sa.run("exp_cutrun", {"exp_context": {"organism": "Mus musculus", "genome": "mm39", "modalities": {"CUT_AND_RUN": ["/x/WC_1_R1.fastq.gz"]}}, "biological_intent": {}})
+    assert star_called == []
+    sa.run("exp_rnaseq", {"exp_context": {"organism": "Mus musculus", "genome": "mm39", "modalities": {"bulk_RNA_raw": ["/x/S1_R1.fastq.gz"]}}, "biological_intent": {}})
+    assert star_called == [True]
+
 
 def test_aria_memory_db_isolation_env_and_headless(monkeypatch, tmp_path):
     proj_a_db = tmp_path / "proj_a" / "memory.db"
@@ -199,3 +212,66 @@ def test_doctor_llm_probe_respects_zero_arg_egress_allowed(monkeypatch):
         monkeypatch.delenv(k, raising=False)
     issues_open = _check_llm()
     assert any(i.code == "llm_mode" for i in issues_open)
+
+
+def test_chromatin_agent_skips_global_idr_when_comparisons_present(monkeypatch, tmp_path):
+    pytest.importorskip("litellm")
+    from unittest.mock import MagicMock
+    from aria.agents.chromatin_agent import ChromatinAgent
+
+    bams = [str(tmp_path / f"{s}.bam") for s in ("wt_1", "wt_2", "ko_1", "ko_2")]
+    for b in bams:
+        Path(b).write_bytes(b"BAM\x01")
+
+    mem = ARIAMemory(db_path=str(tmp_path / "mem.db"))
+    agent = ChromatinAgent(mem, MagicMock())
+    agent.publish_status = lambda *a, **k: None
+    agent.publish_finding = lambda *a, **k: None
+    agent._run_bulk_atac_da_branch = lambda *a, **k: None
+
+    captured_peaks_params: list[dict] = []
+
+    def _fake_run_in_stack(stack, script_path, params, **kw):
+        if script_path.endswith("chromatin_peaks.py"):
+            captured_peaks_params.append(dict(params))
+            return {"status": "success", "n_peaks": 120, "peaks_path": str(tmp_path / "consensus.bed")}
+        return {"status": "success"}
+
+    monkeypatch.setattr(agent.env, "run_in_stack", _fake_run_in_stack)
+
+    # 1. Exploratory single-condition TF profiling (no comparisons) -> run_idr defaults True
+    agent.run(
+        "exp_tf_profile",
+        {
+            "exp_context": {
+                "genome": "mm39",
+                "assay_class": "tf",
+                "modalities": {"CUT_AND_RUN": bams[:2]},
+            },
+            "biological_intent": {"question": "Profile BMAL1 binding in WT"},
+        },
+    )
+    assert captured_peaks_params[-1]["run_idr"] is True
+
+    # 2. Multi-condition TF contrast -> run_idr defaults False so DA uses >=2-rep union
+    agent.run(
+        "exp_tf_contrast",
+        {
+            "exp_context": {
+                "genome": "mm39",
+                "assay_class": "tf",
+                "modalities": {"CUT_AND_RUN": bams},
+                "sample_metadata": {
+                    "wt_1": {"group": "WT"},
+                    "wt_2": {"group": "WT"},
+                    "ko_1": {"group": "KO"},
+                    "ko_2": {"group": "KO"},
+                },
+                "comparisons": [("KO", "WT")],
+            },
+            "biological_intent": {"question": "Differential BMAL1 CUT&RUN KO vs WT"},
+        },
+    )
+    assert captured_peaks_params[-1]["run_idr"] is False
+    mem.close()
+

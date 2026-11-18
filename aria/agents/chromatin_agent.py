@@ -2602,8 +2602,14 @@ class ChromatinAgent(BaseAgent):
             default_caller = ("broad_domain"
                               if assay_class == "broad_domain" else "seacr")
         peak_caller = str(exp_ctx.get("peak_caller") or default_caller)
+        has_da_contrast = bool(
+            contract.get("comparisons")
+            or intent.get("comparisons")
+            or intent.get("comparison")
+        )
         run_idr = bool(exp_ctx.get(
-            "run_idr", assay_class == "tf" and len(target_files) >= 2
+            "run_idr",
+            assay_class == "tf" and len(target_files) >= 2 and not has_da_contrast,
         ))
 
         peaks_params: dict = {

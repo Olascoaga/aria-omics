@@ -199,8 +199,11 @@ class SetupAgent(BaseAgent):
                 genome_key, experiment_id, actions, warnings
             )
 
-            # ── 4. STAR index ─────────────────────────────────────────────
-            if has_fastq and genome_cfg.get("fasta_ready"):
+            # ── 4. STAR index (bulk RNA FASTQ lanes only) ────────────────
+            needs_star = has_fastq and any(
+                m in modalities for m in ("bulk_RNA", "bulk_RNA_raw")
+            )
+            if needs_star and genome_cfg.get("fasta_ready"):
                 self.publish_status(
                     experiment_id,
                     f"Checking STAR index ({genome_key})...",
