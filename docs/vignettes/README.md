@@ -19,3 +19,7 @@ Every vignette below documents a complete, unattended end-to-end execution of AR
 ## Cross-Model Equivalence & Commercial API Cost Benchmark (`30 / 30` Cells)
 
 Vignette [`12_cross_model_equivalence.md`](./12_cross_model_equivalence.md) evaluates ARIA's model-invariance hypothesis (`Claim 6` / `ADR-011`) across `30` end-to-end `(model × modality)` executions comparing local `Tantalus` (`$0.00`), local WSL system-tool harnesses (`Claude Sonnet 5.5`, `GPT-5.6-Sol`, `Gemini 4 Carbon`, `$0.00` cash spend), and direct commercial REST APIs (`anthropic/claude-sonnet-5-5` `$0.6718` total across `7` workflows; `openai/gpt-5.6-sol` `$0.7890` total across `7` workflows). Full per-cell receipts and live dashboard reside in [`../benchmark_results/cross_model_equivalence/STATUS.md`](../benchmark_results/cross_model_equivalence/STATUS.md).
+
+## 40-Capsule Governed vs. Uncontracted `CodeAct` Benchmark (`ADR-083` Tier 1)
+
+Vignette [`13_governed_vs_uncontracted_benchmark.md`](./13_governed_vs_uncontracted_benchmark.md) evaluates `aria_governed`, `aria_locked_manifest`, `aria_zero_llm_deterministic`, and `uncontracted_codeact_baseline` across `40` deterministic multi-omics benchmark capsules (`5` archetypes × `8` capsules: design/confounding governance, donor pseudobulk vs cell pseudoreplication, epistemic claim & causal licensing, sequencer/modality boundary abstention, and scrubbed-ID `DerivedQueryPlan` relational reasoning), paired with a 20-seed `800`-run sensitivity sweep (`../benchmark_results/v49_comparative_benchmark/comparative_benchmark_v49.json`).

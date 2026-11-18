@@ -8,7 +8,7 @@ not release-validated installation targets.
 ## Choose the snapshot first
 
 ARIA's package version and source revision are separate reproducibility fields.
-The current package version is `4.8.0`.
+The current package version is `4.9.0` (latest historical release tag `v4.8.0`).
 
 ```bash
 git clone https://github.com/Olascoaga/aria-omics.git

@@ -1,0 +1,5729 @@
+{
+  "adr": "ADR-083",
+  "archetypes": [
+    "design_and_confounding_governance",
+    "donor_pseudobulk_vs_cell_pseudoreplication",
+    "epistemic_claim_and_causal_licensing",
+    "sequencer_and_modality_boundary_abstention",
+    "scrubbed_id_derived_query_reasoning"
+  ],
+  "arms": [
+    "aria_governed",
+    "aria_locked_manifest",
+    "aria_zero_llm_deterministic",
+    "uncontracted_codeact_baseline"
+  ],
+  "capsules": [
+    {
+      "archetype": "design_and_confounding_governance",
+      "arms": {
+        "aria_governed": {
+          "abstain_reason": "design_blocking:condition_covariate_confounding",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "ab29bf0ebf4a0a42175f63826b0efc5577d23789660f540d8be07632f8f714a5",
+          "evidence": {
+            "design_contract": {
+              "condition_col": "condition",
+              "covariates": [
+                "batch"
+              ],
+              "replicate_col": "sample"
+            },
+            "design_validation": {
+              "blocking_checks": [
+                "condition_covariate_confounding",
+                "rank_deficient_design"
+              ],
+              "confounded_covariates": [
+                "batch"
+              ],
+              "status": "blocking"
+            }
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "aria_locked_manifest": {
+          "abstain_reason": "design_blocking:condition_covariate_confounding",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "ab29bf0ebf4a0a42175f63826b0efc5577d23789660f540d8be07632f8f714a5",
+          "evidence": {
+            "design_contract": {
+              "condition_col": "condition",
+              "covariates": [
+                "batch"
+              ],
+              "replicate_col": "sample"
+            },
+            "design_validation": {
+              "blocking_checks": [
+                "condition_covariate_confounding",
+                "rank_deficient_design"
+              ],
+              "confounded_covariates": [
+                "batch"
+              ],
+              "status": "blocking"
+            }
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "aria_zero_llm_deterministic": {
+          "abstain_reason": "design_blocking:condition_covariate_confounding",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "ab29bf0ebf4a0a42175f63826b0efc5577d23789660f540d8be07632f8f714a5",
+          "evidence": {
+            "design_contract": {
+              "condition_col": "condition",
+              "covariates": [
+                "batch"
+              ],
+              "replicate_col": "sample"
+            },
+            "design_validation": {
+              "blocking_checks": [
+                "condition_covariate_confounding",
+                "rank_deficient_design"
+              ],
+              "confounded_covariates": [
+                "batch"
+              ],
+              "status": "blocking"
+            }
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "uncontracted_codeact_baseline": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [
+              "FEAT_0029",
+              "FEAT_0040",
+              "FEAT_0121",
+              "FEAT_0129",
+              "FEAT_0143",
+              "FEAT_0166",
+              "FEAT_0174",
+              "FEAT_0184",
+              "FEAT_0195",
+              "FEAT_0197"
+            ],
+            "up": [
+              "FEAT_0011",
+              "FEAT_0018",
+              "FEAT_0034",
+              "FEAT_0035",
+              "FEAT_0036",
+              "FEAT_0086",
+              "FEAT_0090",
+              "FEAT_0105",
+              "FEAT_0154",
+              "FEAT_0156",
+              "FEAT_0163",
+              "FEAT_0172",
+              "FEAT_0183",
+              "FEAT_0187"
+            ]
+          },
+          "decision_digest": "122327244990480143d006b2e5d81c18a74926e013171c12499f9db60474793e",
+          "evidence": {
+            "method": "welch_t_ignoring_batch_and_units",
+            "n_significant": 24
+          },
+          "is_correct": false,
+          "outcome": "confident_wrong"
+        }
+      },
+      "capsule_id": "A1-01",
+      "decision_manifest_sha256": "c8833ea4cdd4ac6f76514f363dbc22ad9f115b687100a720a4f52733fa56bfc9",
+      "expected": {
+        "decision": "abstain",
+        "reason_family": "design_confounded"
+      },
+      "input_fingerprint": "61054f706ad3d2acce6ccc18e38c1d5a37356369d940da4ed33b917c99f1eb0b",
+      "question": "Which features are differentially expressed between TREATED and CONTROL (every TREATED sample was processed in BATCH_1, every CONTROL in BATCH_2)?",
+      "seed": 491083,
+      "should_abstain": true,
+      "supported_by_native_contract": true,
+      "variant": "perfect_batch_confounding"
+    },
+    {
+      "archetype": "design_and_confounding_governance",
+      "arms": {
+        "aria_governed": {
+          "abstain_reason": "design_blocking:condition_covariate_confounding",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "ab29bf0ebf4a0a42175f63826b0efc5577d23789660f540d8be07632f8f714a5",
+          "evidence": {
+            "design_contract": {
+              "condition_col": "condition",
+              "covariates": [
+                "batch"
+              ],
+              "replicate_col": "sample"
+            },
+            "design_validation": {
+              "blocking_checks": [
+                "condition_covariate_confounding",
+                "rank_deficient_design"
+              ],
+              "confounded_covariates": [
+                "batch"
+              ],
+              "status": "blocking"
+            }
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "aria_locked_manifest": {
+          "abstain_reason": "design_blocking:condition_covariate_confounding",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "ab29bf0ebf4a0a42175f63826b0efc5577d23789660f540d8be07632f8f714a5",
+          "evidence": {
+            "design_contract": {
+              "condition_col": "condition",
+              "covariates": [
+                "batch"
+              ],
+              "replicate_col": "sample"
+            },
+            "design_validation": {
+              "blocking_checks": [
+                "condition_covariate_confounding",
+                "rank_deficient_design"
+              ],
+              "confounded_covariates": [
+                "batch"
+              ],
+              "status": "blocking"
+            }
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "aria_zero_llm_deterministic": {
+          "abstain_reason": "design_blocking:condition_covariate_confounding",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "ab29bf0ebf4a0a42175f63826b0efc5577d23789660f540d8be07632f8f714a5",
+          "evidence": {
+            "design_contract": {
+              "condition_col": "condition",
+              "covariates": [
+                "batch"
+              ],
+              "replicate_col": "sample"
+            },
+            "design_validation": {
+              "blocking_checks": [
+                "condition_covariate_confounding",
+                "rank_deficient_design"
+              ],
+              "confounded_covariates": [
+                "batch"
+              ],
+              "status": "blocking"
+            }
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "uncontracted_codeact_baseline": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [
+              "FEAT_0015",
+              "FEAT_0018",
+              "FEAT_0019",
+              "FEAT_0109",
+              "FEAT_0112",
+              "FEAT_0139",
+              "FEAT_0145",
+              "FEAT_0153",
+              "FEAT_0166",
+              "FEAT_0171",
+              "FEAT_0178",
+              "FEAT_0191"
+            ],
+            "up": [
+              "FEAT_0002",
+              "FEAT_0038",
+              "FEAT_0104",
+              "FEAT_0115",
+              "FEAT_0144",
+              "FEAT_0154",
+              "FEAT_0156",
+              "FEAT_0169",
+              "FEAT_0175",
+              "FEAT_0183"
+            ]
+          },
+          "decision_digest": "0a6222d1124bb938eb4e1f46bc261838ca61d59a6836164a7eeab00ce97d16f6",
+          "evidence": {
+            "method": "welch_t_ignoring_batch_and_units",
+            "n_significant": 22
+          },
+          "is_correct": false,
+          "outcome": "confident_wrong"
+        }
+      },
+      "capsule_id": "A1-02",
+      "decision_manifest_sha256": "228831f442448e55a3976f3c397f800ff8ec35ca6c7dbd789974967d81c96924",
+      "expected": {
+        "decision": "abstain",
+        "reason_family": "design_confounded"
+      },
+      "input_fingerprint": "7e9d0e6d89ebfb71865716158be7c2826451f1008e141b85b8e3698792106701",
+      "question": "Which features are differentially expressed between TREATED and CONTROL (every TREATED sample was processed in BATCH_1, every CONTROL in BATCH_2)?",
+      "seed": 491084,
+      "should_abstain": true,
+      "supported_by_native_contract": true,
+      "variant": "perfect_batch_confounding"
+    },
+    {
+      "archetype": "design_and_confounding_governance",
+      "arms": {
+        "aria_governed": {
+          "abstain_reason": "design_blocking:insufficient_condition_replicates",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "0b8299a4f9575f4b3ee811184b24d5ae6d569279dc62eb7826ec1ba63908102c",
+          "evidence": {
+            "design_contract": {
+              "condition_col": "condition",
+              "covariates": [],
+              "replicate_col": "bio_unit"
+            },
+            "design_validation": {
+              "blocking_checks": [
+                "insufficient_condition_replicates"
+              ],
+              "confounded_covariates": [],
+              "status": "blocking"
+            },
+            "n_biological_units": 2,
+            "raw_unit_check": "rejected:unit_ids must represent unique biological units (aggregate technical replicates first)",
+            "technical_replicates_aggregated": true,
+            "unit_level_inference": "not_testable_insufficient_replicates"
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "aria_locked_manifest": {
+          "abstain_reason": "design_blocking:insufficient_condition_replicates",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "0b8299a4f9575f4b3ee811184b24d5ae6d569279dc62eb7826ec1ba63908102c",
+          "evidence": {
+            "design_contract": {
+              "condition_col": "condition",
+              "covariates": [],
+              "replicate_col": "bio_unit"
+            },
+            "design_validation": {
+              "blocking_checks": [
+                "insufficient_condition_replicates"
+              ],
+              "confounded_covariates": [],
+              "status": "blocking"
+            },
+            "n_biological_units": 2,
+            "raw_unit_check": "rejected:unit_ids must represent unique biological units (aggregate technical replicates first)",
+            "technical_replicates_aggregated": true,
+            "unit_level_inference": "not_testable_insufficient_replicates"
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "aria_zero_llm_deterministic": {
+          "abstain_reason": "design_blocking:insufficient_condition_replicates",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "0b8299a4f9575f4b3ee811184b24d5ae6d569279dc62eb7826ec1ba63908102c",
+          "evidence": {
+            "design_contract": {
+              "condition_col": "condition",
+              "covariates": [],
+              "replicate_col": "bio_unit"
+            },
+            "design_validation": {
+              "blocking_checks": [
+                "insufficient_condition_replicates"
+              ],
+              "confounded_covariates": [],
+              "status": "blocking"
+            },
+            "n_biological_units": 2,
+            "raw_unit_check": "rejected:unit_ids must represent unique biological units (aggregate technical replicates first)",
+            "technical_replicates_aggregated": true,
+            "unit_level_inference": "not_testable_insufficient_replicates"
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "uncontracted_codeact_baseline": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [
+              "FEAT_0003",
+              "FEAT_0009",
+              "FEAT_0010",
+              "FEAT_0011",
+              "FEAT_0017",
+              "FEAT_0018",
+              "FEAT_0021",
+              "FEAT_0024",
+              "FEAT_0047",
+              "FEAT_0049",
+              "FEAT_0051",
+              "FEAT_0053",
+              "FEAT_0057",
+              "FEAT_0062",
+              "FEAT_0067",
+              "FEAT_0070",
+              "FEAT_0071",
+              "FEAT_0077",
+              "FEAT_0078",
+              "FEAT_0079",
+              "FEAT_0084",
+              "FEAT_0089",
+              "FEAT_0094",
+              "FEAT_0096",
+              "FEAT_0097",
+              "FEAT_0098",
+              "FEAT_0108",
+              "FEAT_0110",
+              "FEAT_0116",
+              "FEAT_0121",
+              "FEAT_0126",
+              "FEAT_0129",
+              "FEAT_0130",
+              "FEAT_0134",
+              "FEAT_0136",
+              "FEAT_0148",
+              "FEAT_0155",
+              "FEAT_0174",
+              "FEAT_0178",
+              "FEAT_0186",
+              "FEAT_0188"
+            ],
+            "up": [
+              "FEAT_0004",
+              "FEAT_0012",
+              "FEAT_0014",
+              "FEAT_0016",
+              "FEAT_0019",
+              "FEAT_0029",
+              "FEAT_0030",
+              "FEAT_0032",
+              "FEAT_0034",
+              "FEAT_0035",
+              "FEAT_0040",
+              "FEAT_0043",
+              "FEAT_0045",
+              "FEAT_0054",
+              "FEAT_0056",
+              "FEAT_0060",
+              "FEAT_0061",
+              "FEAT_0065",
+              "FEAT_0073",
+              "FEAT_0092",
+              "FEAT_0101",
+              "FEAT_0103",
+              "FEAT_0105",
+              "FEAT_0107",
+              "FEAT_0112",
+              "FEAT_0117",
+              "FEAT_0128",
+              "FEAT_0137",
+              "FEAT_0143",
+              "FEAT_0145",
+              "FEAT_0151",
+              "FEAT_0152",
+              "FEAT_0158",
+              "FEAT_0161",
+              "FEAT_0171",
+              "FEAT_0175",
+              "FEAT_0176",
+              "FEAT_0185",
+              "FEAT_0200"
+            ]
+          },
+          "decision_digest": "bf14a1975ef489176ab991aee8d1ce9f00707b2ad161c4ed7264b296b5342cd9",
+          "evidence": {
+            "method": "welch_t_ignoring_batch_and_units",
+            "n_significant": 80
+          },
+          "is_correct": false,
+          "outcome": "confident_wrong"
+        }
+      },
+      "capsule_id": "A1-03",
+      "decision_manifest_sha256": "b016805890bc9d87074c3bce2121e130a0f6951c044116ae1155a0fbb52a79b9",
+      "expected": {
+        "decision": "abstain",
+        "reason_family": "insufficient_biological_replicates"
+      },
+      "input_fingerprint": "7916ceaaa066f0d983b9fae5c844acf282f3859be061e42c844fdac7bf608284",
+      "question": "Which features differ between TREATED and CONTROL given libraries S1_rep1, S1_rep2 (TREATED) and S2_rep1, S2_rep2 (CONTROL)?",
+      "seed": 491085,
+      "should_abstain": true,
+      "supported_by_native_contract": true,
+      "variant": "technical_replicate_inflation"
+    },
+    {
+      "archetype": "design_and_confounding_governance",
+      "arms": {
+        "aria_governed": {
+          "abstain_reason": "design_blocking:insufficient_condition_replicates",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "0b8299a4f9575f4b3ee811184b24d5ae6d569279dc62eb7826ec1ba63908102c",
+          "evidence": {
+            "design_contract": {
+              "condition_col": "condition",
+              "covariates": [],
+              "replicate_col": "bio_unit"
+            },
+            "design_validation": {
+              "blocking_checks": [
+                "insufficient_condition_replicates"
+              ],
+              "confounded_covariates": [],
+              "status": "blocking"
+            },
+            "n_biological_units": 2,
+            "raw_unit_check": "rejected:unit_ids must represent unique biological units (aggregate technical replicates first)",
+            "technical_replicates_aggregated": true,
+            "unit_level_inference": "not_testable_insufficient_replicates"
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "aria_locked_manifest": {
+          "abstain_reason": "design_blocking:insufficient_condition_replicates",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "0b8299a4f9575f4b3ee811184b24d5ae6d569279dc62eb7826ec1ba63908102c",
+          "evidence": {
+            "design_contract": {
+              "condition_col": "condition",
+              "covariates": [],
+              "replicate_col": "bio_unit"
+            },
+            "design_validation": {
+              "blocking_checks": [
+                "insufficient_condition_replicates"
+              ],
+              "confounded_covariates": [],
+              "status": "blocking"
+            },
+            "n_biological_units": 2,
+            "raw_unit_check": "rejected:unit_ids must represent unique biological units (aggregate technical replicates first)",
+            "technical_replicates_aggregated": true,
+            "unit_level_inference": "not_testable_insufficient_replicates"
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "aria_zero_llm_deterministic": {
+          "abstain_reason": "design_blocking:insufficient_condition_replicates",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "0b8299a4f9575f4b3ee811184b24d5ae6d569279dc62eb7826ec1ba63908102c",
+          "evidence": {
+            "design_contract": {
+              "condition_col": "condition",
+              "covariates": [],
+              "replicate_col": "bio_unit"
+            },
+            "design_validation": {
+              "blocking_checks": [
+                "insufficient_condition_replicates"
+              ],
+              "confounded_covariates": [],
+              "status": "blocking"
+            },
+            "n_biological_units": 2,
+            "raw_unit_check": "rejected:unit_ids must represent unique biological units (aggregate technical replicates first)",
+            "technical_replicates_aggregated": true,
+            "unit_level_inference": "not_testable_insufficient_replicates"
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "uncontracted_codeact_baseline": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [
+              "FEAT_0004",
+              "FEAT_0009",
+              "FEAT_0015",
+              "FEAT_0021",
+              "FEAT_0025",
+              "FEAT_0039",
+              "FEAT_0043",
+              "FEAT_0045",
+              "FEAT_0046",
+              "FEAT_0050",
+              "FEAT_0051",
+              "FEAT_0052",
+              "FEAT_0053",
+              "FEAT_0055",
+              "FEAT_0060",
+              "FEAT_0066",
+              "FEAT_0068",
+              "FEAT_0084",
+              "FEAT_0093",
+              "FEAT_0095",
+              "FEAT_0100",
+              "FEAT_0117",
+              "FEAT_0121",
+              "FEAT_0123",
+              "FEAT_0128",
+              "FEAT_0131",
+              "FEAT_0150",
+              "FEAT_0159",
+              "FEAT_0163",
+              "FEAT_0170",
+              "FEAT_0172",
+              "FEAT_0173",
+              "FEAT_0175",
+              "FEAT_0176",
+              "FEAT_0180",
+              "FEAT_0187",
+              "FEAT_0191",
+              "FEAT_0195"
+            ],
+            "up": [
+              "FEAT_0005",
+              "FEAT_0010",
+              "FEAT_0013",
+              "FEAT_0023",
+              "FEAT_0028",
+              "FEAT_0032",
+              "FEAT_0035",
+              "FEAT_0044",
+              "FEAT_0054",
+              "FEAT_0057",
+              "FEAT_0058",
+              "FEAT_0059",
+              "FEAT_0062",
+              "FEAT_0072",
+              "FEAT_0075",
+              "FEAT_0077",
+              "FEAT_0079",
+              "FEAT_0085",
+              "FEAT_0087",
+              "FEAT_0094",
+              "FEAT_0102",
+              "FEAT_0103",
+              "FEAT_0105",
+              "FEAT_0110",
+              "FEAT_0111",
+              "FEAT_0116",
+              "FEAT_0125",
+              "FEAT_0127",
+              "FEAT_0133",
+              "FEAT_0134",
+              "FEAT_0136",
+              "FEAT_0138",
+              "FEAT_0144",
+              "FEAT_0153",
+              "FEAT_0155",
+              "FEAT_0165",
+              "FEAT_0177",
+              "FEAT_0186",
+              "FEAT_0190",
+              "FEAT_0193",
+              "FEAT_0198",
+              "FEAT_0200"
+            ]
+          },
+          "decision_digest": "02cec9161d934daf576e5f720a608cb243f133eca201b29217de1708671a2c4f",
+          "evidence": {
+            "method": "welch_t_ignoring_batch_and_units",
+            "n_significant": 80
+          },
+          "is_correct": false,
+          "outcome": "confident_wrong"
+        }
+      },
+      "capsule_id": "A1-04",
+      "decision_manifest_sha256": "c31bd246c2231f7e500432b61fae7fbf11d6204490e90e2e8ef92534d2ebc91d",
+      "expected": {
+        "decision": "abstain",
+        "reason_family": "insufficient_biological_replicates"
+      },
+      "input_fingerprint": "7b190080ec34b9369adb2deee9e695a1995cf5d95ac3c36ea6c5109a90270771",
+      "question": "Which features differ between TREATED and CONTROL given libraries S1_rep1, S1_rep2 (TREATED) and S2_rep1, S2_rep2 (CONTROL)?",
+      "seed": 491086,
+      "should_abstain": true,
+      "supported_by_native_contract": true,
+      "variant": "technical_replicate_inflation"
+    },
+    {
+      "archetype": "design_and_confounding_governance",
+      "arms": {
+        "aria_governed": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [
+              "FEAT_0034",
+              "FEAT_0074",
+              "FEAT_0122",
+              "FEAT_0139",
+              "FEAT_0142",
+              "FEAT_0143",
+              "FEAT_0172",
+              "FEAT_0174",
+              "FEAT_0182",
+              "FEAT_0195"
+            ],
+            "up": [
+              "FEAT_0023",
+              "FEAT_0036",
+              "FEAT_0065",
+              "FEAT_0069",
+              "FEAT_0071",
+              "FEAT_0079",
+              "FEAT_0148",
+              "FEAT_0150",
+              "FEAT_0161",
+              "FEAT_0181"
+            ]
+          },
+          "decision_digest": "a3fa362b6207f8e93854ee0ea83ee3b1f7986411db22ddbf3c96df2b7506d4c6",
+          "evidence": {
+            "design_contract": {
+              "condition_col": "condition",
+              "covariates": [
+                "batch"
+              ],
+              "replicate_col": "sample"
+            },
+            "design_validation": {
+              "blocking_checks": [],
+              "confounded_covariates": [],
+              "status": "clean"
+            },
+            "moderated_df": 9,
+            "n_significant": 20
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "aria_locked_manifest": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [
+              "FEAT_0034",
+              "FEAT_0074",
+              "FEAT_0122",
+              "FEAT_0139",
+              "FEAT_0142",
+              "FEAT_0143",
+              "FEAT_0172",
+              "FEAT_0174",
+              "FEAT_0182",
+              "FEAT_0195"
+            ],
+            "up": [
+              "FEAT_0023",
+              "FEAT_0036",
+              "FEAT_0065",
+              "FEAT_0069",
+              "FEAT_0071",
+              "FEAT_0079",
+              "FEAT_0148",
+              "FEAT_0150",
+              "FEAT_0161",
+              "FEAT_0181"
+            ]
+          },
+          "decision_digest": "a3fa362b6207f8e93854ee0ea83ee3b1f7986411db22ddbf3c96df2b7506d4c6",
+          "evidence": {
+            "design_contract": {
+              "condition_col": "condition",
+              "covariates": [
+                "batch"
+              ],
+              "replicate_col": "sample"
+            },
+            "design_validation": {
+              "blocking_checks": [],
+              "confounded_covariates": [],
+              "status": "clean"
+            },
+            "moderated_df": 9,
+            "n_significant": 20
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "aria_zero_llm_deterministic": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [
+              "FEAT_0034",
+              "FEAT_0074",
+              "FEAT_0122",
+              "FEAT_0139",
+              "FEAT_0142",
+              "FEAT_0143",
+              "FEAT_0172",
+              "FEAT_0174",
+              "FEAT_0182",
+              "FEAT_0195"
+            ],
+            "up": [
+              "FEAT_0023",
+              "FEAT_0036",
+              "FEAT_0065",
+              "FEAT_0069",
+              "FEAT_0071",
+              "FEAT_0079",
+              "FEAT_0148",
+              "FEAT_0150",
+              "FEAT_0161",
+              "FEAT_0181"
+            ]
+          },
+          "decision_digest": "a3fa362b6207f8e93854ee0ea83ee3b1f7986411db22ddbf3c96df2b7506d4c6",
+          "evidence": {
+            "design_contract": {
+              "condition_col": "condition",
+              "covariates": [
+                "batch"
+              ],
+              "replicate_col": "sample"
+            },
+            "design_validation": {
+              "blocking_checks": [],
+              "confounded_covariates": [],
+              "status": "clean"
+            },
+            "moderated_df": 9,
+            "n_significant": 20
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "uncontracted_codeact_baseline": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [
+              "FEAT_0034",
+              "FEAT_0122",
+              "FEAT_0139",
+              "FEAT_0142",
+              "FEAT_0143",
+              "FEAT_0172",
+              "FEAT_0182",
+              "FEAT_0195"
+            ],
+            "up": [
+              "FEAT_0023",
+              "FEAT_0036",
+              "FEAT_0065",
+              "FEAT_0069",
+              "FEAT_0071",
+              "FEAT_0079",
+              "FEAT_0148",
+              "FEAT_0150",
+              "FEAT_0161",
+              "FEAT_0181"
+            ]
+          },
+          "decision_digest": "569e94cc071c433c4aa7f8e55c3d6ff4e4e5404fcaeeabea414c0c43a3e7bfd7",
+          "evidence": {
+            "method": "welch_t_ignoring_batch_and_units",
+            "n_significant": 18
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        }
+      },
+      "capsule_id": "A1-05",
+      "decision_manifest_sha256": "61959d074276ccc6dd8c0067a8b1d7a6cff5ee2c9dc208f4aabe5d92c3adcb5d",
+      "expected": {
+        "decision": "answer",
+        "down": [
+          "FEAT_0034",
+          "FEAT_0074",
+          "FEAT_0122",
+          "FEAT_0139",
+          "FEAT_0142",
+          "FEAT_0143",
+          "FEAT_0172",
+          "FEAT_0174",
+          "FEAT_0182",
+          "FEAT_0195"
+        ],
+        "up": [
+          "FEAT_0023",
+          "FEAT_0036",
+          "FEAT_0065",
+          "FEAT_0069",
+          "FEAT_0071",
+          "FEAT_0079",
+          "FEAT_0148",
+          "FEAT_0150",
+          "FEAT_0161",
+          "FEAT_0181"
+        ]
+      },
+      "input_fingerprint": "949042db2f42e8672c3981ead3fd35c241e2f0c9151c7ba1c88e783648b57dbf",
+      "question": "Which features are differentially expressed between TREATED and CONTROL (4v4, batch-balanced)?",
+      "seed": 491087,
+      "should_abstain": false,
+      "supported_by_native_contract": true,
+      "variant": "batch_balanced_4v4"
+    },
+    {
+      "archetype": "design_and_confounding_governance",
+      "arms": {
+        "aria_governed": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [
+              "FEAT_0039",
+              "FEAT_0100",
+              "FEAT_0106",
+              "FEAT_0111",
+              "FEAT_0119",
+              "FEAT_0144",
+              "FEAT_0166",
+              "FEAT_0191",
+              "FEAT_0197",
+              "FEAT_0200"
+            ],
+            "up": [
+              "FEAT_0001",
+              "FEAT_0007",
+              "FEAT_0076",
+              "FEAT_0081",
+              "FEAT_0103",
+              "FEAT_0104",
+              "FEAT_0139",
+              "FEAT_0159",
+              "FEAT_0184",
+              "FEAT_0188"
+            ]
+          },
+          "decision_digest": "b3b96e9a99606e420fee3c9e5b489d3091e519b1f7ccc1f7ba1ec85c1a0e168c",
+          "evidence": {
+            "design_contract": {
+              "condition_col": "condition",
+              "covariates": [
+                "batch"
+              ],
+              "replicate_col": "sample"
+            },
+            "design_validation": {
+              "blocking_checks": [],
+              "confounded_covariates": [],
+              "status": "clean"
+            },
+            "moderated_df": 9,
+            "n_significant": 20
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "aria_locked_manifest": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [
+              "FEAT_0039",
+              "FEAT_0100",
+              "FEAT_0106",
+              "FEAT_0111",
+              "FEAT_0119",
+              "FEAT_0144",
+              "FEAT_0166",
+              "FEAT_0191",
+              "FEAT_0197",
+              "FEAT_0200"
+            ],
+            "up": [
+              "FEAT_0001",
+              "FEAT_0007",
+              "FEAT_0076",
+              "FEAT_0081",
+              "FEAT_0103",
+              "FEAT_0104",
+              "FEAT_0139",
+              "FEAT_0159",
+              "FEAT_0184",
+              "FEAT_0188"
+            ]
+          },
+          "decision_digest": "b3b96e9a99606e420fee3c9e5b489d3091e519b1f7ccc1f7ba1ec85c1a0e168c",
+          "evidence": {
+            "design_contract": {
+              "condition_col": "condition",
+              "covariates": [
+                "batch"
+              ],
+              "replicate_col": "sample"
+            },
+            "design_validation": {
+              "blocking_checks": [],
+              "confounded_covariates": [],
+              "status": "clean"
+            },
+            "moderated_df": 9,
+            "n_significant": 20
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "aria_zero_llm_deterministic": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [
+              "FEAT_0039",
+              "FEAT_0100",
+              "FEAT_0106",
+              "FEAT_0111",
+              "FEAT_0119",
+              "FEAT_0144",
+              "FEAT_0166",
+              "FEAT_0191",
+              "FEAT_0197",
+              "FEAT_0200"
+            ],
+            "up": [
+              "FEAT_0001",
+              "FEAT_0007",
+              "FEAT_0076",
+              "FEAT_0081",
+              "FEAT_0103",
+              "FEAT_0104",
+              "FEAT_0139",
+              "FEAT_0159",
+              "FEAT_0184",
+              "FEAT_0188"
+            ]
+          },
+          "decision_digest": "b3b96e9a99606e420fee3c9e5b489d3091e519b1f7ccc1f7ba1ec85c1a0e168c",
+          "evidence": {
+            "design_contract": {
+              "condition_col": "condition",
+              "covariates": [
+                "batch"
+              ],
+              "replicate_col": "sample"
+            },
+            "design_validation": {
+              "blocking_checks": [],
+              "confounded_covariates": [],
+              "status": "clean"
+            },
+            "moderated_df": 9,
+            "n_significant": 20
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "uncontracted_codeact_baseline": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [
+              "FEAT_0100",
+              "FEAT_0106",
+              "FEAT_0119",
+              "FEAT_0144",
+              "FEAT_0166",
+              "FEAT_0200"
+            ],
+            "up": [
+              "FEAT_0001",
+              "FEAT_0007",
+              "FEAT_0076",
+              "FEAT_0081",
+              "FEAT_0103",
+              "FEAT_0104",
+              "FEAT_0139",
+              "FEAT_0184",
+              "FEAT_0188"
+            ]
+          },
+          "decision_digest": "fc7cb1a694260d1f109942b6e429995c080e65841ea50c96fd6e442182327899",
+          "evidence": {
+            "method": "welch_t_ignoring_batch_and_units",
+            "n_significant": 15
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        }
+      },
+      "capsule_id": "A1-06",
+      "decision_manifest_sha256": "0b1b1c43252f7de61a92680b3ddc4f691d660ff0ec816c2f9eb0195af6e57de1",
+      "expected": {
+        "decision": "answer",
+        "down": [
+          "FEAT_0039",
+          "FEAT_0100",
+          "FEAT_0106",
+          "FEAT_0111",
+          "FEAT_0119",
+          "FEAT_0144",
+          "FEAT_0166",
+          "FEAT_0191",
+          "FEAT_0197",
+          "FEAT_0200"
+        ],
+        "up": [
+          "FEAT_0001",
+          "FEAT_0007",
+          "FEAT_0076",
+          "FEAT_0081",
+          "FEAT_0103",
+          "FEAT_0104",
+          "FEAT_0139",
+          "FEAT_0159",
+          "FEAT_0184",
+          "FEAT_0188"
+        ]
+      },
+      "input_fingerprint": "dff9920882a0d4b88fe1d6c6d8672a4aaed76126076989f2af1d242039d00830",
+      "question": "Which features are differentially expressed between TREATED and CONTROL (4v4, batch-balanced)?",
+      "seed": 491088,
+      "should_abstain": false,
+      "supported_by_native_contract": true,
+      "variant": "batch_balanced_4v4"
+    },
+    {
+      "archetype": "design_and_confounding_governance",
+      "arms": {
+        "aria_governed": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [
+              "FEAT_0006",
+              "FEAT_0011",
+              "FEAT_0019",
+              "FEAT_0067",
+              "FEAT_0078",
+              "FEAT_0087",
+              "FEAT_0092",
+              "FEAT_0100",
+              "FEAT_0117",
+              "FEAT_0193"
+            ],
+            "up": [
+              "FEAT_0007",
+              "FEAT_0034",
+              "FEAT_0070",
+              "FEAT_0093",
+              "FEAT_0137",
+              "FEAT_0146",
+              "FEAT_0158",
+              "FEAT_0167",
+              "FEAT_0194",
+              "FEAT_0198"
+            ]
+          },
+          "decision_digest": "d888755f4530590abced976b955210bb0183f95b3557c4417e5eecf474ca233a",
+          "evidence": {
+            "design_contract": {
+              "condition_col": "condition",
+              "covariates": [
+                "batch",
+                "sex"
+              ],
+              "replicate_col": "sample"
+            },
+            "design_validation": {
+              "blocking_checks": [],
+              "confounded_covariates": [],
+              "status": "warnings"
+            },
+            "moderated_df": 8,
+            "n_significant": 20
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "aria_locked_manifest": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [
+              "FEAT_0006",
+              "FEAT_0011",
+              "FEAT_0019",
+              "FEAT_0067",
+              "FEAT_0078",
+              "FEAT_0087",
+              "FEAT_0092",
+              "FEAT_0100",
+              "FEAT_0117",
+              "FEAT_0193"
+            ],
+            "up": [
+              "FEAT_0007",
+              "FEAT_0034",
+              "FEAT_0070",
+              "FEAT_0093",
+              "FEAT_0137",
+              "FEAT_0146",
+              "FEAT_0158",
+              "FEAT_0167",
+              "FEAT_0194",
+              "FEAT_0198"
+            ]
+          },
+          "decision_digest": "d888755f4530590abced976b955210bb0183f95b3557c4417e5eecf474ca233a",
+          "evidence": {
+            "design_contract": {
+              "condition_col": "condition",
+              "covariates": [
+                "batch",
+                "sex"
+              ],
+              "replicate_col": "sample"
+            },
+            "design_validation": {
+              "blocking_checks": [],
+              "confounded_covariates": [],
+              "status": "warnings"
+            },
+            "moderated_df": 8,
+            "n_significant": 20
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "aria_zero_llm_deterministic": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [
+              "FEAT_0006",
+              "FEAT_0011",
+              "FEAT_0019",
+              "FEAT_0067",
+              "FEAT_0078",
+              "FEAT_0087",
+              "FEAT_0092",
+              "FEAT_0100",
+              "FEAT_0117",
+              "FEAT_0193"
+            ],
+            "up": [
+              "FEAT_0007",
+              "FEAT_0034",
+              "FEAT_0070",
+              "FEAT_0093",
+              "FEAT_0137",
+              "FEAT_0146",
+              "FEAT_0158",
+              "FEAT_0167",
+              "FEAT_0194",
+              "FEAT_0198"
+            ]
+          },
+          "decision_digest": "d888755f4530590abced976b955210bb0183f95b3557c4417e5eecf474ca233a",
+          "evidence": {
+            "design_contract": {
+              "condition_col": "condition",
+              "covariates": [
+                "batch",
+                "sex"
+              ],
+              "replicate_col": "sample"
+            },
+            "design_validation": {
+              "blocking_checks": [],
+              "confounded_covariates": [],
+              "status": "warnings"
+            },
+            "moderated_df": 8,
+            "n_significant": 20
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "uncontracted_codeact_baseline": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [
+              "FEAT_0006",
+              "FEAT_0011",
+              "FEAT_0019",
+              "FEAT_0067",
+              "FEAT_0092",
+              "FEAT_0100",
+              "FEAT_0117"
+            ],
+            "up": [
+              "FEAT_0007",
+              "FEAT_0034",
+              "FEAT_0070",
+              "FEAT_0093",
+              "FEAT_0137",
+              "FEAT_0167"
+            ]
+          },
+          "decision_digest": "1c5b6c5cf16dc4a18374e3f239887fb677373e0e5c4b5ab213ab108659bf675a",
+          "evidence": {
+            "method": "welch_t_ignoring_batch_and_units",
+            "n_significant": 13
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        }
+      },
+      "capsule_id": "A1-07",
+      "decision_manifest_sha256": "315ec337e0b0b83a8bcc8be47d089c023a0869c264248b481094e11d5d00907e",
+      "expected": {
+        "decision": "answer",
+        "down": [
+          "FEAT_0006",
+          "FEAT_0011",
+          "FEAT_0019",
+          "FEAT_0067",
+          "FEAT_0078",
+          "FEAT_0087",
+          "FEAT_0092",
+          "FEAT_0100",
+          "FEAT_0117",
+          "FEAT_0193"
+        ],
+        "up": [
+          "FEAT_0007",
+          "FEAT_0034",
+          "FEAT_0070",
+          "FEAT_0093",
+          "FEAT_0137",
+          "FEAT_0146",
+          "FEAT_0158",
+          "FEAT_0167",
+          "FEAT_0194",
+          "FEAT_0198"
+        ]
+      },
+      "input_fingerprint": "b856423756e7d7e219931c2b7b5337af8ab7c19c59ff0d431824ae73bbfa5660",
+      "question": "Which features are differentially expressed between TREATED and CONTROL (4v4, batch-balanced, sex-balanced)?",
+      "seed": 491089,
+      "should_abstain": false,
+      "supported_by_native_contract": true,
+      "variant": "multifactorial_batch_balanced_4v4"
+    },
+    {
+      "archetype": "design_and_confounding_governance",
+      "arms": {
+        "aria_governed": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [
+              "FEAT_0005",
+              "FEAT_0024",
+              "FEAT_0028",
+              "FEAT_0082",
+              "FEAT_0085",
+              "FEAT_0089",
+              "FEAT_0114",
+              "FEAT_0147",
+              "FEAT_0153",
+              "FEAT_0178"
+            ],
+            "up": [
+              "FEAT_0032",
+              "FEAT_0039",
+              "FEAT_0052",
+              "FEAT_0081",
+              "FEAT_0128",
+              "FEAT_0140",
+              "FEAT_0158",
+              "FEAT_0177",
+              "FEAT_0189",
+              "FEAT_0200"
+            ]
+          },
+          "decision_digest": "04fc220255dd2ba6c1331fdd9f5206b1ee0f2de24496c471d2ce3202c94196b6",
+          "evidence": {
+            "design_contract": {
+              "condition_col": "condition",
+              "covariates": [
+                "batch",
+                "sex"
+              ],
+              "replicate_col": "sample"
+            },
+            "design_validation": {
+              "blocking_checks": [],
+              "confounded_covariates": [],
+              "status": "warnings"
+            },
+            "moderated_df": 8,
+            "n_significant": 20
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "aria_locked_manifest": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [
+              "FEAT_0005",
+              "FEAT_0024",
+              "FEAT_0028",
+              "FEAT_0082",
+              "FEAT_0085",
+              "FEAT_0089",
+              "FEAT_0114",
+              "FEAT_0147",
+              "FEAT_0153",
+              "FEAT_0178"
+            ],
+            "up": [
+              "FEAT_0032",
+              "FEAT_0039",
+              "FEAT_0052",
+              "FEAT_0081",
+              "FEAT_0128",
+              "FEAT_0140",
+              "FEAT_0158",
+              "FEAT_0177",
+              "FEAT_0189",
+              "FEAT_0200"
+            ]
+          },
+          "decision_digest": "04fc220255dd2ba6c1331fdd9f5206b1ee0f2de24496c471d2ce3202c94196b6",
+          "evidence": {
+            "design_contract": {
+              "condition_col": "condition",
+              "covariates": [
+                "batch",
+                "sex"
+              ],
+              "replicate_col": "sample"
+            },
+            "design_validation": {
+              "blocking_checks": [],
+              "confounded_covariates": [],
+              "status": "warnings"
+            },
+            "moderated_df": 8,
+            "n_significant": 20
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "aria_zero_llm_deterministic": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [
+              "FEAT_0005",
+              "FEAT_0024",
+              "FEAT_0028",
+              "FEAT_0082",
+              "FEAT_0085",
+              "FEAT_0089",
+              "FEAT_0114",
+              "FEAT_0147",
+              "FEAT_0153",
+              "FEAT_0178"
+            ],
+            "up": [
+              "FEAT_0032",
+              "FEAT_0039",
+              "FEAT_0052",
+              "FEAT_0081",
+              "FEAT_0128",
+              "FEAT_0140",
+              "FEAT_0158",
+              "FEAT_0177",
+              "FEAT_0189",
+              "FEAT_0200"
+            ]
+          },
+          "decision_digest": "04fc220255dd2ba6c1331fdd9f5206b1ee0f2de24496c471d2ce3202c94196b6",
+          "evidence": {
+            "design_contract": {
+              "condition_col": "condition",
+              "covariates": [
+                "batch",
+                "sex"
+              ],
+              "replicate_col": "sample"
+            },
+            "design_validation": {
+              "blocking_checks": [],
+              "confounded_covariates": [],
+              "status": "warnings"
+            },
+            "moderated_df": 8,
+            "n_significant": 20
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "uncontracted_codeact_baseline": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [
+              "FEAT_0005",
+              "FEAT_0028",
+              "FEAT_0082",
+              "FEAT_0085",
+              "FEAT_0147",
+              "FEAT_0153",
+              "FEAT_0178"
+            ],
+            "up": [
+              "FEAT_0039",
+              "FEAT_0128",
+              "FEAT_0140",
+              "FEAT_0177",
+              "FEAT_0189",
+              "FEAT_0200"
+            ]
+          },
+          "decision_digest": "3ef0e3b981230b0e231fdda8e00b8b8b642c419c3d530400076e69b8cd1b9ea5",
+          "evidence": {
+            "method": "welch_t_ignoring_batch_and_units",
+            "n_significant": 13
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        }
+      },
+      "capsule_id": "A1-08",
+      "decision_manifest_sha256": "4573c7b936899ef9189388044d5c1564aa36225f37ac0458a826f3693389eba5",
+      "expected": {
+        "decision": "answer",
+        "down": [
+          "FEAT_0005",
+          "FEAT_0024",
+          "FEAT_0028",
+          "FEAT_0082",
+          "FEAT_0085",
+          "FEAT_0089",
+          "FEAT_0114",
+          "FEAT_0147",
+          "FEAT_0153",
+          "FEAT_0178"
+        ],
+        "up": [
+          "FEAT_0032",
+          "FEAT_0039",
+          "FEAT_0052",
+          "FEAT_0081",
+          "FEAT_0128",
+          "FEAT_0140",
+          "FEAT_0158",
+          "FEAT_0177",
+          "FEAT_0189",
+          "FEAT_0200"
+        ]
+      },
+      "input_fingerprint": "93483f477e90472cd0d948a838045f8dd38c90df385eeedd5ac4e260b67a8d37",
+      "question": "Which features are differentially expressed between TREATED and CONTROL (4v4, batch-balanced, sex-balanced)?",
+      "seed": 491090,
+      "should_abstain": false,
+      "supported_by_native_contract": true,
+      "variant": "multifactorial_batch_balanced_4v4"
+    },
+    {
+      "archetype": "donor_pseudobulk_vs_cell_pseudoreplication",
+      "arms": {
+        "aria_governed": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [],
+            "up": []
+          },
+          "decision_digest": "c454a84e638f7a55c1cc31d8cdbce106017a45ad4356869cbbaf3929d834c78e",
+          "evidence": {
+            "biological_unit": "donor",
+            "design_validation": "clean",
+            "n_cells": 480,
+            "n_significant": 0,
+            "n_significant_single_unit_driven": 0,
+            "n_units": 6,
+            "normalization": "spikein_or_external_size_factor_log2",
+            "variance_moderation": "empirical_bayes_smyth2004"
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "aria_locked_manifest": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [],
+            "up": []
+          },
+          "decision_digest": "c454a84e638f7a55c1cc31d8cdbce106017a45ad4356869cbbaf3929d834c78e",
+          "evidence": {
+            "biological_unit": "donor",
+            "design_validation": "clean",
+            "n_cells": 480,
+            "n_significant": 0,
+            "n_significant_single_unit_driven": 0,
+            "n_units": 6,
+            "normalization": "spikein_or_external_size_factor_log2",
+            "variance_moderation": "empirical_bayes_smyth2004"
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "aria_zero_llm_deterministic": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [],
+            "up": []
+          },
+          "decision_digest": "c454a84e638f7a55c1cc31d8cdbce106017a45ad4356869cbbaf3929d834c78e",
+          "evidence": {
+            "biological_unit": "donor",
+            "design_validation": "clean",
+            "n_cells": 480,
+            "n_significant": 0,
+            "n_significant_single_unit_driven": 0,
+            "n_units": 6,
+            "normalization": "spikein_or_external_size_factor_log2",
+            "variance_moderation": "empirical_bayes_smyth2004"
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "uncontracted_codeact_baseline": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [
+              "FEAT_0003",
+              "FEAT_0009",
+              "FEAT_0014",
+              "FEAT_0015",
+              "FEAT_0021",
+              "FEAT_0022",
+              "FEAT_0027",
+              "FEAT_0028",
+              "FEAT_0030",
+              "FEAT_0038",
+              "FEAT_0043",
+              "FEAT_0044",
+              "FEAT_0048",
+              "FEAT_0062",
+              "FEAT_0065",
+              "FEAT_0069",
+              "FEAT_0071",
+              "FEAT_0074",
+              "FEAT_0078",
+              "FEAT_0083",
+              "FEAT_0095",
+              "FEAT_0096"
+            ],
+            "up": [
+              "FEAT_0001",
+              "FEAT_0005",
+              "FEAT_0006",
+              "FEAT_0008",
+              "FEAT_0010",
+              "FEAT_0012",
+              "FEAT_0019",
+              "FEAT_0025",
+              "FEAT_0034",
+              "FEAT_0036",
+              "FEAT_0045",
+              "FEAT_0046",
+              "FEAT_0051",
+              "FEAT_0052",
+              "FEAT_0053",
+              "FEAT_0057",
+              "FEAT_0058",
+              "FEAT_0059",
+              "FEAT_0060",
+              "FEAT_0066",
+              "FEAT_0067",
+              "FEAT_0072",
+              "FEAT_0077",
+              "FEAT_0079",
+              "FEAT_0086",
+              "FEAT_0087",
+              "FEAT_0092",
+              "FEAT_0093",
+              "FEAT_0097"
+            ]
+          },
+          "decision_digest": "5a3e74773ac5103a5f1746d59f5f64deb12e8c065ea0f0b491b41a89bce5c5a3",
+          "evidence": {
+            "method": "cell_level_ranksums_cells_as_replicates",
+            "n_cells_tested": 480,
+            "n_significant": 51
+          },
+          "is_correct": false,
+          "outcome": "confident_wrong"
+        }
+      },
+      "capsule_id": "A2-01",
+      "decision_manifest_sha256": "77360552e53033457744a73e2590feafef8802a202bb7f01ffb95830d859911b",
+      "expected": {
+        "decision": "answer",
+        "down": [],
+        "up": []
+      },
+      "input_fingerprint": "8ef1a6b6d6005fece2c4a8dd50c71dd376232ffdaa50ec7e4f33d1b775e4c988",
+      "question": "Which features are differentially expressed between TREATED and CONTROL in this 3v3-donor single-cell cohort (480 cells)?",
+      "seed": 492083,
+      "should_abstain": false,
+      "supported_by_native_contract": true,
+      "variant": "null_donor_variance_3v3"
+    },
+    {
+      "archetype": "donor_pseudobulk_vs_cell_pseudoreplication",
+      "arms": {
+        "aria_governed": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [],
+            "up": []
+          },
+          "decision_digest": "c454a84e638f7a55c1cc31d8cdbce106017a45ad4356869cbbaf3929d834c78e",
+          "evidence": {
+            "biological_unit": "donor",
+            "design_validation": "clean",
+            "n_cells": 480,
+            "n_significant": 0,
+            "n_significant_single_unit_driven": 0,
+            "n_units": 6,
+            "normalization": "spikein_or_external_size_factor_log2",
+            "variance_moderation": "empirical_bayes_smyth2004"
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "aria_locked_manifest": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [],
+            "up": []
+          },
+          "decision_digest": "c454a84e638f7a55c1cc31d8cdbce106017a45ad4356869cbbaf3929d834c78e",
+          "evidence": {
+            "biological_unit": "donor",
+            "design_validation": "clean",
+            "n_cells": 480,
+            "n_significant": 0,
+            "n_significant_single_unit_driven": 0,
+            "n_units": 6,
+            "normalization": "spikein_or_external_size_factor_log2",
+            "variance_moderation": "empirical_bayes_smyth2004"
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "aria_zero_llm_deterministic": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [],
+            "up": []
+          },
+          "decision_digest": "c454a84e638f7a55c1cc31d8cdbce106017a45ad4356869cbbaf3929d834c78e",
+          "evidence": {
+            "biological_unit": "donor",
+            "design_validation": "clean",
+            "n_cells": 480,
+            "n_significant": 0,
+            "n_significant_single_unit_driven": 0,
+            "n_units": 6,
+            "normalization": "spikein_or_external_size_factor_log2",
+            "variance_moderation": "empirical_bayes_smyth2004"
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "uncontracted_codeact_baseline": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [
+              "FEAT_0003",
+              "FEAT_0007",
+              "FEAT_0009",
+              "FEAT_0015",
+              "FEAT_0019",
+              "FEAT_0025",
+              "FEAT_0026",
+              "FEAT_0029",
+              "FEAT_0033",
+              "FEAT_0040",
+              "FEAT_0043",
+              "FEAT_0061",
+              "FEAT_0066",
+              "FEAT_0076",
+              "FEAT_0079",
+              "FEAT_0082",
+              "FEAT_0083",
+              "FEAT_0093",
+              "FEAT_0094",
+              "FEAT_0100"
+            ],
+            "up": [
+              "FEAT_0002",
+              "FEAT_0006",
+              "FEAT_0012",
+              "FEAT_0013",
+              "FEAT_0014",
+              "FEAT_0017",
+              "FEAT_0018",
+              "FEAT_0020",
+              "FEAT_0021",
+              "FEAT_0023",
+              "FEAT_0028",
+              "FEAT_0031",
+              "FEAT_0034",
+              "FEAT_0035",
+              "FEAT_0037",
+              "FEAT_0039",
+              "FEAT_0042",
+              "FEAT_0048",
+              "FEAT_0049",
+              "FEAT_0051",
+              "FEAT_0053",
+              "FEAT_0058",
+              "FEAT_0062",
+              "FEAT_0063",
+              "FEAT_0071",
+              "FEAT_0078",
+              "FEAT_0084",
+              "FEAT_0085",
+              "FEAT_0089",
+              "FEAT_0091",
+              "FEAT_0098"
+            ]
+          },
+          "decision_digest": "262961fda0a7d5527e65ce53f673d3adec5547e7a9e478c25e2e1260b1dc0b4e",
+          "evidence": {
+            "method": "cell_level_ranksums_cells_as_replicates",
+            "n_cells_tested": 480,
+            "n_significant": 51
+          },
+          "is_correct": false,
+          "outcome": "confident_wrong"
+        }
+      },
+      "capsule_id": "A2-02",
+      "decision_manifest_sha256": "64b9e0e5a9c0ab9a773f06dc2a4e277bd4c1e294a33fa904518a984f4ff603ff",
+      "expected": {
+        "decision": "answer",
+        "down": [],
+        "up": []
+      },
+      "input_fingerprint": "aca8cc0c5b990767f501fd8626582b5f3c330773b04b4da30af2f196bf55b5f9",
+      "question": "Which features are differentially expressed between TREATED and CONTROL in this 3v3-donor single-cell cohort (480 cells)?",
+      "seed": 492084,
+      "should_abstain": false,
+      "supported_by_native_contract": true,
+      "variant": "null_donor_variance_3v3"
+    },
+    {
+      "archetype": "donor_pseudobulk_vs_cell_pseudoreplication",
+      "arms": {
+        "aria_governed": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [],
+            "up": []
+          },
+          "decision_digest": "c454a84e638f7a55c1cc31d8cdbce106017a45ad4356869cbbaf3929d834c78e",
+          "evidence": {
+            "biological_unit": "donor",
+            "design_validation": "clean",
+            "n_cells": 640,
+            "n_significant": 0,
+            "n_significant_single_unit_driven": 0,
+            "n_units": 8,
+            "normalization": "spikein_or_external_size_factor_log2",
+            "variance_moderation": "empirical_bayes_smyth2004"
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "aria_locked_manifest": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [],
+            "up": []
+          },
+          "decision_digest": "c454a84e638f7a55c1cc31d8cdbce106017a45ad4356869cbbaf3929d834c78e",
+          "evidence": {
+            "biological_unit": "donor",
+            "design_validation": "clean",
+            "n_cells": 640,
+            "n_significant": 0,
+            "n_significant_single_unit_driven": 0,
+            "n_units": 8,
+            "normalization": "spikein_or_external_size_factor_log2",
+            "variance_moderation": "empirical_bayes_smyth2004"
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "aria_zero_llm_deterministic": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [],
+            "up": []
+          },
+          "decision_digest": "c454a84e638f7a55c1cc31d8cdbce106017a45ad4356869cbbaf3929d834c78e",
+          "evidence": {
+            "biological_unit": "donor",
+            "design_validation": "clean",
+            "n_cells": 640,
+            "n_significant": 0,
+            "n_significant_single_unit_driven": 0,
+            "n_units": 8,
+            "normalization": "spikein_or_external_size_factor_log2",
+            "variance_moderation": "empirical_bayes_smyth2004"
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "uncontracted_codeact_baseline": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [
+              "FEAT_0004",
+              "FEAT_0007",
+              "FEAT_0017",
+              "FEAT_0020",
+              "FEAT_0021",
+              "FEAT_0026",
+              "FEAT_0027",
+              "FEAT_0030",
+              "FEAT_0031",
+              "FEAT_0032",
+              "FEAT_0037",
+              "FEAT_0039",
+              "FEAT_0046",
+              "FEAT_0050",
+              "FEAT_0059",
+              "FEAT_0064",
+              "FEAT_0070",
+              "FEAT_0072",
+              "FEAT_0075",
+              "FEAT_0080",
+              "FEAT_0084"
+            ],
+            "up": [
+              "FEAT_0003",
+              "FEAT_0006",
+              "FEAT_0008",
+              "FEAT_0009",
+              "FEAT_0013",
+              "FEAT_0028",
+              "FEAT_0029",
+              "FEAT_0035",
+              "FEAT_0041",
+              "FEAT_0048",
+              "FEAT_0051",
+              "FEAT_0052",
+              "FEAT_0053",
+              "FEAT_0055",
+              "FEAT_0058",
+              "FEAT_0065",
+              "FEAT_0071",
+              "FEAT_0076",
+              "FEAT_0079",
+              "FEAT_0082",
+              "FEAT_0085",
+              "FEAT_0087",
+              "FEAT_0095",
+              "FEAT_0097",
+              "FEAT_0098",
+              "FEAT_0100"
+            ]
+          },
+          "decision_digest": "0ef11adc8ecfc5ce5afe4afa7534cd56f1f89267359b4942cce31c76265f5f61",
+          "evidence": {
+            "method": "cell_level_ranksums_cells_as_replicates",
+            "n_cells_tested": 640,
+            "n_significant": 47
+          },
+          "is_correct": false,
+          "outcome": "confident_wrong"
+        }
+      },
+      "capsule_id": "A2-03",
+      "decision_manifest_sha256": "a588dca29b99d77b185e385189c5b73b684631a016253b581ea96014f48c2d5f",
+      "expected": {
+        "decision": "answer",
+        "down": [],
+        "up": []
+      },
+      "input_fingerprint": "75367ac9e30e11597017e15cce0faf49fb3d0c007a4a2e2b078559ae958782bb",
+      "question": "Which features are differentially expressed between TREATED and CONTROL in this 4v4-donor single-cell cohort (640 cells)?",
+      "seed": 492085,
+      "should_abstain": false,
+      "supported_by_native_contract": true,
+      "variant": "null_donor_variance_4v4"
+    },
+    {
+      "archetype": "donor_pseudobulk_vs_cell_pseudoreplication",
+      "arms": {
+        "aria_governed": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [],
+            "up": []
+          },
+          "decision_digest": "c454a84e638f7a55c1cc31d8cdbce106017a45ad4356869cbbaf3929d834c78e",
+          "evidence": {
+            "biological_unit": "donor",
+            "design_validation": "clean",
+            "n_cells": 640,
+            "n_significant": 0,
+            "n_significant_single_unit_driven": 0,
+            "n_units": 8,
+            "normalization": "spikein_or_external_size_factor_log2",
+            "variance_moderation": "empirical_bayes_smyth2004"
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "aria_locked_manifest": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [],
+            "up": []
+          },
+          "decision_digest": "c454a84e638f7a55c1cc31d8cdbce106017a45ad4356869cbbaf3929d834c78e",
+          "evidence": {
+            "biological_unit": "donor",
+            "design_validation": "clean",
+            "n_cells": 640,
+            "n_significant": 0,
+            "n_significant_single_unit_driven": 0,
+            "n_units": 8,
+            "normalization": "spikein_or_external_size_factor_log2",
+            "variance_moderation": "empirical_bayes_smyth2004"
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "aria_zero_llm_deterministic": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [],
+            "up": []
+          },
+          "decision_digest": "c454a84e638f7a55c1cc31d8cdbce106017a45ad4356869cbbaf3929d834c78e",
+          "evidence": {
+            "biological_unit": "donor",
+            "design_validation": "clean",
+            "n_cells": 640,
+            "n_significant": 0,
+            "n_significant_single_unit_driven": 0,
+            "n_units": 8,
+            "normalization": "spikein_or_external_size_factor_log2",
+            "variance_moderation": "empirical_bayes_smyth2004"
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "uncontracted_codeact_baseline": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [
+              "FEAT_0007",
+              "FEAT_0010",
+              "FEAT_0014",
+              "FEAT_0021",
+              "FEAT_0028",
+              "FEAT_0029",
+              "FEAT_0030",
+              "FEAT_0032",
+              "FEAT_0034",
+              "FEAT_0035",
+              "FEAT_0037",
+              "FEAT_0041",
+              "FEAT_0048",
+              "FEAT_0059",
+              "FEAT_0060",
+              "FEAT_0071",
+              "FEAT_0073",
+              "FEAT_0084",
+              "FEAT_0087",
+              "FEAT_0092",
+              "FEAT_0094",
+              "FEAT_0096",
+              "FEAT_0098",
+              "FEAT_0099",
+              "FEAT_0100"
+            ],
+            "up": [
+              "FEAT_0002",
+              "FEAT_0005",
+              "FEAT_0012",
+              "FEAT_0013",
+              "FEAT_0015",
+              "FEAT_0020",
+              "FEAT_0025",
+              "FEAT_0036",
+              "FEAT_0040",
+              "FEAT_0043",
+              "FEAT_0045",
+              "FEAT_0047",
+              "FEAT_0049",
+              "FEAT_0050",
+              "FEAT_0054",
+              "FEAT_0068",
+              "FEAT_0070",
+              "FEAT_0074",
+              "FEAT_0078",
+              "FEAT_0079",
+              "FEAT_0080",
+              "FEAT_0088",
+              "FEAT_0089",
+              "FEAT_0095"
+            ]
+          },
+          "decision_digest": "9d70860a5df41975221ae3fc43dfedfeaa407fc6d707ef8b8afa8f549a88f796",
+          "evidence": {
+            "method": "cell_level_ranksums_cells_as_replicates",
+            "n_cells_tested": 640,
+            "n_significant": 49
+          },
+          "is_correct": false,
+          "outcome": "confident_wrong"
+        }
+      },
+      "capsule_id": "A2-04",
+      "decision_manifest_sha256": "7e393b9f34f9843cc151ed4706d12948e5e063af5bf1846fa2e5282d89d036ac",
+      "expected": {
+        "decision": "answer",
+        "down": [],
+        "up": []
+      },
+      "input_fingerprint": "c8d9c09273c90b1589b5af04ee618fb40870e3a52e5dc35679946dc37c398443",
+      "question": "Which features are differentially expressed between TREATED and CONTROL in this 4v4-donor single-cell cohort (640 cells)?",
+      "seed": 492086,
+      "should_abstain": false,
+      "supported_by_native_contract": true,
+      "variant": "null_donor_variance_4v4"
+    },
+    {
+      "archetype": "donor_pseudobulk_vs_cell_pseudoreplication",
+      "arms": {
+        "aria_governed": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [
+              "FEAT_0017",
+              "FEAT_0030",
+              "FEAT_0039",
+              "FEAT_0097"
+            ],
+            "up": [
+              "FEAT_0018",
+              "FEAT_0032",
+              "FEAT_0056",
+              "FEAT_0075",
+              "FEAT_0079"
+            ]
+          },
+          "decision_digest": "b02deb4f38efef05b4fb7cd7733342519f074bef959f93e2eaba08a5643356cc",
+          "evidence": {
+            "biological_unit": "donor",
+            "design_validation": "clean",
+            "n_cells": 640,
+            "n_significant": 9,
+            "n_significant_single_unit_driven": 3,
+            "n_units": 8,
+            "normalization": "spikein_or_external_size_factor_log2",
+            "variance_moderation": "empirical_bayes_smyth2004"
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "aria_locked_manifest": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [
+              "FEAT_0017",
+              "FEAT_0030",
+              "FEAT_0039",
+              "FEAT_0097"
+            ],
+            "up": [
+              "FEAT_0018",
+              "FEAT_0032",
+              "FEAT_0056",
+              "FEAT_0075",
+              "FEAT_0079"
+            ]
+          },
+          "decision_digest": "b02deb4f38efef05b4fb7cd7733342519f074bef959f93e2eaba08a5643356cc",
+          "evidence": {
+            "biological_unit": "donor",
+            "design_validation": "clean",
+            "n_cells": 640,
+            "n_significant": 9,
+            "n_significant_single_unit_driven": 3,
+            "n_units": 8,
+            "normalization": "spikein_or_external_size_factor_log2",
+            "variance_moderation": "empirical_bayes_smyth2004"
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "aria_zero_llm_deterministic": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [
+              "FEAT_0017",
+              "FEAT_0030",
+              "FEAT_0039",
+              "FEAT_0097"
+            ],
+            "up": [
+              "FEAT_0018",
+              "FEAT_0032",
+              "FEAT_0056",
+              "FEAT_0075",
+              "FEAT_0079"
+            ]
+          },
+          "decision_digest": "b02deb4f38efef05b4fb7cd7733342519f074bef959f93e2eaba08a5643356cc",
+          "evidence": {
+            "biological_unit": "donor",
+            "design_validation": "clean",
+            "n_cells": 640,
+            "n_significant": 9,
+            "n_significant_single_unit_driven": 3,
+            "n_units": 8,
+            "normalization": "spikein_or_external_size_factor_log2",
+            "variance_moderation": "empirical_bayes_smyth2004"
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "uncontracted_codeact_baseline": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [
+              "FEAT_0003",
+              "FEAT_0004",
+              "FEAT_0007",
+              "FEAT_0008",
+              "FEAT_0011",
+              "FEAT_0015",
+              "FEAT_0017",
+              "FEAT_0024",
+              "FEAT_0026",
+              "FEAT_0027",
+              "FEAT_0030",
+              "FEAT_0033",
+              "FEAT_0034",
+              "FEAT_0035",
+              "FEAT_0036",
+              "FEAT_0037",
+              "FEAT_0038",
+              "FEAT_0039",
+              "FEAT_0040",
+              "FEAT_0044",
+              "FEAT_0047",
+              "FEAT_0048",
+              "FEAT_0049",
+              "FEAT_0053",
+              "FEAT_0057",
+              "FEAT_0059",
+              "FEAT_0061",
+              "FEAT_0062",
+              "FEAT_0065",
+              "FEAT_0066",
+              "FEAT_0068",
+              "FEAT_0070",
+              "FEAT_0072",
+              "FEAT_0074",
+              "FEAT_0081",
+              "FEAT_0095",
+              "FEAT_0097",
+              "FEAT_0098",
+              "FEAT_0099"
+            ],
+            "up": [
+              "FEAT_0016",
+              "FEAT_0018",
+              "FEAT_0032",
+              "FEAT_0056",
+              "FEAT_0073",
+              "FEAT_0075",
+              "FEAT_0079",
+              "FEAT_0083",
+              "FEAT_0085",
+              "FEAT_0087",
+              "FEAT_0091",
+              "FEAT_0100"
+            ]
+          },
+          "decision_digest": "bca2c9723014925d26e5dd2bd0b8c3c605cef90d6b6d8b4f96c1ac432d858cb6",
+          "evidence": {
+            "method": "cell_level_ranksums_cells_as_replicates",
+            "n_cells_tested": 640,
+            "n_significant": 51
+          },
+          "is_correct": false,
+          "outcome": "confident_wrong"
+        }
+      },
+      "capsule_id": "A2-05",
+      "decision_manifest_sha256": "26188c1a5be015f5f5b9060dacb920a6cb73a9aaabae5c9c8e7cfafd208147ea",
+      "expected": {
+        "decision": "answer",
+        "down": [
+          "FEAT_0017",
+          "FEAT_0030",
+          "FEAT_0039",
+          "FEAT_0048",
+          "FEAT_0097"
+        ],
+        "up": [
+          "FEAT_0018",
+          "FEAT_0032",
+          "FEAT_0056",
+          "FEAT_0075",
+          "FEAT_0079"
+        ]
+      },
+      "input_fingerprint": "dd38d20909e350f1e02b10a4a0c0a1b5550ffefa63a8de07049173f68c36a70a",
+      "question": "Which features are differentially expressed between TREATED and CONTROL in this 4v4-donor single-cell cohort (640 cells)?",
+      "seed": 492087,
+      "should_abstain": false,
+      "supported_by_native_contract": true,
+      "variant": "planted_donor_consistent_4v4"
+    },
+    {
+      "archetype": "donor_pseudobulk_vs_cell_pseudoreplication",
+      "arms": {
+        "aria_governed": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [
+              "FEAT_0002",
+              "FEAT_0009",
+              "FEAT_0017",
+              "FEAT_0098",
+              "FEAT_0099"
+            ],
+            "up": [
+              "FEAT_0013",
+              "FEAT_0021",
+              "FEAT_0064",
+              "FEAT_0091"
+            ]
+          },
+          "decision_digest": "fa1a741e57b3815de4e7a5c65a90da0e2f030878ea91c7be0b15232f3f4bac37",
+          "evidence": {
+            "biological_unit": "donor",
+            "design_validation": "clean",
+            "n_cells": 640,
+            "n_significant": 9,
+            "n_significant_single_unit_driven": 1,
+            "n_units": 8,
+            "normalization": "spikein_or_external_size_factor_log2",
+            "variance_moderation": "empirical_bayes_smyth2004"
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "aria_locked_manifest": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [
+              "FEAT_0002",
+              "FEAT_0009",
+              "FEAT_0017",
+              "FEAT_0098",
+              "FEAT_0099"
+            ],
+            "up": [
+              "FEAT_0013",
+              "FEAT_0021",
+              "FEAT_0064",
+              "FEAT_0091"
+            ]
+          },
+          "decision_digest": "fa1a741e57b3815de4e7a5c65a90da0e2f030878ea91c7be0b15232f3f4bac37",
+          "evidence": {
+            "biological_unit": "donor",
+            "design_validation": "clean",
+            "n_cells": 640,
+            "n_significant": 9,
+            "n_significant_single_unit_driven": 1,
+            "n_units": 8,
+            "normalization": "spikein_or_external_size_factor_log2",
+            "variance_moderation": "empirical_bayes_smyth2004"
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "aria_zero_llm_deterministic": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [
+              "FEAT_0002",
+              "FEAT_0009",
+              "FEAT_0017",
+              "FEAT_0098",
+              "FEAT_0099"
+            ],
+            "up": [
+              "FEAT_0013",
+              "FEAT_0021",
+              "FEAT_0064",
+              "FEAT_0091"
+            ]
+          },
+          "decision_digest": "fa1a741e57b3815de4e7a5c65a90da0e2f030878ea91c7be0b15232f3f4bac37",
+          "evidence": {
+            "biological_unit": "donor",
+            "design_validation": "clean",
+            "n_cells": 640,
+            "n_significant": 9,
+            "n_significant_single_unit_driven": 1,
+            "n_units": 8,
+            "normalization": "spikein_or_external_size_factor_log2",
+            "variance_moderation": "empirical_bayes_smyth2004"
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "uncontracted_codeact_baseline": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [
+              "FEAT_0001",
+              "FEAT_0002",
+              "FEAT_0005",
+              "FEAT_0007",
+              "FEAT_0009",
+              "FEAT_0012",
+              "FEAT_0014",
+              "FEAT_0015",
+              "FEAT_0017",
+              "FEAT_0019",
+              "FEAT_0022",
+              "FEAT_0023",
+              "FEAT_0024",
+              "FEAT_0027",
+              "FEAT_0029",
+              "FEAT_0040",
+              "FEAT_0043",
+              "FEAT_0045",
+              "FEAT_0047",
+              "FEAT_0054",
+              "FEAT_0058",
+              "FEAT_0066",
+              "FEAT_0067",
+              "FEAT_0071",
+              "FEAT_0072",
+              "FEAT_0074",
+              "FEAT_0075",
+              "FEAT_0076",
+              "FEAT_0079",
+              "FEAT_0080",
+              "FEAT_0081",
+              "FEAT_0082",
+              "FEAT_0088",
+              "FEAT_0090",
+              "FEAT_0098",
+              "FEAT_0099",
+              "FEAT_0100"
+            ],
+            "up": [
+              "FEAT_0006",
+              "FEAT_0008",
+              "FEAT_0010",
+              "FEAT_0013",
+              "FEAT_0021",
+              "FEAT_0028",
+              "FEAT_0035",
+              "FEAT_0038",
+              "FEAT_0039",
+              "FEAT_0048",
+              "FEAT_0049",
+              "FEAT_0050",
+              "FEAT_0051",
+              "FEAT_0052",
+              "FEAT_0055",
+              "FEAT_0057",
+              "FEAT_0059",
+              "FEAT_0060",
+              "FEAT_0064",
+              "FEAT_0070",
+              "FEAT_0087",
+              "FEAT_0089",
+              "FEAT_0091",
+              "FEAT_0095"
+            ]
+          },
+          "decision_digest": "ba2b0a10438f5d0eb9af0688df0c723c409b4292f5a6be061aa7466871cd263b",
+          "evidence": {
+            "method": "cell_level_ranksums_cells_as_replicates",
+            "n_cells_tested": 640,
+            "n_significant": 61
+          },
+          "is_correct": false,
+          "outcome": "confident_wrong"
+        }
+      },
+      "capsule_id": "A2-06",
+      "decision_manifest_sha256": "416d8ec69224ff0062cc9679e55f3615f3245bffc79c20f38f7a11c5befefc08",
+      "expected": {
+        "decision": "answer",
+        "down": [
+          "FEAT_0002",
+          "FEAT_0009",
+          "FEAT_0017",
+          "FEAT_0098",
+          "FEAT_0099"
+        ],
+        "up": [
+          "FEAT_0013",
+          "FEAT_0021",
+          "FEAT_0049",
+          "FEAT_0064",
+          "FEAT_0091"
+        ]
+      },
+      "input_fingerprint": "591c0ec39af00e46d20b41eff574fa25a8c6d38b8a791487ce3fa9a49c1f9aa4",
+      "question": "Which features are differentially expressed between TREATED and CONTROL in this 4v4-donor single-cell cohort (640 cells)?",
+      "seed": 492088,
+      "should_abstain": false,
+      "supported_by_native_contract": true,
+      "variant": "planted_donor_consistent_4v4"
+    },
+    {
+      "archetype": "donor_pseudobulk_vs_cell_pseudoreplication",
+      "arms": {
+        "aria_governed": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [
+              "FEAT_0003",
+              "FEAT_0028",
+              "FEAT_0029",
+              "FEAT_0061"
+            ],
+            "up": [
+              "FEAT_0049",
+              "FEAT_0052",
+              "FEAT_0080",
+              "FEAT_0094",
+              "FEAT_0097"
+            ]
+          },
+          "decision_digest": "add198188260903ce81b3f4a12c3b103a80107424f0cd30e5389c057efc85f87",
+          "evidence": {
+            "biological_unit": "donor",
+            "design_validation": "clean",
+            "n_cells": 640,
+            "n_significant": 9,
+            "n_significant_single_unit_driven": 0,
+            "n_units": 8,
+            "normalization": "spikein_or_external_size_factor_log2",
+            "variance_moderation": "empirical_bayes_smyth2004"
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "aria_locked_manifest": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [
+              "FEAT_0003",
+              "FEAT_0028",
+              "FEAT_0029",
+              "FEAT_0061"
+            ],
+            "up": [
+              "FEAT_0049",
+              "FEAT_0052",
+              "FEAT_0080",
+              "FEAT_0094",
+              "FEAT_0097"
+            ]
+          },
+          "decision_digest": "add198188260903ce81b3f4a12c3b103a80107424f0cd30e5389c057efc85f87",
+          "evidence": {
+            "biological_unit": "donor",
+            "design_validation": "clean",
+            "n_cells": 640,
+            "n_significant": 9,
+            "n_significant_single_unit_driven": 0,
+            "n_units": 8,
+            "normalization": "spikein_or_external_size_factor_log2",
+            "variance_moderation": "empirical_bayes_smyth2004"
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "aria_zero_llm_deterministic": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [
+              "FEAT_0003",
+              "FEAT_0028",
+              "FEAT_0029",
+              "FEAT_0061"
+            ],
+            "up": [
+              "FEAT_0049",
+              "FEAT_0052",
+              "FEAT_0080",
+              "FEAT_0094",
+              "FEAT_0097"
+            ]
+          },
+          "decision_digest": "add198188260903ce81b3f4a12c3b103a80107424f0cd30e5389c057efc85f87",
+          "evidence": {
+            "biological_unit": "donor",
+            "design_validation": "clean",
+            "n_cells": 640,
+            "n_significant": 9,
+            "n_significant_single_unit_driven": 0,
+            "n_units": 8,
+            "normalization": "spikein_or_external_size_factor_log2",
+            "variance_moderation": "empirical_bayes_smyth2004"
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "uncontracted_codeact_baseline": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [
+              "FEAT_0002",
+              "FEAT_0003",
+              "FEAT_0005",
+              "FEAT_0007",
+              "FEAT_0009",
+              "FEAT_0013",
+              "FEAT_0015",
+              "FEAT_0018",
+              "FEAT_0020",
+              "FEAT_0023",
+              "FEAT_0024",
+              "FEAT_0025",
+              "FEAT_0026",
+              "FEAT_0028",
+              "FEAT_0029",
+              "FEAT_0030",
+              "FEAT_0035",
+              "FEAT_0036",
+              "FEAT_0037",
+              "FEAT_0041",
+              "FEAT_0044",
+              "FEAT_0045",
+              "FEAT_0046",
+              "FEAT_0050",
+              "FEAT_0054",
+              "FEAT_0055",
+              "FEAT_0061",
+              "FEAT_0062",
+              "FEAT_0065",
+              "FEAT_0069",
+              "FEAT_0071",
+              "FEAT_0072",
+              "FEAT_0075",
+              "FEAT_0076",
+              "FEAT_0077",
+              "FEAT_0078",
+              "FEAT_0083",
+              "FEAT_0084",
+              "FEAT_0086",
+              "FEAT_0087",
+              "FEAT_0088",
+              "FEAT_0092",
+              "FEAT_0093"
+            ],
+            "up": [
+              "FEAT_0043",
+              "FEAT_0049",
+              "FEAT_0051",
+              "FEAT_0052",
+              "FEAT_0056",
+              "FEAT_0060",
+              "FEAT_0064",
+              "FEAT_0068",
+              "FEAT_0079",
+              "FEAT_0080",
+              "FEAT_0094",
+              "FEAT_0097"
+            ]
+          },
+          "decision_digest": "52a89e19d3f653986666c0cda37ec7a7860e3c529a8b3659a662d209aea3e96e",
+          "evidence": {
+            "method": "cell_level_ranksums_cells_as_replicates",
+            "n_cells_tested": 640,
+            "n_significant": 55
+          },
+          "is_correct": false,
+          "outcome": "confident_wrong"
+        }
+      },
+      "capsule_id": "A2-07",
+      "decision_manifest_sha256": "71e721f8a804670ba743e1ac42b0bdda9552312622e1c88392e406f0ff52bf46",
+      "expected": {
+        "decision": "answer",
+        "down": [
+          "FEAT_0003",
+          "FEAT_0028",
+          "FEAT_0029",
+          "FEAT_0030",
+          "FEAT_0061"
+        ],
+        "up": [
+          "FEAT_0049",
+          "FEAT_0052",
+          "FEAT_0080",
+          "FEAT_0094",
+          "FEAT_0097"
+        ]
+      },
+      "input_fingerprint": "bc3ba20ac06b6f298a88742fca4c4e826c93c6e8c1aa013610391e19837c5445",
+      "question": "Which features are differentially expressed between TREATED and CONTROL in this 4v4-donor single-cell cohort (640 cells)?",
+      "seed": 492089,
+      "should_abstain": false,
+      "supported_by_native_contract": true,
+      "variant": "planted_donor_consistent_4v4"
+    },
+    {
+      "archetype": "donor_pseudobulk_vs_cell_pseudoreplication",
+      "arms": {
+        "aria_governed": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [
+              "FEAT_0014",
+              "FEAT_0037",
+              "FEAT_0040",
+              "FEAT_0079",
+              "FEAT_0099"
+            ],
+            "up": [
+              "FEAT_0019",
+              "FEAT_0023",
+              "FEAT_0034",
+              "FEAT_0038",
+              "FEAT_0078"
+            ]
+          },
+          "decision_digest": "956ba4ad37f1018696d262a0a8ced5956752fe44e580b630d1ca62680795b654",
+          "evidence": {
+            "biological_unit": "donor",
+            "design_validation": "clean",
+            "n_cells": 640,
+            "n_significant": 10,
+            "n_significant_single_unit_driven": 0,
+            "n_units": 8,
+            "normalization": "spikein_or_external_size_factor_log2",
+            "variance_moderation": "empirical_bayes_smyth2004"
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "aria_locked_manifest": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [
+              "FEAT_0014",
+              "FEAT_0037",
+              "FEAT_0040",
+              "FEAT_0079",
+              "FEAT_0099"
+            ],
+            "up": [
+              "FEAT_0019",
+              "FEAT_0023",
+              "FEAT_0034",
+              "FEAT_0038",
+              "FEAT_0078"
+            ]
+          },
+          "decision_digest": "956ba4ad37f1018696d262a0a8ced5956752fe44e580b630d1ca62680795b654",
+          "evidence": {
+            "biological_unit": "donor",
+            "design_validation": "clean",
+            "n_cells": 640,
+            "n_significant": 10,
+            "n_significant_single_unit_driven": 0,
+            "n_units": 8,
+            "normalization": "spikein_or_external_size_factor_log2",
+            "variance_moderation": "empirical_bayes_smyth2004"
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "aria_zero_llm_deterministic": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [
+              "FEAT_0014",
+              "FEAT_0037",
+              "FEAT_0040",
+              "FEAT_0079",
+              "FEAT_0099"
+            ],
+            "up": [
+              "FEAT_0019",
+              "FEAT_0023",
+              "FEAT_0034",
+              "FEAT_0038",
+              "FEAT_0078"
+            ]
+          },
+          "decision_digest": "956ba4ad37f1018696d262a0a8ced5956752fe44e580b630d1ca62680795b654",
+          "evidence": {
+            "biological_unit": "donor",
+            "design_validation": "clean",
+            "n_cells": 640,
+            "n_significant": 10,
+            "n_significant_single_unit_driven": 0,
+            "n_units": 8,
+            "normalization": "spikein_or_external_size_factor_log2",
+            "variance_moderation": "empirical_bayes_smyth2004"
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "uncontracted_codeact_baseline": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [
+              "FEAT_0005",
+              "FEAT_0006",
+              "FEAT_0010",
+              "FEAT_0011",
+              "FEAT_0014",
+              "FEAT_0015",
+              "FEAT_0018",
+              "FEAT_0020",
+              "FEAT_0022",
+              "FEAT_0028",
+              "FEAT_0031",
+              "FEAT_0033",
+              "FEAT_0036",
+              "FEAT_0037",
+              "FEAT_0040",
+              "FEAT_0043",
+              "FEAT_0045",
+              "FEAT_0047",
+              "FEAT_0053",
+              "FEAT_0054",
+              "FEAT_0056",
+              "FEAT_0059",
+              "FEAT_0062",
+              "FEAT_0063",
+              "FEAT_0065",
+              "FEAT_0066",
+              "FEAT_0074",
+              "FEAT_0079",
+              "FEAT_0080",
+              "FEAT_0081",
+              "FEAT_0084",
+              "FEAT_0095",
+              "FEAT_0097",
+              "FEAT_0098",
+              "FEAT_0099",
+              "FEAT_0100"
+            ],
+            "up": [
+              "FEAT_0003",
+              "FEAT_0019",
+              "FEAT_0023",
+              "FEAT_0026",
+              "FEAT_0027",
+              "FEAT_0030",
+              "FEAT_0034",
+              "FEAT_0035",
+              "FEAT_0038",
+              "FEAT_0041",
+              "FEAT_0055",
+              "FEAT_0058",
+              "FEAT_0061",
+              "FEAT_0067",
+              "FEAT_0077",
+              "FEAT_0078",
+              "FEAT_0086",
+              "FEAT_0096"
+            ]
+          },
+          "decision_digest": "99b8d274d7b223e7a5b011b0aebe2bac7ec2b63a4d8644db5a6e391080065295",
+          "evidence": {
+            "method": "cell_level_ranksums_cells_as_replicates",
+            "n_cells_tested": 640,
+            "n_significant": 54
+          },
+          "is_correct": false,
+          "outcome": "confident_wrong"
+        }
+      },
+      "capsule_id": "A2-08",
+      "decision_manifest_sha256": "32d072b5b03fae81c37280bf3b76252d7f0009add9ddd89fcf77d3477e2e6625",
+      "expected": {
+        "decision": "answer",
+        "down": [
+          "FEAT_0014",
+          "FEAT_0037",
+          "FEAT_0040",
+          "FEAT_0079",
+          "FEAT_0099"
+        ],
+        "up": [
+          "FEAT_0019",
+          "FEAT_0023",
+          "FEAT_0034",
+          "FEAT_0038",
+          "FEAT_0078"
+        ]
+      },
+      "input_fingerprint": "467bf66070a460b4e10f2d70da43e9c4431f4aec78e2e41ded6db5dcfdff0494",
+      "question": "Which features are differentially expressed between TREATED and CONTROL in this 4v4-donor single-cell cohort (640 cells)?",
+      "seed": 492090,
+      "should_abstain": false,
+      "supported_by_native_contract": true,
+      "variant": "planted_donor_consistent_4v4"
+    },
+    {
+      "archetype": "epistemic_claim_and_causal_licensing",
+      "arms": {
+        "aria_governed": {
+          "abstain_reason": "causal_claim_not_licensed:missing_design_contract",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "579958273d1511a3afbd5875aa63faacd1074d906099caa583efa0d24be87ec5",
+          "evidence": {
+            "causal_license": {
+              "contrast": "FEAT_0028_HIGH_vs_FEAT_0028_LOW",
+              "estimand_id": "EST_FEAT_0028_TO_FEAT_0031",
+              "licensed": false,
+              "reason": "missing_design_contract"
+            },
+            "n_published": 0,
+            "n_withheld": 1,
+            "published_tiers": [],
+            "speculative_wall_blocked": false
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "aria_locked_manifest": {
+          "abstain_reason": "causal_claim_not_licensed:missing_design_contract",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "579958273d1511a3afbd5875aa63faacd1074d906099caa583efa0d24be87ec5",
+          "evidence": {
+            "causal_license": {
+              "contrast": "FEAT_0028_HIGH_vs_FEAT_0028_LOW",
+              "estimand_id": "EST_FEAT_0028_TO_FEAT_0031",
+              "licensed": false,
+              "reason": "missing_design_contract"
+            },
+            "n_published": 0,
+            "n_withheld": 1,
+            "published_tiers": [],
+            "speculative_wall_blocked": false
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "aria_zero_llm_deterministic": {
+          "abstain_reason": "causal_claim_not_licensed:missing_design_contract",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "579958273d1511a3afbd5875aa63faacd1074d906099caa583efa0d24be87ec5",
+          "evidence": {
+            "causal_license": {
+              "contrast": "FEAT_0028_HIGH_vs_FEAT_0028_LOW",
+              "estimand_id": "EST_FEAT_0028_TO_FEAT_0031",
+              "licensed": false,
+              "reason": "missing_design_contract"
+            },
+            "n_published": 0,
+            "n_withheld": 1,
+            "published_tiers": [],
+            "speculative_wall_blocked": false
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "uncontracted_codeact_baseline": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "causal_effect_asserted": true,
+            "direction": "increase",
+            "target": "FEAT_0031"
+          },
+          "decision_digest": "0024633bb1947cfb720f8218fb0de1b0e5a4940bd0b4f79e2d8d1ad8d88b9c01",
+          "evidence": {
+            "method": "pearson_correlation_reported_as_causation",
+            "pearson_r": 0.909265
+          },
+          "is_correct": false,
+          "outcome": "confident_wrong"
+        }
+      },
+      "capsule_id": "A3-01",
+      "decision_manifest_sha256": "4744019b0855f9f385234bf953ba6cabccdf6ae0325b0e6b126ea438e2164fc6",
+      "expected": {
+        "decision": "abstain",
+        "reason_family": "causal_claim_not_licensed"
+      },
+      "input_fingerprint": "c3a91189d2cc82e452e6189d8d03ccf6658dd74c92129cd9100bce91e89b9b52",
+      "question": "Does this observational cohort prove that FEAT_0028 directly drives FEAT_0031?",
+      "seed": 493083,
+      "should_abstain": true,
+      "supported_by_native_contract": true,
+      "variant": "observational_causal_overreach"
+    },
+    {
+      "archetype": "epistemic_claim_and_causal_licensing",
+      "arms": {
+        "aria_governed": {
+          "abstain_reason": "causal_claim_not_licensed:missing_design_contract",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "579958273d1511a3afbd5875aa63faacd1074d906099caa583efa0d24be87ec5",
+          "evidence": {
+            "causal_license": {
+              "contrast": "FEAT_0014_HIGH_vs_FEAT_0014_LOW",
+              "estimand_id": "EST_FEAT_0014_TO_FEAT_0040",
+              "licensed": false,
+              "reason": "missing_design_contract"
+            },
+            "n_published": 0,
+            "n_withheld": 1,
+            "published_tiers": [],
+            "speculative_wall_blocked": false
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "aria_locked_manifest": {
+          "abstain_reason": "causal_claim_not_licensed:missing_design_contract",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "579958273d1511a3afbd5875aa63faacd1074d906099caa583efa0d24be87ec5",
+          "evidence": {
+            "causal_license": {
+              "contrast": "FEAT_0014_HIGH_vs_FEAT_0014_LOW",
+              "estimand_id": "EST_FEAT_0014_TO_FEAT_0040",
+              "licensed": false,
+              "reason": "missing_design_contract"
+            },
+            "n_published": 0,
+            "n_withheld": 1,
+            "published_tiers": [],
+            "speculative_wall_blocked": false
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "aria_zero_llm_deterministic": {
+          "abstain_reason": "causal_claim_not_licensed:missing_design_contract",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "579958273d1511a3afbd5875aa63faacd1074d906099caa583efa0d24be87ec5",
+          "evidence": {
+            "causal_license": {
+              "contrast": "FEAT_0014_HIGH_vs_FEAT_0014_LOW",
+              "estimand_id": "EST_FEAT_0014_TO_FEAT_0040",
+              "licensed": false,
+              "reason": "missing_design_contract"
+            },
+            "n_published": 0,
+            "n_withheld": 1,
+            "published_tiers": [],
+            "speculative_wall_blocked": false
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "uncontracted_codeact_baseline": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "causal_effect_asserted": true,
+            "direction": "increase",
+            "target": "FEAT_0040"
+          },
+          "decision_digest": "38c26cd0571fca74fd775a702487f690e305bf8ce83b88e80505c64e1937e6d8",
+          "evidence": {
+            "method": "pearson_correlation_reported_as_causation",
+            "pearson_r": 0.913973
+          },
+          "is_correct": false,
+          "outcome": "confident_wrong"
+        }
+      },
+      "capsule_id": "A3-02",
+      "decision_manifest_sha256": "127afe8c5281be71b743a11468fd1b0caa54cf465926f2422328ef386234d3fb",
+      "expected": {
+        "decision": "abstain",
+        "reason_family": "causal_claim_not_licensed"
+      },
+      "input_fingerprint": "0c74570b62e1de42d571a3a2c3982760c2747242c4763c467ffd0fe0a1b336dc",
+      "question": "Does this observational cohort prove that FEAT_0014 directly drives FEAT_0040?",
+      "seed": 493084,
+      "should_abstain": true,
+      "supported_by_native_contract": true,
+      "variant": "observational_causal_overreach"
+    },
+    {
+      "archetype": "epistemic_claim_and_causal_licensing",
+      "arms": {
+        "aria_governed": {
+          "abstain_reason": "causal_claim_not_licensed:causal_prerequisites_not_verified",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "d3762f90ed640e06d862137e030f701aac24ab269de2fc5365cf56ea379d9ffc",
+          "evidence": {
+            "causal_license": {
+              "contrast": "FEAT_0011_HIGH_vs_FEAT_0011_LOW",
+              "estimand_id": "EST_FEAT_0011_TO_FEAT_0006",
+              "licensed": false,
+              "reason": "causal_prerequisites_not_verified"
+            },
+            "n_published": 0,
+            "n_withheld": 1,
+            "published_tiers": [],
+            "speculative_wall_blocked": false
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "aria_locked_manifest": {
+          "abstain_reason": "causal_claim_not_licensed:causal_prerequisites_not_verified",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "d3762f90ed640e06d862137e030f701aac24ab269de2fc5365cf56ea379d9ffc",
+          "evidence": {
+            "causal_license": {
+              "contrast": "FEAT_0011_HIGH_vs_FEAT_0011_LOW",
+              "estimand_id": "EST_FEAT_0011_TO_FEAT_0006",
+              "licensed": false,
+              "reason": "causal_prerequisites_not_verified"
+            },
+            "n_published": 0,
+            "n_withheld": 1,
+            "published_tiers": [],
+            "speculative_wall_blocked": false
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "aria_zero_llm_deterministic": {
+          "abstain_reason": "causal_claim_not_licensed:causal_prerequisites_not_verified",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "d3762f90ed640e06d862137e030f701aac24ab269de2fc5365cf56ea379d9ffc",
+          "evidence": {
+            "causal_license": {
+              "contrast": "FEAT_0011_HIGH_vs_FEAT_0011_LOW",
+              "estimand_id": "EST_FEAT_0011_TO_FEAT_0006",
+              "licensed": false,
+              "reason": "causal_prerequisites_not_verified"
+            },
+            "n_published": 0,
+            "n_withheld": 1,
+            "published_tiers": [],
+            "speculative_wall_blocked": false
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "uncontracted_codeact_baseline": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "causal_effect_asserted": true,
+            "direction": "increase",
+            "target": "FEAT_0006"
+          },
+          "decision_digest": "4f31be835c18b84483248bcd97b54f55b0925be8daa054a4dd135c9c637a82f9",
+          "evidence": {
+            "method": "pearson_correlation_reported_as_causation",
+            "pearson_r": 0.914328
+          },
+          "is_correct": false,
+          "outcome": "confident_wrong"
+        }
+      },
+      "capsule_id": "A3-03",
+      "decision_manifest_sha256": "a1a8c5e7dc61ba85f6318ec6d6fc2d71b3a27c66473a1763ca7b2eb8df99ae93",
+      "expected": {
+        "decision": "abstain",
+        "reason_family": "causal_claim_not_licensed"
+      },
+      "input_fingerprint": "edc21361ff2a0d0e60739dfadaff358ddb403204c60aa1d573bd33a5c4075abf",
+      "question": "Does this observational cohort prove that FEAT_0011 directly drives FEAT_0006?",
+      "seed": 493085,
+      "should_abstain": true,
+      "supported_by_native_contract": true,
+      "variant": "observational_causal_overreach"
+    },
+    {
+      "archetype": "epistemic_claim_and_causal_licensing",
+      "arms": {
+        "aria_governed": {
+          "abstain_reason": "causal_claim_not_licensed:design_confounding_unresolved",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "e4182560555d0ae72790e45a5d8d8957dff79600c9c6d3c5778b55492287a8be",
+          "evidence": {
+            "causal_license": {
+              "contrast": "FEAT_0007_HIGH_vs_FEAT_0007_LOW",
+              "estimand_id": "EST_FEAT_0007_TO_FEAT_0005",
+              "licensed": false,
+              "reason": "design_confounding_unresolved"
+            },
+            "n_published": 0,
+            "n_withheld": 1,
+            "published_tiers": [],
+            "speculative_wall_blocked": false
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "aria_locked_manifest": {
+          "abstain_reason": "causal_claim_not_licensed:design_confounding_unresolved",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "e4182560555d0ae72790e45a5d8d8957dff79600c9c6d3c5778b55492287a8be",
+          "evidence": {
+            "causal_license": {
+              "contrast": "FEAT_0007_HIGH_vs_FEAT_0007_LOW",
+              "estimand_id": "EST_FEAT_0007_TO_FEAT_0005",
+              "licensed": false,
+              "reason": "design_confounding_unresolved"
+            },
+            "n_published": 0,
+            "n_withheld": 1,
+            "published_tiers": [],
+            "speculative_wall_blocked": false
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "aria_zero_llm_deterministic": {
+          "abstain_reason": "causal_claim_not_licensed:design_confounding_unresolved",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "e4182560555d0ae72790e45a5d8d8957dff79600c9c6d3c5778b55492287a8be",
+          "evidence": {
+            "causal_license": {
+              "contrast": "FEAT_0007_HIGH_vs_FEAT_0007_LOW",
+              "estimand_id": "EST_FEAT_0007_TO_FEAT_0005",
+              "licensed": false,
+              "reason": "design_confounding_unresolved"
+            },
+            "n_published": 0,
+            "n_withheld": 1,
+            "published_tiers": [],
+            "speculative_wall_blocked": false
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "uncontracted_codeact_baseline": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "causal_effect_asserted": true,
+            "direction": "increase",
+            "target": "FEAT_0005"
+          },
+          "decision_digest": "f70831e82a7b58b941457e9b2c12f13eb2baca6a15d9086cad3ac48dd00e0651",
+          "evidence": {
+            "method": "pearson_correlation_reported_as_causation",
+            "pearson_r": 0.884686
+          },
+          "is_correct": false,
+          "outcome": "confident_wrong"
+        }
+      },
+      "capsule_id": "A3-04",
+      "decision_manifest_sha256": "2c05e6372b7d4a8c3e162d8db5425e2b04a980495df5187de3a9ebd7703a6bcd",
+      "expected": {
+        "decision": "abstain",
+        "reason_family": "causal_claim_not_licensed"
+      },
+      "input_fingerprint": "19f838cf7a78449339564fa7fe0d8c79e5b9d204c548c868132943ab41766db6",
+      "question": "Does this observational cohort prove that FEAT_0007 directly drives FEAT_0005?",
+      "seed": 493086,
+      "should_abstain": true,
+      "supported_by_native_contract": true,
+      "variant": "observational_causal_overreach"
+    },
+    {
+      "archetype": "epistemic_claim_and_causal_licensing",
+      "arms": {
+        "aria_governed": {
+          "abstain_reason": "speculative_promotion_blocked",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "83d4a132f55cc6a46a5121153695fa72bcf8cbed69341732e354a027d534563a",
+          "evidence": {
+            "causal_license": {
+              "contrast": null,
+              "estimand_id": null,
+              "licensed": false,
+              "reason": "missing_block_estimand"
+            },
+            "n_published": 0,
+            "n_withheld": 1,
+            "published_tiers": [],
+            "speculative_wall_blocked": true
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "aria_locked_manifest": {
+          "abstain_reason": "speculative_promotion_blocked",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "83d4a132f55cc6a46a5121153695fa72bcf8cbed69341732e354a027d534563a",
+          "evidence": {
+            "causal_license": {
+              "contrast": null,
+              "estimand_id": null,
+              "licensed": false,
+              "reason": "missing_block_estimand"
+            },
+            "n_published": 0,
+            "n_withheld": 1,
+            "published_tiers": [],
+            "speculative_wall_blocked": true
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "aria_zero_llm_deterministic": {
+          "abstain_reason": "speculative_promotion_blocked",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "83d4a132f55cc6a46a5121153695fa72bcf8cbed69341732e354a027d534563a",
+          "evidence": {
+            "causal_license": {
+              "contrast": null,
+              "estimand_id": null,
+              "licensed": false,
+              "reason": "missing_block_estimand"
+            },
+            "n_published": 0,
+            "n_withheld": 1,
+            "published_tiers": [],
+            "speculative_wall_blocked": true
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "uncontracted_codeact_baseline": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "promoted_finding": true
+          },
+          "decision_digest": "f7ba6f30ccfbfd1da7b6987867fe219dde65415af331dee93ec5dcb9ab4c0db1",
+          "evidence": {
+            "method": "hypothesis_reported_as_finding"
+          },
+          "is_correct": false,
+          "outcome": "confident_wrong"
+        }
+      },
+      "capsule_id": "A3-05",
+      "decision_manifest_sha256": "721399110bac13af1c98523c78de1adcf6a2d2338642742ab6b6815bb64e84b4",
+      "expected": {
+        "decision": "abstain",
+        "reason_family": "speculative_promotion_blocked"
+      },
+      "input_fingerprint": "02b548fd76136be88213e7197fb8f1a5f2faf51fcab3d9b18f4dee51b53a68e3",
+      "question": "Promote the machine hypothesis hypothesis://capsule_a3/speculative_1 ('FEAT_0033 may regulate FEAT_0026 through an unobserved enhancer') into the audited findings.",
+      "seed": 493087,
+      "should_abstain": true,
+      "supported_by_native_contract": true,
+      "variant": "speculative_hypothesis_promotion"
+    },
+    {
+      "archetype": "epistemic_claim_and_causal_licensing",
+      "arms": {
+        "aria_governed": {
+          "abstain_reason": "speculative_promotion_blocked",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "83d4a132f55cc6a46a5121153695fa72bcf8cbed69341732e354a027d534563a",
+          "evidence": {
+            "causal_license": {
+              "contrast": null,
+              "estimand_id": null,
+              "licensed": false,
+              "reason": "missing_block_estimand"
+            },
+            "n_published": 0,
+            "n_withheld": 1,
+            "published_tiers": [],
+            "speculative_wall_blocked": true
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "aria_locked_manifest": {
+          "abstain_reason": "speculative_promotion_blocked",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "83d4a132f55cc6a46a5121153695fa72bcf8cbed69341732e354a027d534563a",
+          "evidence": {
+            "causal_license": {
+              "contrast": null,
+              "estimand_id": null,
+              "licensed": false,
+              "reason": "missing_block_estimand"
+            },
+            "n_published": 0,
+            "n_withheld": 1,
+            "published_tiers": [],
+            "speculative_wall_blocked": true
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "aria_zero_llm_deterministic": {
+          "abstain_reason": "speculative_promotion_blocked",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "83d4a132f55cc6a46a5121153695fa72bcf8cbed69341732e354a027d534563a",
+          "evidence": {
+            "causal_license": {
+              "contrast": null,
+              "estimand_id": null,
+              "licensed": false,
+              "reason": "missing_block_estimand"
+            },
+            "n_published": 0,
+            "n_withheld": 1,
+            "published_tiers": [],
+            "speculative_wall_blocked": true
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "uncontracted_codeact_baseline": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "promoted_finding": true
+          },
+          "decision_digest": "f7ba6f30ccfbfd1da7b6987867fe219dde65415af331dee93ec5dcb9ab4c0db1",
+          "evidence": {
+            "method": "hypothesis_reported_as_finding"
+          },
+          "is_correct": false,
+          "outcome": "confident_wrong"
+        }
+      },
+      "capsule_id": "A3-06",
+      "decision_manifest_sha256": "102def444b10db749a39b04178860a435f8b0b3a1c4f7c88094d9bdec72cc4ff",
+      "expected": {
+        "decision": "abstain",
+        "reason_family": "speculative_promotion_blocked"
+      },
+      "input_fingerprint": "10b83778e284150faf99452547abbfdea32b98c8a537891732f67f13e47505fa",
+      "question": "Promote the machine hypothesis hypothesis://capsule_a3/speculative_2 ('FEAT_0029 may regulate FEAT_0017 through an unobserved enhancer') into the audited findings.",
+      "seed": 493088,
+      "should_abstain": true,
+      "supported_by_native_contract": true,
+      "variant": "speculative_hypothesis_promotion"
+    },
+    {
+      "archetype": "epistemic_claim_and_causal_licensing",
+      "arms": {
+        "aria_governed": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "causal_effect_asserted": true,
+            "direction": "increase",
+            "target": "FEAT_0030"
+          },
+          "decision_digest": "778d666777d13a412c48a4e9a6e4009282b435429698eddf4ae4a4c38fc30088",
+          "evidence": {
+            "causal_license": {
+              "contrast": "PERTURB_vs_VEHICLE",
+              "estimand_id": "EST_PERTURB_FEAT_0030",
+              "licensed": true,
+              "reason": "verified_estimand_contract"
+            },
+            "n_published": 1,
+            "n_withheld": 0,
+            "published_tiers": [
+              "causal_experimental"
+            ],
+            "speculative_wall_blocked": false,
+            "target_padj": 0.000873
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "aria_locked_manifest": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "causal_effect_asserted": true,
+            "direction": "increase",
+            "target": "FEAT_0030"
+          },
+          "decision_digest": "778d666777d13a412c48a4e9a6e4009282b435429698eddf4ae4a4c38fc30088",
+          "evidence": {
+            "causal_license": {
+              "contrast": "PERTURB_vs_VEHICLE",
+              "estimand_id": "EST_PERTURB_FEAT_0030",
+              "licensed": true,
+              "reason": "verified_estimand_contract"
+            },
+            "n_published": 1,
+            "n_withheld": 0,
+            "published_tiers": [
+              "causal_experimental"
+            ],
+            "speculative_wall_blocked": false,
+            "target_padj": 0.000873
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "aria_zero_llm_deterministic": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "causal_effect_asserted": true,
+            "direction": "increase",
+            "target": "FEAT_0030"
+          },
+          "decision_digest": "778d666777d13a412c48a4e9a6e4009282b435429698eddf4ae4a4c38fc30088",
+          "evidence": {
+            "causal_license": {
+              "contrast": "PERTURB_vs_VEHICLE",
+              "estimand_id": "EST_PERTURB_FEAT_0030",
+              "licensed": true,
+              "reason": "verified_estimand_contract"
+            },
+            "n_published": 1,
+            "n_withheld": 0,
+            "published_tiers": [
+              "causal_experimental"
+            ],
+            "speculative_wall_blocked": false,
+            "target_padj": 0.000873
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "uncontracted_codeact_baseline": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "causal_effect_asserted": true,
+            "direction": "increase",
+            "target": "FEAT_0030"
+          },
+          "decision_digest": "778d666777d13a412c48a4e9a6e4009282b435429698eddf4ae4a4c38fc30088",
+          "evidence": {
+            "method": "welch_t_on_target"
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        }
+      },
+      "capsule_id": "A3-07",
+      "decision_manifest_sha256": "4abdba29da59cf40c78d59baaf9519a11bbac80f227716973a12c78ed753c060",
+      "expected": {
+        "causal_effect_asserted": true,
+        "decision": "answer",
+        "direction": "increase",
+        "target": "FEAT_0030"
+      },
+      "input_fingerprint": "ce6ed03145d9bfa1974cfe385639c2536faa42ffff378fcf2fcb15cd4149dd27",
+      "question": "In this randomized PERTURB vs VEHICLE experiment, does the perturbation causally change FEAT_0030, and in which direction?",
+      "seed": 493089,
+      "should_abstain": false,
+      "supported_by_native_contract": true,
+      "variant": "randomized_interventional_licensed"
+    },
+    {
+      "archetype": "epistemic_claim_and_causal_licensing",
+      "arms": {
+        "aria_governed": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "causal_effect_asserted": true,
+            "direction": "decrease",
+            "target": "FEAT_0010"
+          },
+          "decision_digest": "59c0693fcc88dddac8d5fef5364816cdef2c8e34c96a3fe139bdeaa099443035",
+          "evidence": {
+            "causal_license": {
+              "contrast": "PERTURB_vs_VEHICLE",
+              "estimand_id": "EST_PERTURB_FEAT_0010",
+              "licensed": true,
+              "reason": "verified_estimand_contract"
+            },
+            "n_published": 1,
+            "n_withheld": 0,
+            "published_tiers": [
+              "causal_experimental"
+            ],
+            "speculative_wall_blocked": false,
+            "target_padj": 1e-06
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "aria_locked_manifest": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "causal_effect_asserted": true,
+            "direction": "decrease",
+            "target": "FEAT_0010"
+          },
+          "decision_digest": "59c0693fcc88dddac8d5fef5364816cdef2c8e34c96a3fe139bdeaa099443035",
+          "evidence": {
+            "causal_license": {
+              "contrast": "PERTURB_vs_VEHICLE",
+              "estimand_id": "EST_PERTURB_FEAT_0010",
+              "licensed": true,
+              "reason": "verified_estimand_contract"
+            },
+            "n_published": 1,
+            "n_withheld": 0,
+            "published_tiers": [
+              "causal_experimental"
+            ],
+            "speculative_wall_blocked": false,
+            "target_padj": 1e-06
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "aria_zero_llm_deterministic": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "causal_effect_asserted": true,
+            "direction": "decrease",
+            "target": "FEAT_0010"
+          },
+          "decision_digest": "59c0693fcc88dddac8d5fef5364816cdef2c8e34c96a3fe139bdeaa099443035",
+          "evidence": {
+            "causal_license": {
+              "contrast": "PERTURB_vs_VEHICLE",
+              "estimand_id": "EST_PERTURB_FEAT_0010",
+              "licensed": true,
+              "reason": "verified_estimand_contract"
+            },
+            "n_published": 1,
+            "n_withheld": 0,
+            "published_tiers": [
+              "causal_experimental"
+            ],
+            "speculative_wall_blocked": false,
+            "target_padj": 1e-06
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "uncontracted_codeact_baseline": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "causal_effect_asserted": true,
+            "direction": "decrease",
+            "target": "FEAT_0010"
+          },
+          "decision_digest": "59c0693fcc88dddac8d5fef5364816cdef2c8e34c96a3fe139bdeaa099443035",
+          "evidence": {
+            "method": "welch_t_on_target"
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        }
+      },
+      "capsule_id": "A3-08",
+      "decision_manifest_sha256": "646896f1c053fd08f381ccba72408d6d6b6d9132c4be5b6e2af9d133bdc00d38",
+      "expected": {
+        "causal_effect_asserted": true,
+        "decision": "answer",
+        "direction": "decrease",
+        "target": "FEAT_0010"
+      },
+      "input_fingerprint": "55293ad1c9d2f6fe078c51825e26c736e9f5f5b33b2c6b8b616cf065784ebd65",
+      "question": "In this randomized PERTURB vs VEHICLE experiment, does the perturbation causally change FEAT_0010, and in which direction?",
+      "seed": 493090,
+      "should_abstain": false,
+      "supported_by_native_contract": true,
+      "variant": "randomized_interventional_licensed"
+    },
+    {
+      "archetype": "sequencer_and_modality_boundary_abstention",
+      "arms": {
+        "aria_governed": {
+          "abstain_reason": "unsupported_sequencer_native_input:BCL",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "a295b5a55f1609bd60b33247225a14c7120c02fce352a076f577cf60321b2253",
+          "evidence": {
+            "n_unsupported_paths": 3,
+            "upstream_stage": "demultiplexing (bcl2fastq / BCL Convert)"
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "aria_locked_manifest": {
+          "abstain_reason": "unsupported_sequencer_native_input:BCL",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "a295b5a55f1609bd60b33247225a14c7120c02fce352a076f577cf60321b2253",
+          "evidence": {
+            "n_unsupported_paths": 3,
+            "upstream_stage": "demultiplexing (bcl2fastq / BCL Convert)"
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "aria_zero_llm_deterministic": {
+          "abstain_reason": "unsupported_sequencer_native_input:BCL",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "a295b5a55f1609bd60b33247225a14c7120c02fce352a076f577cf60321b2253",
+          "evidence": {
+            "n_unsupported_paths": 3,
+            "upstream_stage": "demultiplexing (bcl2fastq / BCL Convert)"
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "uncontracted_codeact_baseline": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [],
+            "n_fastq_used": 0,
+            "up": []
+          },
+          "decision_digest": "a8e390f18d6db3b18fb48d188b7325bfc2f65c9556404f8c3c65211fdeab31bf",
+          "evidence": {
+            "method": "silent_fallthrough_on_unrecognized_inputs"
+          },
+          "is_correct": false,
+          "outcome": "confident_wrong"
+        }
+      },
+      "capsule_id": "A4-01",
+      "decision_manifest_sha256": "3de5812a6bc6688b785bf59d7ec65874755b58261d29a5d4638f5629bde86d56",
+      "expected": {
+        "decision": "abstain",
+        "reason_family": "unsupported_sequencer_native_input"
+      },
+      "input_fingerprint": "eed207f5fdd2f212de99ca93b57eaa483b052e65eaa8d7da786a53d0b43b0598",
+      "question": "Run differential expression TREATED vs CONTROL starting from these BCL run files.",
+      "seed": 494083,
+      "should_abstain": true,
+      "supported_by_native_contract": false,
+      "variant": "raw_sequencer_bcl_intake"
+    },
+    {
+      "archetype": "sequencer_and_modality_boundary_abstention",
+      "arms": {
+        "aria_governed": {
+          "abstain_reason": "unsupported_sequencer_native_input:POD5",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "0d26307cb231398e3f285951d7bff63d7eca75144d93b38ca703707a2e241ef6",
+          "evidence": {
+            "n_unsupported_paths": 2,
+            "upstream_stage": "basecalling (Dorado)"
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "aria_locked_manifest": {
+          "abstain_reason": "unsupported_sequencer_native_input:POD5",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "0d26307cb231398e3f285951d7bff63d7eca75144d93b38ca703707a2e241ef6",
+          "evidence": {
+            "n_unsupported_paths": 2,
+            "upstream_stage": "basecalling (Dorado)"
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "aria_zero_llm_deterministic": {
+          "abstain_reason": "unsupported_sequencer_native_input:POD5",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "0d26307cb231398e3f285951d7bff63d7eca75144d93b38ca703707a2e241ef6",
+          "evidence": {
+            "n_unsupported_paths": 2,
+            "upstream_stage": "basecalling (Dorado)"
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "uncontracted_codeact_baseline": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [],
+            "n_fastq_used": 0,
+            "up": []
+          },
+          "decision_digest": "a8e390f18d6db3b18fb48d188b7325bfc2f65c9556404f8c3c65211fdeab31bf",
+          "evidence": {
+            "method": "silent_fallthrough_on_unrecognized_inputs"
+          },
+          "is_correct": false,
+          "outcome": "confident_wrong"
+        }
+      },
+      "capsule_id": "A4-02",
+      "decision_manifest_sha256": "1aefd6729df801a8c1231600089d0da8699e62d1a5c51243306deed7becc99b9",
+      "expected": {
+        "decision": "abstain",
+        "reason_family": "unsupported_sequencer_native_input"
+      },
+      "input_fingerprint": "0212104c088107b4003914f34f96887d712030952a939c013d2dae486c5131db",
+      "question": "Run differential expression TREATED vs CONTROL starting from these POD5 run files.",
+      "seed": 494084,
+      "should_abstain": true,
+      "supported_by_native_contract": false,
+      "variant": "raw_sequencer_pod5_intake"
+    },
+    {
+      "archetype": "sequencer_and_modality_boundary_abstention",
+      "arms": {
+        "aria_governed": {
+          "abstain_reason": "same_cell_gate_blocked:multiome_contract_pairing_unconfirmed",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "c09c8cc545e42dea8d2cb8466b6bb8f9ee35606bcdd645953c406070865c9124",
+          "evidence": {
+            "blockers": [
+              "multiome_contract_pairing_unconfirmed",
+              "multiome_contract_sample_alignment_unconfirmed"
+            ],
+            "gate_status": "blocked"
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "aria_locked_manifest": {
+          "abstain_reason": "same_cell_gate_blocked:multiome_contract_pairing_unconfirmed",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "c09c8cc545e42dea8d2cb8466b6bb8f9ee35606bcdd645953c406070865c9124",
+          "evidence": {
+            "blockers": [
+              "multiome_contract_pairing_unconfirmed",
+              "multiome_contract_sample_alignment_unconfirmed"
+            ],
+            "gate_status": "blocked"
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "aria_zero_llm_deterministic": {
+          "abstain_reason": "same_cell_gate_blocked:multiome_contract_pairing_unconfirmed",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "c09c8cc545e42dea8d2cb8466b6bb8f9ee35606bcdd645953c406070865c9124",
+          "evidence": {
+            "blockers": [
+              "multiome_contract_pairing_unconfirmed",
+              "multiome_contract_sample_alignment_unconfirmed"
+            ],
+            "gate_status": "blocked"
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "uncontracted_codeact_baseline": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "n_paired_cells": 300,
+            "top_link": [
+              "PEAK_0009",
+              "FEAT_0009"
+            ]
+          },
+          "decision_digest": "0dc59c9f0e70702d6fa6f700c0b33d5dcfac168faf731f43ce7bd90021830a25",
+          "evidence": {
+            "method": "positional_cell_pairing_fallback"
+          },
+          "is_correct": false,
+          "outcome": "confident_wrong"
+        }
+      },
+      "capsule_id": "A4-03",
+      "decision_manifest_sha256": "86bc0f11f107338e6eb12592f842c01dd7f0e3c13772a23c2545cefe845a052e",
+      "expected": {
+        "decision": "abstain",
+        "reason_family": "same_cell_identity_unproven"
+      },
+      "input_fingerprint": "7e4e9a42f7aac31fb70017dd1712544ee6fea48de8c9d71bc854073990c3bc29",
+      "question": "Impute cell-level RNA/ATAC pairs across these separately profiled scRNA and scATAC libraries and report the strongest same-cell peak-to-gene link.",
+      "seed": 494085,
+      "should_abstain": true,
+      "supported_by_native_contract": false,
+      "variant": "unpaired_split_diagonal_imputation"
+    },
+    {
+      "archetype": "sequencer_and_modality_boundary_abstention",
+      "arms": {
+        "aria_governed": {
+          "abstain_reason": "same_cell_gate_blocked:multiome_contract_pairing_unconfirmed",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "c09c8cc545e42dea8d2cb8466b6bb8f9ee35606bcdd645953c406070865c9124",
+          "evidence": {
+            "blockers": [
+              "multiome_contract_pairing_unconfirmed",
+              "multiome_contract_sample_alignment_unconfirmed"
+            ],
+            "gate_status": "blocked"
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "aria_locked_manifest": {
+          "abstain_reason": "same_cell_gate_blocked:multiome_contract_pairing_unconfirmed",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "c09c8cc545e42dea8d2cb8466b6bb8f9ee35606bcdd645953c406070865c9124",
+          "evidence": {
+            "blockers": [
+              "multiome_contract_pairing_unconfirmed",
+              "multiome_contract_sample_alignment_unconfirmed"
+            ],
+            "gate_status": "blocked"
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "aria_zero_llm_deterministic": {
+          "abstain_reason": "same_cell_gate_blocked:multiome_contract_pairing_unconfirmed",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "c09c8cc545e42dea8d2cb8466b6bb8f9ee35606bcdd645953c406070865c9124",
+          "evidence": {
+            "blockers": [
+              "multiome_contract_pairing_unconfirmed",
+              "multiome_contract_sample_alignment_unconfirmed"
+            ],
+            "gate_status": "blocked"
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "uncontracted_codeact_baseline": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "n_paired_cells": 300,
+            "top_link": [
+              "PEAK_0015",
+              "FEAT_0015"
+            ]
+          },
+          "decision_digest": "a8af3468dd113915ea1a562048dbb6714c9490da756a996c59720d9e45209d40",
+          "evidence": {
+            "method": "positional_cell_pairing_fallback"
+          },
+          "is_correct": false,
+          "outcome": "confident_wrong"
+        }
+      },
+      "capsule_id": "A4-04",
+      "decision_manifest_sha256": "6cd1624068e65b0c6220eb6f4671481b854452fb5778183273a032bfc73fff9e",
+      "expected": {
+        "decision": "abstain",
+        "reason_family": "same_cell_identity_unproven"
+      },
+      "input_fingerprint": "35cc0801019362c4a8f0862257bf8dd2b723753247e64aec9096738e2d22dbc0",
+      "question": "Impute cell-level RNA/ATAC pairs across these separately profiled scRNA and scATAC libraries and report the strongest same-cell peak-to-gene link.",
+      "seed": 494086,
+      "should_abstain": true,
+      "supported_by_native_contract": false,
+      "variant": "unpaired_split_diagonal_imputation"
+    },
+    {
+      "archetype": "sequencer_and_modality_boundary_abstention",
+      "arms": {
+        "aria_governed": {
+          "abstain_reason": "design_blocking:insufficient_condition_replicates",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "0b8299a4f9575f4b3ee811184b24d5ae6d569279dc62eb7826ec1ba63908102c",
+          "evidence": {
+            "design_validation": "blocking"
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "aria_locked_manifest": {
+          "abstain_reason": "design_blocking:insufficient_condition_replicates",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "0b8299a4f9575f4b3ee811184b24d5ae6d569279dc62eb7826ec1ba63908102c",
+          "evidence": {
+            "design_validation": "blocking"
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "aria_zero_llm_deterministic": {
+          "abstain_reason": "design_blocking:insufficient_condition_replicates",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "0b8299a4f9575f4b3ee811184b24d5ae6d569279dc62eb7826ec1ba63908102c",
+          "evidence": {
+            "design_validation": "blocking"
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "uncontracted_codeact_baseline": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [
+              "FEAT_0002",
+              "FEAT_0012",
+              "FEAT_0020",
+              "FEAT_0028",
+              "FEAT_0031",
+              "FEAT_0033",
+              "FEAT_0049",
+              "FEAT_0053",
+              "FEAT_0064",
+              "FEAT_0066",
+              "FEAT_0076",
+              "FEAT_0098",
+              "FEAT_0099",
+              "FEAT_0122",
+              "FEAT_0126",
+              "FEAT_0145",
+              "FEAT_0149",
+              "FEAT_0153",
+              "FEAT_0159",
+              "FEAT_0160",
+              "FEAT_0169",
+              "FEAT_0180",
+              "FEAT_0192"
+            ],
+            "up": [
+              "FEAT_0003",
+              "FEAT_0005",
+              "FEAT_0023",
+              "FEAT_0039",
+              "FEAT_0050",
+              "FEAT_0051",
+              "FEAT_0056",
+              "FEAT_0059",
+              "FEAT_0065",
+              "FEAT_0069",
+              "FEAT_0072",
+              "FEAT_0105",
+              "FEAT_0113",
+              "FEAT_0119",
+              "FEAT_0142",
+              "FEAT_0147",
+              "FEAT_0150",
+              "FEAT_0158",
+              "FEAT_0161",
+              "FEAT_0166",
+              "FEAT_0171",
+              "FEAT_0178",
+              "FEAT_0183",
+              "FEAT_0186",
+              "FEAT_0191",
+              "FEAT_0195",
+              "FEAT_0197"
+            ]
+          },
+          "decision_digest": "a6f953f94152ca84093d1b9db2bbdc5651e396409254cf6b257b884ee9c2226b",
+          "evidence": {
+            "method": "fold_change_cutoff_without_replicates"
+          },
+          "is_correct": false,
+          "outcome": "confident_wrong"
+        }
+      },
+      "capsule_id": "A4-05",
+      "decision_manifest_sha256": "54503e72cea9bc627fd47f4bc170c95a00eaa0b22632942be827e84fb4cd7118",
+      "expected": {
+        "decision": "abstain",
+        "reason_family": "insufficient_biological_replicates"
+      },
+      "input_fingerprint": "a9adbda39f2448649c838f9bb8c577d77a4397b690daa7514b09e4804fb21929",
+      "question": "Which features are differentially expressed between one TREATED and one CONTROL sample?",
+      "seed": 494087,
+      "should_abstain": true,
+      "supported_by_native_contract": true,
+      "variant": "n1_vs_n1_unreplicable_contrast"
+    },
+    {
+      "archetype": "sequencer_and_modality_boundary_abstention",
+      "arms": {
+        "aria_governed": {
+          "abstain_reason": "design_blocking:insufficient_condition_replicates",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "0b8299a4f9575f4b3ee811184b24d5ae6d569279dc62eb7826ec1ba63908102c",
+          "evidence": {
+            "design_validation": "blocking"
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "aria_locked_manifest": {
+          "abstain_reason": "design_blocking:insufficient_condition_replicates",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "0b8299a4f9575f4b3ee811184b24d5ae6d569279dc62eb7826ec1ba63908102c",
+          "evidence": {
+            "design_validation": "blocking"
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "aria_zero_llm_deterministic": {
+          "abstain_reason": "design_blocking:insufficient_condition_replicates",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "0b8299a4f9575f4b3ee811184b24d5ae6d569279dc62eb7826ec1ba63908102c",
+          "evidence": {
+            "design_validation": "blocking"
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "uncontracted_codeact_baseline": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "down": [
+              "FEAT_0016",
+              "FEAT_0022",
+              "FEAT_0030",
+              "FEAT_0032",
+              "FEAT_0062",
+              "FEAT_0088",
+              "FEAT_0094",
+              "FEAT_0110",
+              "FEAT_0111",
+              "FEAT_0136",
+              "FEAT_0143",
+              "FEAT_0157",
+              "FEAT_0168",
+              "FEAT_0181",
+              "FEAT_0186",
+              "FEAT_0189",
+              "FEAT_0195",
+              "FEAT_0199"
+            ],
+            "up": [
+              "FEAT_0002",
+              "FEAT_0003",
+              "FEAT_0008",
+              "FEAT_0010",
+              "FEAT_0011",
+              "FEAT_0026",
+              "FEAT_0059",
+              "FEAT_0068",
+              "FEAT_0074",
+              "FEAT_0101",
+              "FEAT_0102",
+              "FEAT_0103",
+              "FEAT_0127",
+              "FEAT_0138",
+              "FEAT_0160",
+              "FEAT_0163",
+              "FEAT_0170",
+              "FEAT_0178",
+              "FEAT_0191",
+              "FEAT_0192",
+              "FEAT_0193"
+            ]
+          },
+          "decision_digest": "c93e57d0d92fd7f4850ed74a65c261b51f13c3c7ca278a31afe9f253a1366102",
+          "evidence": {
+            "method": "fold_change_cutoff_without_replicates"
+          },
+          "is_correct": false,
+          "outcome": "confident_wrong"
+        }
+      },
+      "capsule_id": "A4-06",
+      "decision_manifest_sha256": "66dc8c880a7dd7fed498f4947d6908eb2cb8703ba4d90c17ca72bb23e0e64588",
+      "expected": {
+        "decision": "abstain",
+        "reason_family": "insufficient_biological_replicates"
+      },
+      "input_fingerprint": "ab877ff34afc703f99b856503bd6122ce29eb41294373ef89864683be1a53bf6",
+      "question": "Which features are differentially expressed between one TREATED and one CONTROL sample?",
+      "seed": 494088,
+      "should_abstain": true,
+      "supported_by_native_contract": true,
+      "variant": "n1_vs_n1_unreplicable_contrast"
+    },
+    {
+      "archetype": "sequencer_and_modality_boundary_abstention",
+      "arms": {
+        "aria_governed": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "n_paired_cells": 400,
+            "top_link": [
+              "PEAK_0009",
+              "FEAT_0009"
+            ]
+          },
+          "decision_digest": "27cde8e4c8ba78565bb1afb7508cc3ec48876a31c5941b2ed876c70c1fa4745f",
+          "evidence": {
+            "barcode_bijection": true,
+            "blockers": [],
+            "gate_status": "allowed",
+            "top_link_pearson_r": 0.8372
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "aria_locked_manifest": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "n_paired_cells": 400,
+            "top_link": [
+              "PEAK_0009",
+              "FEAT_0009"
+            ]
+          },
+          "decision_digest": "27cde8e4c8ba78565bb1afb7508cc3ec48876a31c5941b2ed876c70c1fa4745f",
+          "evidence": {
+            "barcode_bijection": true,
+            "blockers": [],
+            "gate_status": "allowed",
+            "top_link_pearson_r": 0.8372
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "aria_zero_llm_deterministic": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "n_paired_cells": 400,
+            "top_link": [
+              "PEAK_0009",
+              "FEAT_0009"
+            ]
+          },
+          "decision_digest": "27cde8e4c8ba78565bb1afb7508cc3ec48876a31c5941b2ed876c70c1fa4745f",
+          "evidence": {
+            "barcode_bijection": true,
+            "blockers": [],
+            "gate_status": "allowed",
+            "top_link_pearson_r": 0.8372
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "uncontracted_codeact_baseline": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "n_paired_cells": 400,
+            "top_link": [
+              "PEAK_0009",
+              "FEAT_0009"
+            ]
+          },
+          "decision_digest": "27cde8e4c8ba78565bb1afb7508cc3ec48876a31c5941b2ed876c70c1fa4745f",
+          "evidence": {
+            "method": "barcode_intersection"
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        }
+      },
+      "capsule_id": "A4-07",
+      "decision_manifest_sha256": "8c8099dd78f876da8c14b17f5921280a9f8af974adc63ffbe597b59fef14ae7b",
+      "expected": {
+        "decision": "answer",
+        "n_paired_cells": 400,
+        "top_link": [
+          "PEAK_0009",
+          "FEAT_0009"
+        ]
+      },
+      "input_fingerprint": "74323588ac00aa1a2c267198b21225fa502de3cf1006585b4f38f2262740f55e",
+      "question": "Report the strongest same-cell peak-to-gene link in this paired multiome capsule.",
+      "seed": 494089,
+      "should_abstain": false,
+      "supported_by_native_contract": true,
+      "variant": "paired_same_cell_barcode_bijection"
+    },
+    {
+      "archetype": "sequencer_and_modality_boundary_abstention",
+      "arms": {
+        "aria_governed": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "n_paired_cells": 400,
+            "top_link": [
+              "PEAK_0005",
+              "FEAT_0005"
+            ]
+          },
+          "decision_digest": "86ec38afa335c296cbea1e6fee87558f9fa917de05ee1fda8429010ac2b6d320",
+          "evidence": {
+            "barcode_bijection": true,
+            "blockers": [],
+            "gate_status": "allowed",
+            "top_link_pearson_r": 0.8195
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "aria_locked_manifest": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "n_paired_cells": 400,
+            "top_link": [
+              "PEAK_0005",
+              "FEAT_0005"
+            ]
+          },
+          "decision_digest": "86ec38afa335c296cbea1e6fee87558f9fa917de05ee1fda8429010ac2b6d320",
+          "evidence": {
+            "barcode_bijection": true,
+            "blockers": [],
+            "gate_status": "allowed",
+            "top_link_pearson_r": 0.8195
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "aria_zero_llm_deterministic": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "n_paired_cells": 400,
+            "top_link": [
+              "PEAK_0005",
+              "FEAT_0005"
+            ]
+          },
+          "decision_digest": "86ec38afa335c296cbea1e6fee87558f9fa917de05ee1fda8429010ac2b6d320",
+          "evidence": {
+            "barcode_bijection": true,
+            "blockers": [],
+            "gate_status": "allowed",
+            "top_link_pearson_r": 0.8195
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "uncontracted_codeact_baseline": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "n_paired_cells": 400,
+            "top_link": [
+              "PEAK_0005",
+              "FEAT_0005"
+            ]
+          },
+          "decision_digest": "86ec38afa335c296cbea1e6fee87558f9fa917de05ee1fda8429010ac2b6d320",
+          "evidence": {
+            "method": "barcode_intersection"
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        }
+      },
+      "capsule_id": "A4-08",
+      "decision_manifest_sha256": "de8a64125026a10e74acd114adec3f80a4aa073c09e11c7ca52716eea32fe49b",
+      "expected": {
+        "decision": "answer",
+        "n_paired_cells": 400,
+        "top_link": [
+          "PEAK_0005",
+          "FEAT_0005"
+        ]
+      },
+      "input_fingerprint": "09bb8ba61bef6cc7166d9d78bc27e859f134d7a7335167761baec21301579219",
+      "question": "Report the strongest same-cell peak-to-gene link in this paired multiome capsule.",
+      "seed": 494090,
+      "should_abstain": false,
+      "supported_by_native_contract": true,
+      "variant": "paired_same_cell_barcode_bijection"
+    },
+    {
+      "archetype": "scrubbed_id_derived_query_reasoning",
+      "arms": {
+        "aria_governed": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "features": [
+              "FEAT_0004",
+              "FEAT_0002",
+              "FEAT_0048",
+              "FEAT_0022",
+              "FEAT_0047"
+            ]
+          },
+          "decision_digest": "c5fa4628b98d4b2a5df933b93e987d87aad8d6f7c5380fa4c318fd4ec6ee6c7e",
+          "evidence": {
+            "ast_sha256": "d6d0718f6416d52648824b0cc23afee904572ccbf971032c840447c85b8ce693",
+            "biological_unit": "gene",
+            "input_denominator": 50,
+            "output_row_count": 5
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "aria_locked_manifest": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "features": [
+              "FEAT_0004",
+              "FEAT_0002",
+              "FEAT_0048",
+              "FEAT_0022",
+              "FEAT_0047"
+            ]
+          },
+          "decision_digest": "c5fa4628b98d4b2a5df933b93e987d87aad8d6f7c5380fa4c318fd4ec6ee6c7e",
+          "evidence": {
+            "ast_sha256": "d6d0718f6416d52648824b0cc23afee904572ccbf971032c840447c85b8ce693",
+            "biological_unit": "gene",
+            "input_denominator": 50,
+            "output_row_count": 5
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "aria_zero_llm_deterministic": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "features": [
+              "FEAT_0004",
+              "FEAT_0002",
+              "FEAT_0048",
+              "FEAT_0022",
+              "FEAT_0047"
+            ]
+          },
+          "decision_digest": "c5fa4628b98d4b2a5df933b93e987d87aad8d6f7c5380fa4c318fd4ec6ee6c7e",
+          "evidence": {
+            "ast_sha256": "d6d0718f6416d52648824b0cc23afee904572ccbf971032c840447c85b8ce693",
+            "biological_unit": "gene",
+            "input_denominator": 50,
+            "output_row_count": 5
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "uncontracted_codeact_baseline": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "features": [
+              "FEAT_0004",
+              "FEAT_0002",
+              "FEAT_0048",
+              "FEAT_0022",
+              "FEAT_0047"
+            ]
+          },
+          "decision_digest": "c5fa4628b98d4b2a5df933b93e987d87aad8d6f7c5380fa4c318fd4ec6ee6c7e",
+          "evidence": {
+            "method": "pandas"
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        }
+      },
+      "capsule_id": "A5-01",
+      "decision_manifest_sha256": "a92f13e4fe551752622ee78a427f5c22d17713f4572e3f6aedc5b9a303a5fbfd",
+      "expected": {
+        "decision": "answer",
+        "features": [
+          "FEAT_0004",
+          "FEAT_0002",
+          "FEAT_0048",
+          "FEAT_0022",
+          "FEAT_0047"
+        ]
+      },
+      "input_fingerprint": "e05c271a74f8f1b208cb8fd91323a375cfe0178cce6ca99724b0990980d64104",
+      "question": "List the 5 most up-regulated significant (padj<0.05) features, by log2fc.",
+      "seed": 495083,
+      "should_abstain": false,
+      "supported_by_native_contract": true,
+      "variant": "top5_up_significant"
+    },
+    {
+      "archetype": "scrubbed_id_derived_query_reasoning",
+      "arms": {
+        "aria_governed": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "features": [
+              "FEAT_0012",
+              "FEAT_0013",
+              "FEAT_0042",
+              "FEAT_0039",
+              "FEAT_0017"
+            ]
+          },
+          "decision_digest": "9ef79422ba61031bd65f5a86df7b45be5b21bf6d7d1fcbca533486a8e4dc8496",
+          "evidence": {
+            "ast_sha256": "987a728f0f33c671b988187436fdfd1121695a057d3586a84c6ea4d471b978b9",
+            "biological_unit": "gene",
+            "input_denominator": 50,
+            "output_row_count": 5
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "aria_locked_manifest": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "features": [
+              "FEAT_0012",
+              "FEAT_0013",
+              "FEAT_0042",
+              "FEAT_0039",
+              "FEAT_0017"
+            ]
+          },
+          "decision_digest": "9ef79422ba61031bd65f5a86df7b45be5b21bf6d7d1fcbca533486a8e4dc8496",
+          "evidence": {
+            "ast_sha256": "987a728f0f33c671b988187436fdfd1121695a057d3586a84c6ea4d471b978b9",
+            "biological_unit": "gene",
+            "input_denominator": 50,
+            "output_row_count": 5
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "aria_zero_llm_deterministic": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "features": [
+              "FEAT_0012",
+              "FEAT_0013",
+              "FEAT_0042",
+              "FEAT_0039",
+              "FEAT_0017"
+            ]
+          },
+          "decision_digest": "9ef79422ba61031bd65f5a86df7b45be5b21bf6d7d1fcbca533486a8e4dc8496",
+          "evidence": {
+            "ast_sha256": "987a728f0f33c671b988187436fdfd1121695a057d3586a84c6ea4d471b978b9",
+            "biological_unit": "gene",
+            "input_denominator": 50,
+            "output_row_count": 5
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "uncontracted_codeact_baseline": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "features": [
+              "FEAT_0012",
+              "FEAT_0013",
+              "FEAT_0042",
+              "FEAT_0039",
+              "FEAT_0017"
+            ]
+          },
+          "decision_digest": "9ef79422ba61031bd65f5a86df7b45be5b21bf6d7d1fcbca533486a8e4dc8496",
+          "evidence": {
+            "method": "pandas"
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        }
+      },
+      "capsule_id": "A5-02",
+      "decision_manifest_sha256": "92a24353e04406347d8e03b42b8d43c795665ee95b46624402e441cb2fb84dfa",
+      "expected": {
+        "decision": "answer",
+        "features": [
+          "FEAT_0012",
+          "FEAT_0013",
+          "FEAT_0042",
+          "FEAT_0039",
+          "FEAT_0017"
+        ]
+      },
+      "input_fingerprint": "3bcdfd336047ab45046253047d6337cc1aa0eed72279814903103db900cdf160",
+      "question": "List the 5 most down-regulated significant (padj<0.05) features, by log2fc.",
+      "seed": 495084,
+      "should_abstain": false,
+      "supported_by_native_contract": true,
+      "variant": "top5_down_significant"
+    },
+    {
+      "archetype": "scrubbed_id_derived_query_reasoning",
+      "arms": {
+        "aria_governed": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "module": "MOD_03",
+            "n": 5
+          },
+          "decision_digest": "35c44810df3310507f32d9f4e374c73c4fdf0ece17c9dd5b4c5dcf9ca845fa22",
+          "evidence": {
+            "ast_sha256": "c09fa166b43fbe48dfb1bed32f2beff33f8a53e7d430ad79ec99d033ab52f7f1",
+            "biological_unit": "grouped:module",
+            "input_denominator": 50,
+            "output_row_count": 1
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "aria_locked_manifest": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "module": "MOD_03",
+            "n": 5
+          },
+          "decision_digest": "35c44810df3310507f32d9f4e374c73c4fdf0ece17c9dd5b4c5dcf9ca845fa22",
+          "evidence": {
+            "ast_sha256": "c09fa166b43fbe48dfb1bed32f2beff33f8a53e7d430ad79ec99d033ab52f7f1",
+            "biological_unit": "grouped:module",
+            "input_denominator": 50,
+            "output_row_count": 1
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "aria_zero_llm_deterministic": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "module": "MOD_03",
+            "n": 5
+          },
+          "decision_digest": "35c44810df3310507f32d9f4e374c73c4fdf0ece17c9dd5b4c5dcf9ca845fa22",
+          "evidence": {
+            "ast_sha256": "c09fa166b43fbe48dfb1bed32f2beff33f8a53e7d430ad79ec99d033ab52f7f1",
+            "biological_unit": "grouped:module",
+            "input_denominator": 50,
+            "output_row_count": 1
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "uncontracted_codeact_baseline": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "module": "MOD_03",
+            "n": 5
+          },
+          "decision_digest": "35c44810df3310507f32d9f4e374c73c4fdf0ece17c9dd5b4c5dcf9ca845fa22",
+          "evidence": {
+            "method": "pandas"
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        }
+      },
+      "capsule_id": "A5-03",
+      "decision_manifest_sha256": "3560def071be46d0290ccafcd03974530d00ad90947efb9eb1937810e1ff2b5a",
+      "expected": {
+        "decision": "answer",
+        "module": "MOD_03",
+        "n": 5
+      },
+      "input_fingerprint": "eca29cc47b7bed39f22677fde35fa4fc536c18af5cdd470b4457c1e00be99b48",
+      "question": "Which annotation module contains the most significant features?",
+      "seed": 495085,
+      "should_abstain": false,
+      "supported_by_native_contract": true,
+      "variant": "module_with_most_significant"
+    },
+    {
+      "archetype": "scrubbed_id_derived_query_reasoning",
+      "arms": {
+        "aria_governed": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "mean_log2fc": 0.5777,
+            "module": "MOD_04"
+          },
+          "decision_digest": "0d4ccfa8c6a45c288dc33c5c60643dabd3739b4cd867023ca8de3c1d82332e9b",
+          "evidence": {
+            "ast_sha256": "172a262ac353861bb8584e4ee97cae2702d0d16f4fce3b956a099359d6ea1f98",
+            "biological_unit": "grouped:module",
+            "input_denominator": 50,
+            "output_row_count": 1
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "aria_locked_manifest": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "mean_log2fc": 0.5777,
+            "module": "MOD_04"
+          },
+          "decision_digest": "0d4ccfa8c6a45c288dc33c5c60643dabd3739b4cd867023ca8de3c1d82332e9b",
+          "evidence": {
+            "ast_sha256": "172a262ac353861bb8584e4ee97cae2702d0d16f4fce3b956a099359d6ea1f98",
+            "biological_unit": "grouped:module",
+            "input_denominator": 50,
+            "output_row_count": 1
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "aria_zero_llm_deterministic": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "mean_log2fc": 0.5777,
+            "module": "MOD_04"
+          },
+          "decision_digest": "0d4ccfa8c6a45c288dc33c5c60643dabd3739b4cd867023ca8de3c1d82332e9b",
+          "evidence": {
+            "ast_sha256": "172a262ac353861bb8584e4ee97cae2702d0d16f4fce3b956a099359d6ea1f98",
+            "biological_unit": "grouped:module",
+            "input_denominator": 50,
+            "output_row_count": 1
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "uncontracted_codeact_baseline": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "mean_log2fc": 0.5777,
+            "module": "MOD_04"
+          },
+          "decision_digest": "0d4ccfa8c6a45c288dc33c5c60643dabd3739b4cd867023ca8de3c1d82332e9b",
+          "evidence": {
+            "method": "pandas"
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        }
+      },
+      "capsule_id": "A5-04",
+      "decision_manifest_sha256": "c6855dad9496b20113183d238632f14acca0248d8032818805a037ba8780d1b7",
+      "expected": {
+        "decision": "answer",
+        "mean_log2fc": 0.5777,
+        "module": "MOD_04"
+      },
+      "input_fingerprint": "406f4e272947a72a401a3fcbb98c33b55f30a5d2bf5882071c52b8e4365f167b",
+      "question": "Which module has the highest mean log2fc among its significant features?",
+      "seed": 495086,
+      "should_abstain": false,
+      "supported_by_native_contract": true,
+      "variant": "module_with_highest_mean_lfc_among_significant"
+    },
+    {
+      "archetype": "scrubbed_id_derived_query_reasoning",
+      "arms": {
+        "aria_governed": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "features": [
+              "FEAT_0017",
+              "FEAT_0049",
+              "FEAT_0020"
+            ]
+          },
+          "decision_digest": "3bc8ae0d02196c05f82f8b891a3cd8280084ef50f4df47db08836a6fe55138f0",
+          "evidence": {
+            "ast_sha256": "a8bb3a1acef65339f366f7296e86b78ee49f62b93c9a9ddbff0cd6206b583c29",
+            "biological_unit": "gene_x_pathway",
+            "input_denominator": 50,
+            "output_row_count": 3
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "aria_locked_manifest": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "features": [
+              "FEAT_0017",
+              "FEAT_0049",
+              "FEAT_0020"
+            ]
+          },
+          "decision_digest": "3bc8ae0d02196c05f82f8b891a3cd8280084ef50f4df47db08836a6fe55138f0",
+          "evidence": {
+            "ast_sha256": "a8bb3a1acef65339f366f7296e86b78ee49f62b93c9a9ddbff0cd6206b583c29",
+            "biological_unit": "gene_x_pathway",
+            "input_denominator": 50,
+            "output_row_count": 3
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "aria_zero_llm_deterministic": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "features": [
+              "FEAT_0017",
+              "FEAT_0049",
+              "FEAT_0020"
+            ]
+          },
+          "decision_digest": "3bc8ae0d02196c05f82f8b891a3cd8280084ef50f4df47db08836a6fe55138f0",
+          "evidence": {
+            "ast_sha256": "a8bb3a1acef65339f366f7296e86b78ee49f62b93c9a9ddbff0cd6206b583c29",
+            "biological_unit": "gene_x_pathway",
+            "input_denominator": 50,
+            "output_row_count": 3
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "uncontracted_codeact_baseline": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "features": [
+              "FEAT_0017",
+              "FEAT_0049",
+              "FEAT_0020"
+            ]
+          },
+          "decision_digest": "3bc8ae0d02196c05f82f8b891a3cd8280084ef50f4df47db08836a6fe55138f0",
+          "evidence": {
+            "method": "pandas"
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        }
+      },
+      "capsule_id": "A5-05",
+      "decision_manifest_sha256": "6342655f50a69e14da373383be5d781b6139d516a383af78138885fe7ee5de2f",
+      "expected": {
+        "decision": "answer",
+        "features": [
+          "FEAT_0017",
+          "FEAT_0049",
+          "FEAT_0020"
+        ]
+      },
+      "input_fingerprint": "301c56ecd5428cdeb625cbb2fdb8ee87f89c25aece8fd5fc69da398edadff9dd",
+      "question": "List the 3 significant features in 'signaling' modules with the smallest padj.",
+      "seed": 495087,
+      "should_abstain": false,
+      "supported_by_native_contract": true,
+      "variant": "top3_signaling_significant_by_padj"
+    },
+    {
+      "archetype": "scrubbed_id_derived_query_reasoning",
+      "arms": {
+        "aria_governed": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "features": [
+              "FEAT_0001",
+              "FEAT_0006",
+              "FEAT_0007",
+              "FEAT_0016",
+              "FEAT_0023",
+              "FEAT_0034"
+            ]
+          },
+          "decision_digest": "fcbe0ee7d898fdd112a0692f0e407db95f4b0d52d48488f715ef75045905344d",
+          "evidence": {
+            "ast_sha256": "7ef7e36813951c6d46d5713924f67629c1d3e0140bbbcb4fcc9690747486f4e3",
+            "biological_unit": "gene",
+            "input_denominator": 50,
+            "output_row_count": 6
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "aria_locked_manifest": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "features": [
+              "FEAT_0001",
+              "FEAT_0006",
+              "FEAT_0007",
+              "FEAT_0016",
+              "FEAT_0023",
+              "FEAT_0034"
+            ]
+          },
+          "decision_digest": "fcbe0ee7d898fdd112a0692f0e407db95f4b0d52d48488f715ef75045905344d",
+          "evidence": {
+            "ast_sha256": "7ef7e36813951c6d46d5713924f67629c1d3e0140bbbcb4fcc9690747486f4e3",
+            "biological_unit": "gene",
+            "input_denominator": 50,
+            "output_row_count": 6
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "aria_zero_llm_deterministic": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "features": [
+              "FEAT_0001",
+              "FEAT_0006",
+              "FEAT_0007",
+              "FEAT_0016",
+              "FEAT_0023",
+              "FEAT_0034"
+            ]
+          },
+          "decision_digest": "fcbe0ee7d898fdd112a0692f0e407db95f4b0d52d48488f715ef75045905344d",
+          "evidence": {
+            "ast_sha256": "7ef7e36813951c6d46d5713924f67629c1d3e0140bbbcb4fcc9690747486f4e3",
+            "biological_unit": "gene",
+            "input_denominator": 50,
+            "output_row_count": 6
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        },
+        "uncontracted_codeact_baseline": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "features": [
+              "FEAT_0001",
+              "FEAT_0006",
+              "FEAT_0007",
+              "FEAT_0016",
+              "FEAT_0023",
+              "FEAT_0034"
+            ]
+          },
+          "decision_digest": "fcbe0ee7d898fdd112a0692f0e407db95f4b0d52d48488f715ef75045905344d",
+          "evidence": {
+            "method": "pandas"
+          },
+          "is_correct": true,
+          "outcome": "correct_answer"
+        }
+      },
+      "capsule_id": "A5-06",
+      "decision_manifest_sha256": "746615e3c1bc21980cde0583a7245378cc6d9aee5df674d2749c013418e5a526",
+      "expected": {
+        "decision": "answer",
+        "features": [
+          "FEAT_0001",
+          "FEAT_0006",
+          "FEAT_0007",
+          "FEAT_0016",
+          "FEAT_0023",
+          "FEAT_0034"
+        ]
+      },
+      "input_fingerprint": "e654388595fc8bd96263e65afb4a17d28a85e8d92d73016cd295c61e2234ef90",
+      "question": "List (sorted) the significant features with log2fc >= 1.",
+      "seed": 495088,
+      "should_abstain": false,
+      "supported_by_native_contract": true,
+      "variant": "significant_with_lfc_ge_1_sorted"
+    },
+    {
+      "archetype": "scrubbed_id_derived_query_reasoning",
+      "arms": {
+        "aria_governed": {
+          "abstain_reason": "derived_query_violation",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "44d3ae19b47c0b20106440ce2eeea236f4b2748734dea9267b1820884e469096",
+          "evidence": {
+            "violation": "Refusing silent biological-unit join ('gene' x 'cell'); set allow_unit_projection=True only when cross-unit key projection is valid."
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "aria_locked_manifest": {
+          "abstain_reason": "derived_query_violation",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "44d3ae19b47c0b20106440ce2eeea236f4b2748734dea9267b1820884e469096",
+          "evidence": {
+            "violation": "Refusing silent biological-unit join ('gene' x 'cell'); set allow_unit_projection=True only when cross-unit key projection is valid."
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "aria_zero_llm_deterministic": {
+          "abstain_reason": "derived_query_violation",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "44d3ae19b47c0b20106440ce2eeea236f4b2748734dea9267b1820884e469096",
+          "evidence": {
+            "violation": "Refusing silent biological-unit join ('gene' x 'cell'); set allow_unit_projection=True only when cross-unit key projection is valid."
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "uncontracted_codeact_baseline": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "fraction_significant": 0.3628
+          },
+          "decision_digest": "acce06ec2e0bde61fb221079412619d9531af2255c0ead2176a04493e1e52c28",
+          "evidence": {
+            "method": "unvalidated_pd_merge",
+            "rows_after_merge": 736,
+            "rows_before": 50
+          },
+          "is_correct": false,
+          "outcome": "confident_wrong"
+        }
+      },
+      "capsule_id": "A5-07",
+      "decision_manifest_sha256": "5062c3127445aed4957fe0329c52c3ba4d89df90997bbe1f654aed6fe45eab4f",
+      "expected": {
+        "decision": "abstain",
+        "reason_family": "derived_query_violation"
+      },
+      "input_fingerprint": "2ca10bf2b335ce1cad21b852562b6427928c3f0a2df1aba1d186708bdf71674f",
+      "question": "What fraction of features is significant after joining the gene-level DE table to the cell-level expression table?",
+      "seed": 495089,
+      "should_abstain": true,
+      "supported_by_native_contract": true,
+      "variant": "invalid_cross_unit_gene_x_cell_join"
+    },
+    {
+      "archetype": "scrubbed_id_derived_query_reasoning",
+      "arms": {
+        "aria_governed": {
+          "abstain_reason": "derived_query_violation",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "44d3ae19b47c0b20106440ce2eeea236f4b2748734dea9267b1820884e469096",
+          "evidence": {
+            "violation": "Join on ['feature_id'] violated 1:1 cardinality (left_dup=False, right_dup=True)"
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "aria_locked_manifest": {
+          "abstain_reason": "derived_query_violation",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "44d3ae19b47c0b20106440ce2eeea236f4b2748734dea9267b1820884e469096",
+          "evidence": {
+            "violation": "Join on ['feature_id'] violated 1:1 cardinality (left_dup=False, right_dup=True)"
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "aria_zero_llm_deterministic": {
+          "abstain_reason": "derived_query_violation",
+          "abstained": true,
+          "answer": null,
+          "decision_digest": "44d3ae19b47c0b20106440ce2eeea236f4b2748734dea9267b1820884e469096",
+          "evidence": {
+            "violation": "Join on ['feature_id'] violated 1:1 cardinality (left_dup=False, right_dup=True)"
+          },
+          "is_correct": true,
+          "outcome": "correct_abstention"
+        },
+        "uncontracted_codeact_baseline": {
+          "abstain_reason": null,
+          "abstained": false,
+          "answer": {
+            "n_significant_up": 10
+          },
+          "decision_digest": "1cf9b09d77037489ba70ce03109700a34042de31330d44e50603b8509d654386",
+          "evidence": {
+            "method": "unvalidated_pd_merge",
+            "rows_after_merge": 62,
+            "rows_before": 50
+          },
+          "is_correct": false,
+          "outcome": "confident_wrong"
+        }
+      },
+      "capsule_id": "A5-08",
+      "decision_manifest_sha256": "1cccfd5664a8ba2e58b76998b0668230822f165e965128000fc6aec8cc62c2dd",
+      "expected": {
+        "decision": "abstain",
+        "reason_family": "derived_query_violation"
+      },
+      "input_fingerprint": "e346442076c11fde27f52dc7821312b8f798bb614644dd4311235a7b5984f41d",
+      "question": "How many significant up-regulated features are there after a 1:1 join to the module annotation?",
+      "seed": 495090,
+      "should_abstain": true,
+      "supported_by_native_contract": true,
+      "variant": "invalid_one_to_one_cardinality_join"
+    }
+  ],
+  "capsules_per_archetype": 8,
+  "concordance": {
+    "aria_locked_manifest_vs_aria_governed": {
+      "decision_concordance": 1.0,
+      "mismatched_capsules": [],
+      "n_identical_decisions": 40,
+      "n_tasks": 40,
+      "prediction_concordance": 1.0
+    },
+    "aria_zero_llm_deterministic_vs_aria_governed": {
+      "decision_concordance": 1.0,
+      "mismatched_capsules": [],
+      "n_identical_decisions": 40,
+      "n_tasks": 40,
+      "prediction_concordance": 1.0
+    }
+  },
+  "decision_manifest_verification": {
+    "n_input_fingerprints_matched": 40,
+    "n_manifests_committed": 40,
+    "n_manifests_verified": 40,
+    "n_tampered_manifests_detected": 40
+  },
+  "decisions_sha256": "bdfd123167a806bea5432ec6b178cb5ec86a33f32842e1eac556af2784c8db47",
+  "metrics": {
+    "aria_governed": {
+      "abstention_precision": 1.0,
+      "abstention_recall": 1.0,
+      "conditional_accuracy_on_supported": 1.0,
+      "n_abstained": 18,
+      "n_confident_wrong": 0,
+      "n_correct_supported": 22,
+      "n_correct_total": 40,
+      "n_should_abstain_tasks": 18,
+      "n_supported_tasks": 22,
+      "native_contract_coverage": 0.55,
+      "per_archetype": {
+        "design_and_confounding_governance": {
+          "confident_wrong": 0,
+          "correct_abstention": 4,
+          "correct_answer": 4,
+          "n_capsules": 8,
+          "wrongful_abstention": 0
+        },
+        "donor_pseudobulk_vs_cell_pseudoreplication": {
+          "confident_wrong": 0,
+          "correct_abstention": 0,
+          "correct_answer": 8,
+          "n_capsules": 8,
+          "wrongful_abstention": 0
+        },
+        "epistemic_claim_and_causal_licensing": {
+          "confident_wrong": 0,
+          "correct_abstention": 6,
+          "correct_answer": 2,
+          "n_capsules": 8,
+          "wrongful_abstention": 0
+        },
+        "scrubbed_id_derived_query_reasoning": {
+          "confident_wrong": 0,
+          "correct_abstention": 2,
+          "correct_answer": 6,
+          "n_capsules": 8,
+          "wrongful_abstention": 0
+        },
+        "sequencer_and_modality_boundary_abstention": {
+          "confident_wrong": 0,
+          "correct_abstention": 6,
+          "correct_answer": 2,
+          "n_capsules": 8,
+          "wrongful_abstention": 0
+        }
+      },
+      "power_mean_recall_on_planted_de_capsules": 0.9625,
+      "power_n_planted_de_capsules": 8,
+      "schema_version": "aria.benchmark_adapter.v1",
+      "silent_error_rate": 0.0,
+      "suite_name": "aria_v49_codeact_comparative_40:aria_governed",
+      "total_suite_size": 40,
+      "unconditional_end_to_end_accuracy": 1.0
+    },
+    "aria_locked_manifest": {
+      "abstention_precision": 1.0,
+      "abstention_recall": 1.0,
+      "conditional_accuracy_on_supported": 1.0,
+      "n_abstained": 18,
+      "n_confident_wrong": 0,
+      "n_correct_supported": 22,
+      "n_correct_total": 40,
+      "n_should_abstain_tasks": 18,
+      "n_supported_tasks": 22,
+      "native_contract_coverage": 0.55,
+      "per_archetype": {
+        "design_and_confounding_governance": {
+          "confident_wrong": 0,
+          "correct_abstention": 4,
+          "correct_answer": 4,
+          "n_capsules": 8,
+          "wrongful_abstention": 0
+        },
+        "donor_pseudobulk_vs_cell_pseudoreplication": {
+          "confident_wrong": 0,
+          "correct_abstention": 0,
+          "correct_answer": 8,
+          "n_capsules": 8,
+          "wrongful_abstention": 0
+        },
+        "epistemic_claim_and_causal_licensing": {
+          "confident_wrong": 0,
+          "correct_abstention": 6,
+          "correct_answer": 2,
+          "n_capsules": 8,
+          "wrongful_abstention": 0
+        },
+        "scrubbed_id_derived_query_reasoning": {
+          "confident_wrong": 0,
+          "correct_abstention": 2,
+          "correct_answer": 6,
+          "n_capsules": 8,
+          "wrongful_abstention": 0
+        },
+        "sequencer_and_modality_boundary_abstention": {
+          "confident_wrong": 0,
+          "correct_abstention": 6,
+          "correct_answer": 2,
+          "n_capsules": 8,
+          "wrongful_abstention": 0
+        }
+      },
+      "power_mean_recall_on_planted_de_capsules": 0.9625,
+      "power_n_planted_de_capsules": 8,
+      "schema_version": "aria.benchmark_adapter.v1",
+      "silent_error_rate": 0.0,
+      "suite_name": "aria_v49_codeact_comparative_40:aria_locked_manifest",
+      "total_suite_size": 40,
+      "unconditional_end_to_end_accuracy": 1.0
+    },
+    "aria_zero_llm_deterministic": {
+      "abstention_precision": 1.0,
+      "abstention_recall": 1.0,
+      "conditional_accuracy_on_supported": 1.0,
+      "n_abstained": 18,
+      "n_confident_wrong": 0,
+      "n_correct_supported": 22,
+      "n_correct_total": 40,
+      "n_should_abstain_tasks": 18,
+      "n_supported_tasks": 22,
+      "native_contract_coverage": 0.55,
+      "per_archetype": {
+        "design_and_confounding_governance": {
+          "confident_wrong": 0,
+          "correct_abstention": 4,
+          "correct_answer": 4,
+          "n_capsules": 8,
+          "wrongful_abstention": 0
+        },
+        "donor_pseudobulk_vs_cell_pseudoreplication": {
+          "confident_wrong": 0,
+          "correct_abstention": 0,
+          "correct_answer": 8,
+          "n_capsules": 8,
+          "wrongful_abstention": 0
+        },
+        "epistemic_claim_and_causal_licensing": {
+          "confident_wrong": 0,
+          "correct_abstention": 6,
+          "correct_answer": 2,
+          "n_capsules": 8,
+          "wrongful_abstention": 0
+        },
+        "scrubbed_id_derived_query_reasoning": {
+          "confident_wrong": 0,
+          "correct_abstention": 2,
+          "correct_answer": 6,
+          "n_capsules": 8,
+          "wrongful_abstention": 0
+        },
+        "sequencer_and_modality_boundary_abstention": {
+          "confident_wrong": 0,
+          "correct_abstention": 6,
+          "correct_answer": 2,
+          "n_capsules": 8,
+          "wrongful_abstention": 0
+        }
+      },
+      "power_mean_recall_on_planted_de_capsules": 0.9625,
+      "power_n_planted_de_capsules": 8,
+      "schema_version": "aria.benchmark_adapter.v1",
+      "silent_error_rate": 0.0,
+      "suite_name": "aria_v49_codeact_comparative_40:aria_zero_llm_deterministic",
+      "total_suite_size": 40,
+      "unconditional_end_to_end_accuracy": 1.0
+    },
+    "uncontracted_codeact_baseline": {
+      "abstention_precision": null,
+      "abstention_recall": 0.0,
+      "conditional_accuracy_on_supported": 0.636364,
+      "n_abstained": 0,
+      "n_confident_wrong": 26,
+      "n_correct_supported": 14,
+      "n_correct_total": 14,
+      "n_should_abstain_tasks": 18,
+      "n_supported_tasks": 22,
+      "native_contract_coverage": 0.55,
+      "per_archetype": {
+        "design_and_confounding_governance": {
+          "confident_wrong": 4,
+          "correct_abstention": 0,
+          "correct_answer": 4,
+          "n_capsules": 8,
+          "wrongful_abstention": 0
+        },
+        "donor_pseudobulk_vs_cell_pseudoreplication": {
+          "confident_wrong": 8,
+          "correct_abstention": 0,
+          "correct_answer": 0,
+          "n_capsules": 8,
+          "wrongful_abstention": 0
+        },
+        "epistemic_claim_and_causal_licensing": {
+          "confident_wrong": 6,
+          "correct_abstention": 0,
+          "correct_answer": 2,
+          "n_capsules": 8,
+          "wrongful_abstention": 0
+        },
+        "scrubbed_id_derived_query_reasoning": {
+          "confident_wrong": 2,
+          "correct_abstention": 0,
+          "correct_answer": 6,
+          "n_capsules": 8,
+          "wrongful_abstention": 0
+        },
+        "sequencer_and_modality_boundary_abstention": {
+          "confident_wrong": 6,
+          "correct_abstention": 0,
+          "correct_answer": 2,
+          "n_capsules": 8,
+          "wrongful_abstention": 0
+        }
+      },
+      "power_mean_recall_on_planted_de_capsules": 0.86875,
+      "power_n_planted_de_capsules": 8,
+      "schema_version": "aria.benchmark_adapter.v1",
+      "silent_error_rate": 0.65,
+      "suite_name": "aria_v49_codeact_comparative_40:uncontracted_codeact_baseline",
+      "total_suite_size": 40,
+      "unconditional_end_to_end_accuracy": 0.35
+    }
+  },
+  "n_archetypes": 5,
+  "n_capsules": 40,
+  "n_should_abstain": 18,
+  "n_supported_answerable": 22,
+  "policy": {
+    "alpha": 0.05,
+    "biological_unit_aggregation": "mean_log2_over_technical_replicates",
+    "bulk_lfc_min_log2": 1.0,
+    "bulk_test": "ols_condition_plus_confirmed_covariates_smyth_moderated",
+    "min_replicates_per_condition": 2,
+    "recovery_min_precision": 0.9,
+    "recovery_min_recall_floor": 0.5,
+    "sc_lfc_min_log2": 0.5,
+    "single_cell_normalization": "deseq2_median_of_ratios_size_factors",
+    "single_cell_test": "smyth_moderated_t_on_log2cpm_donor_pseudobulk",
+    "single_cell_unit": "donor_pseudobulk_sum_counts"
+  },
+  "receipt_sha256": "b29d59117a1ac14b581b2af4b7ad06b4a02ed62db73f370b690756dccbe7e828",
+  "rng": "numpy.random.default_rng(PCG64)",
+  "runtime": {
+    "claim_gate_execution": "stack_isolated_subprocess:conda-env://aria-env",
+    "note": "runtime block is excluded from receipt_sha256",
+    "numpy": "2.4.3",
+    "pandas": "2.3.3",
+    "python": "3.11",
+    "sweep_claim_gate_execution": "stack_isolated_subprocess:conda-env://aria-env"
+  },
+  "schema_version": "aria.codeact_comparative_benchmark.v1",
+  "seed_robustness_sweep": {
+    "aria_governed_failure_details": [
+      {
+        "base_seed": 1110869,
+        "capsule_id": "A2-07",
+        "n_false_positive_calls": 2,
+        "n_missed_true_features": 0,
+        "n_sign_errors": 0,
+        "outcome": "confident_wrong",
+        "should_abstain": false,
+        "variant": "planted_donor_consistent_4v4"
+      },
+      {
+        "base_seed": 1134626,
+        "capsule_id": "A2-08",
+        "n_false_positive_calls": 2,
+        "n_missed_true_features": 0,
+        "n_sign_errors": 0,
+        "outcome": "confident_wrong",
+        "should_abstain": false,
+        "variant": "planted_donor_consistent_4v4"
+      }
+    ],
+    "aria_governed_failures_by_variant": {
+      "planted_donor_consistent_4v4:confident_wrong": 2
+    },
+    "arms": [
+      "aria_governed",
+      "uncontracted_codeact_baseline"
+    ],
+    "n_seeds": 20,
+    "per_seed": [
+      {
+        "aria_governed_abstention_precision": 1.0,
+        "aria_governed_abstention_recall": 1.0,
+        "aria_governed_conditional_accuracy_on_supported": 1.0,
+        "aria_governed_power_mean_recall": 0.9875,
+        "aria_governed_silent_error_rate": 0.0,
+        "base_seed": 1000003,
+        "baseline_power_mean_recall": 0.91875,
+        "baseline_silent_error_rate": 0.65
+      },
+      {
+        "aria_governed_abstention_precision": 1.0,
+        "aria_governed_abstention_recall": 1.0,
+        "aria_governed_conditional_accuracy_on_supported": 1.0,
+        "aria_governed_power_mean_recall": 0.9875,
+        "aria_governed_silent_error_rate": 0.0,
+        "base_seed": 1007922,
+        "baseline_power_mean_recall": 0.90625,
+        "baseline_silent_error_rate": 0.65
+      },
+      {
+        "aria_governed_abstention_precision": 1.0,
+        "aria_governed_abstention_recall": 1.0,
+        "aria_governed_conditional_accuracy_on_supported": 1.0,
+        "aria_governed_power_mean_recall": 1.0,
+        "aria_governed_silent_error_rate": 0.0,
+        "base_seed": 1015841,
+        "baseline_power_mean_recall": 0.86875,
+        "baseline_silent_error_rate": 0.65
+      },
+      {
+        "aria_governed_abstention_precision": 1.0,
+        "aria_governed_abstention_recall": 1.0,
+        "aria_governed_conditional_accuracy_on_supported": 1.0,
+        "aria_governed_power_mean_recall": 0.975,
+        "aria_governed_silent_error_rate": 0.0,
+        "base_seed": 1023760,
+        "baseline_power_mean_recall": 0.875,
+        "baseline_silent_error_rate": 0.65
+      },
+      {
+        "aria_governed_abstention_precision": 1.0,
+        "aria_governed_abstention_recall": 1.0,
+        "aria_governed_conditional_accuracy_on_supported": 1.0,
+        "aria_governed_power_mean_recall": 0.975,
+        "aria_governed_silent_error_rate": 0.0,
+        "base_seed": 1031679,
+        "baseline_power_mean_recall": 0.9,
+        "baseline_silent_error_rate": 0.65
+      },
+      {
+        "aria_governed_abstention_precision": 1.0,
+        "aria_governed_abstention_recall": 1.0,
+        "aria_governed_conditional_accuracy_on_supported": 1.0,
+        "aria_governed_power_mean_recall": 0.975,
+        "aria_governed_silent_error_rate": 0.0,
+        "base_seed": 1039598,
+        "baseline_power_mean_recall": 0.88125,
+        "baseline_silent_error_rate": 0.65
+      },
+      {
+        "aria_governed_abstention_precision": 1.0,
+        "aria_governed_abstention_recall": 1.0,
+        "aria_governed_conditional_accuracy_on_supported": 1.0,
+        "aria_governed_power_mean_recall": 1.0,
+        "aria_governed_silent_error_rate": 0.0,
+        "base_seed": 1047517,
+        "baseline_power_mean_recall": 0.90625,
+        "baseline_silent_error_rate": 0.65
+      },
+      {
+        "aria_governed_abstention_precision": 1.0,
+        "aria_governed_abstention_recall": 1.0,
+        "aria_governed_conditional_accuracy_on_supported": 1.0,
+        "aria_governed_power_mean_recall": 0.9875,
+        "aria_governed_silent_error_rate": 0.0,
+        "base_seed": 1055436,
+        "baseline_power_mean_recall": 0.89375,
+        "baseline_silent_error_rate": 0.65
+      },
+      {
+        "aria_governed_abstention_precision": 1.0,
+        "aria_governed_abstention_recall": 1.0,
+        "aria_governed_conditional_accuracy_on_supported": 1.0,
+        "aria_governed_power_mean_recall": 0.975,
+        "aria_governed_silent_error_rate": 0.0,
+        "base_seed": 1063355,
+        "baseline_power_mean_recall": 0.88125,
+        "baseline_silent_error_rate": 0.65
+      },
+      {
+        "aria_governed_abstention_precision": 1.0,
+        "aria_governed_abstention_recall": 1.0,
+        "aria_governed_conditional_accuracy_on_supported": 1.0,
+        "aria_governed_power_mean_recall": 0.9875,
+        "aria_governed_silent_error_rate": 0.0,
+        "base_seed": 1071274,
+        "baseline_power_mean_recall": 0.85625,
+        "baseline_silent_error_rate": 0.65
+      },
+      {
+        "aria_governed_abstention_precision": 1.0,
+        "aria_governed_abstention_recall": 1.0,
+        "aria_governed_conditional_accuracy_on_supported": 1.0,
+        "aria_governed_power_mean_recall": 0.9875,
+        "aria_governed_silent_error_rate": 0.0,
+        "base_seed": 1079193,
+        "baseline_power_mean_recall": 0.8875,
+        "baseline_silent_error_rate": 0.65
+      },
+      {
+        "aria_governed_abstention_precision": 1.0,
+        "aria_governed_abstention_recall": 1.0,
+        "aria_governed_conditional_accuracy_on_supported": 1.0,
+        "aria_governed_power_mean_recall": 0.975,
+        "aria_governed_silent_error_rate": 0.0,
+        "base_seed": 1087112,
+        "baseline_power_mean_recall": 0.9375,
+        "baseline_silent_error_rate": 0.65
+      },
+      {
+        "aria_governed_abstention_precision": 1.0,
+        "aria_governed_abstention_recall": 1.0,
+        "aria_governed_conditional_accuracy_on_supported": 1.0,
+        "aria_governed_power_mean_recall": 0.9875,
+        "aria_governed_silent_error_rate": 0.0,
+        "base_seed": 1095031,
+        "baseline_power_mean_recall": 0.85625,
+        "baseline_silent_error_rate": 0.65
+      },
+      {
+        "aria_governed_abstention_precision": 1.0,
+        "aria_governed_abstention_recall": 1.0,
+        "aria_governed_conditional_accuracy_on_supported": 1.0,
+        "aria_governed_power_mean_recall": 0.9875,
+        "aria_governed_silent_error_rate": 0.0,
+        "base_seed": 1102950,
+        "baseline_power_mean_recall": 0.875,
+        "baseline_silent_error_rate": 0.65
+      },
+      {
+        "aria_governed_abstention_precision": 1.0,
+        "aria_governed_abstention_recall": 1.0,
+        "aria_governed_conditional_accuracy_on_supported": 0.954545,
+        "aria_governed_power_mean_recall": 1.0,
+        "aria_governed_silent_error_rate": 0.025,
+        "base_seed": 1110869,
+        "baseline_power_mean_recall": 0.88125,
+        "baseline_silent_error_rate": 0.65
+      },
+      {
+        "aria_governed_abstention_precision": 1.0,
+        "aria_governed_abstention_recall": 1.0,
+        "aria_governed_conditional_accuracy_on_supported": 1.0,
+        "aria_governed_power_mean_recall": 0.9625,
+        "aria_governed_silent_error_rate": 0.0,
+        "base_seed": 1118788,
+        "baseline_power_mean_recall": 0.9125,
+        "baseline_silent_error_rate": 0.65
+      },
+      {
+        "aria_governed_abstention_precision": 1.0,
+        "aria_governed_abstention_recall": 1.0,
+        "aria_governed_conditional_accuracy_on_supported": 1.0,
+        "aria_governed_power_mean_recall": 0.9875,
+        "aria_governed_silent_error_rate": 0.0,
+        "base_seed": 1126707,
+        "baseline_power_mean_recall": 0.88125,
+        "baseline_silent_error_rate": 0.65
+      },
+      {
+        "aria_governed_abstention_precision": 1.0,
+        "aria_governed_abstention_recall": 1.0,
+        "aria_governed_conditional_accuracy_on_supported": 0.954545,
+        "aria_governed_power_mean_recall": 0.975,
+        "aria_governed_silent_error_rate": 0.025,
+        "base_seed": 1134626,
+        "baseline_power_mean_recall": 0.875,
+        "baseline_silent_error_rate": 0.65
+      },
+      {
+        "aria_governed_abstention_precision": 1.0,
+        "aria_governed_abstention_recall": 1.0,
+        "aria_governed_conditional_accuracy_on_supported": 1.0,
+        "aria_governed_power_mean_recall": 0.975,
+        "aria_governed_silent_error_rate": 0.0,
+        "base_seed": 1142545,
+        "baseline_power_mean_recall": 0.91875,
+        "baseline_silent_error_rate": 0.65
+      },
+      {
+        "aria_governed_abstention_precision": 1.0,
+        "aria_governed_abstention_recall": 1.0,
+        "aria_governed_conditional_accuracy_on_supported": 1.0,
+        "aria_governed_power_mean_recall": 1.0,
+        "aria_governed_silent_error_rate": 0.0,
+        "base_seed": 1150464,
+        "baseline_power_mean_recall": 0.8625,
+        "baseline_silent_error_rate": 0.65
+      }
+    ],
+    "seed_rule": "1_000_003 + 7_919 * i, i = 0..n-1",
+    "summary": {
+      "aria_governed_conditional_accuracy_on_supported": {
+        "max": 1.0,
+        "mean": 0.995454,
+        "min": 0.954545
+      },
+      "aria_governed_power_mean_recall": {
+        "max": 1.0,
+        "mean": 0.984375,
+        "min": 0.9625
+      },
+      "aria_governed_silent_error_rate": {
+        "max": 0.025,
+        "mean": 0.0025,
+        "min": 0.0
+      },
+      "baseline_power_mean_recall": {
+        "max": 0.9375,
+        "mean": 0.88875,
+        "min": 0.85625
+      },
+      "baseline_silent_error_rate": {
+        "max": 0.65,
+        "mean": 0.65,
+        "min": 0.65
+      },
+      "n_seeds_governed_abstention_precision_and_recall_1": 20,
+      "n_seeds_governed_zero_silent_error": 18
+    },
+    "sweep_sha256": "b2638dbdd04c68bdabdac44b09980e9b8cff9fbae6bd79ac6e6a006129b40d99"
+  },
+  "silent_error_gap": {
+    "absolute_gap": 0.65,
+    "aria_governed": 0.0,
+    "uncontracted_codeact_baseline": 0.65
+  },
+  "suite_base_seed": 490083,
+  "suite_name": "aria_v49_codeact_comparative_40",
+  "tier": "tier_1_deterministic_synthetic_capsules",
+  "zero_llm_isolation": {
+    "isolated_env_flags": {
+      "ARIA_LLM_CACHE": "0",
+      "ARIA_REPRODUCIBLE": "1",
+      "PYTHONHASHSEED": "0"
+    },
+    "llm_handle": null,
+    "n_capsules_regenerated_identically": 40
+  }
+}

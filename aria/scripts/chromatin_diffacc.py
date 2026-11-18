@@ -77,6 +77,7 @@ from __future__ import annotations
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from aria.scripts._base import run_script, mocks_allowed
+from aria.utils.lobo_jackknife import compute_counts_lobo_jackknife
 
 
 def _binary_pct(X, mask, col_idx):
@@ -490,8 +491,23 @@ def _pseudobulk_da(adata, condition_col, replicate_col, comparisons,
                 "significant": bool(peak in sig.index),
             })
 
+        try:
+            lobo_res = compute_counts_lobo_jackknife(
+                sub_counts, sub_meta, condition_col=condition_col,
+                numerator=test, denominator=ref, alpha=padj_max,
+                target_features=[str(p) for p in list(sig.index)] or [
+                    str(p) for p in list(res_df.index)[:50]
+                ],
+                primary_significant_features=[str(p) for p in list(sig.index)],
+                paired_unit_col=(replicate_col if paired_block_modeled else None),
+                max_reported_features=200,
+            )
+        except Exception as exc:
+            lobo_res = {"status": "error", "details": str(exc)[:200]}
+
         comp_results.append({
             "test": test, "reference": ref, "status": "success",
+            "lobo_jackknife": lobo_res,
             "n_sig": int(len(sig)),
             "n_up": n_up,
             "n_down": n_down,

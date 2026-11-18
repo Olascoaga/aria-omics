@@ -22,6 +22,7 @@ from typing import Any
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from aria.scripts._base import mocks_allowed, run_script
+from aria.utils.lobo_jackknife import compute_counts_lobo_jackknife
 
 
 def _error(error_type: str, details: str, **extra) -> dict:
@@ -459,10 +460,25 @@ def chromatin_bulk_diffacc(params: dict) -> dict:
                 "log2fc": round(float(row_df["log2FoldChange"]), 3),
                 "padj": round(float(row_df["padj"]), 6),
             })
+        try:
+            lobo_res = compute_counts_lobo_jackknife(
+                rep_counts, rep_meta, condition_col=condition_col,
+                numerator=test, denominator=ref, alpha=padj_max,
+                target_features=[str(p) for p in list(sig_df.index)] or [
+                    str(p) for p in list(results_df.index)[:50]
+                ],
+                primary_significant_features=[str(p) for p in list(sig_df.index)],
+                size_factors=spikein_sf,
+                max_reported_features=200,
+            )
+        except Exception as exc:
+            lobo_res = {"status": "error", "details": str(exc)[:200]}
+
         result_row = {
             "test": test,
             "reference": ref,
             "status": "success",
+            "lobo_jackknife": lobo_res,
             "n_sig": n_sig,
             "n_up": n_up,
             "n_down": n_down,

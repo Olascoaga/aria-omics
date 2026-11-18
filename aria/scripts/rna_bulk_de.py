@@ -89,6 +89,7 @@ from aria.scripts.rna_bulk.transforms import (  # noqa: E402,F401
     _run_vst, _select_variable_genes, _compute_tpm, _compute_cpm,
 )
 from aria.utils.rna_fastq_protocol import is_end_tag_or_umi_bias_protocol  # noqa: E402
+from aria.utils.lobo_jackknife import compute_counts_lobo_jackknife  # noqa: E402
 from aria.scripts.rna_bulk.counts import (  # noqa: E402,F401
     _load_counts, _enforce_metadata_correspondence, _metadata_inference_allowed,
     _load_or_infer_metadata, _aggregate_technical_replicates, _infer_groups,
@@ -603,6 +604,19 @@ def bulk_rna_de(params: dict) -> dict:
         all_sig_symbols = _to_symbols(all_sig, symbol_map) if symbol_map \
                             else list(all_sig)
 
+        try:
+            lobo_res = compute_counts_lobo_jackknife(
+                counts_filt, metadata, condition_col=design_factor,
+                numerator=num, denominator=den, alpha=padj_thr,
+                target_features=[str(g) for g in all_sig] or [
+                    str(g) for g in list(results_df_all.index)[:50]
+                ],
+                primary_significant_features=[str(g) for g in all_sig],
+                max_reported_features=200,
+            )
+        except Exception as exc:
+            lobo_res = {"status": "error", "details": str(exc)[:200]}
+
         contrast_results.append({
             "name":              name,
             "numerator":         num,
@@ -635,6 +649,7 @@ def bulk_rna_de(params: dict) -> dict:
             # else Ensembl IDs — both work for set intersection)
             "all_sig_genes":     all_sig_symbols,
             "all_sig_gene_ids":   [str(g) for g in all_sig],
+            "lobo_jackknife":     lobo_res,
             # Direction split (gene IDs) so the BiologicalSynthesisAgent can score
             # direction concordance of shared genes across contrasts.
             "up_gene_ids":       [str(g) for g in (de_result.get("up_genes") or [])],

@@ -66,9 +66,11 @@ evidence.
 
 ## Current closure boundary
 
-On `v4.8.0`, all **18 of 21** executable machine freeze lanes are verified
-(`Claims 1, 2, 5, 6, 7` complete). The remaining **3 of 21** lanes require
-independent human annotation and adjudication:
+On `v4.9.0` (`ADR-083`), all **19 of 19** machine-verifiable freeze lanes under
+`automated_v1_gate` are verified (`Claims 1–7` machine lanes complete, including
+`c4_metamorphic_600_falsification`). The remaining **3 of 22** lanes require
+independent human annotation and adjudication and are recorded verbatim as
+`deferred_to_v2_reader_study`:
 
 - `c3_blind_multifactorial_corpus`;
 - `c4_b2_multi_annotator_gold`;

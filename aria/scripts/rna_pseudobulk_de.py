@@ -78,6 +78,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from aria.scripts._base import run_script
 from aria.utils.count_classifier import classify_matrix, sample_row_indices
 from aria.utils.stats import bh_correct as _bh_correct
+from aria.utils.lobo_jackknife import compute_counts_lobo_jackknife
 from aria.utils.stats import (
     assert_fdr_family_not_post_hoc,
     fdr_advanced_methods_disclosure,
@@ -829,6 +830,7 @@ def rna_pseudobulk_de(params: dict) -> dict:
                 "group":      group,
                 "comparison": comp_key,
                 "results":    res,
+                "lobo_inputs": (counts_sub, meta_sub, test_lvl, ref_lvl),
             })
 
         per_group[group] = per_group_entry
@@ -1030,6 +1032,31 @@ def rna_pseudobulk_de(params: dict) -> dict:
                     "padj_local":  float(row["padj_local"]) if pd.notna(row.get("padj_local")) else None,
                     "padj_global": float(row["padj_global"]) if pd.notna(row.get("padj_global")) else None,
                 })
+
+    # Primary significance is finalized after global BH. Evaluate every fitted
+    # block, including an empty family with no finite p-values or discoveries.
+    for block in successful_blocks:
+        comp = per_group[block["group"]]["per_comparison"][block["comparison"]]
+        all_records = comp["all_sig"]
+        res = block["results"]
+        counts_sub, meta_sub, test_lvl, ref_lvl = block["lobo_inputs"]
+        try:
+            lobo_res = compute_counts_lobo_jackknife(
+                counts_sub, meta_sub, condition_col=condition_col,
+                numerator=test_lvl, denominator=ref_lvl, alpha=padj_max,
+                target_features=[r["gene"] for r in all_records] or [
+                    str(g) for g in list(res.index)[:50]
+                ],
+                primary_significant_features=[r["gene"] for r in all_records],
+                paired_unit_col=(
+                    replicate_col if replicate_col in meta_sub.columns
+                    and meta_sub[replicate_col].duplicated().any() else None
+                ),
+                max_reported_features=200,
+            )
+        except Exception as exc:
+            lobo_res = {"status": "error", "details": str(exc)[:200]}
+        comp["lobo_jackknife"] = lobo_res
 
     # ── Write CSV ─────────────────────────────────────────────────────────
     out_dir = Path(output_dir) if output_dir else Path(data_path).parent

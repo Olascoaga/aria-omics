@@ -26,8 +26,10 @@ CAUSAL_PATTERNS = (
     "hierarchical gatekeepers",
     # broadened lexicon (audit 2026-05-28, F-SCI-CAUSAL): associative
     # transcriptomic/communication evidence does not license causal verbs.
+    "cause",
     "causes",
     "caused by",
+    "causally",
     "induces",
     "induced by",
     "triggers",

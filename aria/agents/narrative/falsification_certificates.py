@@ -88,6 +88,53 @@ def _permutation_axis_for_claim(claim: dict[str, Any], agent_results: dict[str, 
     }
 
 
+def _extract_lobo_from_agent_results(
+    claim: dict[str, Any], agent_results: dict[str, Any],
+) -> list[dict[str, Any]]:
+    """Read executed DE/DA summaries only from the claim's matching modality."""
+    if claim.get("analysis") not in {
+        "differential_expression", "pseudobulk_de",
+        "differential_accessibility", "contrast",
+    }:
+        return []
+    modality = str(claim.get("modality") or "").lower()
+    modality = modality.replace("_", "").replace("-", "").replace(" ", "")
+    contrasts = []
+    if modality in {"bulkrna", "bulkrnaseq"}:
+        result = agent_results.get("bulk_rna_agent") or {}
+        findings = result.get("findings") or result
+        contrasts.extend(findings.get("contrasts") or [])
+    elif modality in {"scrna", "scrnaseq"}:
+        from aria.agents.narrative.scrna import unwrap_scrna_findings
+
+        result = agent_results.get("scrna_agent") or {}
+        findings = unwrap_scrna_findings(result)
+        pb = findings.get("pseudobulk_de") or {}
+        for group in (pb.get("per_group") or {}).values():
+            if isinstance(group, dict):
+                contrasts.extend((group.get("per_comparison") or {}).values())
+    elif modality in {
+        "chromatin", "scatac", "bulkatac", "atac", "atacseq",
+        "chip", "chipseq", "cutandrun", "cutandtag", "cut&run", "cut&tag",
+    }:
+        from aria.agents.narrative.narrators.chromatin import unwrap_chromatin_findings
+
+        findings = unwrap_chromatin_findings(agent_results.get("chromatin_agent") or {})
+        seen = set()
+        for key in ("diffacc", "differential_accessibility", "bulk_diffacc"):
+            da = findings.get(key) or {}
+            for container in (da.get("pseudobulk") or {}, da):
+                # Aliases can point at the same comparison list in a live result.
+                comparisons = container.get("comparisons") or []
+                if id(comparisons) not in seen:
+                    contrasts.extend(comparisons)
+                    seen.add(id(comparisons))
+    return [
+        c["lobo_jackknife"] for c in contrasts
+        if isinstance(c, dict) and isinstance(c.get("lobo_jackknife"), dict)
+    ]
+
+
 def build_falsification_certificates(
     claims: list[dict[str, Any]] | None,
     agent_results: dict[str, Any] | None,
@@ -124,6 +171,12 @@ def build_falsification_certificates(
         tier = str(claim.get("tier") or "descriptive")
         is_inferential = analysis in inferential_analyses or tier != "descriptive"
 
+        extracted_lobo = (
+            _extract_lobo_from_agent_results(claim, results)
+            if "lobo_jackknife" not in ctx and is_inferential else []
+        )
+        measured_lobo = [s for s in extracted_lobo if s.get("status") == "measured"]
+
         # Axis 1: LOBO Jackknife
         if not is_inferential:
             lobo_axis = {
@@ -137,6 +190,27 @@ def build_falsification_certificates(
                 "n_jackknife_folds": precomputed_lobo.get("n_jackknife_folds"),
                 "n_features_evaluated": precomputed_lobo.get("n_features_evaluated"),
                 "n_features_lobo_stable": precomputed_lobo.get("n_features_lobo_stable"),
+            }
+        elif measured_lobo:
+            n_evaluated = sum(s.get("n_features_evaluated", 0) for s in measured_lobo)
+            n_stable = sum(s.get("n_features_lobo_stable", 0) for s in measured_lobo)
+            lobo_axis = {
+                "status": "measured",
+                "biological_unit": unit_kind,
+                "n_contrasts_measured": len(measured_lobo),
+                "n_jackknife_folds": max(s.get("n_jackknife_folds", 0) for s in measured_lobo),
+                "n_features_evaluated": n_evaluated,
+                "n_features_lobo_stable": n_stable,
+                "n_single_unit_driven": sum(s.get("n_single_unit_driven", 0) for s in measured_lobo),
+                "lobo_stable_fraction": round(n_stable / n_evaluated, 4) if n_evaluated else None,
+            }
+        elif extracted_lobo and all(
+            s.get("status") == "not_testable_insufficient_replicates" for s in extracted_lobo
+        ):
+            lobo_axis = {
+                "status": "not_testable_insufficient_replicates",
+                "biological_unit": unit_kind,
+                "minimum_required_per_arm": 3,
             }
         elif n_arm_min is not None and n_arm_min < 3:
             lobo_axis = {

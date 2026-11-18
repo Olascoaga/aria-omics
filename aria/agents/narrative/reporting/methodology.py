@@ -289,7 +289,19 @@ class MethodologyMixin:
         for cert in certs:
             if not isinstance(cert, dict):
                 continue
-            lobo = (cert.get("lobo_biological_unit_jackknife") or {}).get("status", "n/a")
+            lobo_dict = cert.get("lobo_biological_unit_jackknife") or {}
+            lobo = lobo_dict.get("status", "n/a")
+            if (
+                lobo == "measured"
+                and lobo_dict.get("n_features_evaluated") is not None
+                and lobo_dict.get("n_features_lobo_stable") is not None
+            ):
+                folds = lobo_dict.get("n_jackknife_folds")
+                fold_note = f", {folds} folds" if folds is not None else ""
+                lobo = (
+                    f"measured ({lobo_dict['n_features_lobo_stable']}/"
+                    f"{lobo_dict['n_features_evaluated']} stable{fold_note})"
+                )
             perm = (cert.get("block_preserving_permutation_null") or {}).get("status", "n/a")
             spec = (cert.get("specification_multiverse_stability") or {}).get("status", "n/a")
             rows.append(

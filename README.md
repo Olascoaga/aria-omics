@@ -2,7 +2,7 @@
 
 > **Ask the biological question. Confirm the experimental design. Execute in hermetic scientific stacks. Publish only what structured evidence supports.**
 
-![Version](https://img.shields.io/badge/version-4.8.0-blue)
+![Version](https://img.shields.io/badge/version-4.9.0-blue)
 ![Python](https://img.shields.io/badge/python-3.11-blue)
 ![Platform](https://img.shields.io/badge/platform-linux--64%20%7C%20WSL2-informational)
 ![Governance](https://img.shields.io/badge/governance-C1--C7%20verified-success)
@@ -10,7 +10,7 @@
 
 **ARIA (`aria-omics`)** is an open-source, evidence-governed control plane for bulk, single-cell, chromatin, epigenomic, 3D genome, and paired multi-omic biology. Instead of letting a language model improvise statistical scripts or fill analytical gaps with plausible prose, ARIA separates **human-confirmed experimental design**, **lock-pinned deterministic bioinformatics execution**, **compiler-enforced public claim verification (`C1–C4`)**, and **mechanically quarantined hypothesis generation (`S0–S10`)**.
 
-Every report bundle stamps the package version (**`4.8.0`**), exact Git commit, dirty state, workflow hash, input SHA-256 digests, Conda/PyPI lockfile hashes, and LLM determinism provenance — so package version alone is never treated as a complete reproducibility pin.
+Every report bundle stamps the package version (**`4.9.0`**), exact Git commit, dirty state, workflow hash, input SHA-256 digests, Conda/PyPI lockfile hashes, and LLM determinism provenance — so package version alone is never treated as a complete reproducibility pin.
 
 ---
 
@@ -38,7 +38,7 @@ flowchart LR
 
 ---
 
-## Capability & Readiness Matrix (`v4.8.0`)
+## Capability & Readiness Matrix (`v4.9.0`)
 
 `aria/agents/orchestrator_agent.py` (`MODALITY_VALIDATION`, `INTEGRATION_VALIDATION`, and `CROSS_MODAL_CONCORDANCE_VALIDATION`) is the single runtime source of truth, guarded against documentation drift in CI ([Validation Status](docs/validation_status.md)):
 
@@ -194,7 +194,7 @@ aria_<timestamp>_<slug>_<id>/
 - **[HypothesisAgent & `SPECULATIVE` Quarantine](docs/architecture/hypothesis_agent.md)**
 - **[Preprint-v1 Evidence Freeze](docs/architecture/preprint_freeze_v1.md)** & **[Benchmark Artifacts](docs/benchmark_results/README.md)**
 - **[Workflow Guides](docs/workflows/)** — [Bulk RNA](docs/workflows/bulk_rna.md) · [scRNA](docs/workflows/scrna.md) · [Pseudobulk](docs/workflows/pseudobulk_scrna.md) · [Chromatin](docs/workflows/chromatin_roadmap.md) · [Paired Multiome](docs/workflows/integration_roadmap.md)
-- **[Changelog](CHANGELOG.md)** & **[v4.8.0 Release Notes](docs/release_notes_v4.8.0.md)**
+- **[Changelog](CHANGELOG.md)** & **[v4.9.0 Release Notes](docs/release_notes_v4.9.0.md)**
 
 ---
 
@@ -210,7 +210,7 @@ python -m pytest -q \
   tests/test_registry_integrity.py
 ```
 
-Consult [`docs/architecture/code_graph.md`](docs/architecture/code_graph.md) before modifying shared paths. Note that [`docs/benchmark_results/preprint_v1/`](docs/benchmark_results/preprint_v1/inventory.json) binds receipts to the clean indexed Git tree (`v4.8.0` is the current release tag), so any tracked code or documentation edit requires refreshing machine freeze receipts before cutting a frozen preprint snapshot.
+Consult [`docs/architecture/code_graph.md`](docs/architecture/code_graph.md) before modifying shared paths. Note that [`docs/benchmark_results/preprint_v1/`](docs/benchmark_results/preprint_v1/inventory.json) binds receipts to the clean indexed Git tree (`v4.9.0` is the current package release), so any tracked code or documentation edit requires refreshing machine freeze receipts before cutting a frozen preprint snapshot.
 
 ---
 
