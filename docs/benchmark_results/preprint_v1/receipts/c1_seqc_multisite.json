@@ -1,10 +1,10 @@
 {
-  "aria_version": "4.8.0",
+  "aria_version": "4.9.0",
   "artifacts": [
     {
       "path": "claim_1/seqc_multisite/a1_seqc_multisite_v4.5.5.json",
-      "sha256": "aadb5bbddb6483dfbca0446541cc9ba4862ca88020a1b1e15a41a9551a5b45f1",
-      "size_bytes": 4868
+      "sha256": "c44418287fc4353d294814e3eb92b00aa46c99250ffbb519b74a60f6c832e9bf",
+      "size_bytes": 4869
     },
     {
       "path": "claim_1/seqc_multisite/fig1_a1_seqc_multisite_v4.5.5.svg",
@@ -16,18 +16,18 @@
     "claim_1"
   ],
   "command": "conda run -n aria-rna-env python scripts/run_a1_seqc_multisite_benchmark.py --output-dir docs/benchmark_results/preprint_v1/claim_1/seqc_multisite",
-  "completed_utc": "2026-11-12T19:25:24.920861+00:00",
+  "completed_utc": "2026-11-18T20:11:10.576933+00:00",
   "environment": "aria-rna-env",
-  "git_commit": "b5c83c367fa52d524a40d84c9b4041ad49dd6e70",
-  "git_tree_sha": "44324c727eb8ace11166f8613a73ff43d5b41558",
+  "git_commit": "b573b7070868c31911f2d4a2e17701663bb9ec54",
+  "git_tree_sha": "c1a59bdf1cf3a49631834cf5d6982bc2cf211280",
   "lane_id": "c1_seqc_multisite",
   "returncode": 0,
   "schema_version": "aria.preprint_freeze.receipt.v1",
-  "source_snapshot_hash": "5b704032458992b53a2684019aa9d2a1990c3ab8506c367b2f6df1ad30a0d839",
-  "started_utc": "2026-11-12T19:25:02.113659+00:00",
+  "source_snapshot_hash": "9e4ea9f4c25587ed832015efedaad6914cd915c5539f85e6deb500c5d94c32bc",
+  "started_utc": "2026-11-18T20:10:11.486127+00:00",
   "status": "pass",
   "stderr_sha256": "f3b26c446cda4b54b43efc3289c3a3376d78cce31e9b9b559a42e073d9a612bd",
   "stdout_sha256": "b056b956177cccb418a011408554c0ff20a7fe3e9524da747c9858ed01b68617",
   "test_summary": null,
-  "workflow_hash": "8e1d74b693fd4714afa54ba2b1762141eefb611ddbfb4bd79d54a8f8a80cbff4"
+  "workflow_hash": "a6f56213ef6170014208f85b9727bb5ec5176c8b0fa4caa7606d57f9ef57dbdb"
 }

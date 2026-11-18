@@ -1,7 +1,20 @@
 {
+  "analytical_fork_ledger": {
+    "commitment_status": "locked_before_execution",
+    "fork_changes": [],
+    "fork_index": 0,
+    "is_exact_spec_replay": true,
+    "ledger_runs_observed": 2,
+    "manifest_sha256": "7d7bb79dc0002130121a31f2dda3088a5cb0bc5edbb531914b3615eb264b26b3",
+    "parent_manifest_sha256": null,
+    "schema_version": "aria.fork_ledger.v1",
+    "specification_sha256": "a54f195863347da81a0de05d3d649d2a80a7a5df47b479abdbedc1ff619bf652",
+    "study_input_fingerprint": "480ed8292bd41381e8be95ca3f135454498af9f65a710f286bc35e2f9da51eac",
+    "total_analytical_forks": 1
+  },
   "claim_compilation": {
     "compiler": "compile_public_claims",
-    "n_published": 13,
+    "n_published": 14,
     "n_withheld": 0,
     "withheld": []
   },
@@ -39,7 +52,7 @@
           "label": "narrative blocks summarized",
           "path": null,
           "source": "narrative_registry",
-          "value": 12
+          "value": 13
         },
         {
           "label": "allowed confidence labels",
@@ -122,7 +135,7 @@
               "path": null,
               "ref_id": "executive_summary:evidence:3",
               "source": "narrative_registry",
-              "value": 12
+              "value": 13
             },
             {
               "kind": "evidence",
@@ -148,7 +161,218 @@
               "kind": "metric",
               "label": "n_narrative_blocks_summarized",
               "ref_id": "executive_summary:metric:n_narrative_blocks_summarized",
-              "value": 12
+              "value": 13
+            }
+          ],
+          "semantic_facts": []
+        },
+        "policy": "Every ARIA-authored claim sentence must be backed by structured evidence, metrics, tables, figures, or an explicitly licensed analysis family.",
+        "status": "supported",
+        "unsupported": []
+      }
+    },
+    {
+      "analysis": "preprocessing",
+      "causal_license": {
+        "contrast": null,
+        "estimand_id": null,
+        "licensed": false,
+        "reason": "missing_block_estimand"
+      },
+      "claim_id": "bulk.preprocessing",
+      "confidence": "high",
+      "evidence": [
+        {
+          "label": "library protocol",
+          "path": null,
+          "source": "bulk_preprocessing",
+          "value": "full_length"
+        },
+        {
+          "label": "samples quantified",
+          "path": null,
+          "source": "bulk_preprocessing",
+          "value": 9
+        },
+        {
+          "label": "genes quantified",
+          "path": null,
+          "source": "bulk_preprocessing",
+          "value": 38900
+        },
+        {
+          "label": "read layout",
+          "path": null,
+          "source": "bulk_preprocessing",
+          "value": "paired-end"
+        },
+        {
+          "label": "featureCounts strand",
+          "path": null,
+          "source": "bulk_preprocessing",
+          "value": 0
+        },
+        {
+          "label": "mean reads passed QC (%)",
+          "path": null,
+          "source": "fastp",
+          "value": 98.9
+        },
+        {
+          "label": "mean unique STAR mapping (%)",
+          "path": null,
+          "source": "star",
+          "value": 94.3
+        },
+        {
+          "label": "exon assignment rate (%)",
+          "path": null,
+          "source": "featurecounts",
+          "value": 69.1
+        }
+      ],
+      "evidence_card_id": "bulk.preprocessing#evidence",
+      "evidence_categories": [
+        "descriptive"
+      ],
+      "figures": [],
+      "language_violation": null,
+      "ledger_linked": true,
+      "ledger_node_id": "ledger://bulk/preprocessing",
+      "ledger_node_type": "analysis_run",
+      "ledger_provenance": {
+        "finding_keys": [
+          "preprocessing"
+        ],
+        "kind": "structured_agent_result",
+        "modality": "bulk"
+      },
+      "ledger_status": "ran",
+      "licensed_language": "descriptive",
+      "limitations": [],
+      "modality": "bulk RNA-seq",
+      "rationale": "Descriptive summary (QC/counts); no between-condition claim.",
+      "status": "success",
+      "tables": [],
+      "text": "Raw FASTQ preprocessing (full_length) quantified 38900 genes across 9 samples.",
+      "tier": "descriptive",
+      "verification": {
+        "checked_sentences": 1,
+        "evidence_card": {
+          "evidence_card_id": "bulk.preprocessing#evidence",
+          "n_refs": 14,
+          "node_type": "evidence_card",
+          "provenance": {
+            "analysis": "preprocessing",
+            "block_id": "bulk.preprocessing",
+            "modality": "bulk RNA-seq",
+            "sources": [
+              "bulk_preprocessing",
+              "fastp",
+              "featurecounts",
+              "star"
+            ]
+          },
+          "refs": [
+            {
+              "kind": "evidence",
+              "label": "library protocol",
+              "path": null,
+              "ref_id": "bulk.preprocessing:evidence:0",
+              "source": "bulk_preprocessing",
+              "value": "full_length"
+            },
+            {
+              "kind": "evidence",
+              "label": "samples quantified",
+              "path": null,
+              "ref_id": "bulk.preprocessing:evidence:1",
+              "source": "bulk_preprocessing",
+              "value": 9
+            },
+            {
+              "kind": "evidence",
+              "label": "genes quantified",
+              "path": null,
+              "ref_id": "bulk.preprocessing:evidence:2",
+              "source": "bulk_preprocessing",
+              "value": 38900
+            },
+            {
+              "kind": "evidence",
+              "label": "read layout",
+              "path": null,
+              "ref_id": "bulk.preprocessing:evidence:3",
+              "source": "bulk_preprocessing",
+              "value": "paired-end"
+            },
+            {
+              "kind": "evidence",
+              "label": "featureCounts strand",
+              "path": null,
+              "ref_id": "bulk.preprocessing:evidence:4",
+              "source": "bulk_preprocessing",
+              "value": 0
+            },
+            {
+              "kind": "evidence",
+              "label": "mean reads passed QC (%)",
+              "path": null,
+              "ref_id": "bulk.preprocessing:evidence:5",
+              "source": "fastp",
+              "value": 98.9
+            },
+            {
+              "kind": "evidence",
+              "label": "mean unique STAR mapping (%)",
+              "path": null,
+              "ref_id": "bulk.preprocessing:evidence:6",
+              "source": "star",
+              "value": 94.3
+            },
+            {
+              "kind": "evidence",
+              "label": "exon assignment rate (%)",
+              "path": null,
+              "ref_id": "bulk.preprocessing:evidence:7",
+              "source": "featurecounts",
+              "value": 69.1
+            },
+            {
+              "kind": "metric",
+              "label": "protocol",
+              "ref_id": "bulk.preprocessing:metric:protocol",
+              "value": "full_length"
+            },
+            {
+              "kind": "metric",
+              "label": "n_samples",
+              "ref_id": "bulk.preprocessing:metric:n_samples",
+              "value": 9
+            },
+            {
+              "kind": "metric",
+              "label": "n_genes",
+              "ref_id": "bulk.preprocessing:metric:n_genes",
+              "value": 38900
+            },
+            {
+              "kind": "metric",
+              "label": "strand_used",
+              "ref_id": "bulk.preprocessing:metric:strand_used",
+              "value": 0
+            },
+            {
+              "kind": "metric",
+              "label": "mean_pass_pct",
+              "ref_id": "bulk.preprocessing:metric:mean_pass_pct",
+              "value": 98.9
+            },
+            {
+              "kind": "metric",
+              "label": "mean_unique_pct",
+              "ref_id": "bulk.preprocessing:metric:mean_unique_pct",
+              "value": 94.3
             }
           ],
           "semantic_facts": []
@@ -2835,166 +3059,382 @@
       "status": "not_evaluated"
     }
   },
+  "decision_manifest": {
+    "analysis_plan": {
+      "contrasts": [
+        {
+          "denominator": "WT",
+          "numerator": "B"
+        },
+        {
+          "denominator": "WT",
+          "numerator": "R"
+        }
+      ],
+      "design_intelligence_selection": "recommended_only",
+      "enable_hypotheses": false,
+      "integration_needed": false,
+      "integration_type": "none",
+      "reproducible_mode": true,
+      "run_optional_supported": false,
+      "steps": [
+        {
+          "agent": "bulk_rna_agent",
+          "analysis": "Bulk RNA differential expression",
+          "depends_on": [],
+          "order": 1
+        }
+      ]
+    },
+    "biological_intent": {
+      "analysis_type": "differential",
+      "comparison": "",
+      "raw_user_question": "In H9 human bulk RNA-seq, identify differentially expressed genes for the BMAL1 knockout versus wild type and for the REV-ERBa knockout versus wild type.",
+      "summary": "Differential expression analysis."
+    },
+    "commitment_status": "locked_before_execution",
+    "committed_at_utc": "<timestamp redacted for byte-identity>",
+    "committed_before_outcome_compute": true,
+    "design": {
+      "analysis_groups": {
+        "B": [
+          "B::B1",
+          "B::B2",
+          "B::B3"
+        ],
+        "R": [
+          "R::R1",
+          "R::R2",
+          "R::R3"
+        ],
+        "WT": [
+          "WT::WT1",
+          "WT::WT2",
+          "WT::WT3"
+        ]
+      },
+      "batch_col": "",
+      "causal_estimands": [],
+      "contrasts": [
+        {
+          "denominator": "WT",
+          "factor": "condition",
+          "numerator": "B"
+        },
+        {
+          "denominator": "WT",
+          "factor": "condition",
+          "numerator": "R"
+        }
+      ],
+      "covariates": [],
+      "donor_col": "",
+      "factor": "condition",
+      "formula": "",
+      "genome": "hg38",
+      "groups": {
+        "B": [
+          "B1",
+          "B2",
+          "B3"
+        ],
+        "R": [
+          "R1",
+          "R2",
+          "R3"
+        ],
+        "WT": [
+          "WT1",
+          "WT2",
+          "WT3"
+        ]
+      },
+      "main_factor": "condition",
+      "organism": "Homo sapiens",
+      "paired": false,
+      "replicate_handling": {
+        "aggregation": "none",
+        "conflicts": [],
+        "mode": "independent_biological",
+        "sample_to_unit": {
+          "B1": "B::B1",
+          "B2": "B::B2",
+          "B3": "B::B3",
+          "R1": "R::R1",
+          "R2": "R::R2",
+          "R3": "R::R3",
+          "WT1": "WT::WT1",
+          "WT2": "WT::WT2",
+          "WT3": "WT::WT3"
+        },
+        "source": "cp2.5_independent",
+        "units": [
+          {
+            "group": "B",
+            "id": "B::B1",
+            "members": [
+              "B1"
+            ],
+            "root": "B1"
+          },
+          {
+            "group": "B",
+            "id": "B::B2",
+            "members": [
+              "B2"
+            ],
+            "root": "B2"
+          },
+          {
+            "group": "B",
+            "id": "B::B3",
+            "members": [
+              "B3"
+            ],
+            "root": "B3"
+          },
+          {
+            "group": "R",
+            "id": "R::R1",
+            "members": [
+              "R1"
+            ],
+            "root": "R1"
+          },
+          {
+            "group": "R",
+            "id": "R::R2",
+            "members": [
+              "R2"
+            ],
+            "root": "R2"
+          },
+          {
+            "group": "R",
+            "id": "R::R3",
+            "members": [
+              "R3"
+            ],
+            "root": "R3"
+          },
+          {
+            "group": "WT",
+            "id": "WT::WT1",
+            "members": [
+              "WT1"
+            ],
+            "root": "WT1"
+          },
+          {
+            "group": "WT",
+            "id": "WT::WT2",
+            "members": [
+              "WT2"
+            ],
+            "root": "WT2"
+          },
+          {
+            "group": "WT",
+            "id": "WT::WT3",
+            "members": [
+              "WT3"
+            ],
+            "root": "WT3"
+          }
+        ]
+      },
+      "replicates": {
+        "B": 3,
+        "R": 3,
+        "WT": 3
+      }
+    },
+    "experiment_id": "ece2b9d6-753",
+    "fork_ledger_summary": {
+      "commitment_status": "locked_before_execution",
+      "fork_changes": [],
+      "fork_index": 0,
+      "is_exact_spec_replay": true,
+      "ledger_runs_observed": 2,
+      "manifest_sha256": "7d7bb79dc0002130121a31f2dda3088a5cb0bc5edbb531914b3615eb264b26b3",
+      "parent_manifest_sha256": null,
+      "schema_version": "aria.fork_ledger.v1",
+      "specification_sha256": "a54f195863347da81a0de05d3d649d2a80a7a5df47b479abdbedc1ff619bf652",
+      "study_input_fingerprint": "480ed8292bd41381e8be95ca3f135454498af9f65a710f286bc35e2f9da51eac",
+      "total_analytical_forks": 1
+    },
+    "genome": "hg38",
+    "locked_parameter_decisions": {},
+    "manifest_sha256": "7d7bb79dc0002130121a31f2dda3088a5cb0bc5edbb531914b3615eb264b26b3",
+    "modalities": {
+      "bulk_RNA_raw": 18
+    },
+    "organism": "Homo sapiens",
+    "parameter_grid_policy": {
+      "historical_bonus_disabled": true,
+      "leiden_grid": "canonical_union_12pt"
+    },
+    "realized_parameter_decisions": {},
+    "replayed_from_manifest_sha256": null,
+    "schema_version": "aria.decision_manifest.v1",
+    "specification_sha256": "a54f195863347da81a0de05d3d649d2a80a7a5df47b479abdbedc1ff619bf652",
+    "study_input_fingerprint": "480ed8292bd41381e8be95ca3f135454498af9f65a710f286bc35e2f9da51eac",
+    "thresholds": {
+      "global_lfc": 1.0,
+      "global_padj": 0.05,
+      "lfc_threshold_provenance": "default"
+    }
+  },
   "decisions": [
     {
       "checkpoint": "1",
       "decision": "Confirm and continue",
-      "id": "fa4d5a0e",
-      "made_at": "2026-11-12T13:26:48.116794",
+      "id": "7a9ab7927ed642d5aa1b3c8159147687",
+      "made_at": "2026-11-18T14:10:46.080063",
       "made_by": "user",
       "question": "\ud83d\udcc1 ARIA found the following data:\n\n  \ud83e\uddec bulk_RNA_raw: 18 file(s)\n\n  \ud83c\udf0d Organism: Homo sapiens\n  \ud83d\uddfa\ufe0f  Genome:   hg38 \u2713\n\n  \u26a0\ufe0f  Warnings:\n     \u2022 Ambiguous library type: generic paired-end FASTQ with no modality signal (R1_1.fq.gz, B2_1.fq.gz, B3_1.fq.gz, WT1_2.fq.gz, B3_2.fq.gz, ...) \u2014 hinted as bulk_RNA_raw but NOT bound. Declare the library type (assay manifest / library_type) or confirm the modality at CHECKPOINT 1; filenames are only a hint.\n\nIs this correct?\n\n\u2014 Data sensitivity (ELEVATED): Input appears to be human data with no obvious PHI fields. Consider air-gapped mode if the data are not de-identified.\n  To block ALL network egress (cloud LLM, Enrichr ORA, GEO/SRA), choose 'Confirm and enable air-gapped mode'.",
       "rationale": "User confirmed data audit results",
-      "wing_id": "7fcfab35-c50"
+      "wing_id": "ece2b9d6-753"
     },
     {
       "checkpoint": "2",
       "decision": "{\n  \"organism\": \"Homo sapiens\",\n  \"genome\": \"hg38\",\n  \"groups\": {\n    \"B\": [\n      \"B1\",\n      \"B2\",\n      \"B3\"\n    ],\n    \"R\": [\n      \"R1\",\n      \"R2\",\n      \"R3\"\n    ],\n    \"WT\": [\n      \"WT1\",\n      \"WT2\",\n      \"WT3\"\n    ]\n  },\n  \"analysis_groups\": {\n    \"B\": [\n      \"B::B1\",\n      \"B::B2\",\n      \"B::B3\"\n    ],\n    \"R\": [\n      \"R::R1\",\n      \"R::R2\",\n      \"R::R3\"\n    ],\n    \"WT\": [\n      \"WT::WT1\",\n      \"WT::WT2\",\n      \"WT::WT3\"\n    ]\n  },\n  \"main_factor\": \"condition\",\n  \"design_formula\": \"~ condition\",\n  \"batch_covariate\": null,\n  \"pseudobulk\": {},\n  \"source\": null,\n  \"sample_aliases\": {},\n  \"replicate_handling\": {\n    \"mode\": \"independent_biological\",\n    \"source\": \"cp2.5_independent\",\n    \"aggregation\": \"none\",\n    \"units\": [\n      {\n        \"id\": \"B::B1\",\n        \"group\": \"B\",\n        \"root\": \"B1\",\n        \"members\": [\n          \"B1\"\n        ]\n      },\n      {\n        \"id\": \"B::B2\",\n        \"group\": \"B\",\n        \"root\": \"B2\",\n        \"members\": [\n          \"B2\"\n        ]\n      },\n      {\n        \"id\": \"B::B3\",\n        \"group\": \"B\",\n        \"root\": \"B3\",\n        \"members\": [\n          \"B3\"\n        ]\n      },\n      {\n        \"id\": \"R::R1\",\n        \"group\": \"R\",\n        \"root\": \"R1\",\n        \"members\": [\n          \"R1\"\n        ]\n      },\n      {\n        \"id\": \"R::R2\",\n        \"group\": \"R\",\n        \"root\": \"R2\",\n        \"members\": [\n          \"R2\"\n        ]\n      },\n      {\n        \"id\": \"R::R3\",\n        \"group\": \"R\",\n        \"root\": \"R3\",\n        \"members\": [\n          \"R3\"\n        ]\n      },\n      {\n        \"id\": \"WT::WT1\",\n        \"group\": \"WT\",\n        \"root\": \"WT1\",\n        \"members\": [\n          \"WT1\"\n        ]\n      },\n      {\n        \"id\": \"WT::WT2\",\n        \"group\": \"WT\",\n        \"root\": \"WT2\",\n        \"members\": [\n          \"WT2\"\n        ]\n      },\n      {\n        \"id\": \"WT::WT3\",\n        \"group\": \"WT\",\n        \"root\": \"WT3\",\n        \"members\": [\n          \"WT3\"\n        ]\n      }\n    ],\n    \"sample_to_unit\": {\n      \"B1\": \"B::B1\",\n      \"B2\": \"B::B2\",\n      \"B3\": \"B::B3\",\n      \"R1\": \"R::R1\",\n      \"R2\": \"R::R2\",\n      \"R3\": \"R::R3\",\n      \"WT1\": \"WT::WT1\",\n      \"WT2\": \"WT::WT2\",\n      \"WT3\": \"WT::WT3\"\n    },\n    \"conflicts\": []\n  },\n  \"experimental_unit\": \"sample\",\n  \"analysis_design_formula\": \"~ condition\",\n  \"replicates\": {\n    \"B\": 3,\n    \"R\": 3,\n    \"WT\": 3\n  },\n  \"n_input_libraries\": 9,\n  \"n_total_samples\": 9,\n  \"nominal_residual_df\": 6,\n  \"design_status\": \"ready\",\n  \"blocking_groups\": {},\n  \"blocking_reasons\": [],\n  \"confounded_covariates\": []\n}",
-      "id": "abb361fe",
-      "made_at": "2026-11-12T13:26:48.320967",
+      "id": "dc2a5b2b",
+      "made_at": "2026-11-18T14:10:46.313416",
       "made_by": "user",
       "question": "Experimental design (organism, groups, factor, formula)",
       "rationale": "User confirmed design interactively",
-      "wing_id": "7fcfab35-c50"
+      "wing_id": "ece2b9d6-753"
     },
     {
       "checkpoint": "2.pre",
       "decision": "2 recommended, 1 optional, 1 unsupported/not recommended, 0 warning(s).",
-      "id": "7fcfab35-c50_design_intelligence",
-      "made_at": "2026-11-12T13:26:48.454567",
+      "id": "ece2b9d6-753_design_intelligence",
+      "made_at": "2026-11-18T14:10:47.075376",
       "made_by": "design_intelligence",
       "question": "Design Intelligence assessment",
       "rationale": "ARIA evaluated modality feasibility, recommended analyses, optional analyses, unsupported analyses, covariates, and design limitations before compute.",
-      "wing_id": "7fcfab35-c50"
+      "wing_id": "ece2b9d6-753"
     },
     {
       "checkpoint": "2",
       "decision": "Run recommended plan only",
-      "id": "6bbd6ce1",
-      "made_at": "2026-11-12T13:26:48.506381",
+      "id": "0e1913bd27dc4cb6bbd41c7d3c460272",
+      "made_at": "2026-11-18T14:10:47.129603",
       "made_by": "user",
       "question": "Analysis plan confirmed",
       "rationale": "User approved analysis plan directly. Optional supported analyses were not added.",
-      "wing_id": "7fcfab35-c50"
-    },
-    {
-      "checkpoint": "3.5",
-      "decision": "Proceed anyway",
-      "id": "7fcfab35-c50_cp3_5_audit_ack",
-      "made_at": "2026-11-12T13:26:48.564835",
-      "made_by": "headless_policy",
-      "question": "Quality Audit found dispatch readiness issue(s) that may compromise your results:\n\n  [1] bulk_RNA_raw is yellow and requires explicit acknowledgement before dispatch.\n      -> bulk_RNA_raw is beta and requires explicit acknowledgement.\n\nAdditional warnings:\n  \u2022 bulk_RNA_raw is beta and requires explicit acknowledgement.\n  \u2022 Contrast B vs WT has approximate power 0.231 for the target log2FC under stated assumptions; detectable effects at 80% power are about 2.286 log2FC.\n  \u2022 Contrast R vs WT has approximate power 0.231 for the target log2FC under stated assumptions; detectable effects at 80% power are about 2.286 log2FC.\n\nHow would you like to proceed?",
-      "rationale": "CP3.5 explicit acknowledgement recorded (actor=headless_policy) for beta/warning-gated dispatch.",
-      "wing_id": "7fcfab35-c50"
+      "wing_id": "ece2b9d6-753"
     },
     {
       "checkpoint": "2",
       "decision": "~ condition",
-      "id": "7fcfab35-design-01",
-      "made_at": "2026-11-12T13:26:54.794355",
+      "id": "ece2b9d6-design-01",
+      "made_at": "2026-11-18T14:14:17.493376",
       "made_by": "user",
       "question": "Experimental design (source: DesignAgent)",
       "rationale": "User confirmed design interactively.",
-      "wing_id": "7fcfab35-c50"
+      "wing_id": "ece2b9d6-753"
     },
     {
       "checkpoint": "1",
       "decision": "Raw integer counts | DESeq2 median-of-ratios (internal) | \u226510 counts in \u22652 samples",
-      "id": "7fcfab35-auto-01",
-      "made_at": "2026-11-12T13:27:24.371982",
+      "id": "ece2b9d6-auto-01",
+      "made_at": "2026-11-18T14:14:50.908352",
       "made_by": "bulk_rna_agent (auto)",
       "question": "Differential expression (DESeq2)",
       "rationale": "DESeq2 handles library-size normalization internally; external normalization would break the negative-binomial model assumptions.",
-      "wing_id": "7fcfab35-c50"
+      "wing_id": "ece2b9d6-753"
     },
     {
       "checkpoint": "0",
       "decision": "All count-matrix samples | Primary DE retains all samples | Design-safe removal is evaluated only as sensitivity",
-      "id": "7fcfab35-auto-00",
-      "made_at": "2026-11-12T13:27:24.372058",
+      "id": "ece2b9d6-auto-00",
+      "made_at": "2026-11-18T14:14:50.908442",
       "made_by": "bulk_rna_agent (auto)",
       "question": "Sample outliers",
       "rationale": "Automatic pre-DE pruning can turn a null primary result into a significant result; ARIA reports primary and outlier-removal sensitivity separately.",
-      "wing_id": "7fcfab35-c50"
+      "wing_id": "ece2b9d6-753"
     },
     {
       "checkpoint": "2",
       "decision": "VST-transformed counts | Variance-Stabilizing Transformation (pydeseq2) | Top 2000 most-variable protein_coding genes",
-      "id": "7fcfab35-auto-02",
-      "made_at": "2026-11-12T13:27:24.372078",
+      "id": "ece2b9d6-auto-02",
+      "made_at": "2026-11-18T14:14:50.908465",
       "made_by": "bulk_rna_agent (auto)",
       "question": "PCA + MDS (sample-level structure)",
       "rationale": "VST produces homoscedastic values suitable for Euclidean-based methods (DESeq2 authors' recommendation). Protein-coding filter removes pseudogene/ncRNA noise. Variable-gene filter focuses on informative signal.",
-      "wing_id": "7fcfab35-c50"
+      "wing_id": "ece2b9d6-753"
     },
     {
       "checkpoint": "3",
       "decision": "VST (or log2(counts+1) fallback) | Row z-score | 50 most significant DE genes (sorted by padj)",
-      "id": "7fcfab35-auto-03",
-      "made_at": "2026-11-12T13:27:24.372098",
+      "id": "ece2b9d6-auto-03",
+      "made_at": "2026-11-18T14:14:50.908486",
       "made_by": "bulk_rna_agent (auto)",
       "question": "Heatmap (padj top 50)",
       "rationale": "Statistically confident signal; symbol-annotated rows.",
-      "wing_id": "7fcfab35-c50"
+      "wing_id": "ece2b9d6-753"
     },
     {
       "checkpoint": "4",
       "decision": "VST (or log2(counts+1) fallback) | Row z-score | 50 DE genes with largest effect sizes",
-      "id": "7fcfab35-auto-04",
-      "made_at": "2026-11-12T13:27:24.372116",
+      "id": "ece2b9d6-auto-04",
+      "made_at": "2026-11-18T14:14:50.908506",
       "made_by": "bulk_rna_agent (auto)",
       "question": "Heatmap (|log2FC| top 50)",
       "rationale": "Complementary view \u2014 surfaces largest effect sizes, which may not have smallest padj for low-count genes.",
-      "wing_id": "7fcfab35-c50"
+      "wing_id": "ece2b9d6-753"
     },
     {
       "checkpoint": "5",
       "decision": "DE gene symbols | Local hypergeometric test against versioned GMT libraries (Enrichr is opt-in) | padj<0.05 from Wald lfcThreshold test; ORA universe = genes retained after expression filtering",
-      "id": "7fcfab35-auto-05",
-      "made_at": "2026-11-12T13:27:24.372134",
+      "id": "ece2b9d6-auto-05",
+      "made_at": "2026-11-18T14:14:50.908525",
       "made_by": "bulk_rna_agent (auto)",
       "question": "Pathway enrichment (ORA)",
       "rationale": "Standard over-representation for discrete gene lists, computed locally against the dataset-expressed background so the gene list never leaves the machine (W-PRIV); the exact gene-set release is recorded in pathway_ora.gene_set_versions.",
-      "wing_id": "7fcfab35-c50"
+      "wing_id": "ece2b9d6-753"
     },
     {
       "checkpoint": "6",
       "decision": "All DE-tested genes ranked by log2FC | blitzgsea running sum | None (uses full ranking)",
-      "id": "7fcfab35-auto-06",
-      "made_at": "2026-11-12T13:27:24.372153",
+      "id": "ece2b9d6-auto-06",
+      "made_at": "2026-11-18T14:14:50.908545",
       "made_by": "bulk_rna_agent (auto)",
       "question": "GSEA (pre-ranked)",
       "rationale": "More sensitive than ORA to coordinated small effects; complementary to cutoff-based enrichment.",
-      "wing_id": "7fcfab35-c50"
+      "wing_id": "ece2b9d6-753"
     },
     {
       "checkpoint": "7",
       "decision": "Raw counts + exon-union gene lengths | TPM (transcripts per million) | Genes with length annotation in GTF",
-      "id": "7fcfab35-auto-07",
-      "made_at": "2026-11-12T13:27:24.372173",
+      "id": "ece2b9d6-auto-07",
+      "made_at": "2026-11-18T14:14:50.908567",
       "made_by": "bulk_rna_agent (auto)",
       "question": "TPM (supplementary export)",
       "rationale": "Supplementary table for downstream tools that require TPM (ssGSEA, deconvolution). NOT used by ARIA for DE or PCA \u2014 both use more appropriate methods.",
-      "wing_id": "7fcfab35-c50"
+      "wing_id": "ece2b9d6-753"
     },
     {
       "checkpoint": "0",
       "decision": "padj < 0.05, |log2FC| > 1.0",
-      "id": "7fcfab35-auto-00-thr",
-      "made_at": "2026-11-12T13:27:24.372208",
+      "id": "ece2b9d6-auto-00-thr",
+      "made_at": "2026-11-18T14:14:50.908587",
       "made_by": "User / bulk_rna_agent",
       "question": "Statistical thresholds for DE significance",
       "rationale": "|log2FC| threshold provenance: default. The default (1.0) is fixed and prompt-independent; it changes only via an explicit User Checkpoint 3 profile or a versioned global_lfc override (never inferred from the question text).",
-      "wing_id": "7fcfab35-c50"
+      "wing_id": "ece2b9d6-753"
     },
     {
       "checkpoint": "0",
       "decision": "~condition",
-      "id": "7fcfab35-auto-00-design",
-      "made_at": "2026-11-12T13:27:24.372227",
+      "id": "ece2b9d6-auto-00-design",
+      "made_at": "2026-11-18T14:14:50.908606",
       "made_by": "bulk_rna_agent (auto)",
       "question": "DESeq2 design formula",
       "rationale": "Single-factor design inferred from sample labels. No batch or covariate adjustment applied.",
-      "wing_id": "7fcfab35-c50"
+      "wing_id": "ece2b9d6-753"
     }
   ],
   "design": {
@@ -3377,6 +3817,385 @@
       ]
     }
   ],
+  "falsification_certificates": {
+    "causal_promotion_from_robustness": false,
+    "certificates": [
+      {
+        "analysis": "executive_summary",
+        "block_preserving_permutation_null": {
+          "null_family": "none",
+          "status": "not_applicable_descriptive"
+        },
+        "claim_id": "executive_summary",
+        "design_aliasing_and_unit_audit": {
+          "batch_covariate_modeled": false,
+          "causal_promotion_permitted": false,
+          "cell_level_pseudoreplication_blocked": true,
+          "low_power_n2_warning": false,
+          "technical_replicates_aggregated": false
+        },
+        "feeds_into_parameter_selection": false,
+        "lobo_biological_unit_jackknife": {
+          "biological_unit": "biological_replicate",
+          "status": "not_applicable_descriptive"
+        },
+        "specification_multiverse_stability": {
+          "status": "single_pre_committed_specification",
+          "threshold_provenance": "default"
+        },
+        "tier": "descriptive"
+      },
+      {
+        "analysis": "preprocessing",
+        "block_preserving_permutation_null": {
+          "null_family": "none",
+          "status": "not_applicable_descriptive"
+        },
+        "claim_id": "bulk.preprocessing",
+        "design_aliasing_and_unit_audit": {
+          "batch_covariate_modeled": false,
+          "causal_promotion_permitted": false,
+          "cell_level_pseudoreplication_blocked": true,
+          "low_power_n2_warning": false,
+          "technical_replicates_aggregated": false
+        },
+        "feeds_into_parameter_selection": false,
+        "lobo_biological_unit_jackknife": {
+          "biological_unit": "biological_replicate",
+          "status": "not_applicable_descriptive"
+        },
+        "specification_multiverse_stability": {
+          "status": "single_pre_committed_specification",
+          "threshold_provenance": "default"
+        },
+        "tier": "descriptive"
+      },
+      {
+        "analysis": "sample_qc",
+        "block_preserving_permutation_null": {
+          "null_family": "none",
+          "status": "not_applicable_descriptive"
+        },
+        "claim_id": "bulk.qc",
+        "design_aliasing_and_unit_audit": {
+          "batch_covariate_modeled": false,
+          "causal_promotion_permitted": false,
+          "cell_level_pseudoreplication_blocked": true,
+          "low_power_n2_warning": false,
+          "technical_replicates_aggregated": false
+        },
+        "feeds_into_parameter_selection": false,
+        "lobo_biological_unit_jackknife": {
+          "biological_unit": "biological_replicate",
+          "status": "not_applicable_descriptive"
+        },
+        "specification_multiverse_stability": {
+          "status": "single_pre_committed_specification",
+          "threshold_provenance": "default"
+        },
+        "tier": "descriptive"
+      },
+      {
+        "analysis": "differential_expression",
+        "block_preserving_permutation_null": {
+          "null_family": "empirical_bayes_wald_or_moderated_ols_bh_fdr",
+          "status": "parametric_bh_only"
+        },
+        "claim_id": "bulk.contrast.B_vs_WT",
+        "design_aliasing_and_unit_audit": {
+          "batch_covariate_modeled": false,
+          "causal_promotion_permitted": false,
+          "cell_level_pseudoreplication_blocked": true,
+          "low_power_n2_warning": false,
+          "technical_replicates_aggregated": false
+        },
+        "feeds_into_parameter_selection": false,
+        "lobo_biological_unit_jackknife": {
+          "biological_unit": "biological_replicate",
+          "lobo_stable_fraction": 1.0,
+          "n_contrasts_measured": 2,
+          "n_features_evaluated": 357,
+          "n_features_lobo_stable": 357,
+          "n_jackknife_folds": 6,
+          "n_single_unit_driven": 0,
+          "status": "measured"
+        },
+        "specification_multiverse_stability": {
+          "status": "single_pre_committed_specification",
+          "threshold_provenance": "default"
+        },
+        "tier": "associative"
+      },
+      {
+        "analysis": "pathway_enrichment",
+        "block_preserving_permutation_null": {
+          "null_family": "none",
+          "status": "not_applicable_descriptive"
+        },
+        "claim_id": "bulk.pathway.B_vs_WT",
+        "design_aliasing_and_unit_audit": {
+          "batch_covariate_modeled": false,
+          "causal_promotion_permitted": false,
+          "cell_level_pseudoreplication_blocked": true,
+          "low_power_n2_warning": false,
+          "technical_replicates_aggregated": false
+        },
+        "feeds_into_parameter_selection": false,
+        "lobo_biological_unit_jackknife": {
+          "biological_unit": "biological_replicate",
+          "n_arm_min": 3,
+          "status": "eligible_not_executed"
+        },
+        "specification_multiverse_stability": {
+          "status": "single_pre_committed_specification",
+          "threshold_provenance": "default"
+        },
+        "tier": "associative"
+      },
+      {
+        "analysis": "gsea_preranked",
+        "block_preserving_permutation_null": {
+          "null_family": "none",
+          "status": "not_applicable_descriptive"
+        },
+        "claim_id": "bulk.gsea.B_vs_WT",
+        "design_aliasing_and_unit_audit": {
+          "batch_covariate_modeled": false,
+          "causal_promotion_permitted": false,
+          "cell_level_pseudoreplication_blocked": true,
+          "low_power_n2_warning": false,
+          "technical_replicates_aggregated": false
+        },
+        "feeds_into_parameter_selection": false,
+        "lobo_biological_unit_jackknife": {
+          "biological_unit": "biological_replicate",
+          "n_arm_min": 3,
+          "status": "eligible_not_executed"
+        },
+        "specification_multiverse_stability": {
+          "status": "single_pre_committed_specification",
+          "threshold_provenance": "default"
+        },
+        "tier": "associative"
+      },
+      {
+        "analysis": "differential_expression",
+        "block_preserving_permutation_null": {
+          "null_family": "empirical_bayes_wald_or_moderated_ols_bh_fdr",
+          "status": "parametric_bh_only"
+        },
+        "claim_id": "bulk.contrast.R_vs_WT",
+        "design_aliasing_and_unit_audit": {
+          "batch_covariate_modeled": false,
+          "causal_promotion_permitted": false,
+          "cell_level_pseudoreplication_blocked": true,
+          "low_power_n2_warning": false,
+          "technical_replicates_aggregated": false
+        },
+        "feeds_into_parameter_selection": false,
+        "lobo_biological_unit_jackknife": {
+          "biological_unit": "biological_replicate",
+          "lobo_stable_fraction": 1.0,
+          "n_contrasts_measured": 2,
+          "n_features_evaluated": 357,
+          "n_features_lobo_stable": 357,
+          "n_jackknife_folds": 6,
+          "n_single_unit_driven": 0,
+          "status": "measured"
+        },
+        "specification_multiverse_stability": {
+          "status": "single_pre_committed_specification",
+          "threshold_provenance": "default"
+        },
+        "tier": "associative"
+      },
+      {
+        "analysis": "pathway_enrichment",
+        "block_preserving_permutation_null": {
+          "null_family": "none",
+          "status": "not_applicable_descriptive"
+        },
+        "claim_id": "bulk.pathway.R_vs_WT",
+        "design_aliasing_and_unit_audit": {
+          "batch_covariate_modeled": false,
+          "causal_promotion_permitted": false,
+          "cell_level_pseudoreplication_blocked": true,
+          "low_power_n2_warning": false,
+          "technical_replicates_aggregated": false
+        },
+        "feeds_into_parameter_selection": false,
+        "lobo_biological_unit_jackknife": {
+          "biological_unit": "biological_replicate",
+          "n_arm_min": 3,
+          "status": "eligible_not_executed"
+        },
+        "specification_multiverse_stability": {
+          "status": "single_pre_committed_specification",
+          "threshold_provenance": "default"
+        },
+        "tier": "associative"
+      },
+      {
+        "analysis": "gsea_preranked",
+        "block_preserving_permutation_null": {
+          "null_family": "none",
+          "status": "not_applicable_descriptive"
+        },
+        "claim_id": "bulk.gsea.R_vs_WT",
+        "design_aliasing_and_unit_audit": {
+          "batch_covariate_modeled": false,
+          "causal_promotion_permitted": false,
+          "cell_level_pseudoreplication_blocked": true,
+          "low_power_n2_warning": false,
+          "technical_replicates_aggregated": false
+        },
+        "feeds_into_parameter_selection": false,
+        "lobo_biological_unit_jackknife": {
+          "biological_unit": "biological_replicate",
+          "n_arm_min": 3,
+          "status": "eligible_not_executed"
+        },
+        "specification_multiverse_stability": {
+          "status": "single_pre_committed_specification",
+          "threshold_provenance": "default"
+        },
+        "tier": "associative"
+      },
+      {
+        "analysis": "power",
+        "block_preserving_permutation_null": {
+          "null_family": "none",
+          "status": "not_applicable_descriptive"
+        },
+        "claim_id": "bulk.power",
+        "design_aliasing_and_unit_audit": {
+          "batch_covariate_modeled": false,
+          "causal_promotion_permitted": false,
+          "cell_level_pseudoreplication_blocked": true,
+          "low_power_n2_warning": false,
+          "technical_replicates_aggregated": false
+        },
+        "feeds_into_parameter_selection": false,
+        "lobo_biological_unit_jackknife": {
+          "biological_unit": "biological_replicate",
+          "status": "not_applicable_descriptive"
+        },
+        "specification_multiverse_stability": {
+          "status": "single_pre_committed_specification",
+          "threshold_provenance": "default"
+        },
+        "tier": "descriptive"
+      },
+      {
+        "analysis": "integrated_signal",
+        "block_preserving_permutation_null": {
+          "null_family": "none",
+          "status": "not_applicable_descriptive"
+        },
+        "claim_id": "integration.main_pattern",
+        "design_aliasing_and_unit_audit": {
+          "batch_covariate_modeled": false,
+          "causal_promotion_permitted": false,
+          "cell_level_pseudoreplication_blocked": true,
+          "low_power_n2_warning": false,
+          "technical_replicates_aggregated": false
+        },
+        "feeds_into_parameter_selection": false,
+        "lobo_biological_unit_jackknife": {
+          "biological_unit": "biological_replicate",
+          "n_arm_min": 3,
+          "status": "eligible_not_executed"
+        },
+        "specification_multiverse_stability": {
+          "status": "single_pre_committed_specification",
+          "threshold_provenance": "default"
+        },
+        "tier": "associative"
+      },
+      {
+        "analysis": "convergent_evidence",
+        "block_preserving_permutation_null": {
+          "null_family": "none",
+          "status": "not_applicable_descriptive"
+        },
+        "claim_id": "integration.convergent.B_vs_WT__R_vs_WT",
+        "design_aliasing_and_unit_audit": {
+          "batch_covariate_modeled": false,
+          "causal_promotion_permitted": false,
+          "cell_level_pseudoreplication_blocked": true,
+          "low_power_n2_warning": false,
+          "technical_replicates_aggregated": false
+        },
+        "feeds_into_parameter_selection": false,
+        "lobo_biological_unit_jackknife": {
+          "biological_unit": "biological_replicate",
+          "n_arm_min": 3,
+          "status": "eligible_not_executed"
+        },
+        "specification_multiverse_stability": {
+          "status": "single_pre_committed_specification",
+          "threshold_provenance": "default"
+        },
+        "tier": "associative"
+      },
+      {
+        "analysis": "divergent_evidence",
+        "block_preserving_permutation_null": {
+          "null_family": "none",
+          "status": "not_applicable_descriptive"
+        },
+        "claim_id": "integration.divergent.B_vs_WT__R_vs_WT",
+        "design_aliasing_and_unit_audit": {
+          "batch_covariate_modeled": false,
+          "causal_promotion_permitted": false,
+          "cell_level_pseudoreplication_blocked": true,
+          "low_power_n2_warning": false,
+          "technical_replicates_aggregated": false
+        },
+        "feeds_into_parameter_selection": false,
+        "lobo_biological_unit_jackknife": {
+          "biological_unit": "biological_replicate",
+          "n_arm_min": 3,
+          "status": "eligible_not_executed"
+        },
+        "specification_multiverse_stability": {
+          "status": "single_pre_committed_specification",
+          "threshold_provenance": "default"
+        },
+        "tier": "associative"
+      },
+      {
+        "analysis": "integration_limitations",
+        "block_preserving_permutation_null": {
+          "null_family": "none",
+          "status": "not_applicable_descriptive"
+        },
+        "claim_id": "integration.limitations",
+        "design_aliasing_and_unit_audit": {
+          "batch_covariate_modeled": false,
+          "causal_promotion_permitted": false,
+          "cell_level_pseudoreplication_blocked": true,
+          "low_power_n2_warning": false,
+          "technical_replicates_aggregated": false
+        },
+        "feeds_into_parameter_selection": false,
+        "lobo_biological_unit_jackknife": {
+          "biological_unit": "biological_replicate",
+          "n_arm_min": 3,
+          "status": "eligible_not_executed"
+        },
+        "specification_multiverse_stability": {
+          "status": "single_pre_committed_specification",
+          "threshold_provenance": "default"
+        },
+        "tier": "associative"
+      }
+    ],
+    "feeds_into_parameter_selection": false,
+    "n_certificates": 14,
+    "scalar_fragility_score_emitted": false,
+    "schema_version": "aria.falsification_certificates.v1"
+  },
   "inputs": [
     {
       "modality": "bulk_RNA_raw",
@@ -3547,7 +4366,7 @@
           "label": "narrative blocks summarized",
           "path": null,
           "source": "narrative_registry",
-          "value": 12
+          "value": 13
         },
         {
           "facts": [],
@@ -3626,7 +4445,7 @@
                 "path": null,
                 "ref_id": "executive_summary:evidence:3",
                 "source": "narrative_registry",
-                "value": 12
+                "value": 13
               },
               {
                 "kind": "evidence",
@@ -3652,7 +4471,7 @@
                 "kind": "metric",
                 "label": "n_narrative_blocks_summarized",
                 "ref_id": "executive_summary:metric:n_narrative_blocks_summarized",
-                "value": 12
+                "value": 13
               }
             ],
             "semantic_facts": []
@@ -3667,12 +4486,237 @@
       "metrics": {
         "n_findings": 17,
         "n_high_confidence": 0,
-        "n_narrative_blocks_summarized": 12
+        "n_narrative_blocks_summarized": 13
       },
       "modality": "report",
       "status": "success",
       "tables": [],
       "title": "Executive Summary",
+      "warnings": []
+    },
+    {
+      "analysis": "preprocessing",
+      "block_type": "qc",
+      "caveats": [],
+      "claim": "Raw FASTQ preprocessing (full_length) quantified 38900 genes across 9 samples.",
+      "confidence": "high",
+      "error": null,
+      "evidence": [
+        {
+          "facts": [],
+          "label": "library protocol",
+          "path": null,
+          "source": "bulk_preprocessing",
+          "value": "full_length"
+        },
+        {
+          "facts": [],
+          "label": "samples quantified",
+          "path": null,
+          "source": "bulk_preprocessing",
+          "value": 9
+        },
+        {
+          "facts": [],
+          "label": "genes quantified",
+          "path": null,
+          "source": "bulk_preprocessing",
+          "value": 38900
+        },
+        {
+          "facts": [],
+          "label": "read layout",
+          "path": null,
+          "source": "bulk_preprocessing",
+          "value": "paired-end"
+        },
+        {
+          "facts": [],
+          "label": "featureCounts strand",
+          "path": null,
+          "source": "bulk_preprocessing",
+          "value": 0
+        },
+        {
+          "facts": [],
+          "label": "mean reads passed QC (%)",
+          "path": null,
+          "source": "fastp",
+          "value": 98.9
+        },
+        {
+          "facts": [],
+          "label": "mean unique STAR mapping (%)",
+          "path": null,
+          "source": "star",
+          "value": 94.3
+        },
+        {
+          "facts": [],
+          "label": "exon assignment rate (%)",
+          "path": null,
+          "source": "featurecounts",
+          "value": 69.1
+        }
+      ],
+      "figures": [],
+      "id": "bulk.preprocessing",
+      "metadata": {
+        "claim": {
+          "causal_license": {
+            "contrast": null,
+            "estimand_id": null,
+            "licensed": false,
+            "reason": "missing_block_estimand"
+          },
+          "evidence_categories": [
+            "descriptive"
+          ],
+          "language_violation": null,
+          "licensed_language": "descriptive",
+          "limitations": [],
+          "rationale": "Descriptive summary (QC/counts); no between-condition claim.",
+          "tier": "descriptive"
+        },
+        "claim_verification": {
+          "checked_sentences": 1,
+          "evidence_card": {
+            "evidence_card_id": "bulk.preprocessing#evidence",
+            "n_refs": 14,
+            "node_type": "evidence_card",
+            "provenance": {
+              "analysis": "preprocessing",
+              "block_id": "bulk.preprocessing",
+              "modality": "bulk RNA-seq",
+              "sources": [
+                "bulk_preprocessing",
+                "fastp",
+                "featurecounts",
+                "star"
+              ]
+            },
+            "refs": [
+              {
+                "kind": "evidence",
+                "label": "library protocol",
+                "path": null,
+                "ref_id": "bulk.preprocessing:evidence:0",
+                "source": "bulk_preprocessing",
+                "value": "full_length"
+              },
+              {
+                "kind": "evidence",
+                "label": "samples quantified",
+                "path": null,
+                "ref_id": "bulk.preprocessing:evidence:1",
+                "source": "bulk_preprocessing",
+                "value": 9
+              },
+              {
+                "kind": "evidence",
+                "label": "genes quantified",
+                "path": null,
+                "ref_id": "bulk.preprocessing:evidence:2",
+                "source": "bulk_preprocessing",
+                "value": 38900
+              },
+              {
+                "kind": "evidence",
+                "label": "read layout",
+                "path": null,
+                "ref_id": "bulk.preprocessing:evidence:3",
+                "source": "bulk_preprocessing",
+                "value": "paired-end"
+              },
+              {
+                "kind": "evidence",
+                "label": "featureCounts strand",
+                "path": null,
+                "ref_id": "bulk.preprocessing:evidence:4",
+                "source": "bulk_preprocessing",
+                "value": 0
+              },
+              {
+                "kind": "evidence",
+                "label": "mean reads passed QC (%)",
+                "path": null,
+                "ref_id": "bulk.preprocessing:evidence:5",
+                "source": "fastp",
+                "value": 98.9
+              },
+              {
+                "kind": "evidence",
+                "label": "mean unique STAR mapping (%)",
+                "path": null,
+                "ref_id": "bulk.preprocessing:evidence:6",
+                "source": "star",
+                "value": 94.3
+              },
+              {
+                "kind": "evidence",
+                "label": "exon assignment rate (%)",
+                "path": null,
+                "ref_id": "bulk.preprocessing:evidence:7",
+                "source": "featurecounts",
+                "value": 69.1
+              },
+              {
+                "kind": "metric",
+                "label": "protocol",
+                "ref_id": "bulk.preprocessing:metric:protocol",
+                "value": "full_length"
+              },
+              {
+                "kind": "metric",
+                "label": "n_samples",
+                "ref_id": "bulk.preprocessing:metric:n_samples",
+                "value": 9
+              },
+              {
+                "kind": "metric",
+                "label": "n_genes",
+                "ref_id": "bulk.preprocessing:metric:n_genes",
+                "value": 38900
+              },
+              {
+                "kind": "metric",
+                "label": "strand_used",
+                "ref_id": "bulk.preprocessing:metric:strand_used",
+                "value": 0
+              },
+              {
+                "kind": "metric",
+                "label": "mean_pass_pct",
+                "ref_id": "bulk.preprocessing:metric:mean_pass_pct",
+                "value": 98.9
+              },
+              {
+                "kind": "metric",
+                "label": "mean_unique_pct",
+                "ref_id": "bulk.preprocessing:metric:mean_unique_pct",
+                "value": 94.3
+              }
+            ],
+            "semantic_facts": []
+          },
+          "policy": "Every ARIA-authored claim sentence must be backed by structured evidence, metrics, tables, figures, or an explicitly licensed analysis family.",
+          "status": "supported",
+          "unsupported": []
+        }
+      },
+      "methods": [],
+      "metrics": {
+        "mean_pass_pct": 98.9,
+        "mean_unique_pct": 94.3,
+        "n_genes": 38900,
+        "n_samples": 9,
+        "protocol": "full_length",
+        "strand_used": 0
+      },
+      "modality": "bulk RNA-seq",
+      "status": "success",
+      "tables": [],
+      "title": "Bulk RNA raw FASTQ preprocessing",
       "warnings": []
     },
     {
@@ -6984,7 +8028,7 @@
     }
   ],
   "provenance": {
-    "aria_version": "4.8.0",
+    "aria_version": "4.9.0",
     "conda_env": "aria-env",
     "environment": {
       "conda_prefix": null,
@@ -6993,11 +8037,11 @@
       "env_name": "aria-env",
       "source": "no_lock"
     },
-    "git_commit": "b5c83c367fa52d524a40d84c9b4041ad49dd6e70",
-    "git_describe": "v4.8.0-3-gb5c83c3-dirty",
+    "git_commit": "b573b7070868c31911f2d4a2e17701663bb9ec54",
+    "git_describe": "v4.8.0-21-gb573b70-dirty",
     "git_dirty": true,
-    "git_sha": "b5c83c367fa52d524a40d84c9b4041ad49dd6e70",
-    "git_tree_sha": "44324c727eb8ace11166f8613a73ff43d5b41558",
+    "git_sha": "b573b7070868c31911f2d4a2e17701663bb9ec54",
+    "git_tree_sha": "c1a59bdf1cf3a49631834cf5d6982bc2cf211280",
     "image": {
       "containerized": false,
       "digest": null,
@@ -7010,9 +8054,9 @@
     "platform": "Linux-5.15.167.4-microsoft-standard-WSL2-x86_64-with-glibc2.39",
     "python_version": "3.11.15 | packaged by conda-forge | (main, Mar  5 2026, 16:45:40) [GCC 14.3.0]",
     "timestamp_utc": "<timestamp redacted for byte-identity>",
-    "version": "4.8.0",
+    "version": "4.9.0",
     "version_source": "aria.version.__version__",
-    "workflow_hash": "9f17317b23b10f03b3b180053883f2093402d6f81910e4df57de3a21111763be",
+    "workflow_hash": "fa2af2f42ebbf8125211cc24dedc634206ab868cd774204c391e4d5f0386d110",
     "workflow_hash_algorithm": "sha256(version+git_sha+git_tree_sha+git_dirty+git_status+git_diff)"
   },
   "raw_ingestion": [],
@@ -7030,13 +8074,31 @@
       "violations": []
     },
     "claim_linkage": {
-      "linked": 13,
+      "linked": 14,
       "n_violations": 0,
       "unlinked": 0,
       "violations": []
     },
     "divergences": [],
     "entries": [
+      {
+        "analysis": "preprocessing",
+        "divergence": false,
+        "label": "Raw FASTQ preprocessing & alignment",
+        "modality": "bulk",
+        "node_id": "ledger://bulk/preprocessing",
+        "node_type": "analysis_run",
+        "planned": true,
+        "provenance": {
+          "finding_keys": [
+            "preprocessing"
+          ],
+          "kind": "structured_agent_result",
+          "modality": "bulk"
+        },
+        "reason": null,
+        "status": "ran"
+      },
       {
         "analysis": "qc",
         "divergence": false,
@@ -7090,6 +8152,24 @@
         },
         "reason": null,
         "status": "ran"
+      },
+      {
+        "analysis": "preprocessing",
+        "divergence": false,
+        "label": "Multiome raw assembly & cohort union",
+        "modality": "integration",
+        "node_id": "ledger://integration/preprocessing",
+        "node_type": "analysis_run",
+        "planned": false,
+        "provenance": {
+          "finding_keys": [
+            "preprocessing"
+          ],
+          "kind": "structured_agent_result",
+          "modality": "integration"
+        },
+        "reason": null,
+        "status": "not_run"
       },
       {
         "analysis": "paired_qc",

@@ -1,10 +1,10 @@
 {
-  "aria_version": "4.8.0",
+  "aria_version": "4.9.0",
   "artifacts": [
     {
       "path": "claim_3/b1_design/b1_design_governance_v4.5.5.json",
-      "sha256": "6f139e5730a868ab272d78e91dda2be2e2e1284945f072ba6006e192e77e07a9",
-      "size_bytes": 7356
+      "sha256": "1bb14c79b9d9d8ab6d80ca4aee31d6798049a07b1db0ab016b4d5ab0cf9b1288",
+      "size_bytes": 7357
     },
     {
       "path": "claim_3/b1_design/fig3_b1_design_governance_v4.5.5.svg",
@@ -16,18 +16,18 @@
     "claim_3"
   ],
   "command": "conda run -n aria-env python scripts/run_b1_design_governance.py --output-dir docs/benchmark_results/preprint_v1/claim_3/b1_design",
-  "completed_utc": "2026-11-12T19:24:16.006971+00:00",
+  "completed_utc": "2026-11-18T20:12:38.131933+00:00",
   "environment": "aria-env",
-  "git_commit": "b5c83c367fa52d524a40d84c9b4041ad49dd6e70",
-  "git_tree_sha": "44324c727eb8ace11166f8613a73ff43d5b41558",
+  "git_commit": "b573b7070868c31911f2d4a2e17701663bb9ec54",
+  "git_tree_sha": "c1a59bdf1cf3a49631834cf5d6982bc2cf211280",
   "lane_id": "c3_b1_design_governance",
   "returncode": 0,
   "schema_version": "aria.preprint_freeze.receipt.v1",
-  "source_snapshot_hash": "5b704032458992b53a2684019aa9d2a1990c3ab8506c367b2f6df1ad30a0d839",
-  "started_utc": "2026-11-12T19:24:13.799260+00:00",
+  "source_snapshot_hash": "9e4ea9f4c25587ed832015efedaad6914cd915c5539f85e6deb500c5d94c32bc",
+  "started_utc": "2026-11-18T20:12:33.611965+00:00",
   "status": "pass",
   "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
   "stdout_sha256": "c52229139bd90df73e3b3892d70d8a86cce410af3fc355d18eeffc0678781b7a",
   "test_summary": null,
-  "workflow_hash": "8e1d74b693fd4714afa54ba2b1762141eefb611ddbfb4bd79d54a8f8a80cbff4"
+  "workflow_hash": "a6f56213ef6170014208f85b9727bb5ec5176c8b0fa4caa7606d57f9ef57dbdb"
 }

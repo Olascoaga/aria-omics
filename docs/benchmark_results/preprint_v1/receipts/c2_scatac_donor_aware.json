@@ -1,28 +1,28 @@
 {
-  "aria_version": "4.8.0",
+  "aria_version": "4.9.0",
   "artifacts": [
     {
       "path": "claim_2/scatac_donor/scatac_donor_da_concordance.json",
-      "sha256": "35797740968a3fdba8c24b432e568e443f3bbf4bddfc390c92504c140d67d892",
-      "size_bytes": 3660
+      "sha256": "96e7f0c201ce04a99fafab8e3f686c2ecae62c86abfdfcdb1cd87d5ba9789101",
+      "size_bytes": 3661
     }
   ],
   "claims": [
     "claim_2"
   ],
   "command": "conda run -n aria-rna-env python scripts/run_scatac_multisample_da_concordance.py --data-dir ~/Samael/Oligos/data/interim/paired --young hc937,hc5579,hc13344,hc935,hc5614 --old hc26,hc98,hc35,hc40,hc73 --rna-env aria-rna-env --bench-env aria-bench-env --output-dir docs/benchmark_results/preprint_v1/claim_2/scatac_donor --manifest-name scatac_donor_da_concordance.json --work-dir /tmp/c2_scatac_donor",
-  "completed_utc": "2026-11-12T19:36:40.278548+00:00",
+  "completed_utc": "2026-11-18T20:16:50.163319+00:00",
   "environment": "aria-rna-env + aria-bench-env",
-  "git_commit": "b5c83c367fa52d524a40d84c9b4041ad49dd6e70",
-  "git_tree_sha": "44324c727eb8ace11166f8613a73ff43d5b41558",
+  "git_commit": "b573b7070868c31911f2d4a2e17701663bb9ec54",
+  "git_tree_sha": "c1a59bdf1cf3a49631834cf5d6982bc2cf211280",
   "lane_id": "c2_scatac_donor_aware",
   "returncode": 0,
   "schema_version": "aria.preprint_freeze.receipt.v1",
-  "source_snapshot_hash": "5b704032458992b53a2684019aa9d2a1990c3ab8506c367b2f6df1ad30a0d839",
-  "started_utc": "2026-11-12T19:31:58.229947+00:00",
+  "source_snapshot_hash": "9e4ea9f4c25587ed832015efedaad6914cd915c5539f85e6deb500c5d94c32bc",
+  "started_utc": "2026-11-18T20:08:58.753312+00:00",
   "status": "pass",
   "stderr_sha256": "49f24f01bc49707c6225635842e0a7fb4ca2be0e7f865c82d6faa796b96d9c30",
   "stdout_sha256": "8a9351a9059b374bfa933292526f250d6e6cb5eb389f2527552ada26cd7eabff",
   "test_summary": null,
-  "workflow_hash": "8e1d74b693fd4714afa54ba2b1762141eefb611ddbfb4bd79d54a8f8a80cbff4"
+  "workflow_hash": "a6f56213ef6170014208f85b9727bb5ec5176c8b0fa4caa7606d57f9ef57dbdb"
 }

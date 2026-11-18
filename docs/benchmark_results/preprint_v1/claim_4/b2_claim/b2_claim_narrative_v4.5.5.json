@@ -1,10 +1,10 @@
 {
-  "aria_version": "4.8.0",
+  "aria_version": "4.9.0",
   "arms": {
     "governed": {
       "causal_overreach_rate": 0.0,
       "false_narrative_rate": 0.1042,
-      "informative_coverage": 0.8333
+      "informative_coverage": 0.7778
     },
     "guards_off": {
       "causal_overreach_rate": 1.0,
@@ -334,7 +334,7 @@
     },
     {
       "analysis": "differential_accessibility",
-      "emit_governed": true,
+      "emit_governed": false,
       "emit_guards_off": true,
       "emit_naive_llm": true,
       "emit_template_only": true,
@@ -622,7 +622,7 @@
     }
   ],
   "provenance": {
-    "aria_version": "4.8.0",
+    "aria_version": "4.9.0",
     "environment": {
       "conda_prefix": null,
       "env_lock_file": null,
@@ -630,11 +630,11 @@
       "env_name": "aria-env",
       "source": "no_lock"
     },
-    "git_commit": "b5c83c367fa52d524a40d84c9b4041ad49dd6e70",
-    "git_describe": "v4.8.0-3-gb5c83c3-dirty",
+    "git_commit": "b573b7070868c31911f2d4a2e17701663bb9ec54",
+    "git_describe": "v4.8.0-21-gb573b70-dirty",
     "git_dirty": true,
-    "git_sha": "b5c83c367fa52d524a40d84c9b4041ad49dd6e70",
-    "git_tree_sha": "44324c727eb8ace11166f8613a73ff43d5b41558",
+    "git_sha": "b573b7070868c31911f2d4a2e17701663bb9ec54",
+    "git_tree_sha": "c1a59bdf1cf3a49631834cf5d6982bc2cf211280",
     "image": {
       "containerized": false,
       "digest": null,
@@ -644,9 +644,9 @@
       "revision": null,
       "validation": null
     },
-    "version": "4.8.0",
+    "version": "4.9.0",
     "version_source": "aria.version.__version__",
-    "workflow_hash": "fe97ae0b888060e868f0911932f253ad722f8095510b5d163b87d47015627ef8",
+    "workflow_hash": "15420571cea349a5df5b21f5dd678c4fc83600fd0b730dcca4c429f87a6a3dbd",
     "workflow_hash_algorithm": "sha256(version+git_sha+git_tree_sha+git_dirty+git_status+git_diff)"
   },
   "scope": "governance_claim_ablation_4arm",
@@ -655,7 +655,7 @@
     "false_narrative_reduction": 0.2708,
     "governed_causal_overreach_rate": 0.0,
     "governed_false_narrative_rate": 0.1042,
-    "governed_informative_coverage": 0.8333,
+    "governed_informative_coverage": 0.7778,
     "n_causal_labelled": 6,
     "n_claims": 48,
     "n_false_labelled": 18,

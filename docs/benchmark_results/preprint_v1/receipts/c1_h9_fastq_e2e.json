@@ -1,20 +1,20 @@
 {
-  "aria_version": "4.8.0",
+  "aria_version": "4.9.0",
   "artifacts": [
     {
       "path": "claim_1/h9_e2e/capsule.json",
-      "sha256": "589b372b774ae7492757683ca42072766620b3556dccfe9838f2dfb96d25938d",
-      "size_bytes": 9250
+      "sha256": "85d6d6d4cbabe2142403e2ff3c937f52bcfd01077a504e233c7a97ba7b4f16f1",
+      "size_bytes": 9513
     },
     {
       "path": "claim_1/h9_e2e/report.html",
-      "sha256": "1af39e97df620198018897c9b9978eb58c64380e324796cb25a721c3a0633cd4",
-      "size_bytes": 9407002
+      "sha256": "bc79ae2eb8da9f2ea3716c7bc1e50f7ac9c98865a6dfce2c67c40fbb183c4a95",
+      "size_bytes": 9417572
     },
     {
       "path": "claim_1/h9_e2e/methodology.json",
-      "sha256": "6f1b82a945de2063dffe2c1d40cdb9cc4f69a1a81cc807c0843971f3b9a27705",
-      "size_bytes": 253097
+      "sha256": "e79c638edab9a1809530727a9cffe7ea2d11b9a70a1d58fb72383593bf2003c3",
+      "size_bytes": 286943
     },
     {
       "path": "claim_1/h9_e2e/de_results.tsv",
@@ -23,7 +23,7 @@
     },
     {
       "path": "claim_1/h9_e2e/fig1_h9_bulk_de.svg",
-      "sha256": "1e1487d3042b2c6fba43ea638bc043fc1fc1b8a0c1a12d446f1045d80dc99f25",
+      "sha256": "d6a18537e17337a28fe373a29e9e3b534e77ebbb3470ad48a2c745a4d97790fe",
       "size_bytes": 2105247
     }
   ],
@@ -31,18 +31,18 @@
     "claim_1"
   ],
   "command": "conda run -n aria-env python scripts/run_c1_h9_fastq_e2e.py --output-dir docs/benchmark_results/preprint_v1/claim_1/h9_e2e",
-  "completed_utc": "2026-11-12T19:27:25.511220+00:00",
+  "completed_utc": "2026-11-18T20:14:54.548533+00:00",
   "environment": "aria-env -> aria-rnaseq-env + aria-rna-env",
-  "git_commit": "b5c83c367fa52d524a40d84c9b4041ad49dd6e70",
-  "git_tree_sha": "44324c727eb8ace11166f8613a73ff43d5b41558",
+  "git_commit": "b573b7070868c31911f2d4a2e17701663bb9ec54",
+  "git_tree_sha": "c1a59bdf1cf3a49631834cf5d6982bc2cf211280",
   "lane_id": "c1_h9_fastq_e2e",
   "returncode": 0,
   "schema_version": "aria.preprint_freeze.receipt.v1",
-  "source_snapshot_hash": "5b704032458992b53a2684019aa9d2a1990c3ab8506c367b2f6df1ad30a0d839",
-  "started_utc": "2026-11-12T19:25:58.344302+00:00",
+  "source_snapshot_hash": "9e4ea9f4c25587ed832015efedaad6914cd915c5539f85e6deb500c5d94c32bc",
+  "started_utc": "2026-11-18T20:09:03.510087+00:00",
   "status": "pass",
   "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-  "stdout_sha256": "842e463e4148b1e53627e4b4ef4feb9e80a9255ae3ea13e00ca540f362309200",
+  "stdout_sha256": "e38ff0feabf16d243221ad89f5284d4ee0db69f6f7158f9a1cf6558bc0fbc556",
   "test_summary": null,
-  "workflow_hash": "8e1d74b693fd4714afa54ba2b1762141eefb611ddbfb4bd79d54a8f8a80cbff4"
+  "workflow_hash": "a6f56213ef6170014208f85b9727bb5ec5176c8b0fa4caa7606d57f9ef57dbdb"
 }

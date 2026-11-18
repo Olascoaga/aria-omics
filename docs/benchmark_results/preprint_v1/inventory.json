@@ -1,4 +1,91 @@
 {
+  "automated_v1_gate": {
+    "automated_claims": [
+      {
+        "claim_id": "claim_1",
+        "machine_lane_ids": [
+          "c1_a1_synthetic_bulk_de",
+          "c1_a1_external_comparators",
+          "c1_seqc_maqc_taqman",
+          "c1_seqc_multisite",
+          "c1_ercc_dose_response",
+          "c1_h9_fastq_e2e"
+        ],
+        "status": "verified"
+      },
+      {
+        "claim_id": "claim_2",
+        "machine_lane_ids": [
+          "c2_a2_synthetic_pseudobulk",
+          "c2_kang_muscat",
+          "c2_pairing_and_technical_replicates",
+          "c2_scatac_donor_aware"
+        ],
+        "status": "verified"
+      },
+      {
+        "claim_id": "claim_3",
+        "machine_lane_ids": [
+          "c3_b1_design_governance"
+        ],
+        "status": "verified"
+      },
+      {
+        "claim_id": "claim_4",
+        "machine_lane_ids": [
+          "c4_b2_governance_ablation",
+          "c4_metamorphic_600_falsification"
+        ],
+        "status": "verified"
+      },
+      {
+        "claim_id": "claim_5",
+        "machine_lane_ids": [
+          "c5_b4_null_narrative",
+          "c5_semantic_negation",
+          "c5_multimodal_null_permutations"
+        ],
+        "status": "verified"
+      },
+      {
+        "claim_id": "claim_6",
+        "machine_lane_ids": [
+          "c6_b3_in_process_matrix",
+          "c6_b3_real_e2e"
+        ],
+        "status": "verified"
+      },
+      {
+        "claim_id": "claim_7",
+        "machine_lane_ids": [
+          "c7_speculative_quarantine"
+        ],
+        "status": "verified"
+      }
+    ],
+    "deferred_v2_human_lanes": [
+      {
+        "disposition": "deferred_to_v2_reader_study",
+        "lane_id": "c3_blind_multifactorial_corpus",
+        "status": "blocked_missing_resources"
+      },
+      {
+        "disposition": "deferred_to_v2_reader_study",
+        "lane_id": "c4_b2_multi_annotator_gold",
+        "status": "blocked_missing_resources"
+      },
+      {
+        "disposition": "deferred_to_v2_reader_study",
+        "lane_id": "c4_report_e2e_false_narrative",
+        "status": "blocked_missing_resources"
+      }
+    ],
+    "machine_blockers": [],
+    "n_required_machine_lanes": 19,
+    "n_verified_machine_lanes": 19,
+    "policy_adr": "ADR-083",
+    "ready": true
+  },
   "claims": [
     {
       "claim_id": "claim_1",
@@ -34,6 +121,7 @@
       "claim_id": "claim_4",
       "lane_ids": [
         "c4_b2_governance_ablation",
+        "c4_metamorphic_600_falsification",
         "c4_b2_multi_annotator_gold",
         "c4_report_e2e_false_narrative"
       ],
@@ -79,12 +167,12 @@
         "status": "blocked_missing_resources"
       }
     ],
-    "n_required_lanes": 21,
-    "n_verified_lanes": 18,
+    "n_required_lanes": 22,
+    "n_verified_lanes": 19,
     "ready": false,
     "tag_action_authorized": false
   },
-  "generated_utc": "2026-11-12T19:37:12.103191+00:00",
+  "generated_utc": "2026-11-18T20:17:25.197944+00:00",
   "lanes": [
     {
       "claims": [
@@ -365,6 +453,25 @@
       "claims": [
         "claim_4"
       ],
+      "command": "conda run -n aria-env python scripts/run_metamorphic_report_falsification.py --output-dir docs/benchmark_results/preprint_v1/claim_4/metamorphic_600 --manifest-name metamorphic_600_falsification.json",
+      "environment": "aria-env",
+      "evidence_kind": "artifact",
+      "expected_artifacts": [
+        "claim_4/metamorphic_600/metamorphic_600_falsification.json"
+      ],
+      "implementation": "available",
+      "lane_id": "c4_metamorphic_600_falsification",
+      "required_for_freeze": true,
+      "requirement": "Deterministic 600-case (300 invalid mutations + 300 valid controls across 6 error families x 5 modalities) claim-boundary and metamorphic report falsification suite (ADR-083).",
+      "resources": [
+        "env:aria-env"
+      ],
+      "status": "verified"
+    },
+    {
+      "claims": [
+        "claim_4"
+      ],
       "command": "python scripts/run_b2_annotation_kit.py score docs/benchmark_results/preprint_v1/human/b2_annotator_1.csv docs/benchmark_results/preprint_v1/human/b2_annotator_2.csv --adjudicator docs/benchmark_results/preprint_v1/human/b2_adjudicator.csv --out docs/benchmark_results/preprint_v1/claim_4/b2_human_gold.json",
       "environment": "aria-env",
       "evidence_kind": "human_gold",
@@ -516,15 +623,15 @@
   ],
   "output_root": "docs/benchmark_results/preprint_v1",
   "provenance": {
-    "aria_version": "4.8.0",
-    "git_commit": "72e1014c764cdecc537edfc0a978214539f2bb79",
-    "git_describe": "v4.8.0-4-g72e1014",
+    "aria_version": "4.9.0",
+    "git_commit": "b573b7070868c31911f2d4a2e17701663bb9ec54",
+    "git_describe": "v4.8.0-21-gb573b70",
     "git_dirty": false,
-    "git_tree_sha": "453af984a69acd896872c585412465271984b230",
-    "source_snapshot_hash": "5b704032458992b53a2684019aa9d2a1990c3ab8506c367b2f6df1ad30a0d839",
+    "git_tree_sha": "c1a59bdf1cf3a49631834cf5d6982bc2cf211280",
+    "source_snapshot_hash": "9e4ea9f4c25587ed832015efedaad6914cd915c5539f85e6deb500c5d94c32bc",
     "source_snapshot_hash_algorithm": "sha256(git-ls-files-stage-excluding-output)",
     "version_source": "aria.version.__version__",
-    "workflow_hash": "8e1d74b693fd4714afa54ba2b1762141eefb611ddbfb4bd79d54a8f8a80cbff4",
+    "workflow_hash": "a6f56213ef6170014208f85b9727bb5ec5176c8b0fa4caa7606d57f9ef57dbdb",
     "workflow_hash_algorithm": "sha256(version+source_snapshot_hash)"
   },
   "resources": {

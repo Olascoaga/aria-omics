@@ -1,0 +1,86 @@
+{
+  "all_gates_pass": true,
+  "failures": [],
+  "false_publication_rate": 0.0,
+  "n_error_families": 6,
+  "n_invalid_caught": 300,
+  "n_invalid_mutations": 300,
+  "n_modality_templates": 5,
+  "n_seeds": 10,
+  "n_valid_controls": 300,
+  "n_valid_published": 300,
+  "per_family": {
+    "entity_or_contrast_swap": {
+      "n_invalid_caught": 50,
+      "n_invalid_tested": 50,
+      "n_valid_published": 50,
+      "n_valid_tested": 50
+    },
+    "numeric_or_threshold_tampering": {
+      "n_invalid_caught": 50,
+      "n_invalid_tested": 50,
+      "n_valid_published": 50,
+      "n_valid_tested": 50
+    },
+    "sign_or_negation_inversion": {
+      "n_invalid_caught": 50,
+      "n_invalid_tested": 50,
+      "n_valid_published": 50,
+      "n_valid_tested": 50
+    },
+    "speculative_or_exploratory_promotion": {
+      "n_invalid_caught": 50,
+      "n_invalid_tested": 50,
+      "n_valid_published": 50,
+      "n_valid_tested": 50
+    },
+    "unexecuted_or_errored_ledger_stage": {
+      "n_invalid_caught": 50,
+      "n_invalid_tested": 50,
+      "n_valid_published": 50,
+      "n_valid_tested": 50
+    },
+    "unlicensed_causal_verb_injection": {
+      "n_invalid_caught": 50,
+      "n_invalid_tested": 50,
+      "n_valid_published": 50,
+      "n_valid_tested": 50
+    }
+  },
+  "per_modality": {
+    "bulk_rna": {
+      "n_invalid_caught": 60,
+      "n_invalid_tested": 60,
+      "n_valid_published": 60,
+      "n_valid_tested": 60
+    },
+    "cut_and_run": {
+      "n_invalid_caught": 60,
+      "n_invalid_tested": 60,
+      "n_valid_published": 60,
+      "n_valid_tested": 60
+    },
+    "hic": {
+      "n_invalid_caught": 60,
+      "n_invalid_tested": 60,
+      "n_valid_published": 60,
+      "n_valid_tested": 60
+    },
+    "scatac": {
+      "n_invalid_caught": 60,
+      "n_invalid_tested": 60,
+      "n_valid_published": 60,
+      "n_valid_tested": 60
+    },
+    "scrna": {
+      "n_invalid_caught": 60,
+      "n_invalid_tested": 60,
+      "n_valid_published": 60,
+      "n_valid_tested": 60
+    }
+  },
+  "schema_version": "aria.metamorphic_report_falsification.v1",
+  "status": "pass",
+  "total_cases": 600,
+  "valid_retention_rate": 1.0
+}
