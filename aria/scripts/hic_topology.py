@@ -278,6 +278,46 @@ def _bh_fdr(pvals):
 # ── 1. Compartments A/B ──────────────────────────────────────────────────────
 
 
+def _run_eigs_cis_deterministic(eig_mod, clr, *, phasing_track, view_df, n_eigs: int, ignore_diags: int, seed: int = 0):
+    """Run ``cooltools.api.eigdecomp.eigs_cis`` with deterministic ARPACK ``v0``."""
+    import numpy as np
+    import scipy.sparse.linalg as spla
+
+    rng_state = np.random.get_state()
+    orig_eigsh = spla.eigsh
+    orig_eigs = spla.eigs
+
+    def _det_eigsh(A, *args, **kwargs):
+        if kwargs.get("v0") is None and len(args) < 5:
+            n = int(A.shape[0])
+            kwargs = dict(kwargs)
+            kwargs["v0"] = np.ones(n, dtype=np.float64) / np.sqrt(max(1, n))
+        return orig_eigsh(A, *args, **kwargs)
+
+    def _det_eigs(A, *args, **kwargs):
+        if kwargs.get("v0") is None and len(args) < 5:
+            n = int(A.shape[0])
+            kwargs = dict(kwargs)
+            kwargs["v0"] = np.ones(n, dtype=np.float64) / np.sqrt(max(1, n))
+        return orig_eigs(A, *args, **kwargs)
+
+    np.random.seed(int(seed))
+    spla.eigsh = _det_eigsh
+    spla.eigs = _det_eigs
+    try:
+        return eig_mod.eigs_cis(
+            clr,
+            phasing_track=phasing_track,
+            view_df=view_df,
+            n_eigs=n_eigs,
+            ignore_diags=ignore_diags,
+        )
+    finally:
+        spla.eigsh = orig_eigsh
+        spla.eigs = orig_eigs
+        np.random.set_state(rng_state)
+
+
 def _compute_compartments(
     fpath: str,
     genome: str,
@@ -322,12 +362,14 @@ def _compute_compartments(
         n_eigs = min(3, max(1, nbins_min - 2))
         ignore_diags = 2 if nbins_min >= 12 else 1
 
-        eigvals_df, eigvecs_df = eig.eigs_cis(
+        eigvals_df, eigvecs_df = _run_eigs_cis_deterministic(
+            eig,
             clr,
             phasing_track=phasing_df,
             view_df=view_df,
             n_eigs=n_eigs,
             ignore_diags=ignore_diags,
+            seed=0,
         )
 
         compartment_tracks: dict[str, list[float | None]] = {}

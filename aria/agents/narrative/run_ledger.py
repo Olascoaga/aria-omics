@@ -736,7 +736,9 @@ _NON_DESCRIPTIVE_TIERS = {
 }
 
 # Statuses that mean the analysis did not actually produce results.
-_NOT_RUN_STATUSES = {"not_run", "skipped", "error"}
+_NOT_RUN_STATUSES = {
+    "not_run", "skipped", "error", "failed", "blocked", "cancelled", "missing",
+}
 
 # A narrative block's ``analysis`` label can be a narrator-specific variant of a
 # canonical ledger analysis key. Map the variants so the claim resolves to the

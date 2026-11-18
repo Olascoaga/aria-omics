@@ -33,6 +33,7 @@ from typing import Any
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from aria.scripts._base import run_script
+from aria.utils.provenance import hash_file
 from aria.utils.stage_manifest import (
     build_stage_manifest,
     stage_is_current,
@@ -67,8 +68,17 @@ def _check_hic_stage_cache(
         payload = _json.loads(manifest_path.read_text(encoding="utf-8"))
         extra = payload.get("extra") or {}
         outputs = extra.get("outputs") or []
-        if any(not Path(str(o)).exists() for o in outputs if o):
+        if any(not Path(str(o)).is_file() for o in outputs if o):
             return None
+        output_sha256 = extra.get("output_sha256")
+        if outputs and not isinstance(output_sha256, dict):
+            return None
+        for o in outputs:
+            if not o:
+                continue
+            expected_sha = (output_sha256 or {}).get(str(o))
+            if not expected_sha or hash_file(o) != expected_sha:
+                return None
         return extra
     except Exception:
         return None
@@ -87,12 +97,20 @@ def _save_hic_stage_cache(
 ) -> None:
     manifest_path = Path(out_dir) / manifest_name
     input_tuples = [(f"in_{i}", str(p)) for i, p in enumerate(inputs)]
+    clean_outputs = [str(o) for o in outputs if o]
+    output_sha256 = {
+        o: hash_file(o) for o in clean_outputs if Path(o).is_file()
+    }
     manifest = build_stage_manifest(
         stage=stage,
         inputs=input_tuples,
         params=params,
         tool_version=f"{stage}:v{version}",
-        extra={**extra, "outputs": [str(o) for o in outputs if o]},
+        extra={
+            **extra,
+            "outputs": clean_outputs,
+            "output_sha256": output_sha256,
+        },
     )
     write_stage_manifest(manifest_path, manifest)
 DEFAULT_BASE_RESOLUTION = 10_000

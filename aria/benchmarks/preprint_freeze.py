@@ -24,6 +24,15 @@ from aria.version import collect_version_metadata
 SCHEMA_VERSION = "aria.preprint_freeze.inventory.v1"
 CLAIM_IDS = tuple(f"claim_{i}" for i in range(1, 8))
 
+# ADR-083: Independent human-panel reader-study lanes are preserved verbatim and
+# never synthesized or spoofed; `automated_v1_gate` evaluates the 100% machine-
+# verifiable Preprint v1 gate while recording these 3 lanes as deferred to v2.
+DEFERRED_V2_HUMAN_GOLD_LANES: frozenset[str] = frozenset({
+    "c3_blind_multifactorial_corpus",
+    "c4_b2_multi_annotator_gold",
+    "c4_report_e2e_false_narrative",
+})
+
 
 def _lane(
     lane_id: str,
@@ -210,6 +219,15 @@ LANES: tuple[dict[str, Any], ...] = (
             "claim_4/b2_claim/b2_claim_narrative_v4.5.5.json",
             "claim_4/b2_claim/fig4_b2_claim_narrative_v4.5.5.svg",
         ),
+    ),
+    _lane(
+        "c4_metamorphic_600_falsification", ("claim_4",),
+        "Deterministic 600-case (300 invalid mutations + 300 valid controls across 6 error families x 5 modalities) claim-boundary and metamorphic report falsification suite (ADR-083).",
+        "conda run -n aria-env python scripts/run_metamorphic_report_falsification.py "
+        "--output-dir docs/benchmark_results/preprint_v1/claim_4/metamorphic_600 "
+        "--manifest-name metamorphic_600_falsification.json",
+        "aria-env", ("env:aria-env",),
+        ("claim_4/metamorphic_600/metamorphic_600_falsification.json",),
     ),
     _lane(
         "c4_b2_multi_annotator_gold", ("claim_4",),
@@ -655,6 +673,45 @@ def build_inventory(
         and not blockers
         and all(claim["status"] == "verified" for claim in claims)
     )
+
+    machine_lanes = [
+        lane for lane in lanes
+        if lane["lane_id"] not in DEFERRED_V2_HUMAN_GOLD_LANES
+    ]
+    deferred_human_lanes = [
+        {
+            "lane_id": lane["lane_id"],
+            "status": lane["status"],
+            "disposition": "deferred_to_v2_reader_study",
+        }
+        for lane in lanes
+        if lane["lane_id"] in DEFERRED_V2_HUMAN_GOLD_LANES
+    ]
+    machine_blockers = [
+        {"lane_id": lane["lane_id"], "status": lane["status"]}
+        for lane in machine_lanes
+        if lane["required_for_freeze"] and lane["status"] != "verified"
+    ]
+    automated_claims = []
+    for claim_id in CLAIM_IDS:
+        m_claim_lanes = [
+            lane for lane in machine_lanes if claim_id in lane["claims"]
+        ]
+        automated_claims.append({
+            "claim_id": claim_id,
+            "machine_lane_ids": [lane["lane_id"] for lane in m_claim_lanes],
+            "status": (
+                "verified"
+                if m_claim_lanes and all(lane["status"] == "verified" for lane in m_claim_lanes)
+                else "blocked"
+            ),
+        })
+    automated_v1_ready = (
+        not provenance.get("git_dirty")
+        and not machine_blockers
+        and all(c["status"] == "verified" for c in automated_claims)
+    )
+
     return {
         "schema_version": SCHEMA_VERSION,
         "generated_utc": datetime.now(timezone.utc).isoformat(),
@@ -673,6 +730,19 @@ def build_inventory(
             ),
             "blockers": blockers,
             "tag_action_authorized": False,
+        },
+        "automated_v1_gate": {
+            "policy_adr": "ADR-083",
+            "ready": automated_v1_ready,
+            "n_required_machine_lanes": sum(
+                1 for lane in machine_lanes if lane["required_for_freeze"]
+            ),
+            "n_verified_machine_lanes": sum(
+                1 for lane in machine_lanes if lane["status"] == "verified"
+            ),
+            "machine_blockers": machine_blockers,
+            "automated_claims": automated_claims,
+            "deferred_v2_human_lanes": deferred_human_lanes,
         },
     }
 

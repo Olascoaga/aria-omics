@@ -213,6 +213,28 @@ class SetupAgent(BaseAgent):
                     genome_key, genome_cfg,
                     conda_cmd, experiment_id, actions, warnings
                 )
+
+            # ── 5. kb-python index + t2g (scRNA / Multiome FASTQ lanes) ──
+            needs_kb = has_fastq and (
+                "scRNA" in modalities
+                or bool(exp_ctx.get("multiome_fastq_manifest"))
+                or (
+                    isinstance(exp_ctx.get("paired_multiome_contract"), dict)
+                    and exp_ctx["paired_multiome_contract"].get("source") == "paired_fastq_manifest"
+                )
+            )
+            if needs_kb and genome_cfg.get("fasta_ready") and genome_cfg.get("gtf_ready"):
+                self.publish_status(
+                    experiment_id,
+                    f"Checking kb-python transcriptome index ({genome_key})...",
+                    0.88,
+                )
+                ensure_kb = getattr(self, "_ensure_kb_index", None)
+                if callable(ensure_kb):
+                    ensure_kb(
+                        genome_key, genome_cfg,
+                        conda_cmd, experiment_id, actions, warnings
+                    )
         elif str(audited_genome or "").strip().lower() not in {"", "unknown", "none"}:
             genome_cfg = self._local_staged_genome_cfg(
                 str(audited_genome).strip(), warnings
@@ -555,9 +577,13 @@ class SetupAgent(BaseAgent):
             "gtf":         str(gdir / "annotation.gtf"),   # decompressed
             "gtf_gz":      str(gtf_gz),
             "star_index":  str(gdir / "star_index"),
+            "kb_dir":      str(gdir / "kb_index"),
+            "kb_index":    str(gdir / "kb_index" / "index.idx"),
+            "kb_t2g":      str(gdir / "kb_index" / "t2g.txt"),
             "fasta_ready": False,
             "gtf_ready":   False,
             "index_ready": False,
+            "kb_ready":    False,
             "strand":      "auto",               # trigger strand auto-detection
         }
 
@@ -694,7 +720,35 @@ class SetupAgent(BaseAgent):
 
         return "curl and wget both failed or not found"
 
-    # ── STAR index ────────────────────────────────────────────────────────
+    # ── Reference Index Build Lock + STAR / kb-python Indexes ─────────────
+
+    @staticmethod
+    def _reference_build_lock(lock_path: Path):
+        """Serialize concurrent reference-index builds sharing a genome directory."""
+        from contextlib import contextmanager
+
+        @contextmanager
+        def _ctx():
+            fh = None
+            try:
+                lock_path.parent.mkdir(parents=True, exist_ok=True)
+                fh = open(lock_path, "a+", encoding="utf-8")
+                try:
+                    import fcntl
+                    fcntl.flock(fh.fileno(), fcntl.LOCK_EX)
+                except (ImportError, OSError):
+                    pass
+                yield
+            finally:
+                if fh is not None:
+                    try:
+                        import fcntl
+                        fcntl.flock(fh.fileno(), fcntl.LOCK_UN)
+                    except (ImportError, OSError):
+                        pass
+                    fh.close()
+
+        return _ctx()
 
     def _ensure_star_index(self, genome_key: str,
                             genome_cfg: dict,
@@ -705,56 +759,138 @@ class SetupAgent(BaseAgent):
         """Build STAR index if not present. ~30 min, one time only."""
         index_dir = Path(genome_cfg["star_index"])
         ready_files = ["SA", "SAindex", "Genome"]
+        lock_file = Path(genome_cfg.get("genome_dir", index_dir.parent)) / ".star_build.lock"
 
-        if (index_dir.exists()
-                and all((index_dir / f).exists() for f in ready_files)):
-            genome_cfg["index_ready"] = True
-            return
-
-        if not genome_cfg.get("fasta_ready") or not genome_cfg.get("gtf_ready"):
-            warnings.append(
-                "STAR index cannot be built: genome files not ready"
-            )
-            return
-
-        self.publish_status(
-            experiment_id,
-            f"Building STAR index for {genome_key} "
-            f"(~30 min, one-time setup)...",
-            0.83,
-        )
-        index_dir.mkdir(parents=True, exist_ok=True)
-
-        n_threads = str(min(os.cpu_count() or 4, 16))
-        sa_bases  = str(GENOME_REGISTRY[genome_key]["star_sa_bases"])
-
-        cmd = [
-            conda_cmd, "run", "-n", "aria-rnaseq-env",
-            "STAR",
-            "--runMode",             "genomeGenerate",
-            "--genomeDir",           str(index_dir),
-            "--genomeFastaFiles",    genome_cfg["fasta"],
-            "--sjdbGTFfile",         genome_cfg["gtf"],
-            "--runThreadN",          n_threads,
-            "--genomeSAindexNbases", sa_bases,
-        ]
-
-        try:
-            r = subprocess.run(
-                cmd, capture_output=True, text=True, timeout=7200
-            )
-            if r.returncode == 0:
+        with self._reference_build_lock(lock_file):
+            if (index_dir.exists()
+                    and all((index_dir / f).exists() for f in ready_files)):
                 genome_cfg["index_ready"] = True
-                actions.append(f"built_star_index:{genome_key}")
-                log.info(f"STAR index built: {index_dir}")
-            else:
+                return
+
+            if not genome_cfg.get("fasta_ready") or not genome_cfg.get("gtf_ready"):
                 warnings.append(
-                    f"STAR index build failed: {r.stderr[-200:]}"
+                    "STAR index cannot be built: genome files not ready"
                 )
-        except subprocess.TimeoutExpired:
-            warnings.append("STAR index build timed out (>2h)")
-        except Exception as e:
-            warnings.append(f"STAR index error: {e}")
+                return
+
+            self.publish_status(
+                experiment_id,
+                f"Building STAR index for {genome_key} "
+                f"(~30 min, one-time setup)...",
+                0.83,
+            )
+            index_dir.mkdir(parents=True, exist_ok=True)
+
+            n_threads = str(min(os.cpu_count() or 4, 16))
+            sa_bases  = str(GENOME_REGISTRY[genome_key]["star_sa_bases"])
+
+            cmd = [
+                conda_cmd, "run", "-n", "aria-rnaseq-env",
+                "STAR",
+                "--runMode",             "genomeGenerate",
+                "--genomeDir",           str(index_dir),
+                "--genomeFastaFiles",    genome_cfg["fasta"],
+                "--sjdbGTFfile",         genome_cfg["gtf"],
+                "--runThreadN",          n_threads,
+                "--genomeSAindexNbases", sa_bases,
+            ]
+
+            try:
+                r = subprocess.run(
+                    cmd, capture_output=True, text=True, timeout=7200
+                )
+                if r.returncode == 0:
+                    genome_cfg["index_ready"] = True
+                    actions.append(f"built_star_index:{genome_key}")
+                    log.info(f"STAR index built: {index_dir}")
+                else:
+                    warnings.append(
+                        f"STAR index build failed: {r.stderr[-200:]}"
+                    )
+            except subprocess.TimeoutExpired:
+                warnings.append("STAR index build timed out (>2h)")
+            except Exception as e:
+                warnings.append(f"STAR index error: {e}")
+
+    def _ensure_kb_index(self, genome_key: str,
+                         genome_cfg: dict,
+                         conda_cmd: str,
+                         experiment_id: str,
+                         actions: list,
+                         warnings: list):
+        """Auto-build `kb ref` transcriptome index + `t2g.txt` (+ SHA-256 digests) once per assembly."""
+        from aria.utils.provenance import hash_file
+
+        kb_dir = Path(
+            genome_cfg.get("kb_dir")
+            or (Path(genome_cfg.get("genome_dir", ".")) / "kb_index")
+        )
+        idx_path = Path(genome_cfg.get("kb_index") or (kb_dir / "index.idx"))
+        t2g_path = Path(genome_cfg.get("kb_t2g") or (kb_dir / "t2g.txt"))
+        cdna_path = kb_dir / "cdna.fa"
+        lock_file = Path(genome_cfg.get("genome_dir", kb_dir.parent)) / ".kb_build.lock"
+
+        with self._reference_build_lock(lock_file):
+            if (
+                idx_path.is_file()
+                and idx_path.stat().st_size > 0
+                and t2g_path.is_file()
+                and t2g_path.stat().st_size > 0
+            ):
+                genome_cfg["kb_index"] = str(idx_path)
+                genome_cfg["kb_t2g"] = str(t2g_path)
+                genome_cfg["kb_index_sha256"] = hash_file(idx_path)
+                genome_cfg["kb_t2g_sha256"] = hash_file(t2g_path)
+                genome_cfg["kb_ready"] = True
+                return
+
+            if not genome_cfg.get("fasta_ready") or not genome_cfg.get("gtf_ready"):
+                warnings.append(
+                    "kb-python index cannot be built: genome FASTA/GTF not ready"
+                )
+                return
+
+            self.publish_status(
+                experiment_id,
+                f"Building kb-python transcriptome index for {genome_key} (one-time setup)...",
+                0.90,
+            )
+            kb_dir.mkdir(parents=True, exist_ok=True)
+            n_threads = str(min(os.cpu_count() or 4, 16))
+            cmd = [
+                conda_cmd, "run", "-n", "aria-ingestion-env",
+                "kb", "ref",
+                "-i", str(idx_path),
+                "-g", str(t2g_path),
+                "-f1", str(cdna_path),
+                "-t", n_threads,
+                str(genome_cfg["fasta"]),
+                str(genome_cfg["gtf"]),
+            ]
+            try:
+                r = subprocess.run(cmd, capture_output=True, text=True, timeout=7200)
+                if (
+                    r.returncode == 0
+                    and idx_path.is_file()
+                    and idx_path.stat().st_size > 0
+                    and t2g_path.is_file()
+                    and t2g_path.stat().st_size > 0
+                ):
+                    genome_cfg["kb_index"] = str(idx_path)
+                    genome_cfg["kb_t2g"] = str(t2g_path)
+                    genome_cfg["kb_index_sha256"] = hash_file(idx_path)
+                    genome_cfg["kb_t2g_sha256"] = hash_file(t2g_path)
+                    genome_cfg["kb_ready"] = True
+                    actions.append(f"built_kb_index:{genome_key}")
+                    log.info(f"kb-python index built: {idx_path}")
+                else:
+                    warnings.append(
+                        f"kb-python index build failed: {(r.stderr or r.stdout)[-200:]}"
+                    )
+            except subprocess.TimeoutExpired:
+                warnings.append("kb-python index build timed out (>2h)")
+            except Exception as exc:
+                warnings.append(f"kb-python index error: {exc}")
 
     # ── Helpers ───────────────────────────────────────────────────────────
 

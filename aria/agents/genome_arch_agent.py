@@ -431,7 +431,13 @@ class GenomeArchAgent(BaseAgent):
 
     def _advise_resolution(self, experiment_id: str, intent: dict,
                            file_info: dict, exp_ctx: dict) -> dict:
-        question = intent.get("user_question", "").lower()
+        from aria.utils.text_matching import has_keyword_boundary
+
+        question = str(
+            (intent or {}).get("raw_user_question")
+            or (intent or {}).get("user_question")
+            or ""
+        )
         organism = exp_ctx.get("organism", "Homo sapiens")
         scale = GENOME_SCALE.get(organism, 1.0)
         available = file_info.get("available_resolutions") or [
@@ -439,16 +445,17 @@ class GenomeArchAgent(BaseAgent):
         ]
 
         explicit_res = exp_ctx.get("resolution")
-        LOOP_KEYWORDS = ["loop", "enhancer", "promoter", "ctcf anchor",
-                         "hi-c loop", "chromatin loop", "dot"]
-        TAD_KEYWORDS = ["tad", "domain", "topological", "boundary",
-                        "insulation", "compartment switch"]
-        COMP_KEYWORDS = ["compartment", "a/b", "heterochromatin",
+        LOOP_KEYWORDS = ["loop", "loops", "enhancer", "enhancers", "promoter",
+                         "promoters", "ctcf anchor", "hi-c loop", "chromatin loop",
+                         "dot", "dots"]
+        TAD_KEYWORDS = ["tad", "tads", "domain", "domains", "topological",
+                        "boundary", "boundaries", "insulation", "compartment switch"]
+        COMP_KEYWORDS = ["compartment", "compartments", "a/b", "heterochromatin",
                          "euchromatin", "a-b", "lamina"]
 
-        needs_loops = any(k in question for k in LOOP_KEYWORDS)
-        needs_tads = any(k in question for k in TAD_KEYWORDS)
-        needs_compartments = any(k in question for k in COMP_KEYWORDS)
+        needs_loops = has_keyword_boundary(question, LOOP_KEYWORDS)
+        needs_tads = has_keyword_boundary(question, TAD_KEYWORDS)
+        needs_compartments = has_keyword_boundary(question, COMP_KEYWORDS)
 
         if explicit_res is not None:
             target_res = int(explicit_res)
@@ -508,7 +515,7 @@ class GenomeArchAgent(BaseAgent):
             ),
         }
 
-        if self.advisor is not None:
+        if getattr(self, "advisor", None) is not None:
             try:
                 hist = self.advisor._recall_similar_decisions(
                     experiment_id, "hic_resolution", intent
@@ -714,15 +721,22 @@ class GenomeArchAgent(BaseAgent):
                                   resolution: int,
                                   genome: str,
                                   out_dir: Optional[Path] = None) -> dict:
-        question = intent.get("user_question", "").lower()
+        from aria.utils.text_matching import has_keyword_boundary
 
-        MEGADOMAIN_KEYWORDS = ["megadomain", "large domain", "broad",
+        question = str(
+            (intent or {}).get("raw_user_question")
+            or (intent or {}).get("user_question")
+            or ""
+        )
+
+        MEGADOMAIN_KEYWORDS = ["megadomain", "megadomains", "large domain", "broad",
                                "topological domain large"]
-        SUBDOMAIN_KEYWORDS = ["sub-tad", "subdomain", "fine", "small", "local"]
+        SUBDOMAIN_KEYWORDS = ["sub-tad", "sub-tads", "subdomain", "subdomains",
+                              "fine", "small", "local"]
 
-        if any(k in question for k in MEGADOMAIN_KEYWORDS):
+        if has_keyword_boundary(question, MEGADOMAIN_KEYWORDS):
             windows = [300_000, 500_000, 1_000_000]
-        elif any(k in question for k in SUBDOMAIN_KEYWORDS):
+        elif has_keyword_boundary(question, SUBDOMAIN_KEYWORDS):
             windows = [max(resolution * 3, 50_000), max(resolution * 5, 100_000), max(resolution * 8, 200_000)]
         else:
             windows = [resolution * 3, resolution * 5, resolution * 10]

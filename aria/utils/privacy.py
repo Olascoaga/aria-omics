@@ -26,24 +26,44 @@ _PATH_KEYS = {
 }
 _SECRET_RE = re.compile(r"(api[_-]?key|token|secret|password|credential)", re.I)
 
+_DETERMINISTIC_THREAD_VARS: tuple[str, ...] = (
+    "OMP_NUM_THREADS",
+    "OPENBLAS_NUM_THREADS",
+    "MKL_NUM_THREADS",
+    "VECLIB_MAXIMUM_THREADS",
+    "BLIS_NUM_THREADS",
+    "NUMBA_NUM_THREADS",
+)
+
+
+def _env_flag(value: str | None) -> bool:
+    return str(value or "0").strip().lower() in {"1", "true", "yes", "on"}
+
 
 @dataclass
 class EgressPolicy:
-    """Mutable network policy owned by exactly one experiment execution."""
+    """Mutable network & determinism policy owned by one experiment execution."""
 
     air_gapped: bool = False
     reason: str | None = None
+    reproducible: bool = False
 
     @classmethod
     def from_environment(cls) -> "EgressPolicy":
-        enabled = os.environ.get("ARIA_AIR_GAPPED", "0").strip().lower() in {
-            "1", "true", "yes", "on",
-        }
-        return cls(air_gapped=enabled, reason="environment" if enabled else None)
+        enabled = _env_flag(os.environ.get("ARIA_AIR_GAPPED"))
+        reproducible = _env_flag(os.environ.get("ARIA_REPRODUCIBLE"))
+        return cls(
+            air_gapped=enabled,
+            reason="environment" if enabled else None,
+            reproducible=reproducible,
+        )
 
     def enable(self, reason: str = "user_decision") -> None:
         self.air_gapped = True
         self.reason = reason
+
+    def enable_reproducible(self) -> None:
+        self.reproducible = True
 
 
 _ACTIVE_EGRESS_POLICY: ContextVar[EgressPolicy | None] = ContextVar(
@@ -112,13 +132,22 @@ def air_gapped_runtime_reason(
 def execution_environment(base: dict[str, str] | None = None) -> dict[str, str]:
     """Return a subprocess environment carrying only the active run's policy."""
     env = dict(os.environ if base is None else base)
+    env.setdefault("PYTHONHASHSEED", "0")
     policy = active_egress_policy()
-    if policy is None:
-        return env
-    if policy.air_gapped:
-        env["ARIA_AIR_GAPPED"] = "1"
-    else:
-        env.pop("ARIA_AIR_GAPPED", None)
+    repro = _env_flag(env.get("ARIA_REPRODUCIBLE")) or _env_flag(
+        env.get("ARIA_PIN_BLAS_THREADS")
+    )
+    if policy is not None:
+        if policy.air_gapped:
+            env["ARIA_AIR_GAPPED"] = "1"
+        else:
+            env.pop("ARIA_AIR_GAPPED", None)
+        repro = repro or bool(policy.reproducible)
+    if repro:
+        env["ARIA_REPRODUCIBLE"] = "1"
+        pinned = str(env.get("ARIA_BLAS_THREADS") or "1").strip() or "1"
+        for var in _DETERMINISTIC_THREAD_VARS:
+            env[var] = pinned
     return env
 
 

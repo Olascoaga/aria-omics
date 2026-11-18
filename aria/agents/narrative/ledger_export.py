@@ -413,7 +413,11 @@ def _memory_snapshot_metadata(path: Path, arcname: str) -> dict[str, Any]:
 
 
 def _report_artifact_role(path: Path) -> str:
-    return "memory_snapshot" if path.name == "memory_snapshot.sqlite" else "report_artifact"
+    if path.name == "memory_snapshot.sqlite":
+        return "memory_snapshot"
+    if path.name == "decision_manifest.json":
+        return "decision_manifest"
+    return "report_artifact"
 
 
 def _sanitize_staged_report(report_dir: Path, methodology: dict) -> None:
@@ -737,6 +741,19 @@ def verify_reproducible_capsule(
 
         methodology = _methodology_from_zip(z, manifest)
         result["memory_snapshot"] = _verify_zipped_memory_snapshot(z, manifest)
+        dm_payload = methodology.get("decision_manifest")
+        if isinstance(dm_payload, dict):
+            from aria.utils.decision_manifest import verify_decision_manifest
+            dm_ok, dm_reason = verify_decision_manifest(dm_payload)
+            result["decision_manifest"] = {
+                "present": True,
+                "valid": dm_ok,
+                "reason": dm_reason,
+                "manifest_sha256": dm_payload.get("manifest_sha256"),
+                "specification_sha256": dm_payload.get("specification_sha256"),
+            }
+        else:
+            result["decision_manifest"] = {"present": False, "valid": True}
 
     for item in (methodology.get("inputs", []) or []):
         if not isinstance(item, dict):
@@ -789,7 +806,8 @@ def verify_reproducible_capsule(
 
     if (result["files"]["missing"] or result["files"]["mismatched"]
             or result["inputs"]["mismatched"]
-            or not result["memory_snapshot"].get("valid", False)):
+            or not result["memory_snapshot"].get("valid", False)
+            or not result.get("decision_manifest", {}).get("valid", True)):
         result["status"] = "fail"
     elif (result["inputs"]["missing"]
           or result["inputs"]["relocation_required"]):

@@ -352,20 +352,41 @@ class OrchestratorAgent(BaseAgent):
         # Backward-compat mirror only; session.design_agent is authoritative.
         self._active_design_agent = None
 
-        plan = self._design_analysis_plan(experiment_id, exp_context)
-        plan["design_intelligence"] = design_intelligence
-        # Annotate plan with resolved thresholds — single source of truth
-        # so the preview and the actual run always agree.
-        # F1 (ADR-055): the plan's |log2FC| cutoff is the fixed default, NOT
-        # inferred from the question text. A TF/KO/OE study can opt into the
-        # Exploratory/TF profile at CP3; the suggestion is surfaced but never
-        # auto-applied.
-        from aria.agents.bulk_rna_agent import (
-            _default_lfc_threshold, suggest_lfc_profile)
-        plan["lfc_threshold"]  = _default_lfc_threshold()
-        plan["lfc_threshold_provenance"] = "default"
-        plan["lfc_threshold_suggestion"] = suggest_lfc_profile(session.intent)
-        plan["padj_threshold"] = 0.05
+        replayed = (
+            exp_context.get("replayed_decision_manifest")
+            or (session.context or {}).get("replayed_decision_manifest")
+        )
+        if isinstance(replayed, dict):
+            plan = dict(replayed.get("analysis_plan") or {})
+            if not plan.get("steps"):
+                plan["steps"] = self._fallback_plan(exp_context).get("steps", [])
+            locked_thresh = replayed.get("thresholds") or {}
+            plan["design_intelligence"] = design_intelligence
+            plan["lfc_threshold"] = float(locked_thresh.get("global_lfc", 1.0))
+            plan["lfc_threshold_provenance"] = str(
+                locked_thresh.get("lfc_threshold_provenance") or "decision_manifest"
+            )
+            plan["lfc_threshold_suggestion"] = None
+            plan["padj_threshold"] = float(locked_thresh.get("global_padj", 0.05))
+            exp_context["global_padj"] = plan["padj_threshold"]
+            exp_context["global_lfc"] = plan["lfc_threshold"]
+            exp_context["lfc_threshold_provenance"] = plan["lfc_threshold_provenance"]
+            self._experiment_plans.setdefault(experiment_id, {})["plan"] = plan
+        else:
+            plan = self._design_analysis_plan(experiment_id, exp_context)
+            plan["design_intelligence"] = design_intelligence
+            # Annotate plan with resolved thresholds — single source of truth
+            # so the preview and the actual run always agree.
+            # F1 (ADR-055): the plan's |log2FC| cutoff is the fixed default, NOT
+            # inferred from the question text. A TF/KO/OE study can opt into the
+            # Exploratory/TF profile at CP3; the suggestion is surfaced but never
+            # auto-applied.
+            from aria.agents.bulk_rna_agent import (
+                _default_lfc_threshold, suggest_lfc_profile)
+            plan["lfc_threshold"]  = _default_lfc_threshold()
+            plan["lfc_threshold_provenance"] = "default"
+            plan["lfc_threshold_suggestion"] = suggest_lfc_profile(session.intent)
+            plan["padj_threshold"] = 0.05
         session.plan = plan
         self._sync_plan_record(session)
         self.publish_escalation(
@@ -404,11 +425,36 @@ class OrchestratorAgent(BaseAgent):
         except Exception as e:
             log.debug(f"Could not enable bus persistence: {e}")
 
+        replayed_src = context.get("replay_decision_manifest")
+        replayed_manifest = None
+        if replayed_src is not None:
+            from aria.utils.decision_manifest import load_decision_manifest
+            replayed_manifest = load_decision_manifest(replayed_src)
+            context["replayed_decision_manifest"] = replayed_manifest
+            context["reproducible_mode"] = True
+            context["zero_llm_replay"] = True
+
+        if context.get("reproducible_mode") or context.get("zero_llm_replay"):
+            session.egress_policy.enable_reproducible()
+
         with use_egress_policy(session.egress_policy):
             self.publish_status(experiment_id, "ARIA starting analysis...", 0.0)
-            intent = self._parse_question(
-                context["user_question"], llm=session.llm_provider
-            )
+            if replayed_manifest is not None:
+                intent = dict(replayed_manifest.get("biological_intent") or {})
+                raw_q = str(
+                    context.get("user_question")
+                    or intent.get("raw_user_question")
+                    or ""
+                )
+                context["user_question"] = raw_q
+                intent["user_question"] = raw_q
+                intent["raw_user_question"] = raw_q
+                intent["reproducible_mode"] = True
+                intent["zero_llm_replay"] = True
+            else:
+                intent = self._parse_question(
+                    context["user_question"], llm=session.llm_provider
+                )
             context["provenance"] = collect_provenance()
         session.context = context
         session.intent = intent
@@ -558,6 +604,28 @@ class OrchestratorAgent(BaseAgent):
         )
 
         # ── v4.0: Iniciar máquina de estados del DesignAgent ────────────
+        if (session.context or {}).get("replayed_decision_manifest"):
+            replayed = session.context["replayed_decision_manifest"]
+            exp_context["replayed_decision_manifest"] = replayed
+            exp_context["zero_llm_replay"] = True
+            exp_context["reproducible_mode"] = True
+            rep_design = dict(replayed.get("design") or {})
+            if rep_design.get("groups"):
+                restored_design = {
+                    **rep_design,
+                    "organism": rep_design.get("organism") or exp_context.get("organism", "unknown"),
+                    "genome": rep_design.get("genome") or exp_context.get("genome", "unknown"),
+                    "main_factor": rep_design.get("main_factor") or rep_design.get("factor") or "condition",
+                    "batch_covariate": rep_design.get("batch_col") or None,
+                    "plan_contrasts": list(rep_design.get("contrasts") or []),
+                }
+                session.exp_context = exp_context
+                self._experiment_plans[experiment_id]["exp_context"] = exp_context
+                self._sync_plan_record(session)
+                return self._complete_design_and_publish_plan(
+                    experiment_id, exp_context, restored_design
+                )
+
         from aria.agents.design_agent import DesignAgent
         design_agent = self._register_session_agent(
             experiment_id,
@@ -909,12 +977,76 @@ class OrchestratorAgent(BaseAgent):
     def _dispatch_agents(self, experiment_id: str, plan: dict, exp_context: dict):
         self.publish_status(experiment_id, "Dispatching agents...", 0.1)
 
+        session = self._get_session(experiment_id)
+        if exp_context.get("reproducible_mode") or exp_context.get("zero_llm_replay"):
+            session.egress_policy.enable_reproducible()
+
         modalities    = exp_context.get("modalities", {})
         intent        = dict(self._experiment_plans.get(experiment_id, {}).get("intent", {}) or {})
+        raw_q = str(
+            intent.get("raw_user_question")
+            or intent.get("user_question")
+            or exp_context.get("user_question")
+            or (session.context or {}).get("user_question")
+            or ""
+        )
+        if raw_q:
+            intent.setdefault("user_question", raw_q)
+            intent.setdefault("raw_user_question", raw_q)
         if exp_context.get("reproducible_mode"):
             intent.setdefault("reproducible_mode", True)
+        if exp_context.get("zero_llm_replay"):
+            intent["zero_llm_replay"] = True
         if exp_context.get("organism") and exp_context.get("organism") != "unknown":
             intent.setdefault("organism", exp_context["organism"])
+
+        # P0 Layer 3: Commit pre-execution DecisionManifest & Analytical Fork Ledger
+        # BEFORE any setup/ingestion/modality compute stage executes.
+        try:
+            from aria.utils.decision_manifest import (
+                build_decision_manifest,
+                commit_decision_manifest,
+                resolve_fork_ledger_path,
+            )
+            replayed_dm = exp_context.get("replayed_decision_manifest")
+            locked_params = None
+            commitment_status = "locked_before_execution"
+            replayed_sha = None
+            if isinstance(replayed_dm, dict):
+                commitment_status = "replay_locked"
+                replayed_sha = replayed_dm.get("manifest_sha256")
+                locked_params = dict(
+                    replayed_dm.get("locked_parameter_decisions")
+                    or replayed_dm.get("realized_parameter_decisions")
+                    or {}
+                )
+            pre_manifest = build_decision_manifest(
+                experiment_id=experiment_id,
+                exp_context=exp_context,
+                plan=plan,
+                biological_intent=intent,
+                commitment_status=commitment_status,
+                locked_parameter_decisions=locked_params,
+                replayed_from_manifest_sha256=replayed_sha,
+            )
+            ws_dir = Path.home() / ".aria" / "workspace" / experiment_id
+            ledger_file = resolve_fork_ledger_path(getattr(self.memory, "db_path", None))
+            committed_manifest, fork_summary = commit_decision_manifest(
+                pre_manifest,
+                workspace_dir=ws_dir,
+                ledger_path=ledger_file,
+            )
+            exp_context = {
+                **exp_context,
+                "decision_manifest": committed_manifest,
+                "analytical_fork_ledger": fork_summary,
+            }
+            intent["decision_manifest_sha256"] = committed_manifest.get("manifest_sha256")
+            if locked_params:
+                intent["locked_parameter_decisions"] = locked_params
+        except Exception as exc:
+            log.warning(f"Could not commit pre-execution DecisionManifest: {exc}", exc_info=True)
+
         agent_results = {}
 
         if "bulk_RNA_raw" in modalities:
@@ -1565,12 +1697,17 @@ class OrchestratorAgent(BaseAgent):
   "summary": "one sentence biological question summary"
 }''',
         )
-        return self.think_structured(
+        parsed = self.think_structured(
             prompt,
             system=system_with_untrusted_boundary(ORCHESTRATOR_SYSTEM),
             schema_hint="Return analysis intent as JSON.",
             llm=llm,
         )
+        out = dict(parsed) if isinstance(parsed, dict) else {}
+        raw_q = str(user_question or "")
+        out["user_question"] = raw_q
+        out["raw_user_question"] = raw_q
+        return out
 
     def _design_analysis_plan(self, experiment_id: str, exp_context: dict) -> dict:
         paired_multiome = self._has_paired_same_cell_multiome(exp_context)

@@ -182,7 +182,8 @@ def run_headless(data_dir: str, question: str,
                  *,
                  context_overrides: dict | None = None,
                  llm_provider=None,
-                 memory_db_path: Optional[str] = None) -> HeadlessResult:
+                 memory_db_path: Optional[str] = None,
+                 replay_manifest=None) -> HeadlessResult:
     """Run a full ARIA analysis without a TTY.
 
     Drives the orchestrator through audit, the design checkpoint state machine,
@@ -214,12 +215,46 @@ def run_headless(data_dir: str, question: str,
     memory = ARIAMemory(db_path=resolved_db) if resolved_db is not None else ARIAMemory()
     orch = OrchestratorAgent(memory, llm=llm_provider)
 
+    merged_overrides = dict(context_overrides or {})
+    if replay_manifest is not None:
+        from aria.utils.decision_manifest import load_decision_manifest
+        loaded_manifest = load_decision_manifest(replay_manifest)
+        merged_overrides["replay_decision_manifest"] = loaded_manifest
+        reproducible_mode = True
+        enable_hypotheses = bool(
+            (loaded_manifest.get("analysis_plan") or {}).get(
+                "enable_hypotheses", enable_hypotheses
+            )
+        )
+        if not question:
+            question = str(
+                (loaded_manifest.get("biological_intent") or {}).get(
+                    "raw_user_question", ""
+                )
+            )
+        if policy is default_answer_policy:
+            run_opt = bool(
+                (loaded_manifest.get("analysis_plan") or {}).get(
+                    "run_optional_supported", False
+                )
+            )
+
+            def _replay_policy(cp_num, q_text: str, opts: list) -> str:
+                if cp_num == 2:
+                    target_sub = "optional" if run_opt else "recommended plan only"
+                    for o in opts or []:
+                        if target_sub in o.lower():
+                            return o
+                return default_answer_policy(cp_num, q_text, opts)
+
+            policy = _replay_policy
+
     ctx = _build_headless_context(
         data_dir,
         question,
         reproducible_mode,
         enable_hypotheses,
-        context_overrides=context_overrides,
+        context_overrides=merged_overrides,
     )
 
     started = orch.run(experiment_id, ctx)

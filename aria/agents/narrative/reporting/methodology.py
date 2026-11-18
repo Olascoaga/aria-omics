@@ -160,10 +160,54 @@ class MethodologyMixin:
                 "status": "error",
                 "details": str(exc),
             }
+        try:
+            from aria.agents.narrative.falsification_certificates import (
+                build_falsification_certificates,
+            )
+            falsification_certificates = build_falsification_certificates(
+                claims,
+                agent_results,
+                exp_ctx,
+                robustness_multiverse=robustness_multiverse,
+            )
+        except Exception as exc:
+            log.warning(
+                f"Falsification certificates build failed: {exc}", exc_info=True
+            )
+            falsification_certificates = {
+                "schema_version": "aria.falsification_certificates.v1",
+                "feeds_into_parameter_selection": False,
+                "status": "error",
+                "details": str(exc),
+                "certificates": [],
+            }
+        realized_param_decisions: dict[str, Any] = {}
+        for dec in decisions or []:
+            if not isinstance(dec, dict):
+                continue
+            q_text = str(dec.get("question") or "")
+            if q_text.startswith("Parameter: ") and " for " in q_text:
+                body = q_text[len("Parameter: "):]
+                param_name, _, analysis_type = body.partition(" for ")
+                param_name = param_name.strip()
+                analysis_type = analysis_type.strip()
+                if param_name and analysis_type and dec.get("decision") is not None:
+                    realized_param_decisions[f"{analysis_type}.{param_name}"] = dec.get("decision")
+
+        raw_dm = (exp_ctx or {}).get("decision_manifest")
+        decision_manifest_out = None
+        if isinstance(raw_dm, dict):
+            decision_manifest_out = {
+                **raw_dm,
+                "realized_parameter_decisions": realized_param_decisions,
+            }
+
         return {
             "provenance": provenance,
             "inputs": exp_ctx.get("input_files", []),
             "raw_ingestion": exp_ctx.get("raw_ingestion", []),
+            "decision_manifest": decision_manifest_out,
+            "analytical_fork_ledger": (exp_ctx or {}).get("analytical_fork_ledger"),
             "narrative_blocks": [
                 block.to_dict() for block in narrative_blocks or []
             ],
@@ -177,6 +221,7 @@ class MethodologyMixin:
             "devils_advocate": devils_advocate,
             "run_ledger": run_ledger,
             "robustness_multiverse": robustness_multiverse,
+            "falsification_certificates": falsification_certificates,
             "cross_modal_evidence_graph": cross_modal_evidence_graph,
             "design": exp_ctx.get("design", {}),
             "design_intelligence": exp_ctx.get("design_intelligence", {}),
@@ -196,11 +241,84 @@ class MethodologyMixin:
 
 
 
+    def _build_decision_manifest_section(
+        self,
+        decision_manifest: dict | None = None,
+        fork_ledger: dict | None = None,
+    ) -> str:
+        if not isinstance(decision_manifest, dict):
+            return ""
+        fl = fork_ledger if isinstance(fork_ledger, dict) else (
+            decision_manifest.get("fork_ledger_summary") or {}
+        )
+        fields = [
+            ("commitment_status", fl.get("commitment_status") or decision_manifest.get("commitment_status", "")),
+            ("manifest_sha256", decision_manifest.get("manifest_sha256", "")),
+            ("specification_sha256", decision_manifest.get("specification_sha256", "")),
+            ("study_input_fingerprint", decision_manifest.get("study_input_fingerprint", "")),
+            ("fork_index", fl.get("fork_index", 0)),
+            ("total_analytical_forks", fl.get("total_analytical_forks", 1)),
+            ("is_exact_spec_replay", fl.get("is_exact_spec_replay", False)),
+            ("parent_manifest_sha256", fl.get("parent_manifest_sha256") or "none"),
+            ("fork_changes", ", ".join(str(x) for x in (fl.get("fork_changes") or [])) or "none"),
+        ]
+        rows = [
+            "<tr>"
+            f"<td>{_html.escape(k)}</td>"
+            f"<td><code>{_html.escape(str(v))}</code></td>"
+            "</tr>"
+            for k, v in fields
+        ]
+        return (
+            "<h3>Analytical Commitment &amp; Forking-Path Ledger</h3>"
+            "<table><tr><th>Field</th><th>Value</th></tr>"
+            + "".join(rows)
+            + "</table>"
+        )
+
+    def _build_falsification_certificates_section(
+        self,
+        falsification_certificates: dict | None = None,
+    ) -> str:
+        if not isinstance(falsification_certificates, dict):
+            return ""
+        certs = falsification_certificates.get("certificates") or []
+        if not certs:
+            return ""
+        rows = []
+        for cert in certs:
+            if not isinstance(cert, dict):
+                continue
+            lobo = (cert.get("lobo_biological_unit_jackknife") or {}).get("status", "n/a")
+            perm = (cert.get("block_preserving_permutation_null") or {}).get("status", "n/a")
+            spec = (cert.get("specification_multiverse_stability") or {}).get("status", "n/a")
+            rows.append(
+                "<tr>"
+                f"<td><code>{_html.escape(str(cert.get('claim_id', '')))}</code></td>"
+                f"<td><code>{_html.escape(str(cert.get('tier', '')))}</code></td>"
+                f"<td><code>{_html.escape(str(lobo))}</code></td>"
+                f"<td><code>{_html.escape(str(perm))}</code></td>"
+                f"<td><code>{_html.escape(str(spec))}</code></td>"
+                "</tr>"
+            )
+        if not rows:
+            return ""
+        return (
+            "<h3>In-Silico Reviewer #2 Falsification Certificates</h3>"
+            "<table><tr><th>Claim ID</th><th>Tier</th><th>LOBO Jackknife</th>"
+            "<th>Permutation Null</th><th>Specification Stability</th></tr>"
+            + "".join(rows)
+            + "</table>"
+        )
+
     def _build_provenance_section(self, provenance: dict,
                                   input_files: list,
                                   agent_results: dict,
                                   llm_usage: dict | None = None,
-                                  run_ledger: dict | None = None) -> str:
+                                  run_ledger: dict | None = None,
+                                  decision_manifest: dict | None = None,
+                                  fork_ledger: dict | None = None,
+                                  falsification_certificates: dict | None = None) -> str:
         rows = []
         for key in [
             "aria_version", "version_source", "git_sha", "git_commit",
@@ -295,6 +413,8 @@ class MethodologyMixin:
             exp_ctx_records=[]
         )
         ledger_html = self._build_run_ledger_section(run_ledger)
+        dm_html = self._build_decision_manifest_section(decision_manifest, fork_ledger)
+        fc_html = self._build_falsification_certificates_section(falsification_certificates)
         # W-CALIB: numerical-calibration badge. `provenance["calibration"]` is a
         # build property, present only when a real calibration run was attached;
         # absent on a normal report -> the badge says "not measured" honestly.
@@ -305,6 +425,8 @@ class MethodologyMixin:
             "<table><tr><th>Field</th><th>Value</th></tr>"
             + "".join(rows)
             + "</table>"
+            + dm_html
+            + fc_html
             + "<h3>Inputs</h3>"
             + "<table><tr><th>Modality</th><th>Path</th><th>Bytes</th><th>SHA-256</th></tr>"
             + "".join(input_rows)

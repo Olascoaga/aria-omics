@@ -136,11 +136,39 @@ class RawIngestionAgent(BaseAgent):
         )
         if fastq_plan.get("fastq_count", 0):
             records.append(fastq_plan)
-            kb_params = (
+            kb_params = dict(
                 exp_ctx.get("raw_ingestion_kb")
                 or context.get("raw_ingestion_kb")
                 or {}
             )
+            # Auto-fill kb reference index + t2g + SHA-256 digests when SetupAgent
+            # already provisioned them for this genome; chemistry still remains
+            # strictly explicit (never guessed from filenames).
+            genome_cfg = exp_ctx.get("genome_config") or {}
+            if isinstance(genome_cfg, dict) and genome_cfg.get("kb_ready"):
+                kb_params.setdefault("index_path", genome_cfg.get("kb_index"))
+                kb_params.setdefault("index_sha256", genome_cfg.get("kb_index_sha256"))
+                kb_params.setdefault("t2g_path", genome_cfg.get("kb_t2g"))
+                kb_params.setdefault("t2g_sha256", genome_cfg.get("kb_t2g_sha256"))
+                kb_params.setdefault("output_dir", str(workspace / "kb_count"))
+                pair_blockers = [
+                    b for b in (fastq_plan.get("blockers") or [])
+                    if "R1/R2" in str(b)
+                ]
+                if not pair_blockers and not kb_params.get("fastq_files"):
+                    auto_fastqs: list[str] = []
+                    for s_rec in fastq_plan.get("samples") or []:
+                        s_files = (s_rec or {}).get("files") or {}
+                        for r1_p, r2_p in zip(
+                            s_files.get("R1") or [], s_files.get("R2") or []
+                        ):
+                            auto_fastqs.extend([str(r1_p), str(r2_p)])
+                    if auto_fastqs:
+                        kb_params["fastq_files"] = auto_fastqs
+                if exp_ctx.get("chemistry") and not kb_params.get("chemistry"):
+                    kb_params["chemistry"] = str(exp_ctx["chemistry"])
+                if not self._missing_kb_fields(kb_params) and "execute" not in kb_params:
+                    kb_params["execute"] = True
             if (not kb_params.get("execute")
                     or self._missing_kb_fields(kb_params)):
                 checkpoint = self._resolve_fastq_kb_checkpoint(

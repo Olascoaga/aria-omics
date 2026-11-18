@@ -2912,13 +2912,21 @@ class ChromatinAgent(BaseAgent):
         Classify ChIP target as 'histone' or 'tf' based on filenames
         and biological context. Determines peak calling mode.
         """
-        HISTONE_MARKS = {
+        from aria.utils.text_matching import has_keyword_boundary
+
+        HISTONE_MARKS = (
             "h3k4me3", "h3k4me1", "h3k27ac", "h3k27me3",
             "h3k9me3", "h3k36me3", "h3k9ac", "h4k20me1",
-        }
-        all_text = " ".join(files + [intent.get("user_question", "")]).lower()
-
-        if any(mark in all_text for mark in HISTONE_MARKS):
+        )
+        raw_q = str(
+            (intent or {}).get("raw_user_question")
+            or (intent or {}).get("user_question")
+            or ""
+        )
+        file_text = " ".join(str(f) for f in files).lower()
+        if any(mark in file_text for mark in HISTONE_MARKS) or has_keyword_boundary(
+            raw_q, HISTONE_MARKS
+        ):
             return "histone"
 
         # Default to TF if no histone marks detected
@@ -2926,12 +2934,19 @@ class ChromatinAgent(BaseAgent):
 
     def _needs_tf_analysis(self, intent: dict) -> bool:
         """Check if the biological question requires TF analysis."""
-        TF_KEYWORDS = [
-            "transcription factor", "tf ", "motif", "footprint",
-            "regulatory", "binding", "enhancer", "promoter",
-        ]
-        question = intent.get("user_question", "").lower()
-        return any(kw in question for kw in TF_KEYWORDS)
+        from aria.utils.text_matching import has_keyword_boundary
+
+        TF_KEYWORDS = (
+            "transcription factor", "transcription factors", "tf", "tfs",
+            "motif", "motifs", "footprint", "footprinting",
+            "regulatory", "binding", "enhancer", "enhancers", "promoter", "promoters",
+        )
+        question = str(
+            (intent or {}).get("raw_user_question")
+            or (intent or {}).get("user_question")
+            or ""
+        )
+        return has_keyword_boundary(question, TF_KEYWORDS)
 
     @staticmethod
     def _script_exists(script_path: str) -> bool:

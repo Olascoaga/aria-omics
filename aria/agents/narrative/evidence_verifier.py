@@ -84,22 +84,38 @@ _MIXED_CASE_GENE_RE = re.compile(r"\b[A-Z][A-Za-z]*\d[A-Za-z0-9]*\b")
 
 _DE_PREDICATE = "differential_expression"
 _DE_ANALYSES = {"differential_expression", "contrast", "pseudobulk_de"}
+_INFERENTIAL_FACT_ANALYSES = _DE_ANALYSES | {
+    "differential_accessibility",
+    "differential_3d",
+}
 _DE_COUNT_LABELS = {
     "de genes", "global-fdr de genes", "local-fdr de genes",
     "n_significant", "n_significant_global", "n_significant_local",
     "replicate-aware de genes", "shared de genes",
+    "significant features", "da peaks", "differential peaks",
 }
 _NULL_DE_RE = re.compile(
-    r"\b(?:no|zero|0)\s+(?:statistically\s+)?(?:significant\s+|"
-    r"differentially\s+expressed\s+|de\s+)?genes?\b",
+    r"(?:\b(?:no|zero|0)\s+(?:statistically\s+)?(?:significant\s+|"
+    r"differentially\s+(?:expressed|accessible|regulated)\s+|de\s+|da\s+)?"
+    r"(?:genes?|peaks?|loci|features?|compartments?)\b"
+    r"|\bdid\s+not\s+identify\b[^.!?]*\bsignificant\b)",
     re.IGNORECASE,
 )
 _ENTITY_DE_RE = re.compile(
     r"\b(?P<subject>[A-Za-z][A-Za-z0-9_.-]*)\s+"
     r"(?:was|were|is|are)\s+(?P<negated>not\s+)?"
-    r"differentially\s+expressed\b",
+    r"differentially\s+(?:expressed|accessible|regulated)\b",
     re.IGNORECASE,
 )
+
+
+def _fact_predicate_for_analysis(analysis: str | None) -> str:
+    a = str(analysis or "")
+    if a == "differential_accessibility":
+        return "differential_accessibility"
+    if a == "differential_3d":
+        return "differential_3d"
+    return _DE_PREDICATE
 _TOP_GENE_RE = re.compile(r"^top\s+(?:shared\s+)?gene\s+(.+)$", re.IGNORECASE)
 _GENERIC_DE_SUBJECTS = {"gene", "genes", "feature", "features", "none"}
 
@@ -517,15 +533,17 @@ def _claim_semantic_facts(
     models differential-expression affirmation/negation first; other predicates
     must gain their own typed grammar rather than borrowing token overlap.
     """
-    if str(block.analysis or "") not in _DE_ANALYSES:
+    analysis = str(block.analysis or "")
+    if analysis not in _INFERENTIAL_FACT_ANALYSES:
         return []
+    predicate = _fact_predicate_for_analysis(analysis)
 
     facts: list[SemanticFact] = []
     if _NULL_DE_RE.search(sentence):
         facts.append(SemanticFact(
             subject="*",
             subject_type="gene_set",
-            predicate=_DE_PREDICATE,
+            predicate=predicate,
             polarity="negated",
             value=0,
             source="claim",
@@ -538,7 +556,7 @@ def _claim_semantic_facts(
         facts.append(SemanticFact(
             subject=subject,
             subject_type="gene",
-            predicate=_DE_PREDICATE,
+            predicate=predicate,
             polarity="negated" if match.group("negated") else "affirmed",
             source="claim",
         ))
@@ -562,15 +580,17 @@ def _evidence_item_facts(
         )
         for fact in (getattr(evidence, "facts", None) or [])
     ]
-    if str(block.analysis or "") not in _DE_ANALYSES:
+    analysis = str(block.analysis or "")
+    if analysis not in _INFERENTIAL_FACT_ANALYSES:
         return facts
+    predicate = _fact_predicate_for_analysis(analysis)
 
     label = str(getattr(evidence, "label", "") or "").strip()
     value = getattr(evidence, "value", None)
     combined = f"{label} {value}"
     if _NULL_DE_RE.search(combined):
         facts.append(SemanticFact(
-            subject="*", subject_type="gene_set", predicate=_DE_PREDICATE,
+            subject="*", subject_type="gene_set", predicate=predicate,
             polarity="negated", value=0, source=ref_id,
         ))
 
@@ -579,7 +599,7 @@ def _evidence_item_facts(
         subject = top_gene.group(1).strip()
         if subject and subject != "?":
             facts.append(SemanticFact(
-                subject=subject, subject_type="gene", predicate=_DE_PREDICATE,
+                subject=subject, subject_type="gene", predicate=predicate,
                 polarity="affirmed", value=value, source=ref_id,
             ))
 
@@ -587,7 +607,7 @@ def _evidence_item_facts(
         count = _as_nonnegative_number(value)
         if count is not None:
             facts.append(SemanticFact(
-                subject="*", subject_type="gene_set", predicate=_DE_PREDICATE,
+                subject="*", subject_type="gene_set", predicate=predicate,
                 polarity="negated" if count == 0 else "affirmed",
                 value=value, source=ref_id,
             ))
@@ -595,8 +615,10 @@ def _evidence_item_facts(
 
 
 def _metric_facts(block: NarrativeBlock) -> list[SemanticFact]:
-    if str(block.analysis or "") not in _DE_ANALYSES:
+    analysis = str(block.analysis or "")
+    if analysis not in _INFERENTIAL_FACT_ANALYSES:
         return []
+    predicate = _fact_predicate_for_analysis(analysis)
     facts: list[SemanticFact] = []
     for key in ("n_significant", "n_significant_global", "n_significant_local"):
         if key not in (block.metrics or {}):
@@ -606,7 +628,7 @@ def _metric_facts(block: NarrativeBlock) -> list[SemanticFact]:
         if count is None:
             continue
         facts.append(SemanticFact(
-            subject="*", subject_type="gene_set", predicate=_DE_PREDICATE,
+            subject="*", subject_type="gene_set", predicate=predicate,
             polarity="negated" if count == 0 else "affirmed",
             value=value, source=f"{block.id}:metric:{key}",
         ))

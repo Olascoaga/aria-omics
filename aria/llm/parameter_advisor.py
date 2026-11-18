@@ -247,6 +247,14 @@ class ParameterAdvisor:
     HISTORICAL_BONUS_PER_HIT = 0.02
     HISTORICAL_BONUS_CAP     = 0.05
 
+    # P0 Layer 3: canonical 12-point Leiden resolution union grid covering all
+    # 4-point intent sub-windows ([0.2,0.6], [0.3,0.8], [0.2,1.0], [0.6,1.4]) so
+    # reproducible & locked runs remain strictly invariant to LLM intent labels.
+    CANONICAL_LEIDEN_GRID: tuple[float, ...] = (
+        0.20, 0.30, 0.33, 0.47, 0.60, 0.63,
+        0.73, 0.80, 0.87, 1.00, 1.13, 1.40,
+    )
+
     def __init__(self, memory: ARIAMemory, llm: LLMProvider):
         self.memory = memory
         self.llm    = llm
@@ -370,11 +378,22 @@ class ParameterAdvisor:
         (legacy, in-process scanpy) must be provided. data_path is required
         when the caller is in a conda env that does not have scanpy.
         """
-        # Layer 1: intent-constrained search space
-        search_range = self._intent_to_leiden_range(biological_context)
-        candidates_values = self._linspace(
-            search_range[0], search_range[1], n_candidates
+        # Layer 1: intent-constrained search space (canonical union grid in
+        # reproducible/locked mode so LLM classification drift cannot shift candidates)
+        locked_val = self._resolve_locked_parameter(
+            biological_context, "leiden_clustering", "resolution"
         )
+        if self._use_canonical_leiden_grid(biological_context):
+            candidates_values = list(self.CANONICAL_LEIDEN_GRID)
+        else:
+            search_range = self._intent_to_leiden_range(biological_context)
+            candidates_values = self._linspace(
+                search_range[0], search_range[1], n_candidates
+            )
+        if locked_val is not None:
+            locked_float = round(float(locked_val), 4)
+            if all(abs(float(v) - locked_float) > 1e-6 for v in candidates_values):
+                candidates_values = sorted([*candidates_values, locked_float])
 
         log.info(
             f"Leiden resolution search: {candidates_values} "
@@ -406,22 +425,42 @@ class ParameterAdvisor:
             experiment_id, "leiden_clustering", biological_context
         )
 
-        # Choose best candidate (historical bonus disabled in reproducible/batch mode)
-        recommended = self._choose_best(
-            candidates,
-            historical,
-            disable_historical_bonus=self._historical_bonus_disabled(biological_context),
-        )
+        # Choose best candidate (or honor locked DecisionManifest value on replay)
+        recommended = None
+        chosen_by = "advisor"
+        if locked_val is not None:
+            locked_float = round(float(locked_val), 4)
+            recommended = next(
+                (c for c in candidates if abs(float(c.value) - locked_float) <= 1e-6),
+                None,
+            )
+            if recommended is not None:
+                chosen_by = "decision_manifest"
+        if recommended is None:
+            recommended = self._choose_best(
+                candidates,
+                historical,
+                disable_historical_bonus=self._historical_bonus_disabled(biological_context),
+            )
         recommended.recommended = True
 
-        # Build justification via LLM (MEDIUM tier — reasoning required)
-        justification = self._justify_decision(
-            parameter_name="resolution",
-            chosen=recommended,
-            all_candidates=candidates,
-            historical=historical,
-            biological_context=biological_context,
-        )
+        # Build justification (deterministic zero-LLM on replay or zero_llm_replay)
+        if chosen_by == "decision_manifest":
+            manifest_sha = str(
+                (biological_context or {}).get("decision_manifest_sha256") or "committed"
+            )[:12]
+            justification = (
+                f"resolution={recommended.value} replayed deterministically from "
+                f"committed DecisionManifest ({manifest_sha}) without LLM calls."
+            )
+        else:
+            justification = self._justify_decision(
+                parameter_name="resolution",
+                chosen=recommended,
+                all_candidates=candidates,
+                historical=historical,
+                biological_context=biological_context,
+            )
 
         warnings = [f for c in candidates if c.recommended for f in c.flags]
 
@@ -432,7 +471,7 @@ class ParameterAdvisor:
             parameter_name="resolution",
             candidates=candidates,
             chosen_value=recommended.value,
-            chosen_by="advisor",
+            chosen_by=chosen_by,
             biological_context=biological_context,
             justification=justification,
             warnings=warnings,
@@ -597,33 +636,42 @@ class ParameterAdvisor:
         This is Layer 1: the LLM's biological understanding drives the search.
 
         Keywords cover English and Spanish — ARIA users frequently phrase
-        questions in either language.
+        questions in either language. Token-boundary matching prevents substring
+        collisions such as ``"define" -> "fine"`` or ``"genotype"/"wild-type" -> "type"``.
         """
+        from aria.utils.text_matching import has_keyword_boundary
+
         intent   = bio_context.get("analysis_type", "")
-        question = bio_context.get("user_question", "").lower()
+        question = str(
+            bio_context.get("raw_user_question")
+            or bio_context.get("user_question")
+            or ""
+        )
 
         # Fine-grained: looking for rare subpopulations
         fine_keywords = [
             # English
-            "rare", "subpopulation", "subtype", "progenitor",
-            "transitional", "fine", "heterogeneity",
+            "rare", "subpopulation", "subpopulations", "sub-population",
+            "sub-populations", "subtype", "subtypes", "sub-type", "progenitor",
+            "progenitors", "transitional", "fine", "fine-grained", "heterogeneity",
             # Spanish
-            "raras", "raro", "subpoblacion", "subpoblación",
-            "subtipo", "progenitora", "progenitor",
+            "raras", "raro", "subpoblacion", "subpoblación", "subpoblaciones",
+            "subtipo", "subtipos", "progenitora", "progenitor",
             "transicional", "transición", "fina", "heterogeneidad",
         ]
         # Coarse: major cell types
         coarse_keywords = [
             # English
-            "major", "type", "lineage", "broad", "main", "principal",
+            "major", "type", "types", "cell type", "cell types",
+            "lineage", "lineages", "broad", "main", "principal",
             # Spanish
-            "mayor", "tipo", "linaje", "amplia", "amplio",
-            "principal", "general",
+            "mayor", "mayores", "tipo", "tipos", "linaje", "linajes",
+            "amplia", "amplio", "principal", "general",
         ]
 
-        if any(k in question for k in fine_keywords):
+        if has_keyword_boundary(question, fine_keywords):
             return (0.6, 1.4)
-        elif any(k in question for k in coarse_keywords):
+        elif has_keyword_boundary(question, coarse_keywords):
             return (0.2, 0.6)
         elif intent == "cell_type":
             return (0.3, 0.8)
@@ -747,6 +795,35 @@ class ParameterAdvisor:
             return []
 
     @staticmethod
+    def _use_canonical_leiden_grid(bio_context: Optional[dict] = None) -> bool:
+        """Return True when the canonical 12-point Leiden union grid is enforced."""
+        ctx = bio_context or {}
+        if ctx.get("canonical_leiden_grid") is False:
+            return False
+        if (
+            ctx.get("reproducible_mode")
+            or ctx.get("canonical_leiden_grid")
+            or ctx.get("zero_llm_replay")
+        ):
+            return True
+        for env_key in ("ARIA_CANONICAL_LEIDEN_GRID", "ARIA_REPRODUCIBLE"):
+            if os.environ.get(env_key, "").strip().lower() in {"1", "true", "yes", "on"}:
+                return True
+        return False
+
+    @staticmethod
+    def _resolve_locked_parameter(
+        bio_context: Optional[dict], analysis_type: str, parameter_name: str
+    ) -> Any:
+        locked = (bio_context or {}).get("locked_parameter_decisions")
+        if not isinstance(locked, dict) or not locked:
+            return None
+        for key in (f"{analysis_type}.{parameter_name}", parameter_name):
+            if key in locked and locked[key] is not None:
+                return locked[key]
+        return None
+
+    @staticmethod
     def _historical_bonus_disabled(bio_context: Optional[dict] = None) -> bool:
         """Disable cross-run historical score bonus in reproducible or isolated batch mode."""
         ctx = bio_context or {}
@@ -786,10 +863,10 @@ class ParameterAdvisor:
                     pass
 
         best = None
-        best_score = -1.0
+        best_key: tuple[float, float, float] | None = None
 
         for c in candidates:
-            adjusted = c.score
+            adjusted = float(c.score)
             # Bounded bonus for historically approved values: grows with
             # frequency but saturates at HISTORICAL_BONUS_CAP.
             try:
@@ -802,11 +879,46 @@ class ParameterAdvisor:
             except (ValueError, TypeError):
                 pass
 
-            if adjusted > best_score:
-                best_score = adjusted
+            try:
+                num_val = float(c.value)
+                cand_key = (
+                    round(adjusted, 6),
+                    -round(abs(num_val - 0.60), 6),
+                    -round(num_val, 6),
+                )
+            except (ValueError, TypeError):
+                cand_key = (round(adjusted, 6), 0.0, 0.0)
+
+            if best_key is None or cand_key > best_key:
+                best_key = cand_key
                 best = c
 
         return best or candidates[0]
+
+    @staticmethod
+    def _deterministic_justification(
+        parameter_name: str,
+        chosen: ParameterCandidate,
+        all_candidates: list[ParameterCandidate],
+    ) -> str:
+        if chosen.metrics.get("measured") is False:
+            return (
+                f"{parameter_name}={chosen.value} selected by a neutral "
+                f"mid-range prior only — clustering-quality metrics were "
+                f"NOT measured for any of the {len(all_candidates)} "
+                f"candidates (subprocess evaluation unavailable)."
+            )
+        if "silhouette" in chosen.metrics:
+            return (
+                f"{parameter_name}={chosen.value} selected deterministically "
+                f"(score={chosen.score:.4f}, silhouette={chosen.metrics.get('silhouette', '?')}, "
+                f"modularity={chosen.metrics.get('modularity', 'n/a')}) "
+                f"across {len(all_candidates)} evaluated candidates."
+            )
+        return (
+            f"{parameter_name}={chosen.value} selected deterministically "
+            f"(score={chosen.score:.4f}) across {len(all_candidates)} evaluated candidates."
+        )
 
     def _justify_decision(
         self,
@@ -818,8 +930,14 @@ class ParameterAdvisor:
     ) -> str:
         """
         Generate a concise, scientifically grounded justification.
-        Uses MEDIUM tier LLM — needs reasoning but not heavy inference.
+        Uses MEDIUM tier LLM unless zero-LLM replay is active.
         """
+        if (
+            self.llm is None
+            or (biological_context or {}).get("zero_llm_replay")
+            or os.environ.get("ARIA_ZERO_LLM_REPLAY", "").strip().lower() in {"1", "true", "yes", "on"}
+        ):
+            return self._deterministic_justification(parameter_name, chosen, all_candidates)
         candidates_summary = [
             {
                 "value":   c.value,

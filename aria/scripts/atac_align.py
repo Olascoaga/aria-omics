@@ -324,7 +324,10 @@ def _align_hic_chimeric_sample(
         result["status"] = "failed"
         result["error_type"] = "MissingMateFastq"
         return result
-    align_cmd = ["bwa-mem2", "mem", "-SP5M", "-t", str(threads), bwa_index, r1, r2]
+    align_cmd = [
+        "bwa-mem2", "mem", "-SP5M", "-K", "100000000",
+        "-t", str(threads), bwa_index, r1, r2,
+    ]
     view_cmd = ["samtools", "view", "-b", "-@", str(threads), "-o", str(final_bam), "-"]
     try:
         if not _pipe(align_cmd, view_cmd, warnings, name, "hic_chimeric_align"):
@@ -383,8 +386,10 @@ def _align_sample(sample: dict, bwa_index: str, output_dir: Path,
     markdup = sample_dir / f"{name}.markdup.bam"
 
     try:
-        # 1. bwa-mem2 mem -> name-sorted BAM (name sort required by fixmate)
-        align_cmd = ["bwa-mem2", "mem", "-t", str(threads), bwa_index, r1]
+        # 1. bwa-mem2 mem -> name-sorted BAM (name sort required by fixmate).
+        # -K 100000000 fixes 100M-base deterministic batches so alignment tie-breaking
+        # and paired insert-size estimation remain invariant to -t thread count.
+        align_cmd = ["bwa-mem2", "mem", "-K", "100000000", "-t", str(threads), bwa_index, r1]
         if paired and r2:
             align_cmd.append(r2)
         sort_cmd = ["samtools", "sort", "-@", str(threads)]
@@ -550,7 +555,7 @@ def _count_spikein_index(
         else:
             warnings.append(f"{name}: spikein_bwa_index not found at {spikein_index}")
             return None
-    align_cmd = ["bwa-mem2", "mem", "-t", str(threads), spikein_index, r1]
+    align_cmd = ["bwa-mem2", "mem", "-K", "100000000", "-t", str(threads), spikein_index, r1]
     if r2:
         align_cmd.append(r2)
     count_cmd = ["samtools", "view", "-c", "-F", "2308", "-q", "10", "-"]

@@ -58,6 +58,7 @@ def rna_cellcomm(params: dict) -> dict:
     # C4: 100 permutations was too low for stable LIANA ranks in publication
     # reports. Keep it configurable, but default to 1000.
     n_perms       = int(params.get("n_perms", 1000))
+    seed          = int(params.get("seed", 42))
 
     adata = read_h5ad(data_path)
 
@@ -86,6 +87,7 @@ def rna_cellcomm(params: dict) -> dict:
             use_raw=False,
             verbose=False,
             n_perms=n_perms,
+            seed=seed,
         )
         liana_df = adata.uns["liana_res"].copy()
 
@@ -120,9 +122,15 @@ def rna_cellcomm(params: dict) -> dict:
         # specificity_rank / magnitude_rank: lower = better.
         # lrscore: higher = better.
         ascending = chosen_rank != "lrscore"
+        tie_cols = [
+            c for c in ("source", "target", "ligand_complex", "receptor_complex", "ligand", "receptor")
+            if c in liana_df.columns
+        ]
+        sort_cols = [chosen_rank, *tie_cols]
+        sort_asc = [ascending, *([True] * len(tie_cols))]
         ranked = (liana_df
                   .dropna(subset=[chosen_rank])
-                  .sort_values(chosen_rank, ascending=ascending)
+                  .sort_values(sort_cols, ascending=sort_asc, kind="mergesort")
                   .head(50))
         for rank_idx, (_, row) in enumerate(ranked.iterrows(), start=1):
             raw_score = float(row.get(chosen_rank, 0))
@@ -173,7 +181,7 @@ def rna_cellcomm(params: dict) -> dict:
     for ia in interactions:
         k = f"{ia['source']}→{ia['target']}"
         pair_counts[k] = pair_counts.get(k, 0) + 1
-    top_pairs = [p for p, _ in sorted(pair_counts.items(), key=lambda x: -x[1])[:10]]
+    top_pairs = [p for p, _ in sorted(pair_counts.items(), key=lambda x: (-x[1], x[0]))[:10]]
 
     # Save CSV
     result_path: str | None = None
@@ -190,6 +198,7 @@ def rna_cellcomm(params: dict) -> dict:
     return {
         "status":             "success",
         "method":             method,
+        "seed":               seed,
         "n_cell_types":       n_types,
         "n_interactions":     len(interactions),
         "n_autocrine_dropped": autocrine_count,

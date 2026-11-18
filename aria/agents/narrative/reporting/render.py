@@ -460,12 +460,28 @@ class ReportRenderMixin:
         workflow_short = _html.escape(
             workflow_hash[:16] if workflow_hash != "unknown" else workflow_hash
         )
+        from aria.agents.narrative.falsification_certificates import (
+            build_falsification_certificates,
+        )
+        from aria.agents.narrative.robustness import build_robustness_multiverse
+        try:
+            _prov_fc = build_falsification_certificates(
+                public_claims,
+                agent_results,
+                exp_ctx,
+                robustness_multiverse=build_robustness_multiverse(agent_results),
+            )
+        except Exception:
+            _prov_fc = None
         provenance_html = self._build_provenance_section(
             provenance=provenance,
             input_files=exp_ctx.get("input_files", []),
             agent_results=agent_results,
             llm_usage=llm_usage,
             run_ledger=run_ledger,
+            decision_manifest=exp_ctx.get("decision_manifest"),
+            fork_ledger=exp_ctx.get("analytical_fork_ledger"),
+            falsification_certificates=_prov_fc,
         )
         findings_html = self._build_findings_section(
             findings_sections,
@@ -753,27 +769,39 @@ class ReportRenderMixin:
         #         └── ...
         report_path = report_dir / "report.html"
         report_path.write_text(html, encoding="utf-8")
+        methodology_obj = self._build_methodology_json(
+            provenance=provenance,
+            exp_ctx=exp_ctx,
+            agent_results=agent_results,
+            decisions=decisions,
+            llm_usage=llm_usage,
+            narrative_blocks=narrative_blocks,
+            run_ledger=run_ledger,
+            devils_advocate=devils_advocate,
+            compiled_claims=public_claims,
+            claim_compilation=public_compilation.summary(),
+        )
         methodology_path = report_dir / "methodology.json"
         methodology_path.write_text(
             json.dumps(
-                self._build_methodology_json(
-                    provenance=provenance,
-                    exp_ctx=exp_ctx,
-                    agent_results=agent_results,
-                    decisions=decisions,
-                    llm_usage=llm_usage,
-                    narrative_blocks=narrative_blocks,
-                    run_ledger=run_ledger,
-                    devils_advocate=devils_advocate,
-                    compiled_claims=public_claims,
-                    claim_compilation=public_compilation.summary(),
-                ),
+                methodology_obj,
                 indent=2,
                 sort_keys=True,
                 default=str,
             ),
             encoding="utf-8",
         )
+        if isinstance(methodology_obj.get("decision_manifest"), dict):
+            dm_path = report_dir / "decision_manifest.json"
+            dm_path.write_text(
+                json.dumps(
+                    methodology_obj["decision_manifest"],
+                    indent=2,
+                    sort_keys=True,
+                    default=str,
+                ),
+                encoding="utf-8",
+            )
         # A2: publish the minimized experiment snapshot before the RO-Crate so the
         # crate can describe it as part of this run's output graph.
         if reproducible:

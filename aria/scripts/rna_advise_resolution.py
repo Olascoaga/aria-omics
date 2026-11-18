@@ -43,10 +43,15 @@ def rna_advise_resolution(params: dict) -> dict:
     import scanpy as sc
     import numpy as np
     import json
-    import hashlib
     from pathlib import Path
     from sklearn.metrics import silhouette_score
+    from aria.utils.provenance import hash_file, hash_params
     from aria.utils.safe_h5ad import read_h5ad
+    from aria.utils.stage_manifest import (
+        build_stage_manifest,
+        stage_is_current,
+        write_stage_manifest,
+    )
 
     data_path   = params["data_path"]
     resolutions = params.get("resolutions") or [0.2, 0.5, 0.8, 1.2]
@@ -55,29 +60,46 @@ def rna_advise_resolution(params: dict) -> dict:
     n_hvg       = int(params.get("n_hvg", 3000))
     n_pcs       = int(params.get("n_pcs", 40))
     max_cells   = int(params.get("max_cells", 100_000))
+    resume      = bool(params.get("resume", True))
 
     data_file = Path(data_path)
-    cache_key = hashlib.sha1(json.dumps({
-        "data_path": str(data_file.resolve()),
+    stage_params = {
         "resolutions": [float(r) for r in resolutions],
         "rep": rep_pref,
         "seed": seed,
         "n_hvg": n_hvg,
         "n_pcs": n_pcs,
         "max_cells": max_cells,
-    }, sort_keys=True).encode()).hexdigest()[:12]
+    }
+    cache_key = hash_params({
+        "data_path": str(data_file.resolve()),
+        **stage_params,
+    })[:16]
     cache_path = data_file.parent / f"leiden_advice_{cache_key}.json"
-    if (cache_path.exists() and data_file.exists() and
-            cache_path.stat().st_mtime >= data_file.stat().st_mtime):
+    manifest_path = data_file.parent / f"leiden_advice_{cache_key}.stage_manifest.json"
+    tool_ver = "rna_advise_resolution:v2"
+    if (
+        resume
+        and cache_path.is_file()
+        and data_file.is_file()
+        and stage_is_current(
+            manifest_path,
+            inputs=[("data_path", str(data_file))],
+            params=stage_params,
+            tool_version=tool_ver,
+        )[0]
+    ):
         try:
-            with open(cache_path) as f:
-                cached = json.load(f)
-            cached["resumed"] = True
-            cached["warnings"] = (
-                cached.get("warnings", []) +
-                ["[resume] Leiden resolution advice loaded from cache"]
-            )
-            return cached
+            manifest_payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+            expected_sha = ((manifest_payload.get("extra") or {}).get("cache_sha256"))
+            if expected_sha and hash_file(cache_path) == expected_sha:
+                cached = json.loads(cache_path.read_text(encoding="utf-8"))
+                cached["resumed"] = True
+                cached["warnings"] = (
+                    cached.get("warnings", []) +
+                    ["[resume] Leiden resolution advice loaded from verified stage cache"]
+                )
+                return cached
         except Exception:
             pass
 
@@ -148,7 +170,7 @@ def rna_advise_resolution(params: dict) -> dict:
             random_state=0,
         )
         labels       = adata.obs["_advise_leiden"].astype(str).values
-        unique       = list(set(labels))
+        unique       = sorted(set(labels))
         n_clusters   = len(unique)
         cluster_sizes = [int((labels == u).sum()) for u in unique]
         n_singletons = int(sum(1 for s in cluster_sizes if s < 10))
@@ -192,8 +214,22 @@ def rna_advise_resolution(params: dict) -> dict:
         "n_cells_used":  int(adata.n_obs),
     }
     try:
-        with open(cache_path, "w") as f:
-            json.dump(result, f, indent=2)
+        tmp_cache = cache_path.with_suffix(".json.tmp")
+        with open(tmp_cache, "w", encoding="utf-8") as f:
+            json.dump(result, f, indent=2, sort_keys=True)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp_cache, cache_path)
+        write_stage_manifest(
+            manifest_path,
+            build_stage_manifest(
+                stage="rna_advise_resolution",
+                inputs=[("data_path", str(data_file))],
+                params=stage_params,
+                tool_version=tool_ver,
+                extra={"cache_sha256": hash_file(cache_path)},
+            ),
+        )
     except Exception:
         pass
     return result

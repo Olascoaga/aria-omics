@@ -259,3 +259,71 @@ def manifest_fastq_files(manifest: dict[str, Any]) -> list[str]:
 def first_manifest_fastq(manifest: dict[str, Any]) -> str | None:
     """Return the first declared lane in stable library/read/lane order."""
     return next(iter(manifest_fastq_files(manifest)), None)
+
+
+_ILLUMINA_SCATAC_RE = re.compile(
+    r"^(?P<sample>.+?)(?:_S\d+)?(?:_(?P<lane>L\d{3}))?_(?P<role>R1|R2|R3|I1|I2)(?:_\d{3})?\.(?:fastq|fq)(?:\.gz)?$",
+    flags=re.IGNORECASE,
+)
+
+
+def propose_illumina_scatac_manifest(
+    data_dir: str | Path,
+    *,
+    barcode_whitelist: str = "",
+    platform: str = "10x_atac",
+) -> dict[str, Any] | None:
+    """Propose a canonical 10x scATAC manifest from an Illumina FASTQ folder.
+
+    Maps standard 10x Chromium ATAC triplets (`R1` genomic, `R2` barcode, `R3`
+    genomic — or `R1` + `I2` barcode + `R2` genomic) into a candidate manifest
+    for user confirmation at CP1 without auto-executing unconfirmed filenames.
+    """
+    root = Path(data_dir).expanduser().resolve()
+    if not root.is_dir():
+        return None
+    grouped: dict[str, dict[str, list[str]]] = {}
+    for entry in sorted(root.rglob("*")):
+        if not entry.is_file():
+            continue
+        m = _ILLUMINA_SCATAC_RE.match(entry.name)
+        if not m:
+            continue
+        sample = re.sub(r"[^A-Za-z0-9_.-]+", "_", m.group("sample")).strip("._-") or "sample"
+        role = m.group("role").upper()
+        grouped.setdefault(sample, {}).setdefault(role, []).append(str(entry.resolve()))
+
+    if not grouped:
+        return None
+
+    libraries: list[dict[str, Any]] = []
+    for sample_id in sorted(grouped):
+        roles = grouped[sample_id]
+        if roles.get("R1") and roles.get("R2") and roles.get("R3"):
+            r1, bc, r3 = sorted(roles["R1"]), sorted(roles["R2"]), sorted(roles["R3"])
+        elif roles.get("R1") and roles.get("I2") and roles.get("R2"):
+            r1, bc, r3 = sorted(roles["R1"]), sorted(roles["I2"]), sorted(roles["R2"])
+        else:
+            continue
+        if not (len(r1) == len(bc) == len(r3)):
+            continue
+        libraries.append({
+            "library_id": sample_id,
+            "sample_id": sample_id,
+            "donor_id": sample_id,
+            "platform": platform,
+            "barcode_orientation": "auto",
+            "barcode_whitelist": str(barcode_whitelist or ""),
+            "fastqs": {
+                "R1": r1[0] if len(r1) == 1 else r1,
+                "R2": bc[0] if len(bc) == 1 else bc,
+                "R3": r3[0] if len(r3) == 1 else r3,
+            },
+        })
+
+    if not libraries:
+        return None
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "libraries": libraries,
+    }

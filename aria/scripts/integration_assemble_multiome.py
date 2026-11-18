@@ -327,11 +327,11 @@ def _raw_fastqs(params, output_dir):
             params.get("t2g_path"),
         ]
     if not fragments:
-        required += [params.get("genome_fasta"), params.get("chromap_index")]
+        required += [params.get("genome_fasta")]
     if any(not value or not Path(value).is_file() for value in required):
         _fail(
             "MissingReference",
-            "Provide existing kb_index/t2g_path and genome_fasta/chromap_index as needed",
+            "Provide existing kb_index/t2g_path and genome_fasta as needed",
         )
     for key, needed in (("rna_fastqs", not rna), ("atac_fastqs", not fragments)):
         fastqs = params.get(key)
@@ -417,12 +417,29 @@ def _raw_fastqs(params, output_dir):
         fastqs = params["atac_fastqs"]
         if len(fastqs) != 3:
             _fail("MissingInput", "ATAC requires [R1, R2, barcode_FASTQ]")
+        chromap_index = str(
+            params.get("chromap_index") or (output_dir / "chromap.index")
+        )
+        if not Path(chromap_index).is_file():
+            from aria.utils.mudata_io import _stage_lock
+
+            Path(chromap_index).parent.mkdir(parents=True, exist_ok=True)
+            with _stage_lock(Path(f"{chromap_index}.lock")):
+                if not Path(chromap_index).is_file():
+                    execute([
+                        chromap,
+                        "-i",
+                        "-r",
+                        str(params["genome_fasta"]),
+                        "-o",
+                        chromap_index,
+                    ])
         command = [
             chromap,
             "--preset",
             "atac",
             "-x",
-            params["chromap_index"],
+            chromap_index,
             "-r",
             params["genome_fasta"],
             "-1",

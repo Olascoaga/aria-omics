@@ -418,11 +418,20 @@ class IntegrationAgent(BaseAgent):
           enable_mofa=False → explicitly disables MOFA+
           RNA + ATAC (non-WNN fallback) → peak-to-gene only
         """
-        question = (intent or {}).get("user_question", "").lower()
+        from aria.utils.text_matching import has_keyword_boundary
+
+        question = str(
+            (intent or {}).get("raw_user_question")
+            or (intent or {}).get("user_question")
+            or ""
+        )
         ctx = exp_ctx or {}
 
+        # Avoid bare "factor" so "transcription factor" never misfires MOFA+.
         FACTOR_KEYWORDS = [
-            "factor", "latent", "mofa", "decomposition",
+            "latent factor", "latent factors", "factor analysis", "factor model",
+            "factor decomposition", "shared factor", "multi-omics factor",
+            "latent", "mofa", "mofa+", "decomposition",
             "shared variation", "modality-specific",
         ]
 
@@ -433,7 +442,7 @@ class IntegrationAgent(BaseAgent):
         user_wants_mofa = (
             (enable_mofa is True)
             or bool(ctx.get("mofa_params"))
-            or any(k in question for k in FACTOR_KEYWORDS)
+            or has_keyword_boundary(question, FACTOR_KEYWORDS)
         )
 
         if has_scrna and has_scatac:
@@ -547,6 +556,12 @@ class IntegrationAgent(BaseAgent):
                         asm_params[key] = val
                 if not asm_params.get("genome_fasta") and genome_cfg.get("fasta"):
                     asm_params["genome_fasta"] = genome_cfg["fasta"]
+                if not asm_params.get("kb_index") and genome_cfg.get("kb_index"):
+                    asm_params["kb_index"] = genome_cfg["kb_index"]
+                if not asm_params.get("t2g_path") and genome_cfg.get("kb_t2g"):
+                    asm_params["t2g_path"] = genome_cfg["kb_t2g"]
+                if not asm_params.get("chromap_index") and genome_cfg.get("chromap_index"):
+                    asm_params["chromap_index"] = genome_cfg["chromap_index"]
                 asm_params.update(
                     {k: v for k, v in assemble_overrides.items() if k != "output_dir"}
                 )
@@ -1264,10 +1279,16 @@ class IntegrationAgent(BaseAgent):
             return True
         if is_paired_mudata:
             return True
-        question = str(intent.get("user_question") or "").lower()
-        return any(
-            kw in question
-            for kw in ("eregulon", "regulon", "grn", "gene regulatory", "scenic")
+        from aria.utils.text_matching import has_keyword_boundary
+
+        question = str(
+            (intent or {}).get("raw_user_question")
+            or (intent or {}).get("user_question")
+            or ""
+        )
+        return has_keyword_boundary(
+            question,
+            ("eregulon", "eregulons", "regulon", "regulons", "grn", "gene regulatory", "scenic", "scenic+"),
         )
 
     def _run_eregulons(
@@ -1559,12 +1580,18 @@ class IntegrationAgent(BaseAgent):
         Advise on number of MOFA+ factors using biological context.
         Stores decision in ARIAMemory for reproducibility.
         """
-        question    = intent.get("user_question", "").lower()
+        from aria.utils.text_matching import has_keyword_boundary
+
+        question = str(
+            (intent or {}).get("raw_user_question")
+            or (intent or {}).get("user_question")
+            or ""
+        )
         n_modalities = len([m for m in mods if m != "unknown"])
 
-        COMPLEX_KEYWORDS = ["atlas", "trajectory", "heterogeneous",
+        COMPLEX_KEYWORDS = ["atlas", "trajectory", "trajectories", "heterogeneous",
                              "many cell types", "complex"]
-        complexity = "complex" if any(k in question for k in COMPLEX_KEYWORDS) \
+        complexity = "complex" if has_keyword_boundary(question, COMPLEX_KEYWORDS) \
                      else "moderate"
 
         # Layer 1: intent-based range

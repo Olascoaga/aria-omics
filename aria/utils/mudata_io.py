@@ -602,41 +602,102 @@ def load_or_convert_paired_multiome_to_h5mu(
         }
 
 
+def _stage_lock(lock_path: Path):
+    """Advisory file lock serializing concurrent stage cache readers/writers."""
+    from contextlib import contextmanager
+
+    @contextmanager
+    def _ctx():
+        fh = None
+        try:
+            lock_path.parent.mkdir(parents=True, exist_ok=True)
+            fh = open(lock_path, "a+", encoding="utf-8")
+            try:
+                import fcntl
+                fcntl.flock(fh.fileno(), fcntl.LOCK_EX)
+            except (ImportError, OSError):
+                pass
+            yield
+        finally:
+            if fh is not None:
+                try:
+                    import fcntl
+                    fcntl.flock(fh.fileno(), fcntl.LOCK_UN)
+                except (ImportError, OSError):
+                    pass
+                fh.close()
+
+    return _ctx()
+
+
+def _stage_script_sha256(stage: str) -> str | None:
+    """Return SHA-256 of ``aria/scripts/{stage}.py`` when present."""
+    from aria.utils.provenance import hash_file
+
+    script_file = Path(__file__).resolve().parents[1] / "scripts" / f"{stage}.py"
+    if script_file.is_file():
+        return hash_file(script_file)
+    return None
+
+
 def _stage_cache(
     stage, output_dir, inputs, params, resume=True, required=("output_path",)
 ):
-    """Read an A4 receipt only when all content signatures and output files match."""
+    """Read an A4 receipt only when all input, script, receipt, and output SHA-256 digests match."""
     import json
+    from aria.utils.provenance import hash_file
     from aria.utils.stage_manifest import stage_is_current
     from aria.version import __version__
 
     directory = Path(output_dir)
     manifest = directory / f"{stage}.stage_manifest.json"
     receipt = directory / f".{stage}.result.json"
-    # Include paths because stage_is_current compares content by role, not input path.
+    lock_path = directory / f".{stage}.stage.lock"
+    # Include paths and stage script digest so code or path changes invalidate stale caches.
     normalized = {k: v for k, v in params.items() if k != "resume"}
     normalized["_input_paths"] = [
         (role, str(Path(path).absolute())) for role, path in inputs
     ]
-    state = (stage, manifest, receipt, inputs, normalized, __version__)
-    try:
-        current = (
-            resume
-            and stage_is_current(
+    script_sha = _stage_script_sha256(str(stage))
+    if script_sha:
+        normalized["_script_sha256"] = script_sha
+    state = (stage, manifest, receipt, inputs, normalized, __version__, tuple(required))
+    if not resume:
+        return None, state
+    with _stage_lock(lock_path):
+        try:
+            current = stage_is_current(
                 manifest, inputs=inputs, params=normalized, tool_version=__version__
             )[0]
-        )
-    except (OSError, ValueError, TypeError, AttributeError):
-        current = False
-    if current:
-        try:
-            result = json.loads(receipt.read_text())
-            if not isinstance(result, dict):
-                return None, state
-            paths = [result.get(key) for key in required]
-            if result.get("status") == "success" and all(
-                path and Path(path).is_file() for path in paths
-            ):
+        except (OSError, ValueError, TypeError, AttributeError):
+            current = False
+        if current:
+            try:
+                manifest_payload = json.loads(manifest.read_text(encoding="utf-8"))
+                extra = (
+                    manifest_payload.get("extra")
+                    if isinstance(manifest_payload, dict)
+                    else None
+                ) or {}
+                expected_receipt_sha = extra.get("receipt_sha256")
+                if not receipt.is_file():
+                    return None, state
+                if expected_receipt_sha and hash_file(receipt) != expected_receipt_sha:
+                    return None, state
+                result = json.loads(receipt.read_text(encoding="utf-8"))
+                if not isinstance(result, dict) or result.get("status") != "success":
+                    return None, state
+                paths = [result.get(key) for key in required]
+                if not all(path and Path(path).is_file() for path in paths):
+                    return None, state
+                expected_outputs = extra.get("output_sha256")
+                if not isinstance(expected_outputs, dict):
+                    return None, state
+                for key in required:
+                    out_path = result.get(key)
+                    exp_sha = expected_outputs.get(key)
+                    if not exp_sha or hash_file(out_path) != exp_sha:
+                        return None, state
                 return (
                     dict(
                         result,
@@ -645,8 +706,8 @@ def _stage_cache(
                     ),
                     state,
                 )
-        except (OSError, ValueError, TypeError):
-            pass
+            except (OSError, ValueError, TypeError):
+                pass
     return None, state
 
 
@@ -658,24 +719,47 @@ def _manifest_result_path(stage, manifest):
 
 def _stage_complete(result, state):
     import json
+    import os
+    from aria.utils.provenance import hash_file
     from aria.utils.stage_manifest import build_stage_manifest, write_stage_manifest
 
-    stage, manifest, receipt, inputs, params, version = state
+    if len(state) == 7:
+        stage, manifest, receipt, inputs, params, version, required = state
+    else:
+        stage, manifest, receipt, inputs, params, version = state
+        required = ("output_path",)
+    lock_path = manifest.parent / f".{stage}.stage.lock"
     result.update(
         resumed=False, stage_manifest_path=_manifest_result_path(stage, manifest)
     )
-    # Publish the receipt before the manifest so an interrupted run never advertises a new cache.
-    manifest.unlink(missing_ok=True)
-    receipt.parent.mkdir(parents=True, exist_ok=True)
-    temporary = receipt.with_suffix(".tmp")
-    temporary.write_text(json.dumps(result, sort_keys=True))
-    temporary.replace(receipt)
-    write_stage_manifest(
-        manifest,
-        build_stage_manifest(
-            stage=stage, inputs=inputs, params=params, tool_version=version
-        ),
-    )
+    with _stage_lock(lock_path):
+        # Publish the receipt before the manifest so an interrupted run never advertises a new cache.
+        manifest.unlink(missing_ok=True)
+        receipt.parent.mkdir(parents=True, exist_ok=True)
+        temporary = receipt.with_suffix(".tmp")
+        with open(temporary, "w", encoding="utf-8") as fh:
+            json.dump(result, fh, sort_keys=True)
+            fh.flush()
+            os.fsync(fh.fileno())
+        temporary.replace(receipt)
+        output_sha256 = {}
+        for key in required:
+            out_val = result.get(key)
+            if out_val and Path(out_val).is_file():
+                output_sha256[str(key)] = hash_file(out_val)
+        write_stage_manifest(
+            manifest,
+            build_stage_manifest(
+                stage=stage,
+                inputs=inputs,
+                params=params,
+                tool_version=version,
+                extra={
+                    "receipt_sha256": hash_file(receipt),
+                    "output_sha256": output_sha256,
+                },
+            ),
+        )
     return result
 
 

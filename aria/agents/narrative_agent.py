@@ -287,6 +287,14 @@ the result should be treated as differential-expression evidence rather
 than proof of direct regulation. Sample size (n=3/group) limits power
 for small-effect genes.""",
         )
+        import os as _os
+        if (
+            getattr(self, "llm", None) is None
+            or (exp_ctx or {}).get("zero_llm_replay")
+            or (intent or {}).get("zero_llm_replay")
+            or _os.environ.get("ARIA_ZERO_LLM_REPLAY", "").strip().lower() in {"1", "true", "yes", "on"}
+        ):
+            return self._fallback_executive_summary(grouped, intent)
         try:
             return self.llm.complete(
                 prompt=prompt,

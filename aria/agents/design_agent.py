@@ -556,9 +556,14 @@ class DesignAgent(BaseAgent):
 
     def _publish_factor_checkpoint(self):
         group_names = list(self._confirmed_groups.keys())
-        # Quick LLM suggestion (non‑blocking, optional)
+        # Quick LLM suggestion (non‑blocking, optional; bypassed on zero-LLM replay)
         factor_guess = self._main_factor or "condition"
-        if not self._main_factor:
+        import os as _os
+        zero_llm = (
+            bool((getattr(self, "_biological_intent", None) or {}).get("zero_llm_replay"))
+            or _os.environ.get("ARIA_ZERO_LLM_REPLAY", "").strip().lower() in {"1", "true", "yes", "on"}
+        )
+        if not self._main_factor and not zero_llm:
             try:
                 prompt = (
                     f"Groups: {', '.join(group_names)}\n"
@@ -826,18 +831,24 @@ class DesignAgent(BaseAgent):
             '  "reasoning": "short explanation"\n}'
             ),
         )
-        try:
-            result = self.think_structured(
-                                           prompt,
-                                           system=system_with_untrusted_boundary(
-                                               DESIGN_SYSTEM
-                                           ),
-                                           schema_hint="JSON with groups, confidence, reasoning.",
-                                           tier=TaskTier.MEDIUM)
-            if isinstance(result, dict) and "groups" in result:
-                return result
-        except Exception as e:
-            log.warning(f"LLM group proposal failed: {e}")
+        import os as _os
+        zero_llm = (
+            bool((getattr(self, "_biological_intent", None) or {}).get("zero_llm_replay"))
+            or _os.environ.get("ARIA_ZERO_LLM_REPLAY", "").strip().lower() in {"1", "true", "yes", "on"}
+        )
+        if not zero_llm:
+            try:
+                result = self.think_structured(
+                                               prompt,
+                                               system=system_with_untrusted_boundary(
+                                                   DESIGN_SYSTEM
+                                               ),
+                                               schema_hint="JSON with groups, confidence, reasoning.",
+                                               tier=TaskTier.MEDIUM)
+                if isinstance(result, dict) and "groups" in result:
+                    return result
+            except Exception as e:
+                log.warning(f"LLM group proposal failed: {e}")
         # Heuristic fallback
         groups = {}
         for p in parsed:
