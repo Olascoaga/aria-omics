@@ -1,0 +1,131 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 310" width="1200" height="310" role="img" aria-label="ARIA v4.9.0 — Agentic Research Intelligence for Supervised Omics Analysis">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#090f1d"/>
+      <stop offset="55%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#111d35"/>
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="55%" stop-color="#2dd4bf"/>
+      <stop offset="100%" stop-color="#34d399"/>
+    </linearGradient>
+    <linearGradient id="waveA" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.05"/>
+      <stop offset="45%" stop-color="#38bdf8" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#2dd4bf" stop-opacity="0.85"/>
+    </linearGradient>
+    <linearGradient id="waveB" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#818cf8" stop-opacity="0.05"/>
+      <stop offset="45%" stop-color="#818cf8" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#34d399" stop-opacity="0.75"/>
+    </linearGradient>
+    <radialGradient id="glowRight" cx="84%" cy="34%" r="42%">
+      <stop offset="0%" stop-color="#0ea5e9" stop-opacity="0.22"/>
+      <stop offset="55%" stop-color="#14b8a6" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#090f1d" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="cardClip">
+      <rect x="1" y="1" width="1198" height="308" rx="16"/>
+    </clipPath>
+  </defs>
+
+  <g clip-path="url(#cardClip)">
+    <!-- Base dark card -->
+    <rect x="0" y="0" width="1200" height="310" fill="url(#bg)"/>
+    <rect x="0" y="0" width="1200" height="310" fill="url(#glowRight)"/>
+
+    <!-- Subtle top accent bar -->
+    <rect x="0" y="0" width="1200" height="3.5" fill="url(#accentGrad)"/>
+
+    <!-- Subtle background genomic grid on right -->
+    <g stroke="#1e293b" stroke-width="1" opacity="0.55">
+      <line x1="760" y1="0" x2="760" y2="215"/>
+      <line x1="840" y1="0" x2="840" y2="215"/>
+      <line x1="920" y1="0" x2="920" y2="215"/>
+      <line x1="1000" y1="0" x2="1000" y2="215"/>
+      <line x1="1080" y1="0" x2="1080" y2="215"/>
+      <line x1="1160" y1="0" x2="1160" y2="215"/>
+      <line x1="720" y1="55" x2="1200" y2="55"/>
+      <line x1="720" y1="110" x2="1200" y2="110"/>
+      <line x1="720" y1="165" x2="1200" y2="165"/>
+    </g>
+
+    <!-- Stylized chromatin / Hi-C diamond & chromatin accessibility tracks (right graphic) -->
+    <g transform="translate(838, 22)" opacity="0.92">
+      <!-- Stylized mini Hi-C triangular contact domains -->
+      <polygon points="10,136 86,60 162,136" fill="#0ea5e9" fill-opacity="0.11" stroke="#38bdf8" stroke-opacity="0.38" stroke-width="1.2"/>
+      <polygon points="154,136 226,64 298,136" fill="#14b8a6" fill-opacity="0.12" stroke="#2dd4bf" stroke-opacity="0.42" stroke-width="1.2"/>
+      <polygon points="86,136 154,68 222,136" fill="#6366f1" fill-opacity="0.09" stroke="#818cf8" stroke-opacity="0.35" stroke-width="1.1"/>
+      <!-- Contact loop arcs -->
+      <path d="M 48 136 Q 118 42 188 136" fill="none" stroke="#38bdf8" stroke-width="1.6" stroke-dasharray="4 3" opacity="0.7"/>
+      <path d="M 122 136 Q 198 32 274 136" fill="none" stroke="#34d399" stroke-width="1.6" opacity="0.75"/>
+      <!-- ATAC/ChIP signal peaks track -->
+      <path d="M 0 158 L 28 158 L 40 132 L 50 154 L 74 158 L 96 158 L 112 110 L 124 152 L 150 158 L 176 158 L 190 124 L 204 156 L 236 158 L 254 118 L 268 154 L 312 158" fill="none" stroke="url(#waveA)" stroke-width="2.2" stroke-linejoin="round"/>
+      <!-- Paired RNA signal trace -->
+      <path d="M 0 174 Q 44 162 88 174 T 176 172 T 264 168 T 312 174" fill="none" stroke="url(#waveB)" stroke-width="1.8"/>
+      <!-- Cis-regulatory nodes -->
+      <circle cx="40" cy="132" r="3.5" fill="#38bdf8"/>
+      <circle cx="112" cy="110" r="4" fill="#2dd4bf"/>
+      <circle cx="190" cy="124" r="3.5" fill="#818cf8"/>
+      <circle cx="254" cy="118" r="4" fill="#34d399"/>
+      <!-- Small technical legend tag -->
+      <rect x="138" y="10" width="174" height="24" rx="12" fill="#0f172a" fill-opacity="0.88" stroke="#334155" stroke-width="1"/>
+      <circle cx="153" cy="22" r="3.8" fill="#34d399"/>
+      <text x="164" y="26" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-size="10.5" fill="#cbd5e1" letter-spacing="0.4">C1–C7 CLAIM COMPILER</text>
+    </g>
+
+    <!-- Left Brand Block -->
+    <g transform="translate(46, 42)">
+      <!-- Eyebrow pill -->
+      <rect x="0" y="0" width="256" height="26" rx="13" fill="#0f2942" stroke="#1e4b73" stroke-width="1"/>
+      <circle cx="15" cy="13" r="4" fill="#34d399"/>
+      <text x="27" y="17" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-size="11.5" font-weight="600" fill="#7dd3fc" letter-spacing="0.8">EVIDENCE-GOVERNED MULTI-OMICS</text>
+
+      <!-- Main Wordmark + Version Badge -->
+      <text x="0" y="86" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="56" font-weight="800" fill="#f8fafc" letter-spacing="2.5">ARIA</text>
+      <rect x="164" y="47" width="84" height="30" rx="8" fill="#132a46" stroke="#38bdf8" stroke-opacity="0.55" stroke-width="1.2"/>
+      <text x="206" y="67" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-size="14" font-weight="700" fill="#38bdf8">v4.9.0</text>
+
+      <!-- Tagline -->
+      <text x="0" y="118" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="19.5" font-weight="600" fill="#e2e8f0">Agentic Research Intelligence for Supervised Omics Analysis</text>
+
+      <!-- Sub-subtitle -->
+      <text x="0" y="146" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13.8" fill="#94a3b8">Human-confirmed experimental design · Lock-pinned scientific stacks · Fail-closed claim verification</text>
+    </g>
+
+    <!-- Divider above KPI strip -->
+    <line x1="46" y1="214" x2="1154" y2="214" stroke="#1e293b" stroke-width="1.2"/>
+
+    <!-- 5 Grounded KPI Metric Cards -->
+    <g transform="translate(46, 229)">
+      <!-- KPI 1 -->
+      <rect x="0" y="0" width="212" height="60" rx="10" fill="#111c33" stroke="#1e3252" stroke-width="1"/>
+      <text x="16" y="25" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="18" font-weight="800" fill="#38bdf8">9 / 9 Modalities</text>
+      <text x="16" y="46" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11.5" fill="#94a3b8">RNA · ATAC · ChIP · Hi-C · Multiome</text>
+
+      <!-- KPI 2 -->
+      <rect x="224" y="0" width="212" height="60" rx="10" fill="#111c33" stroke="#1e3252" stroke-width="1"/>
+      <text x="240" y="25" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="18" font-weight="800" fill="#2dd4bf">r = 1.000</text>
+      <text x="240" y="46" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11.5" fill="#94a3b8">vs R DESeq2, TOBIAS &amp; cooltools</text>
+
+      <!-- KPI 3 -->
+      <rect x="448" y="0" width="212" height="60" rx="10" fill="#111c33" stroke="#1e3252" stroke-width="1"/>
+      <text x="464" y="25" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="18" font-weight="800" fill="#34d399">5–8× Lower</text>
+      <text x="464" y="46" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11.5" fill="#94a3b8">Silent error rate vs live CodeAct</text>
+
+      <!-- KPI 4 -->
+      <rect x="672" y="0" width="212" height="60" rx="10" fill="#111c33" stroke="#1e3252" stroke-width="1"/>
+      <text x="688" y="25" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="18" font-weight="800" fill="#a78bfa">12.7× Fewer</text>
+      <text x="688" y="46" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11.5" fill="#94a3b8">LLM tokens on GenoTEX-100</text>
+
+      <!-- KPI 5 -->
+      <rect x="896" y="0" width="212" height="60" rx="10" fill="#111c33" stroke="#1e3252" stroke-width="1"/>
+      <text x="912" y="25" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="18" font-weight="800" fill="#fbbf24">0-LLM Replay</text>
+      <text x="912" y="46" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11.5" fill="#94a3b8">RO-Crate + SHA-256 capsules</text>
+    </g>
+  </g>
+
+  <!-- Crisp outer border -->
+  <rect x="1" y="1" width="1198" height="308" rx="16" fill="none" stroke="#1e293b" stroke-width="1.5"/>
+</svg>
