@@ -240,14 +240,26 @@ def make_bam(path, specs, marked=False):
 
 def _chromatin_python(tmp_path, code):
     import importlib.util
+    import shutil
     import subprocess
     import sys
+
+    import pytest
 
     source = _BAM_HELPERS + "\ntmp_path = Path(" + repr(str(tmp_path)) + ")\n" + code
     if importlib.util.find_spec("pysam") is not None:
         command = [sys.executable, "-c", source]
     else:
-        command = ["conda", "run", "-n", "aria-chromatin-env", "python", "-c", source]
+        conda = shutil.which("conda")
+        if not conda:
+            pytest.skip("pysam and aria-chromatin-env conda stack unavailable")
+        probe = subprocess.run(
+            [conda, "run", "-n", "aria-chromatin-env", "python", "-c", "import pysam"],
+            capture_output=True, text=True, timeout=30,
+        )
+        if probe.returncode != 0:
+            pytest.skip("aria-chromatin-env conda stack unavailable")
+        command = [conda, "run", "-n", "aria-chromatin-env", "python", "-c", source]
     proc = subprocess.run(command, capture_output=True, text=True, timeout=180)
     assert proc.returncode == 0, proc.stdout + proc.stderr
 
