@@ -26,7 +26,8 @@ from aria.scripts.chromatin_peak_annotation import annotate_peaks, parse_gtf_gen
 CAUSAL_PATTERNS = (
     "drives", "enforces", "acts as", "governs", "position as", "positions as",
     "directly regulates", "binds to", "hierarchical gatekeeper",
-    "hierarchical gatekeepers", "causes", "caused by", "induces", "induced by",
+    "hierarchical gatekeepers", "cause", "causes", "caused by", "causally",
+    "induces", "induced by",
     "triggers", "leads to", "results in", "gives rise to", "controls",
     "regulates", "drives the", "promotes", "inhibits", "suppresses",
     "activates", "represses", "responsible for", "master regulator",

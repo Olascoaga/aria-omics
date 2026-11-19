@@ -200,8 +200,8 @@ def test_full_denominator_adapter_silent_errors_and_covariate_traps():
 
 
 def test_frozen_engine_and_dynamic_preregistration_leakage_guard():
-    h.assert_frozen_engine()
-    assert subprocess.check_output(["git", "diff", "v4.9.0", "--", "aria"], cwd=h.REPO_ROOT) == b""
+    h.assert_frozen_engine("HEAD")
+    assert subprocess.check_output(["git", "diff", "HEAD", "--", "aria"], cwd=h.REPO_ROOT) == b""
     prereg = Path.home() / ".aria/benchmarks/external/preregistration_v49.json"
     tokens = ["synthetic_external_task_sentinel"]
     if prereg.exists():

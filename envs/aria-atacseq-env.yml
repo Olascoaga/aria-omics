@@ -24,6 +24,7 @@ channel_priority: strict
 
 dependencies:
   - python=3.10
+  - pip
   - bwa-mem2       # bulk ATAC FASTQ->BAM (atac_align.py)
   - samtools       # BAM filtering + bgzip/tabix for fragments
   - chromap        # scATAC FASTQ->fragments (chromatin_scatac_align.py)

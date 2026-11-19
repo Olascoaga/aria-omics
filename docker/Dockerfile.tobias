@@ -18,7 +18,7 @@ FROM ${ARIA_BASE_IMAGE}
 ARG MAMBA_DOCKERFILE_ACTIVATE=1
 RUN micromamba install -y -n base -f /opt/aria/envs/aria-tobias-env.yml && \
     micromamba clean --all --yes
-RUN python -m pip install --no-deps -e /opt/aria
+RUN python -m pip install --no-deps --ignore-requires-python -e /opt/aria
 
 ARG ARIA_IMAGE_ENV_SHA=unknown
 ENV ARIA_IMAGE_KIND=tobias \

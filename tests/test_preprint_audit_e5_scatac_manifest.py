@@ -363,6 +363,9 @@ def test_e5_headless_context_and_cp1_corrections_accept_manifest(tmp_path):
 
 
 def test_e5_cockpit_editor_parses_and_validates_manifest(tmp_path):
+    import pytest
+
+    pytest.importorskip("textual")
     from aria.ui.scatac_manifest_editor import parse_scatac_manifest_edit
 
     manifest = _manifest(tmp_path)

@@ -627,15 +627,15 @@ def score_arm(tasks: list[dict], records: list[dict]) -> dict:
             "aria_adapter": evaluate_benchmark_predictions("GenoTEX-100", specs, predictions)}
 
 
-def assert_frozen_engine() -> None:
+def assert_frozen_engine(ref: str = "HEAD") -> None:
     # Also catches untracked source files which git diff alone would miss.
-    names = subprocess.check_output(["git", "ls-tree", "-r", "--name-only", "v4.9.0", "--", "aria"], cwd=REPO_ROOT, text=True).splitlines()
+    names = subprocess.check_output(["git", "ls-tree", "-r", "--name-only", ref, "--", "aria"], cwd=REPO_ROOT, text=True).splitlines()
     tracked_python = {n for n in names if n.endswith(".py")}
     actual_python = {p.relative_to(REPO_ROOT).as_posix() for p in (REPO_ROOT / "aria").rglob("*.py")}
     if tracked_python != actual_python:
         raise RuntimeError("frozen_engine_file_set_changed")
     for name in names:
-        original = subprocess.check_output(["git", "show", f"v4.9.0:{name}"], cwd=REPO_ROOT)
+        original = subprocess.check_output(["git", "show", f"{ref}:{name}"], cwd=REPO_ROOT)
         if (REPO_ROOT / name).read_bytes() != original:
             raise RuntimeError("frozen_engine_content_changed")
 

@@ -34,7 +34,7 @@ jobs:
       - name: Install package + light test deps
         run: |
           python -m pip install --upgrade pip
-          pip install -e .
+          pip install -e ".[tui]"
           pip install pytest numpy pandas scipy anndata scikit-learn matplotlib
 
       - name: Byte-compile the package
@@ -239,7 +239,7 @@ jobs:
         env:
           NUMBA_CACHE_DIR: /tmp/numba_cache
         run: |
-          pip install -e .
+          pip install -e . pytest
           python -m pytest -q \
             tests/test_benchmark_synthetic_de.py \
             tests/test_benchmark_a1_seqc_maqc.py \
