@@ -99,6 +99,14 @@ def audit_environment(
         "pip_lock": str(pip_lock) if pip_lock.exists() else None,
     }
 
+    if shutil.which("conda") is None:
+        result.update({
+            "status": "missing_conda",
+            "reason": "conda_binary_unavailable",
+            "details": "conda executable not found in PATH",
+        })
+        return result
+
     explicit = _conda(["list", *selector, "--explicit"])
     records = _conda(["list", *selector, "--json"])
     if explicit.returncode or records.returncode:
