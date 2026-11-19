@@ -197,35 +197,38 @@ def run_compbiobench_omics(
                 )
                 ar_ans = ar_res.parsed_answer or {}
                 aria_rec = {
-                    "abstained": bool(ar_ans.get("abstained", ar_ans.get("answer") is None)),
+                    "abstained": False if ar_res.error else bool(ar_ans.get("abstained", ar_ans.get("answer") is None)),
                     "abstain_reason": ar_ans.get("abstain_reason"),
                     "answer": ar_ans.get("answer"),
+                    "error": ar_res.error,
                     "n_turns": ar_res.n_turns,
                     "n_code_executions": ar_res.n_code_executions,
                     "elapsed_s": ar_res.elapsed_s,
                 }
 
+            ca_rec = {
+                "abstained": False if ca_res.error else bool(ca_ans.get("abstained", ca_ans.get("answer") is None)),
+                "abstain_reason": ca_ans.get("abstain_reason"),
+                "answer": ca_ans.get("answer"),
+                "error": ca_res.error,
+                "n_turns": ca_res.n_turns,
+                "n_code_executions": ca_res.n_code_executions,
+                "elapsed_s": ca_res.elapsed_s,
+            }
             records.append({
                 "question_id": qid,
                 "domain": task["domain"],
                 "question_style": task["question_style"],
                 "native_contract_eligible": task["native_contract_eligible"],
                 "aria_v49_governed": aria_rec,
-                "live_codeact_same_model": {
-                    "abstained": bool(ca_ans.get("abstained", ca_ans.get("answer") is None)),
-                    "abstain_reason": ca_ans.get("abstain_reason"),
-                    "answer": ca_ans.get("answer"),
-                    "n_turns": ca_res.n_turns,
-                    "n_code_executions": ca_res.n_code_executions,
-                    "elapsed_s": ca_res.elapsed_s,
-                },
+                "live_codeact_same_model": ca_rec,
             })
             submission_rows.append({
                 "question_id": qid,
                 "aria_v49_answer": "" if aria_rec.get("answer") is None else str(aria_rec["answer"]),
                 "aria_v49_abstained": str(bool(aria_rec.get("abstained"))),
-                "codeact_answer": "" if ca_ans.get("answer") is None else str(ca_ans["answer"]),
-                "codeact_abstained": str(bool(ca_ans.get("abstained", ca_ans.get("answer") is None))),
+                "codeact_answer": "" if ca_rec.get("answer") is None else str(ca_rec["answer"]),
+                "codeact_abstained": str(bool(ca_rec.get("abstained"))),
             })
 
     summary = {
@@ -238,6 +241,8 @@ def run_compbiobench_omics(
         "n_offline_omics_tasks": len(offline_omics),
         "n_native_contract_eligible": sum(1 for t in offline_omics if t["native_contract_eligible"]),
         "n_evaluated": len(records),
+        "n_aria_errors": sum(1 for r in records if isinstance(r.get("aria_v49_governed"), dict) and r["aria_v49_governed"].get("error")),
+        "n_codeact_errors": sum(1 for r in records if isinstance(r.get("live_codeact_same_model"), dict) and r["live_codeact_same_model"].get("error")),
         "ground_truth_note": (
             "Genentech/compbiobench-data-v1 withholds ground-truth answers on "
             "Genentech/compbiobench-leaderboard-v1 to prevent contamination; "

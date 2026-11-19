@@ -1,0 +1,311 @@
+{
+  "aria_package_sha256": "95003240931641a13eb9d6d0a5544421bd6ccf4a88e25246430375de7436586b",
+  "elapsed_s": 2752.25,
+  "evaluated_aria_tag": "v4.9.0",
+  "full_compbiobench_v1_denominator": 100,
+  "ground_truth_note": "Genentech/compbiobench-data-v1 withholds ground-truth answers on Genentech/compbiobench-leaderboard-v1 to prevent contamination; this artifact exports ready-to-submit predictions alongside full-denominator contract coverage.",
+  "model": "tantalus-heavy",
+  "n_evaluated": 14,
+  "n_native_contract_eligible": 10,
+  "n_offline_omics_tasks": 14,
+  "n_omics_domain_tasks": 58,
+  "records": [
+    {
+      "aria_v49_governed": {
+        "abstain_reason": "outside_v49_native_contract:Epigenomics:['odd.one.out.q1.tar.gz']",
+        "abstained": true,
+        "answer": null
+      },
+      "domain": "Epigenomics",
+      "live_codeact_same_model": {
+        "abstain_reason": null,
+        "abstained": true,
+        "answer": null,
+        "elapsed_s": 3.95,
+        "n_code_executions": 0,
+        "n_turns": 1
+      },
+      "native_contract_eligible": false,
+      "question_id": "odd-one-out-q1",
+      "question_style": "Metadata Recovery"
+    },
+    {
+      "aria_v49_governed": {
+        "abstain_reason": "outside_v49_native_contract:Single-cell:['perturb.seq.align.q1.ref.h5ad', 'perturb.seq.align.q1.query.h5ad']",
+        "abstained": true,
+        "answer": null
+      },
+      "domain": "Single-cell",
+      "live_codeact_same_model": {
+        "abstain_reason": null,
+        "abstained": false,
+        "answer": "PABPC1-I1,NUDT21-I3,LEO1-I2",
+        "elapsed_s": 51.464,
+        "n_code_executions": 3,
+        "n_turns": 4
+      },
+      "native_contract_eligible": false,
+      "question_id": "perturb-seq-align-q1",
+      "question_style": "Metadata Recovery"
+    },
+    {
+      "aria_v49_governed": {
+        "abstain_reason": "outside_v49_native_contract:Epigenomics:['single_cell_dynamics_question.csv']",
+        "abstained": true,
+        "answer": null
+      },
+      "domain": "Epigenomics",
+      "live_codeact_same_model": {
+        "abstain_reason": null,
+        "abstained": false,
+        "answer": "A",
+        "elapsed_s": 60.824,
+        "n_code_executions": 2,
+        "n_turns": 3
+      },
+      "native_contract_eligible": false,
+      "question_id": "genome-coords-q1",
+      "question_style": "Synthetic/Augmented Data"
+    },
+    {
+      "aria_v49_governed": {
+        "abstain_reason": "outside_v49_native_contract:Single-cell:['pooled.infer.donors.q1.bam']",
+        "abstained": true,
+        "answer": null
+      },
+      "domain": "Single-cell",
+      "live_codeact_same_model": {
+        "abstain_reason": null,
+        "abstained": false,
+        "answer": "4",
+        "elapsed_s": 196.271,
+        "n_code_executions": 7,
+        "n_turns": 8
+      },
+      "native_contract_eligible": false,
+      "question_id": "pooled-infer-donors-q1",
+      "question_style": "Metadata Recovery"
+    },
+    {
+      "aria_v49_governed": {
+        "abstain_reason": null,
+        "abstained": false,
+        "answer": "37;20;37",
+        "elapsed_s": 85.019,
+        "n_code_executions": 3,
+        "n_turns": 4
+      },
+      "domain": "Single-cell",
+      "live_codeact_same_model": {
+        "abstain_reason": null,
+        "abstained": true,
+        "answer": null,
+        "elapsed_s": 323.763,
+        "n_code_executions": 5,
+        "n_turns": 6
+      },
+      "native_contract_eligible": true,
+      "question_id": "gene-pair-ordering-fraction-q1",
+      "question_style": "Routine Analysis"
+    },
+    {
+      "aria_v49_governed": {
+        "abstain_reason": null,
+        "abstained": false,
+        "answer": "chr7:45000000-46000000",
+        "elapsed_s": 127.233,
+        "n_code_executions": 5,
+        "n_turns": 6
+      },
+      "domain": "Epigenomics",
+      "live_codeact_same_model": {
+        "abstain_reason": null,
+        "abstained": false,
+        "answer": "chr8:70000000-71000000",
+        "elapsed_s": 113.633,
+        "n_code_executions": 6,
+        "n_turns": 7
+      },
+      "native_contract_eligible": true,
+      "question_id": "bigwig-density-q1",
+      "question_style": "Routine Analysis"
+    },
+    {
+      "aria_v49_governed": {
+        "abstain_reason": "Need to first inspect the data files to verify their structure, gene names, and ensure compatibility before computing the Jaccard index. Will do this in the next step.",
+        "abstained": true,
+        "answer": null,
+        "elapsed_s": 6.102,
+        "n_code_executions": 0,
+        "n_turns": 1
+      },
+      "domain": "Single-cell",
+      "live_codeact_same_model": {
+        "abstain_reason": null,
+        "abstained": false,
+        "answer": "1.0",
+        "elapsed_s": 94.384,
+        "n_code_executions": 3,
+        "n_turns": 4
+      },
+      "native_contract_eligible": true,
+      "question_id": "compute-hvg-jaccard-q1",
+      "question_style": "Routine Analysis"
+    },
+    {
+      "aria_v49_governed": {
+        "abstain_reason": "Need to inspect files first to verify format, column names, and annotation structure before proceeding.",
+        "abstained": true,
+        "answer": null,
+        "elapsed_s": 6.038,
+        "n_code_executions": 0,
+        "n_turns": 1
+      },
+      "domain": "Epigenomics",
+      "live_codeact_same_model": {
+        "abstain_reason": null,
+        "abstained": false,
+        "answer": "16",
+        "elapsed_s": 243.174,
+        "n_code_executions": 4,
+        "n_turns": 5
+      },
+      "native_contract_eligible": true,
+      "question_id": "bedtools-chromhmm-q1",
+      "question_style": "Routine Analysis"
+    },
+    {
+      "aria_v49_governed": {
+        "abstain_reason": null,
+        "abstained": false,
+        "answer": "-0.14",
+        "elapsed_s": 39.724,
+        "n_code_executions": 2,
+        "n_turns": 3
+      },
+      "domain": "Single-cell",
+      "live_codeact_same_model": {
+        "abstain_reason": null,
+        "abstained": false,
+        "answer": "-0.14",
+        "elapsed_s": 64.241,
+        "n_code_executions": 4,
+        "n_turns": 5
+      },
+      "native_contract_eligible": true,
+      "question_id": "calculate-average-gene-expression-q1",
+      "question_style": "Routine Analysis"
+    },
+    {
+      "aria_v49_governed": {
+        "abstain_reason": null,
+        "abstained": false,
+        "answer": "C",
+        "elapsed_s": 282.681,
+        "n_code_executions": 6,
+        "n_turns": 7
+      },
+      "domain": "Epigenomics",
+      "live_codeact_same_model": {
+        "abstain_reason": null,
+        "abstained": false,
+        "answer": "C",
+        "elapsed_s": 321.842,
+        "n_code_executions": 6,
+        "n_turns": 7
+      },
+      "native_contract_eligible": true,
+      "question_id": "ep-interactions-q1",
+      "question_style": "Synthetic/Augmented Data"
+    },
+    {
+      "aria_v49_governed": {
+        "abstain_reason": null,
+        "abstained": false,
+        "answer": "111423829",
+        "elapsed_s": 120.225,
+        "n_code_executions": 3,
+        "n_turns": 4
+      },
+      "domain": "Epigenomics",
+      "live_codeact_same_model": {
+        "abstain_reason": null,
+        "abstained": false,
+        "answer": "111423829",
+        "elapsed_s": 169.168,
+        "n_code_executions": 5,
+        "n_turns": 6
+      },
+      "native_contract_eligible": true,
+      "question_id": "bedtools-ops-q1",
+      "question_style": "Routine Analysis"
+    },
+    {
+      "aria_v49_governed": {
+        "abstain_reason": "The file atac.doublet.q1.bed.gz is a BED file containing ATAC-seq fragments. While the task asks to identify doublets from scATAC-seq data, a BED file alone does not contain sufficient information to identify doublets. Doublet detection in scATAC-seq typically requires cell-level metadata (e.g., cell barcodes with associated counts, clustering information, or doublet prediction scores). A BED file contains genomic coordinates of fragments, not cell-level annotations that would allow identification of which cells are doublets. Without cell barcode labels or doublet prediction results, it is not possible to reliably identify doublets from this file alone.",
+        "abstained": true,
+        "answer": null,
+        "elapsed_s": 8.675,
+        "n_code_executions": 0,
+        "n_turns": 1
+      },
+      "domain": "Single-cell",
+      "live_codeact_same_model": {
+        "abstain_reason": "Cannot reliably identify doublets from a BED-format fragment file without additional context or a robust statistical method. The file contains genomic coordinates per fragment, and while doublets often have higher fragment counts, identifying specific doublet barcodes requires either a known doublet detection algorithm (like Scrublet/DoubletFinder adapted for ATAC) or a clear bimodal distribution of fragment counts that can be thresholded. Without running such an analysis and verifying the results, providing a specific barcode would be a guess. However, let me first inspect the data to see if a simple count-based approach is feasible.",
+        "abstained": true,
+        "answer": null,
+        "elapsed_s": 10.584,
+        "n_code_executions": 0,
+        "n_turns": 1
+      },
+      "native_contract_eligible": true,
+      "question_id": "atac-doublet-q1",
+      "question_style": "Synthetic/Augmented Data"
+    },
+    {
+      "aria_v49_governed": {
+        "abstain_reason": null,
+        "abstained": true,
+        "answer": null,
+        "elapsed_s": 307.629,
+        "n_code_executions": 7,
+        "n_turns": 8
+      },
+      "domain": "Single-cell",
+      "live_codeact_same_model": {
+        "abstain_reason": "The task requires identifying healthy vs COVID donors from scRNA-seq data without metadata. While the h5ad file contains 33 donors' PBMC data, reliably classifying donors as healthy or COVID based solely on gene expression without any reference labels, known marker genes, or ground truth is not feasible with standard computational methods. The expression profiles of PBMCs from healthy and COVID patients overlap significantly, and without supervised training data or well-established disease-specific signatures validated for this specific dataset, any classification would be speculative. The task asks for a definitive answer but the methodology to reliably distinguish these groups from unsupervised data alone is not established.",
+        "abstained": true,
+        "answer": null,
+        "elapsed_s": 10.032,
+        "n_code_executions": 0,
+        "n_turns": 1
+      },
+      "native_contract_eligible": true,
+      "question_id": "covid-patient-q1",
+      "question_style": "Metadata Recovery"
+    },
+    {
+      "aria_v49_governed": {
+        "abstain_reason": "Need to inspect the GTF file structure first to verify column names, format, and available attributes before proceeding with analysis.",
+        "abstained": true,
+        "answer": null,
+        "elapsed_s": 5.455,
+        "n_code_executions": 0,
+        "n_turns": 1
+      },
+      "domain": "Transcriptomics",
+      "live_codeact_same_model": {
+        "abstain_reason": "The GTF file format needs to be inspected to determine how UTR and CDS features are represented. GTF files typically have 'exon' features with attributes that may include UTR/CDS information, but the exact structure must be verified before computing lengths. Without inspecting the file, I cannot reliably determine how to extract UTR and CDS coordinates.",
+        "abstained": true,
+        "answer": null,
+        "elapsed_s": 7.536,
+        "n_code_executions": 0,
+        "n_turns": 1
+      },
+      "native_contract_eligible": true,
+      "question_id": "gtf-5-utr-median-len-q1",
+      "question_style": "Routine Analysis"
+    }
+  ],
+  "schema_version": "aria.external_compbiobench_v1.v1"
+}

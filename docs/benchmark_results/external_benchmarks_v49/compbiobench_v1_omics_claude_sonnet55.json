@@ -1,0 +1,337 @@
+{
+  "aria_package_sha256": "95003240931641a13eb9d6d0a5544421bd6ccf4a88e25246430375de7436586b",
+  "elapsed_s": 1687.57,
+  "evaluated_aria_tag": "v4.9.0",
+  "full_compbiobench_v1_denominator": 100,
+  "ground_truth_note": "Genentech/compbiobench-data-v1 withholds ground-truth answers on Genentech/compbiobench-leaderboard-v1 to prevent contamination; this artifact exports ready-to-submit predictions alongside full-denominator contract coverage.",
+  "model": "wsl-claude-sonnet-5-5",
+  "n_aria_errors": 0,
+  "n_codeact_errors": 0,
+  "n_evaluated": 14,
+  "n_native_contract_eligible": 10,
+  "n_offline_omics_tasks": 14,
+  "n_omics_domain_tasks": 58,
+  "records": [
+    {
+      "aria_v49_governed": {
+        "abstain_reason": "outside_v49_native_contract:Epigenomics:['odd.one.out.q1.tar.gz']",
+        "abstained": true,
+        "answer": null
+      },
+      "domain": "Epigenomics",
+      "live_codeact_same_model": {
+        "abstain_reason": null,
+        "abstained": false,
+        "answer": "8",
+        "elapsed_s": 351.871,
+        "error": null,
+        "n_code_executions": 6,
+        "n_turns": 8
+      },
+      "native_contract_eligible": false,
+      "question_id": "odd-one-out-q1",
+      "question_style": "Metadata Recovery"
+    },
+    {
+      "aria_v49_governed": {
+        "abstain_reason": "outside_v49_native_contract:Single-cell:['perturb.seq.align.q1.ref.h5ad', 'perturb.seq.align.q1.query.h5ad']",
+        "abstained": true,
+        "answer": null
+      },
+      "domain": "Single-cell",
+      "live_codeact_same_model": {
+        "abstain_reason": null,
+        "abstained": false,
+        "answer": "guide18,guide13,guide14",
+        "elapsed_s": 44.863,
+        "error": null,
+        "n_code_executions": 3,
+        "n_turns": 4
+      },
+      "native_contract_eligible": false,
+      "question_id": "perturb-seq-align-q1",
+      "question_style": "Metadata Recovery"
+    },
+    {
+      "aria_v49_governed": {
+        "abstain_reason": "outside_v49_native_contract:Epigenomics:['single_cell_dynamics_question.csv']",
+        "abstained": true,
+        "answer": null
+      },
+      "domain": "Epigenomics",
+      "live_codeact_same_model": {
+        "abstain_reason": null,
+        "abstained": false,
+        "answer": "D",
+        "elapsed_s": 19.631,
+        "error": null,
+        "n_code_executions": 1,
+        "n_turns": 2
+      },
+      "native_contract_eligible": false,
+      "question_id": "genome-coords-q1",
+      "question_style": "Synthetic/Augmented Data"
+    },
+    {
+      "aria_v49_governed": {
+        "abstain_reason": "outside_v49_native_contract:Single-cell:['pooled.infer.donors.q1.bam']",
+        "abstained": true,
+        "answer": null
+      },
+      "domain": "Single-cell",
+      "live_codeact_same_model": {
+        "abstain_reason": "The final SNP-based clustering step (SVD plus Gaussian mixture BIC across k=1-8) produced no visible output, so the donor count was never established from the data.",
+        "abstained": true,
+        "answer": null,
+        "elapsed_s": 110.209,
+        "error": null,
+        "n_code_executions": 4,
+        "n_turns": 8
+      },
+      "native_contract_eligible": false,
+      "question_id": "pooled-infer-donors-q1",
+      "question_style": "Metadata Recovery"
+    },
+    {
+      "aria_v49_governed": {
+        "abstain_reason": null,
+        "abstained": false,
+        "answer": "37;20;37",
+        "elapsed_s": 39.498,
+        "error": null,
+        "n_code_executions": 2,
+        "n_turns": 6
+      },
+      "domain": "Single-cell",
+      "live_codeact_same_model": {
+        "abstain_reason": null,
+        "abstained": false,
+        "answer": "37;20;37",
+        "elapsed_s": 29.728,
+        "error": null,
+        "n_code_executions": 3,
+        "n_turns": 4
+      },
+      "native_contract_eligible": true,
+      "question_id": "gene-pair-ordering-fraction-q1",
+      "question_style": "Routine Analysis"
+    },
+    {
+      "aria_v49_governed": {
+        "abstain_reason": null,
+        "abstained": false,
+        "answer": "chr8:70000000-71000000",
+        "elapsed_s": 39.646,
+        "error": null,
+        "n_code_executions": 2,
+        "n_turns": 8
+      },
+      "domain": "Epigenomics",
+      "live_codeact_same_model": {
+        "abstain_reason": null,
+        "abstained": false,
+        "answer": "chr8:70000000-71000000",
+        "elapsed_s": 21.012,
+        "error": null,
+        "n_code_executions": 2,
+        "n_turns": 3
+      },
+      "native_contract_eligible": true,
+      "question_id": "bigwig-density-q1",
+      "question_style": "Routine Analysis"
+    },
+    {
+      "aria_v49_governed": {
+        "abstain_reason": null,
+        "abstained": false,
+        "answer": "0.22",
+        "elapsed_s": 31.78,
+        "error": null,
+        "n_code_executions": 2,
+        "n_turns": 3
+      },
+      "domain": "Single-cell",
+      "live_codeact_same_model": {
+        "abstain_reason": null,
+        "abstained": false,
+        "answer": "0.22",
+        "elapsed_s": 26.8,
+        "error": null,
+        "n_code_executions": 2,
+        "n_turns": 3
+      },
+      "native_contract_eligible": true,
+      "question_id": "compute-hvg-jaccard-q1",
+      "question_style": "Routine Analysis"
+    },
+    {
+      "aria_v49_governed": {
+        "abstain_reason": null,
+        "abstained": false,
+        "answer": "16",
+        "elapsed_s": 128.682,
+        "error": null,
+        "n_code_executions": 3,
+        "n_turns": 5
+      },
+      "domain": "Epigenomics",
+      "live_codeact_same_model": {
+        "abstain_reason": null,
+        "abstained": false,
+        "answer": "21",
+        "elapsed_s": 17.321,
+        "error": null,
+        "n_code_executions": 1,
+        "n_turns": 2
+      },
+      "native_contract_eligible": true,
+      "question_id": "bedtools-chromhmm-q1",
+      "question_style": "Routine Analysis"
+    },
+    {
+      "aria_v49_governed": {
+        "abstain_reason": null,
+        "abstained": false,
+        "answer": "-0.14",
+        "elapsed_s": 106.677,
+        "error": null,
+        "n_code_executions": 2,
+        "n_turns": 4
+      },
+      "domain": "Single-cell",
+      "live_codeact_same_model": {
+        "abstain_reason": null,
+        "abstained": false,
+        "answer": "-0.14",
+        "elapsed_s": 16.574,
+        "error": null,
+        "n_code_executions": 1,
+        "n_turns": 2
+      },
+      "native_contract_eligible": true,
+      "question_id": "calculate-average-gene-expression-q1",
+      "question_style": "Routine Analysis"
+    },
+    {
+      "aria_v49_governed": {
+        "abstain_reason": null,
+        "abstained": false,
+        "answer": "A",
+        "elapsed_s": 29.827,
+        "error": null,
+        "n_code_executions": 2,
+        "n_turns": 4
+      },
+      "domain": "Epigenomics",
+      "live_codeact_same_model": {
+        "abstain_reason": null,
+        "abstained": false,
+        "answer": "C",
+        "elapsed_s": 22.492,
+        "error": null,
+        "n_code_executions": 2,
+        "n_turns": 3
+      },
+      "native_contract_eligible": true,
+      "question_id": "ep-interactions-q1",
+      "question_style": "Synthetic/Augmented Data"
+    },
+    {
+      "aria_v49_governed": {
+        "abstain_reason": null,
+        "abstained": false,
+        "answer": "111423829",
+        "elapsed_s": 30.67,
+        "error": null,
+        "n_code_executions": 3,
+        "n_turns": 5
+      },
+      "domain": "Epigenomics",
+      "live_codeact_same_model": {
+        "abstain_reason": null,
+        "abstained": false,
+        "answer": "111423829",
+        "elapsed_s": 22.313,
+        "error": null,
+        "n_code_executions": 2,
+        "n_turns": 3
+      },
+      "native_contract_eligible": true,
+      "question_id": "bedtools-ops-q1",
+      "question_style": "Routine Analysis"
+    },
+    {
+      "aria_v49_governed": {
+        "abstain_reason": null,
+        "abstained": false,
+        "answer": "AACATGGAGCGCCGGG-1",
+        "elapsed_s": 134.705,
+        "error": null,
+        "n_code_executions": 6,
+        "n_turns": 8
+      },
+      "domain": "Single-cell",
+      "live_codeact_same_model": {
+        "abstain_reason": null,
+        "abstained": false,
+        "answer": "None",
+        "elapsed_s": 116.972,
+        "error": null,
+        "n_code_executions": 5,
+        "n_turns": 6
+      },
+      "native_contract_eligible": true,
+      "question_id": "atac-doublet-q1",
+      "question_style": "Synthetic/Augmented Data"
+    },
+    {
+      "aria_v49_governed": {
+        "abstain_reason": "No disease labels in the data, and donor-level ISG scores, pseudobulk PCA and per-cell ISG distributions all form a continuum with no clear gap between healthy and COVID donors. Any cutoff would be an unverifiable guess.",
+        "abstained": true,
+        "answer": null,
+        "elapsed_s": 181.697,
+        "error": null,
+        "n_code_executions": 5,
+        "n_turns": 6
+      },
+      "domain": "Single-cell",
+      "live_codeact_same_model": {
+        "abstain_reason": null,
+        "abstained": false,
+        "answer": "2,5,6,9,10,11,12,16,21,23,24,25,27,29,32",
+        "elapsed_s": 63.668,
+        "error": null,
+        "n_code_executions": 3,
+        "n_turns": 4
+      },
+      "native_contract_eligible": true,
+      "question_id": "covid-patient-q1",
+      "question_style": "Metadata Recovery"
+    },
+    {
+      "aria_v49_governed": {
+        "abstain_reason": null,
+        "abstained": false,
+        "answer": "133;1296;1050",
+        "elapsed_s": 41.07,
+        "error": null,
+        "n_code_executions": 6,
+        "n_turns": 8
+      },
+      "domain": "Transcriptomics",
+      "live_codeact_same_model": {
+        "abstain_reason": null,
+        "abstained": false,
+        "answer": "133;1296;1050",
+        "elapsed_s": 54.013,
+        "error": null,
+        "n_code_executions": 2,
+        "n_turns": 7
+      },
+      "native_contract_eligible": true,
+      "question_id": "gtf-5-utr-median-len-q1",
+      "question_style": "Routine Analysis"
+    }
+  ],
+  "schema_version": "aria.external_compbiobench_v1.v1"
+}

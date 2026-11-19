@@ -47,6 +47,10 @@ _LEDGER_LOCK = threading.Lock()
 _TIKTOKEN_ENC = None
 
 
+class RateLimitError(RuntimeError):
+    """Raised when an upstream WSL CLI reports a 429 / usage-limit exhaustion."""
+
+
 def _count_tokens(text: str) -> int:
     global _TIKTOKEN_ENC
     if not text:
@@ -95,9 +99,13 @@ def _extract_prompts(messages: list[dict[str, Any]]) -> tuple[str, str]:
 
 def _format_combined_prompt(system_text: str, user_text: str) -> str:
     header = (
-        "[PURE TEXT COMPLETION MODE: Do NOT call any tools, shell commands, or "
-        "file readers. Act strictly as a stateless text/JSON language model and "
-        "reply directly to the prompt below.]"
+        "[DIRECT TEXT-COMPLETION MODE: You are wrapped behind an OpenAI-compatible "
+        "API shim inside an empty temporary sandbox. Do NOT invoke your own built-in "
+        "CLI tools, shell commands, or filesystem tools directly. Instead, reply in "
+        "plain text following <SYSTEM_INSTRUCTIONS> below. If <SYSTEM_INSTRUCTIONS> "
+        "instructs you to emit fenced ```python``` code blocks or structured JSON/XML "
+        "action tags for an external harness to execute, emit them normally in your "
+        "text reply.]"
     )
     if system_text:
         return (
@@ -111,12 +119,9 @@ def _format_combined_prompt(system_text: str, user_text: str) -> str:
 def _invoke_claude_wsl(system_text: str, user_text: str, timeout_s: float) -> tuple[str, dict[str, Any]]:
     claude_bin = shutil.which("claude") or "/usr/bin/claude"
     safe_user = user_text or "Proceed."
-    if safe_user.startswith("-"):
-        safe_user = " \n" + safe_user
     cmd = [
         claude_bin,
         "-p",
-        safe_user,
         "--model",
         "claude-sonnet-5-5",
         "--effort",
@@ -137,18 +142,36 @@ def _invoke_claude_wsl(system_text: str, user_text: str, timeout_s: float) -> tu
             cmd,
             cwd=td,
             env=_clean_subprocess_env(),
-            stdin=subprocess.DEVNULL,
+            input=safe_user,
             capture_output=True,
             text=True,
             timeout=timeout_s,
         )
     if proc.returncode != 0:
-        raise RuntimeError(
-            f"claude -p failed (rc={proc.returncode}): {(proc.stderr or proc.stdout)[:300]}"
-        )
+        err_detail = (proc.stderr or proc.stdout)[:400]
+        try:
+            err_data = json.loads(proc.stdout)
+            if (
+                err_data.get("api_error_status") == 429
+                or err_data.get("api_error") == "usage_limit_reached"
+            ):
+                raise RateLimitError(
+                    f"claude -p rate-limited (429): {err_data.get('result') or err_data.get('api_error')}"
+                )
+            if err_data.get("result"):
+                err_detail = str(err_data["result"])[:400]
+        except RateLimitError:
+            raise
+        except Exception:
+            pass
+        raise RuntimeError(f"claude -p failed (rc={proc.returncode}): {err_detail}")
     data = json.loads(proc.stdout)
     if data.get("is_error"):
-        raise RuntimeError(f"claude -p returned error payload: {str(data)[:300]}")
+        if data.get("api_error_status") == 429 or data.get("api_error") == "usage_limit_reached":
+            raise RateLimitError(
+                f"claude -p rate-limited (429): {data.get('result') or data.get('api_error')}"
+            )
+        raise RuntimeError(f"claude -p returned error payload: {str(data.get('result') or data)[:300]}")
     text = str(data.get("result") or "")
     u = data.get("usage") or {}
     raw_meta = {
@@ -174,7 +197,7 @@ def _invoke_codex_wsl(system_text: str, user_text: str, timeout_s: float) -> tup
         cmd = [
             codex_bin,
             "exec",
-            combined,
+            "-",
             "-m",
             "gpt-5.6-sol",
             "--ephemeral",
@@ -193,15 +216,17 @@ def _invoke_codex_wsl(system_text: str, user_text: str, timeout_s: float) -> tup
             cmd,
             cwd=td,
             env=_clean_subprocess_env(),
-            stdin=subprocess.DEVNULL,
+            input=combined,
             capture_output=True,
             text=True,
             timeout=timeout_s,
         )
     if proc.returncode != 0:
-        raise RuntimeError(
-            f"codex exec failed (rc={proc.returncode}): {(proc.stderr or proc.stdout)[:300]}"
-        )
+        err_blob = (proc.stderr or proc.stdout or "")
+        low = err_blob.lower()
+        if "usage limit" in low or "rate limit" in low or "429" in low:
+            raise RateLimitError(f"codex exec rate-limited (429): {err_blob[:400]}")
+        raise RuntimeError(f"codex exec failed (rc={proc.returncode}): {err_blob[:400]}")
     last_text = ""
     usage: dict[str, Any] = {}
     turns = 0
@@ -299,6 +324,8 @@ def _dispatch_cli(model_id: str, system_text: str, user_text: str, timeout_s: fl
             if model_id == "wsl-agy-gemini-4-carbon-low":
                 return _invoke_agy_wsl(system_text, user_text, timeout_s)
             raise ValueError(f"Unsupported shim model: {model_id!r}")
+        except RateLimitError:
+            raise
         except Exception as exc:
             last_err = exc
             if attempt == 0:
@@ -403,6 +430,16 @@ class ShimHandler(BaseHTTPRequestHandler):
                         "completion_tokens": net_out,
                         "total_tokens": net_in + net_out,
                     },
+                },
+            )
+        except RateLimitError as exc:
+            self._send_json(
+                429,
+                {
+                    "error": {
+                        "message": str(exc)[:400],
+                        "type": "rate_limit_error",
+                    }
                 },
             )
         except Exception as exc:

@@ -384,6 +384,12 @@ def test_ungrounded_answers_are_downgraded_to_E_by_compiler_wall(tmp_path):
     assert res["choice"] == "E" and res["abstain_reason"] == "max_governed_turns_exhausted_without_final_answer"
     assert [t.get("status") for t in res["trace"]] == ["ok", "not_executed_turn_budget_exhausted"]
     assert "FINAL turn" in llm.messages_seen[1][-1]["content"]
+    # (e) wrap-up turn after exhausted budget can emit a grounded final_answer via llm()
+    llm_wrap = _ScriptedLLM([vc, vc, {"action": "final_answer", "choice": good, "ledger_evidence": ["3"]}])
+    res_wrap = rb.run_aria_governed_task(task, pub, capsule_dir=cap, scratch=tmp_path / "e", llm=llm_wrap,
+                                         rna_python=rb.DEFAULT_RNA_PYTHON, max_turns=2)
+    assert res_wrap["choice"] == good and res_wrap["abstained"] is False
+    assert res_wrap["trace"][-1]["action"] == "wrap_up_final"
 
 
 def test_evidence_grounding_rules():

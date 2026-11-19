@@ -1,0 +1,14 @@
+{
+  "evaluated_aria_tag": "v4.9.0",
+  "generated_utc": "2026-11-19T04:52:55.645537+00:00",
+  "live_latch_cloud_note": "Official latchbio/scbench eval JSONs reference latch://*.node cloud datasets requiring ~/.latch/token authentication; not present in this offline environment. Adapter passes full end-to-end synthetic verification against frozen ARIA v4.9.0.",
+  "live_latch_cloud_status": "blocked_missing_latch_token",
+  "schema_version": "aria.external_scbench_adapter_verification.v1",
+  "synthetic_smoke": {
+    "aria_package_sha256": "95003240931641a13eb9d6d0a5544421bd6ccf4a88e25246430375de7436586b",
+    "lobo_status": "measured",
+    "non_rna_abstain_reason": "unsupported_non_rna_modality_cue:dna+protein",
+    "pseudobulk_n_sig": 8,
+    "status": "pass"
+  }
+}

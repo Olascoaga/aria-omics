@@ -1889,18 +1889,16 @@ def run_aria_governed_task(
             "role": "user",
             "content": (
                 "Your tool execution budget is finished. Do NOT request any further ARIA tool. "
-                "Using ONLY the ARIA tool outputs already observed above, respond with ONLY a JSON "
-                "final_answer (citing ledger_evidence copied verbatim from tool outputs above) or an abstain action."
+                "Using ONLY the ARIA tool outputs already observed above, respond with ONLY one "
+                "<ACTION>{...}</ACTION> JSON object for final_answer (citing ledger_evidence "
+                "copied verbatim from tool outputs above) or abstain."
             ),
         })
         try:
-            wrap = chat_completion(
-                messages, api_base=api_base, model=model, temperature=0.0,
-                max_tokens=1024, timeout=llm_timeout,
-            )
-            base["prompt_tokens"] += wrap["prompt_tokens"]
-            base["completion_tokens"] += wrap["completion_tokens"]
-            wrap_act = _extract_action_json(wrap["content"])
+            wrap = llm(messages)
+            base["prompt_tokens"] += int(wrap.get("prompt_tokens") or 0)
+            base["completion_tokens"] += int(wrap.get("completion_tokens") or 0)
+            wrap_act = _extract_action(str(wrap.get("content") or ""))
             if wrap_act and str(wrap_act.get("action") or "").lower() in {"final_answer", "abstain"}:
                 final = wrap_act
                 base["trace"].append({"turn": max_turns + 1, "action": "wrap_up_final", "status": "ok"})

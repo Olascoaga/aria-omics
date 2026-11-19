@@ -1,0 +1,15 @@
+question_id	aria_v49_answer	aria_v49_abstained	codeact_answer	codeact_abstained
+odd-one-out-q1		True	8	False
+perturb-seq-align-q1		True	guide18,guide13,guide14	False
+genome-coords-q1		True	D	False
+pooled-infer-donors-q1		True		True
+gene-pair-ordering-fraction-q1	37;20;37	False	37;20;37	False
+bigwig-density-q1	chr8:70000000-71000000	False	chr8:70000000-71000000	False
+compute-hvg-jaccard-q1	0.22	False	0.22	False
+bedtools-chromhmm-q1	16	False	21	False
+calculate-average-gene-expression-q1	-0.14	False	-0.14	False
+ep-interactions-q1	A	False	C	False
+bedtools-ops-q1	111423829	False	111423829	False
+atac-doublet-q1	AACATGGAGCGCCGGG-1	False	None	False
+covid-patient-q1		True	2,5,6,9,10,11,12,16,21,23,24,25,27,29,32	False
+gtf-5-utr-median-len-q1	133;1296;1050	False	133;1296;1050	False
