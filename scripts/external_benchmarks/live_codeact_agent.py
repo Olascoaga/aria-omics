@@ -388,8 +388,36 @@ def run_live_codeact_task(
                 ),
             })
 
+    final_parsed = extract_json_answer(last_text)
+    if final_parsed is None:
+        # One symmetric JSON-only wrap-up turn so valid multi-step runs never fail purely on formatting
+        messages.append({
+            "role": "user",
+            "content": (
+                "Your code execution turns are finished. Do NOT write Python code. "
+                "Using ONLY the execution outputs already above, output ONLY the valid JSON object "
+                "inside <FINAL_ANSWER>...</FINAL_ANSWER> tags (or set abstained=true if insufficient)."
+            ),
+        })
+        try:
+            wrap = chat_completion(
+                messages,
+                api_base=api_base,
+                model=model,
+                temperature=0.0,
+                max_tokens=1024,
+                timeout=llm_timeout,
+            )
+            last_text = wrap["content"]
+            prompt_toks += wrap["prompt_tokens"]
+            comp_toks += wrap["completion_tokens"]
+            final_parsed = extract_json_answer(last_text)
+            trace.append({"turn": max_turns + 1, "action": "wrap_up_json", "elapsed_s": wrap["elapsed_s"]})
+        except Exception:
+            pass
+
     return CodeActResult(
-        parsed_answer=extract_json_answer(last_text),
+        parsed_answer=final_parsed,
         raw_final_text=last_text,
         n_turns=max_turns,
         n_code_executions=n_exec,
@@ -397,6 +425,6 @@ def run_live_codeact_task(
         prompt_tokens=prompt_toks,
         completion_tokens=comp_toks,
         elapsed_s=round(time.perf_counter() - t_start, 3),
-        error=None if extract_json_answer(last_text) is not None else "max_turns_without_json",
+        error=None if final_parsed is not None else "max_turns_without_json",
         trace=trace,
     )
