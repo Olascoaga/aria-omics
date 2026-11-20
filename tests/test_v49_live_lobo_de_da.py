@@ -220,9 +220,13 @@ def test_certificate_manual_override_and_non_de_claims(live_results):
               "n_features_evaluated": 7, "n_features_lobo_stable": 5}
     assert _axis(_claim("bulk_rna"), results, {"lobo_jackknife": manual}) == {
         **manual, "biological_unit": "biological_unit"}
-    for supplied in ({}, None, {"status": "error"}):
-        axis = _axis(_claim("bulk_rna"), results, {"lobo_jackknife": supplied})
-        assert axis["status"] == "eligible_not_executed"
+    # Explicit non-measured status overrides live results; empty/None placeholders
+    # must not shadow measured agent-result LOBO summaries.
+    axis_err = _axis(_claim("bulk_rna"), results, {"lobo_jackknife": {"status": "error"}})
+    assert axis_err["status"] == "eligible_not_executed"
+    for empty_placeholder in ({}, None):
+        axis_live = _axis(_claim("bulk_rna"), results, {"lobo_jackknife": empty_placeholder})
+        assert axis_live["status"] == "measured"
     assert _axis(_claim("chromatin", "differential_accessibility"), results)["status"] == "eligible_not_executed"
     assert _axis(_claim("bulk_rna", "qc", "descriptive"), results)["status"] == "not_applicable_descriptive"
     assert _axis(_claim("bulk_rna", "peak_to_gene"), results)["status"] == "eligible_not_executed"

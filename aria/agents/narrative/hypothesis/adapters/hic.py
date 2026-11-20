@@ -57,7 +57,7 @@ def _finite_float(val: Any) -> float | None:
         f = float(val)
     except (TypeError, ValueError):
         return None
-    return round(f, 6) if math.isfinite(f) else None
+    return f if math.isfinite(f) else None
 
 
 def _split_gene_field(raw: Any) -> list[str]:

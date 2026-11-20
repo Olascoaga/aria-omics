@@ -95,7 +95,11 @@ def _compose_qc(block: NarrativeBlock) -> str:
 
 
 def _compose_de(block: NarrativeBlock) -> str:
-    n_sig = _ev(block, "DE genes", block.metrics.get("n_significant"))
+    n_sig = _ev(
+        block,
+        "DE genes",
+        _ev(block, "n_significant", block.metrics.get("n_significant")),
+    )
     up = _ev(block, "up genes", block.metrics.get("n_upregulated"))
     down = _ev(block, "down genes", block.metrics.get("n_downregulated"))
     genes = _top_gene_phrases(block)
@@ -103,6 +107,11 @@ def _compose_de(block: NarrativeBlock) -> str:
     if up is not None and down is not None:
         direction = f" ({up} higher and {down} lower in the numerator group)"
     gene_text = f" The strongest reported genes include {genes}." if genes else ""
+    if n_sig is None:
+        return (
+            f"{block.title} completed differential expression analysis"
+            f"{direction}.{gene_text}"
+        )
     return (
         f"{block.title} identified {n_sig} differentially expressed genes"
         f"{direction}.{gene_text}"
@@ -131,6 +140,11 @@ def _compose_pseudobulk(block: NarrativeBlock) -> str:
         " The DE model included a composition covariate."
         if block.metrics.get("corrected_for_composition") else ""
     )
+    if n_global is None:
+        return (
+            f"{block.title} completed pseudobulk differential expression analysis"
+            f"{direction}{local_text}.{gene_text}{correction}"
+        )
     return (
         f"{block.title} contributed {n_global} global-FDR DE genes{direction}"
         f"{local_text}.{gene_text}{correction}"
@@ -147,7 +161,7 @@ def _compose_composition(block: NarrativeBlock) -> str:
             shifts.append(f"{name} {ev.value}")
     examples = f" The largest listed shifts were {', '.join(shifts[:5])}." \
         if shifts else ""
-    if tested is not None:
+    if tested is not None and shifted is not None:
         return (
             f"{block.title} detected abundance changes in {shifted} of "
             f"{tested} tested cell type(s).{examples}"
@@ -159,6 +173,12 @@ def _compose_pathway(block: NarrativeBlock) -> str:
     n_terms = _ev(block, "enriched terms", block.metrics.get("n_terms"))
     terms = _term_values(block)
     term_text = f" Leading terms include {', '.join(terms[:5])}." if terms else ""
+    if n_terms is None:
+        return (
+            f"{block.title} summarized pathway enrichment results."
+            f"{term_text} These terms summarize the DE gene list rather than "
+            "establishing causal pathway activity."
+        )
     return (
         f"{block.title} found {n_terms} enriched pathway or gene-set term(s)."
         f"{term_text} These terms summarize the DE gene list rather than "
@@ -197,6 +217,11 @@ def _compose_gsea(block: NarrativeBlock) -> str:
             " One or more GSEA rows had non-finite numerical values and were "
             "excluded from the ranked-signal prose."
         )
+    if n_terms is None:
+        return (
+            f"{block.title} evaluated the full log2FC-ranked gene list for GSEA "
+            f"at the standard exploratory threshold of FDR < 0.25.{top_text}"
+        )
     return (
         f"{block.title} used the full log2FC-ranked gene list and found "
         f"{n_terms} pathway(s) at the standard exploratory GSEA threshold "
@@ -205,6 +230,8 @@ def _compose_gsea(block: NarrativeBlock) -> str:
 
 
 def _is_finite_number(value) -> bool:
+    if isinstance(value, bool) or value is None:
+        return False
     try:
         return math.isfinite(float(value))
     except (TypeError, ValueError):
@@ -219,7 +246,7 @@ def _compose_cellcomm(block: NarrativeBlock) -> str:
         if "->" in ev.label and ev.value:
             pairs.append(f"{ev.label} {ev.value}")
     pair_text = f" Top candidates include {', '.join(pairs[:5])}." if pairs else ""
-    if cell_types is not None:
+    if cell_types is not None and interactions is not None:
         return (
             f"{block.title} reported {interactions} non-autocrine "
             f"ligand-receptor candidate(s) across {cell_types} cell type(s)."
@@ -233,6 +260,11 @@ def _compose_trajectory(block: NarrativeBlock) -> str:
     strong = _ev(block, "strong PAGA edges")
     order = _ev(block, "DPT ordered groups")
     order_text = f" DPT ordered groups as {order}." if order else ""
+    if edges is None or strong is None:
+        return (
+            f"{block.title} summarized manifold trajectory connectivity."
+            f"{order_text}"
+        )
     return (
         f"{block.title} summarized manifold connectivity with {edges} PAGA "
         f"connection(s), including {strong} strong edge(s).{order_text}"
@@ -242,7 +274,14 @@ def _compose_trajectory(block: NarrativeBlock) -> str:
 def _compose_power(block: NarrativeBlock) -> str:
     min_power = block.metrics.get("min_power")
     max_power = block.metrics.get("max_power")
-    if isinstance(min_power, (int, float)) and isinstance(max_power, (int, float)):
+    if (
+        isinstance(min_power, (int, float))
+        and isinstance(max_power, (int, float))
+        and not isinstance(min_power, bool)
+        and not isinstance(max_power, bool)
+        and _is_finite_number(min_power)
+        and _is_finite_number(max_power)
+    ):
         return (
             f"{block.title} estimated approximate power between "
             f"{min_power:.0%} and {max_power:.0%} across analyzable contrasts."
@@ -254,9 +293,14 @@ def _compose_paired_qc(block: NarrativeBlock) -> str:
     before = _ev(block, "cells before QC", block.metrics.get("n_cells_before"))
     after = _ev(block, "cells after QC", block.metrics.get("n_cells_after"))
     pct = _ev(block, "removed fraction pct", block.metrics.get("pct_removed"))
-    pct_str = str(pct) if str(pct).endswith("%") else f"{pct}%"
     genes = _ev(block, "RNA genes", block.metrics.get("n_genes"))
     peaks = _ev(block, "ATAC peaks", block.metrics.get("n_peaks"))
+    if before is None or after is None or genes is None or peaks is None:
+        return f"{block.title} completed paired multiome QC."
+    pct_clause = ""
+    if pct is not None:
+        pct_str = str(pct) if str(pct).endswith("%") else f"{pct}%"
+        pct_clause = f" ({pct_str} removed)"
     matched = _ev(block, "label join matched cells")
     join_txt = (
         f" Reference barcode label join matched {matched} shared cells."
@@ -264,8 +308,8 @@ def _compose_paired_qc(block: NarrativeBlock) -> str:
         else ""
     )
     return (
-        f"{block.title} retained {after} of {before} verified shared barcodes "
-        f"({pct_str} removed) spanning {genes} RNA genes and {peaks} ATAC peaks."
+        f"{block.title} retained {after} of {before} verified shared barcodes"
+        f"{pct_clause} spanning {genes} RNA genes and {peaks} ATAC peaks."
         f"{join_txt}"
     )
 
@@ -314,14 +358,25 @@ def _compose_mofa(block: NarrativeBlock) -> str:
     )
     rna_r2 = _ev(block, "RNA non-additive R2 pct", block.metrics.get("rna_r2_pct"))
     atac_r2 = _ev(block, "ATAC non-additive R2 pct", block.metrics.get("atac_r2_pct"))
-    rna_str = str(rna_r2) if str(rna_r2).endswith("%") else f"{rna_r2}%"
-    atac_str = str(atac_r2) if str(atac_r2).endswith("%") else f"{atac_r2}%"
+    if any(v is None for v in (n_cells, n_fac, n_act, n_sh, n_sp, n_ex)):
+        return f"{block.title} completed MOFA+ latent factor modeling."
+    r2_parts = []
+    if rna_r2 is not None:
+        rna_str = str(rna_r2) if str(rna_r2).endswith("%") else f"{rna_r2}%"
+        r2_parts.append(f"{rna_str} in RNA")
+    if atac_r2 is not None:
+        atac_str = str(atac_r2) if str(atac_r2).endswith("%") else f"{atac_r2}%"
+        r2_parts.append(f"{atac_str} in ATAC")
+    r2_clause = (
+        f"; total non-additive R2 was {' and '.join(r2_parts)}"
+        if r2_parts
+        else ""
+    )
     return (
         f"{block.title} evaluated {n_cells} shared cells across {n_fac} fitted "
         f"factors, retaining {n_act} active factors ({n_sh} shared and {n_sp} "
         f"modality-specific) while quarantining {n_ex} technical or cell-cycle "
-        f"confounder factor(s); total non-additive R2 was {rna_str} in RNA and "
-        f"{atac_str} in ATAC."
+        f"confounder factor(s){r2_clause}."
     )
 
 

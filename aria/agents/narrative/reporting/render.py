@@ -2,7 +2,33 @@
 
 from __future__ import annotations
 
+import math
+
 from aria.agents.narrative.reporting._base import *
+
+
+def _sanitize_json_value(obj):
+    """Recursively replace non-finite floats with None for strict RFC-8259 JSON."""
+    if isinstance(obj, bool) or obj is None:
+        return obj
+    if isinstance(obj, float):
+        return obj if math.isfinite(obj) else None
+    if isinstance(obj, dict):
+        return {k: _sanitize_json_value(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_sanitize_json_value(v) for v in obj]
+    if isinstance(obj, tuple):
+        return [_sanitize_json_value(v) for v in obj]
+    if isinstance(obj, set):
+        return [_sanitize_json_value(v) for v in sorted(obj, key=str)]
+    # Handle NumPy scalar types cleanly without requiring numpy import.
+    item = getattr(obj, "item", None)
+    if callable(item) and type(obj).__module__.startswith("numpy"):
+        try:
+            return _sanitize_json_value(item())
+        except Exception:
+            pass
+    return obj
 
 
 class ReportRenderMixin:
@@ -396,7 +422,8 @@ class ReportRenderMixin:
         # withheld without exposing their text.
         from aria.agents.narrative.claim_compiler import compile_public_claims
         public_compilation = compile_public_claims(
-            narrative_blocks, exp_ctx, run_ledger=run_ledger
+            narrative_blocks, exp_ctx, run_ledger=run_ledger,
+            report_dir=report_dir,
         )
         narrative_blocks = public_compilation.blocks
         public_claims = public_compilation.claims
@@ -471,7 +498,11 @@ class ReportRenderMixin:
                 exp_ctx,
                 robustness_multiverse=build_robustness_multiverse(agent_results),
             )
-        except Exception:
+        except Exception as exc:
+            log.warning(
+                f"Falsification certificates build failed: {exc}",
+                exc_info=True,
+            )
             _prov_fc = None
         provenance_html = self._build_provenance_section(
             provenance=provenance,
@@ -482,6 +513,7 @@ class ReportRenderMixin:
             decision_manifest=exp_ctx.get("decision_manifest"),
             fork_ledger=exp_ctx.get("analytical_fork_ledger"),
             falsification_certificates=_prov_fc,
+            raw_ingestion=exp_ctx.get("raw_ingestion", []),
         )
         findings_html = self._build_findings_section(
             findings_sections,
@@ -782,23 +814,26 @@ class ReportRenderMixin:
             claim_compilation=public_compilation.summary(),
         )
         methodology_path = report_dir / "methodology.json"
+        methodology_clean = _sanitize_json_value(methodology_obj)
         methodology_path.write_text(
             json.dumps(
-                methodology_obj,
+                methodology_clean,
                 indent=2,
                 sort_keys=True,
                 default=str,
+                allow_nan=False,
             ),
             encoding="utf-8",
         )
-        if isinstance(methodology_obj.get("decision_manifest"), dict):
+        if isinstance(methodology_clean.get("decision_manifest"), dict):
             dm_path = report_dir / "decision_manifest.json"
             dm_path.write_text(
                 json.dumps(
-                    methodology_obj["decision_manifest"],
+                    methodology_clean["decision_manifest"],
                     indent=2,
                     sort_keys=True,
                     default=str,
+                    allow_nan=False,
                 ),
                 encoding="utf-8",
             )

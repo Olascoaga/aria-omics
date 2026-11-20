@@ -56,6 +56,8 @@ CATEGORIES = (
 
 def finite(value):
     """A JSON-compatible finite number, or None."""
+    if isinstance(value, (bool, np.bool_)):
+        return None
     try:
         number = float(value)
         return number if math.isfinite(number) else None
@@ -190,10 +192,20 @@ def _column(df, *names):
 
 
 def _value(record, *names):
+    lookup = {str(key).lower(): value for key, value in record.items()}
     for name in names:
-        value = record.get(name)
-        if value is not None and not (isinstance(value, float) and math.isnan(value)):
-            return value
+        value = lookup.get(name.lower())
+        if value is None or (isinstance(value, str) and not value.strip()):
+            continue
+        if isinstance(value, (bool, np.bool_)):
+            continue
+        try:
+            if not math.isfinite(float(value)):
+                continue
+        except (TypeError, ValueError):
+            if not isinstance(value, str) or pd.isna(value):
+                continue
+        return value
     return None
 
 
@@ -248,6 +260,8 @@ def load_rna_table(comp, aliases, warnings, alpha=.05):
     for path in rna_table_paths(comp):
         if path and Path(path).is_file():
             df = filter_comparison(read_table(path, warnings), comp)
+            if df.empty:
+                continue
             # ARIA pseudobulk output_csv contains significant rows only.
             full = not (path == comp.get("output_csv") and comp.get("group") is not None)
             break
@@ -337,7 +351,8 @@ def load_atac_table(comp, atac, models, params, flipped, warnings):
         if not isinstance(gene, str) or not gene or distance is None or abs(distance) > params["cis_distance_bp"]:
             continue
         conv = raw.get("lfc_converged")
-        tested = padj is not None and lfc is not None and str(conv).lower() not in ("false", "0")
+        unconverged = (isinstance(conv, (int, float, np.number)) and conv == 0) or str(conv).strip().lower() in ("false", "0", "0.0")
+        tested = padj is not None and lfc is not None and not unconverged
         if not tested:
             continue
         rows.append({"peak": str(raw["peak"]), "gene_key": gene.upper(), "atac_log2fc": -lfc if flipped else lfc,
@@ -414,7 +429,7 @@ def summarize_de_da(frame, promoter_bp=2000):
         out.update(enrichment_odds_ratio=finite(odds), enrichment_pvalue=finite(p))
     if out["n_both_significant"]:
         out["concordance_fraction"] = out["n_concordant_total"] / out["n_both_significant"]
-    if out["n_both_significant"] >= 2:
+    if out["n_concordant_total"] + out["n_discordant_total"] >= 2:
         odds, p = fisher_exact([[out["n_concordant_up"], out["n_discordant_rna_up_atac_down"]],
                                [out["n_discordant_rna_down_atac_up"], out["n_concordant_down"]]], alternative="two-sided")
         out.update(fisher_odds_ratio=finite(odds), fisher_pvalue=finite(p))
@@ -486,7 +501,10 @@ def _footprint_records(foot, comp, warnings):
     ga, gb = foot.get("group_a"), foot.get("group_b")
     arms = contrast_arms(comp)
     foot_arms = (str(ga), str(gb)) if ga and gb else contrast_arms(foot)
-    if foot_arms and foot_arms not in (arms, arms[::-1]):
+    if arms is None or foot_arms is None:
+        warnings.append("footprint_skipped: contrast_orientation_unavailable")
+        return [], 1
+    if foot_arms not in (arms, arms[::-1]):
         warnings.append("footprint_skipped: incompatible_contrast_denominators")
         return [], 1
     orientation = -1 if foot_arms and foot_arms == arms[::-1] else 1
@@ -526,14 +544,15 @@ def tf_layer(atac, comp, rna_df, flipped, alpha, warnings, expression=None):
     for motif in motif_rows:
         padj = finite(motif.get("padj"))
         direction = _group_direction(motif.get("group", motif.get("direction", "")), comp)
-        if padj is None or padj >= alpha or direction is None:
+        if padj is None or not 0.0 <= padj < alpha or direction is None:
             continue
         score = finite(motif.get("log2_enrichment"))
         evidence.append({**motif, "source": "motif", "direction_sign": -direction if flipped else direction,
-                         "chromatin_score": abs(score) if score is not None else -math.log10(max(padj, 1e-300))})
+                         # Zero FDR alone provides no finite enrichment magnitude.
+                         "chromatin_score": abs(score) if score is not None else -math.log10(padj) if padj > 0 else None})
     foot_rows, orientation = _footprint_records(unwrap(atac.get("footprinting", {})), comp, warnings)
     for row in foot_rows:
-        if row["padj"] < alpha and row["change"] != 0:
+        if 0.0 <= row["padj"] < alpha and row["change"] != 0:
             change = row["change"] * orientation * (-1 if flipped else 1)
             evidence.append({**row, "name": row.get("tf") or row.get("name"), "source": "footprint",
                              "direction_sign": int(np.sign(change)), "chromatin_score": abs(change)})
@@ -568,11 +587,12 @@ def tf_layer(atac, comp, rna_df, flipped, alpha, warnings, expression=None):
         ambiguous = item["dimer_direction_divergence"] or len(stems[_stem(tf)]) > 1 or bool(family and len(families[family]) > 1)
         rows.append({"tf": tf, "motif_name": item["motif_name"], "motif_id": item.get("motif_id"),
                      "family": item.get("family"), "source": item["source"], "chromatin_direction": "up" if item["direction_sign"] > 0 else "down",
-                     "chromatin_score": item["chromatin_score"] * item["direction_sign"], "chromatin_padj": item["padj"],
+                     "chromatin_score": item["chromatin_score"] * item["direction_sign"] if item["chromatin_score"] is not None else None, "chromatin_padj": item["padj"],
                      "rna_log2fc": rna.get("rna_log2fc") if rna else None, "rna_padj": rna.get("rna_padj") if rna else None,
                      "rna_mean_cpm": expr, "classification": classification, "paralog_motif_ambiguity": bool(ambiguous)})
     frame = pd.DataFrame(rows)
     if not frame.empty:
+        frame["chromatin_score"] = pd.to_numeric(frame["chromatin_score"], errors="coerce")
         frame = frame.drop_duplicates(["tf", "source", "motif_name", "chromatin_direction"])
     return frame, summarize_tfs(frame)
 
@@ -588,7 +608,10 @@ def summarize_tfs(frame):
     out.update(n_tfs_evaluated=len(unique), n_concordant_tfs=counts["concordant"], n_discordant_tfs=counts["discordant"],
                n_chromatin_shift_rna_unchanged=counts["chromatin_shift_rna_unchanged"],
                n_paralog_ambiguous=int(frame.groupby(keys).paralog_motif_ambiguity.any().sum()),
-               top_concordant_tfs=unique[unique.classification == "concordant"].head(20).to_dict("records"))
+               top_concordant_tfs=[
+                   {key: None if isinstance(value, float) and not math.isfinite(value) else value
+                    for key, value in row.items()}
+                   for row in unique[unique.classification == "concordant"].head(20).to_dict("records")])
     return out
 
 
@@ -608,7 +631,7 @@ def pathway_terms(value, alpha):
                 # display sanitization, so unrelated labels cannot collapse.
                 clean = re.sub(r"\s*\(?GO:\d+\)?|\s*\(?R-HSA-\d+\)?|\s*\(?hsa\d+\)?", "", str(raw), flags=re.I).strip()
                 key = re.sub(r"\s+", " ", clean).casefold()
-                if key and padj < alpha and (key not in terms or padj < terms[key]["padj"]):
+                if key and 0.0 <= padj < alpha and (key not in terms or padj < terms[key]["padj"]):
                     terms[key] = {"term": str(raw), "safe_label": label, "padj": padj}
             else:
                 for key, child in node.items():
@@ -624,8 +647,10 @@ def pathway_layer(rna, atac, rcomp, acomp, alpha):
         rp = (unwrap(rna.get("pathways", {})).get("per_cluster") or {}).get(str(rcomp["group"]))
     ap = None
     ora = unwrap(atac.get("peak_ora", {}))
+    arms = contrast_arms(acomp)
     for comp in ora.get("comparisons") or []:
-        if contrast_arms(comp) in (contrast_arms(acomp), contrast_arms(acomp)[::-1]):
+        comp_arms = contrast_arms(comp)
+        if arms is not None and comp_arms is not None and comp_arms in (arms, arms[::-1]):
             if comp.get("group") is None or comp.get("group") == acomp.get("group"):
                 ap = comp.get("pathways")
                 break
@@ -637,8 +662,8 @@ def pathway_layer(rna, atac, rcomp, acomp, alpha):
         rr, aa = rt[key], at[key]
         shared.append({"term": rr["term"], "atac_term": aa["term"], "safe_label": rr["safe_label"],
                        "rna_padj": rr["padj"], "atac_padj": aa["padj"],
-                       "geometric_mean_padj": math.sqrt(rr["padj"] * aa["padj"]), "term_key": key})
-    shared.sort(key=lambda row: (row["geometric_mean_padj"], row["term_key"]))
+                       "geometric_mean_padj": math.sqrt(rr["padj"]) * math.sqrt(aa["padj"]), "term_key": key})
+    shared.sort(key=_pathway_sort_key)
     union = rt.keys() | at.keys()
     summary = {"ran": bool(rp) and bool(ap), "n_rna_terms": len(rt), "n_atac_terms": len(at),
                "n_shared_terms": len(shared), "jaccard_index": len(shared) / len(union) if union else 0.0,
@@ -649,11 +674,19 @@ def pathway_layer(rna, atac, rcomp, acomp, alpha):
     return pd.DataFrame(shared), summary, rt, at
 
 
+def _pathway_sort_key(row):
+    larger, smaller = max(row["rna_padj"], row["atac_padj"]), min(row["rna_padj"], row["atac_padj"])
+    # A reported zero has unknown precision; rank it conservatively without
+    # changing the measured p-values or their geometric mean.
+    return (row["geometric_mean_padj"] if smaller > 0 else larger, larger, smaller, row["term_key"])
+
+
 def aggregate_pathways(rna_terms, atac_terms, frame, ran):
     if frame.empty:
         rows = []
     else:
-        rows = frame.sort_values("geometric_mean_padj").drop_duplicates("term_key").to_dict("records")
+        rows = sorted(frame.to_dict("records"), key=_pathway_sort_key)
+        rows = pd.DataFrame(rows).drop_duplicates("term_key").to_dict("records")
     shared = [{**{k: v for k, v in row.items() if k not in ("term", "atac_term", "term_key")},
                "term": row["safe_label"]} for row in rows]
     union = set(rna_terms) | set(atac_terms)
@@ -740,22 +773,31 @@ def read_cpm(path, aliases, warnings):
     else:
         df = df.set_index(feature)
         df = df.drop(columns=[c for c in ("gene_id", "gene_symbol", "symbol") if c in df], errors="ignore")
-    df.index = [aliases.get(str(x).split(".")[0].upper(), str(x)) for x in df.index]
     df.columns = df.columns.astype(str)
     if df.columns.duplicated().any() or df.index.duplicated().any():
         warnings.append("cpm_matrix_skipped: duplicate_feature_or_sample_ids")
         return pd.DataFrame()
-    return df.apply(pd.to_numeric, errors="coerce")
+    df = df.apply(pd.to_numeric, errors="coerce")
+    df.index = [aliases.get(str(x).split(".")[0].upper(), str(x)) for x in df.index]
+    if df.index.duplicated().any():
+        warnings.append("cpm_feature_alias_collisions: summed_mapped_loci")
+        df = df.groupby(level=0, sort=False).sum(min_count=1)
+    return df
 
 
 def bh_adjust(values):
     values = np.asarray(values, dtype=float)
-    if not len(values):
-        return values
-    order = np.argsort(values, kind="stable")
-    adjusted = np.minimum.accumulate((values[order] * len(values) / np.arange(1, len(values) + 1))[::-1])[::-1]
-    result = np.empty_like(values)
-    result[order] = np.minimum(adjusted, 1.0)
+    result = np.full_like(values, np.nan)
+    valid = np.isfinite(values)
+    m = int(valid.sum())
+    if not m:
+        return result
+    p = np.clip(values[valid], 0.0, 1.0)
+    order = np.argsort(p, kind="mergesort")
+    adjusted = np.minimum.accumulate((p[order] * m / np.arange(1, m + 1))[::-1])[::-1]
+    restored = np.empty(m, dtype=float)
+    restored[order] = np.clip(adjusted, 0.0, 1.0)
+    result[valid] = restored
     return result
 
 
@@ -849,10 +891,15 @@ def sample_matched_layer(rna_cpm, atac_cpm, models, params, warnings):
     rho = np.clip(np.einsum("ij,ij->i", rrank[ri], arank[ai]), -1, 1)
     rng = np.random.default_rng(params["seed"])
     draws = params["n_permutations"]
+    def permutation():
+        perm = rng.permutation(len(shared))
+        while 2 <= len(shared) <= 8 and np.array_equal(perm, np.arange(len(shared))):
+            perm = rng.permutation(len(shared))
+        return perm
     # Chunk pairs so temporary sample arrays do not scale with the full family.
     null = np.empty((draws, len(rows)), dtype=float)
     for draw in range(draws):
-        perm = rng.permutation(len(shared))
+        perm = permutation()
         for start in range(0, len(rows), 4096):
             end = start + 4096
             null[draw, start:end] = np.abs(np.einsum("ij,ij->i", rz[ri[start:end]][:, perm], az[ai[start:end]]))
@@ -860,8 +907,11 @@ def sample_matched_layer(rna_cpm, atac_cpm, models, params, warnings):
     empirical = lambda values: (len(pool) - np.searchsorted(pool, np.maximum(0, np.abs(values) - 1e-12), side="left") + 1) / (len(pool) + 1)
     p_emp = empirical(observed)
     adjusted = bh_adjust(p_emp)
-    held_perm = rng.permutation(len(shared))
-    held_r = np.einsum("ij,ij->i", rz[ri][:, held_perm], az[ai])
+    held_perm = permutation()
+    held_r = np.empty(len(rows), dtype=float)
+    for start in range(0, len(rows), 4096):
+        end = start + 4096
+        held_r[start:end] = np.einsum("ij,ij->i", rz[ri[start:end]][:, held_perm], az[ai[start:end]])
     held_padj = bh_adjust(empirical(held_r))
     def analytical(r):
         stat = np.abs(r) * np.sqrt((len(shared) - 2) / np.maximum(1 - r * r, np.finfo(float).eps))

@@ -30,12 +30,18 @@ This is deterministic and dependency-light. It builds on the existing
 
 from __future__ import annotations
 
+import math
+import re
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any
 
 from aria.agents.narrative.types import NarrativeBlock
 from aria.agents.narrative.evidence_verifier import verify_block_claim_support
-from aria.agents.narrative.validators import find_causal_language
+from aria.agents.narrative.validators import (
+    collect_named_entities,
+    find_causal_language,
+)
 
 
 TIER_ORDER = (
@@ -294,12 +300,17 @@ def _block_subject(block: NarrativeBlock) -> str:
 def _numeric_metric(block: NarrativeBlock, *names: str) -> float | None:
     for name in names:
         value = (block.metrics or {}).get(name)
-        if value is None:
+        if value is None or isinstance(value, bool):
             continue
         try:
-            return float(value)
+            number = float(value)
         except (TypeError, ValueError):
             continue
+        # NaN/inf must not satisfy (or silently bypass) the stats gate, nor
+        # shadow a finite fallback key.
+        if not math.isfinite(number):
+            continue
+        return number
     return None
 
 
@@ -314,24 +325,42 @@ def _flag_metric(block: NarrativeBlock, name: str) -> bool:
     return False
 
 
+def _has_nonfinite_metric(block: NarrativeBlock, *names: str) -> bool:
+    metrics = block.metrics or {}
+    for name in names:
+        value = metrics.get(name)
+        if value is None or isinstance(value, bool):
+            continue
+        try:
+            if not math.isfinite(float(value)):
+                return True
+        except (TypeError, ValueError):
+            continue
+    return False
+
+
 def _quantitative_stats_gate(block: NarrativeBlock) -> tuple[bool, list[str]]:
     """P-CLAIM2: DE claims need numerical support, not only analysis type."""
     if block.analysis not in _STATS_GATE_ANALYSES:
         return True, []
     failures: list[str] = []
-    n_sig = _numeric_metric(
-        block, "n_significant", "n_significant_global", "n_significant_local"
-    )
+    n_sig_keys = ("n_significant", "n_significant_global", "n_significant_local")
+    n_sig = _numeric_metric(block, *n_sig_keys)
     if n_sig is not None and n_sig <= 0:
         failures.append("no significant features passed the selected FDR rule")
-    power = _numeric_metric(
-        block, "power_estimate_at_effective_alpha",
+    elif n_sig is None and _has_nonfinite_metric(block, *n_sig_keys):
+        failures.append("significant feature count is non-finite")
+    power_keys = (
+        "power_estimate_at_effective_alpha",
         "power_estimate_at_lfc_min",
     )
+    power = _numeric_metric(block, *power_keys)
     if power is not None and power < _POWER_MIN:
         failures.append(
             f"estimated power ({power:.2f}) is below {_POWER_MIN:.2f}"
         )
+    elif power is None and _has_nonfinite_metric(block, *power_keys):
+        failures.append("estimated power is non-finite")
     if _flag_metric(block, "low_power_warning"):
         failures.append("low replicate/power warning is active")
     if _flag_metric(block, "lognorm_recovered"):
@@ -342,12 +371,17 @@ def _quantitative_stats_gate(block: NarrativeBlock) -> tuple[bool, list[str]]:
 def classify_claim(block: NarrativeBlock,
                    *,
                    causal_license: CausalEstimandLicense | None = None,
-                   converging_categories: set[str] | None = None) -> ClaimClassification:
+                   converging_categories: set[str] | None = None,
+                   mechanistic_lines: int | None = None) -> ClaimClassification:
     """Classify one block's claim into an evidence tier.
 
     ``converging_categories`` are the evidence categories available from OTHER
     blocks about the same subject, so independent mechanistic lines can raise
-    the tier without the LLM's help.
+    the tier without the LLM's help. ``mechanistic_lines`` is the number of
+    DISTINCT regulatory analyses (motif enrichment, differential accessibility,
+    peak2gene, regulon, ...) available for the same subject; all of them map to
+    the single ``regulatory`` category, so without this count
+    ``strong_mechanistic`` would be unreachable.
     """
     own = _block_evidence_category(block)
     categories: set[str] = set()
@@ -371,8 +405,14 @@ def classify_claim(block: NarrativeBlock,
 
     has_assoc = bool(categories & _ASSOCIATIVE)
     n_mech = len(categories & _MECHANISTIC)
+    if n_mech and mechanistic_lines:
+        n_mech = max(n_mech, int(mechanistic_lines))
 
-    if causal_license.licensed and has_assoc:
+    # A verified estimand license on an effect analysis (e.g. standalone
+    # differential accessibility) licenses the causal tier on its own.
+    if causal_license.licensed and (
+        has_assoc or block.analysis in _CAUSAL_EFFECT_ANALYSES
+    ):
         tier = "causal_experimental"
         licensed = "causal"
         rationale = (
@@ -435,11 +475,12 @@ def _finalize(block, tier, licensed, categories, rationale, limitations,
     # Language check: does the claim/prose exceed the licensed tier?
     violation = None
     if licensed != "causal" and not block.metadata.get("causal_evidence"):
-        text = " ".join(filter(None, [
-            block.claim,
-            *[str(c.text) for c in (block.caveats or [])],
-        ]))
-        hit = find_causal_language(text)
+        # Audit the CLAIM only: caveats are guard text ARIA attaches (often
+        # explicitly negated, e.g. "not causal proof"), and official DB term
+        # names / gene symbols are reported data, not ARIA's assertions.
+        hit = _unnegated_causal_hit(
+            block.claim or "", collect_named_entities(block)
+        )
         if hit:
             violation = hit
             limitations.append(
@@ -460,16 +501,59 @@ def _finalize(block, tier, licensed, categories, rationale, limitations,
     )
 
 
+_NEGATION_TAIL_RE = re.compile(
+    r"(?:\bnot|\bno|\bnever|\bcannot|n't)(?:\s+\w+)?$", flags=re.IGNORECASE
+)
+
+
+def _unnegated_causal_hit(text: str, exclude: list[str]) -> str | None:
+    """First causal pattern in ``text`` that is not explicitly negated.
+
+    Named entities in ``exclude`` are redacted first (same rule as
+    ``find_causal_language``). A hit immediately preceded by a negation
+    ("not", "no", "never", "cannot", "...n't", optionally one word between) is
+    masked and the scan continues, so "is not responsible for" passes while an
+    unnegated causal verb elsewhere in the same claim is still caught.
+    """
+    working = str(text or "")
+    for name in exclude or []:
+        token = str(name).strip()
+        if len(token) < 2:
+            continue
+        working = re.sub(rf"\b{re.escape(token)}\b", " ", working,
+                         flags=re.IGNORECASE)
+    for _ in range(64):
+        hit = find_causal_language(working)
+        if not hit:
+            return None
+        match = re.search(rf"\b{re.escape(hit)}\b", working,
+                          flags=re.IGNORECASE)
+        if match is None:
+            return hit
+        if not _NEGATION_TAIL_RE.search(working[:match.start()].rstrip()):
+            return hit
+        working = (working[:match.start()] + " " * len(match.group(0))
+                   + working[match.end():])
+    return None
+
+
 def annotate_claim_tiers(blocks: list[NarrativeBlock],
                          exp_ctx: dict | None = None) -> list[NarrativeBlock]:
     """Classify every block in place, storing the result under
     ``block.metadata['claim']``. Returns the same list for chaining."""
     # Converging evidence: union of categories per subject.
     by_subject: dict[str, set[str]] = {}
+    # Distinct mechanistic (regulatory) analyses per subject: every regulatory
+    # analysis collapses to one category, so count independent lines here.
+    mech_lines: dict[str, set[str]] = {}
     for b in blocks:
         cat = _block_evidence_category(b)
         if cat:
             by_subject.setdefault(_block_subject(b), set()).add(cat)
+            if cat in _MECHANISTIC:
+                mech_lines.setdefault(_block_subject(b), set()).add(
+                    str(b.analysis)
+                )
 
     for b in blocks:
         subject = _block_subject(b)
@@ -481,6 +565,7 @@ def annotate_claim_tiers(blocks: list[NarrativeBlock],
             b,
             causal_license=resolve_causal_estimand_license(b, exp_ctx),
             converging_categories=converging,
+            mechanistic_lines=len(mech_lines.get(subject, set())),
         )
         b.metadata["claim"] = classification.as_dict()
     return blocks
@@ -558,6 +643,7 @@ def compile_public_claims(
     exp_ctx: dict | None = None,
     *,
     run_ledger: dict | None = None,
+    report_dir: Path | str | None = None,
 ) -> PublicClaimCompilation:
     """Compile the exclusive public claim set, withholding unsupported blocks.
 
@@ -569,6 +655,10 @@ def compile_public_claims(
     contributes only an opaque withheld record; its unverified text never reaches
     HTML or the claim manifest. Diagnostic/limitation blocks with no claim remain
     renderable but do not create blank public-claim rows.
+
+    When ``report_dir`` is given, referenced figures/tables are checked on disk
+    (same rule as ``render_blocks``), so a claim pointing at a missing artifact
+    is withheld at this single compilation boundary.
     """
     from aria.agents.narrative.compose_prose import compose_block_prose
     from aria.agents.narrative.validators import validate_block
@@ -578,7 +668,10 @@ def compile_public_claims(
     compiled = PublicClaimCompilation()
     for block in candidates:
         try:
-            validate_block(block)
+            if report_dir is not None:
+                validate_block(block, base_dir=report_dir, check_files=True)
+            else:
+                validate_block(block)
             prose = compose_block_prose(block) or block.claim or ""
             verification = verify_block_claim_support(
                 block, prose, strict=True

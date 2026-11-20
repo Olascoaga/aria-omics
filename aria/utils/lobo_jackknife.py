@@ -29,6 +29,17 @@ from typing import Any
 import numpy as np
 
 
+def _donor_id(value):
+    """Normalize measured donor IDs without pairing missing metadata."""
+    if value is None or isinstance(value, bool):
+        return None
+    if isinstance(value, (float, np.floating)):
+        if not np.isfinite(value):
+            return None
+    donor = str(value).strip()
+    return None if donor.lower() in ("", "nan", "none", "na", "null", "<na>") else donor
+
+
 def bh_adjust(pvals: np.ndarray) -> np.ndarray:
     """Deterministic Benjamini-Hochberg adjusted p-values preserving NaNs."""
     p = np.asarray(pvals, dtype=float)
@@ -150,8 +161,8 @@ def compute_lobo_jackknife(
         den_by_donor: dict[str, int] = {}
         for col_i, uid in enumerate(unit_ids):
             grp = unit_to_group.get(uid)
-            donor = str(unit_to_donor.get(uid) or "")
-            if not donor:
+            donor = _donor_id(unit_to_donor.get(uid))
+            if donor is None:
                 continue
             if grp == numerator and donor not in num_by_donor:
                 num_by_donor[donor] = col_i
@@ -230,6 +241,7 @@ def compute_lobo_jackknife(
         eval_ids = [str(f) for f in target_features if str(f) in id_to_idx]
     else:
         eval_ids = [str(f) for f in feature_ids]
+    eval_ids = list(dict.fromkeys(eval_ids))
 
     primary_sig_set = (
         {str(x) for x in primary_significant_features}
@@ -255,8 +267,10 @@ def compute_lobo_jackknife(
             else 0.0
         )
         q75, q25 = np.percentile(row_lfcs, [75, 25])
-        worst_idx = int(np.argmax(row_padjs))
-        max_padj = float(row_padjs[worst_idx])
+        invalid_folds = ~np.isfinite(row_lfcs) | ~np.isfinite(row_padjs)
+        invalid_stats = bool(invalid_folds.any() or not np.isfinite(f_lfc_val) or not np.isfinite(f_padj_val))
+        worst_idx = int(np.flatnonzero(invalid_folds)[0]) if invalid_folds.any() else int(np.argmax(row_padjs))
+        max_padj = float(np.max(row_padjs))
         min_abs_lfc = float(np.min(np.abs(row_lfcs)))
         abs_full = abs(f_lfc_val)
         severe_effect_collapse = bool(abs_full > 0.25 and min_abs_lfc < 0.35 * abs_full)
@@ -275,6 +289,7 @@ def compute_lobo_jackknife(
                 (was_sig and max_padj >= alpha) or sign_frac < 1.0 or severe_effect_collapse
             )
 
+        single_unit_driven = bool(single_unit_driven or invalid_stats)
         if single_unit_driven:
             n_single_unit_driven += 1
         else:
@@ -292,6 +307,10 @@ def compute_lobo_jackknife(
                 "max_jackknife_padj": float(max_padj),
                 "most_influential_unit": fold_units[worst_idx],
                 "single_unit_driven": single_unit_driven,
+            }
+            per_feature[fid] = {
+                key: None if isinstance(value, float) and not np.isfinite(value) else value
+                for key, value in per_feature[fid].items()
             }
 
     n_eval = len(eval_ids)
@@ -340,6 +359,7 @@ def compute_counts_lobo_jackknife(
     }
 
     raw = counts_df.to_numpy(dtype=float)
+    raw = np.where(np.isfinite(raw), np.maximum(raw, 0.0), 0.0)
     normalization = "log2_cpm_plus_1"
     if size_factors is not None:
         if isinstance(size_factors, dict):
@@ -360,8 +380,9 @@ def compute_counts_lobo_jackknife(
     unit_to_donor = None
     if paired_unit_col and paired_unit_col in meta_aligned.columns:
         unit_to_donor = {
-            str(idx): str(meta_aligned.at[idx, paired_unit_col])
+            str(idx): donor
             for idx in counts_df.columns
+            if (donor := _donor_id(meta_aligned.at[idx, paired_unit_col])) is not None
         }
 
     out = compute_lobo_jackknife(

@@ -320,10 +320,12 @@ def _status_from_finding(val: Any) -> tuple[str, str | None]:
             return "error", (
                 val.get("error_type") or val.get("details") or val.get("reason")
             )
-        if st in ("success", "ok", "done"):
-            return "ran", None
+        # A clean skip (``{"status": "success", "ran": False, ...}``) is a
+        # skip, never an execution: check ``ran is False`` before the status.
         if val.get("ran") is False:
             return "skipped", val.get("reason")
+        if st in ("success", "ok", "done"):
+            return "ran", None
         if val.get("ran") is True:
             return "ran", None
         # Structured dict with content but no explicit status -> it ran.

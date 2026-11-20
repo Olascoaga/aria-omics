@@ -330,7 +330,8 @@ class MethodologyMixin:
                                   run_ledger: dict | None = None,
                                   decision_manifest: dict | None = None,
                                   fork_ledger: dict | None = None,
-                                  falsification_certificates: dict | None = None) -> str:
+                                  falsification_certificates: dict | None = None,
+                                  raw_ingestion: list | None = None) -> str:
         rows = []
         for key in [
             "aria_version", "version_source", "git_sha", "git_commit",
@@ -422,7 +423,7 @@ class MethodologyMixin:
         )
         ingestion_html = self._build_raw_ingestion_section(
             agent_results=agent_results,
-            exp_ctx_records=[]
+            exp_ctx_records=list(raw_ingestion or []),
         )
         ledger_html = self._build_run_ledger_section(run_ledger)
         dm_html = self._build_decision_manifest_section(decision_manifest, fork_ledger)

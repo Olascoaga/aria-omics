@@ -114,7 +114,7 @@ def _render_block(block: NarrativeBlock,
     evidence_html = _render_evidence(block)
     caveats_html = _render_caveats(block)
     figures_html = _render_figures(block, report_dir=report_dir)
-    tables_html = _render_tables(block)
+    tables_html = _render_tables(block, report_dir=report_dir)
     error_html = (
         f"<p class='warning'><strong>Error:</strong> {html.escape(str(block.error))}</p>"
         if block.error else ""
@@ -268,7 +268,8 @@ def _render_figures(block: NarrativeBlock,
     return "\n".join(html_parts)
 
 
-def _render_tables(block: NarrativeBlock) -> str:
+def _render_tables(block: NarrativeBlock,
+                   report_dir: str | Path | None = None) -> str:
     if not block.tables:
         return ""
     links = []
@@ -276,8 +277,15 @@ def _render_tables(block: NarrativeBlock) -> str:
         raw = table.get("path")
         if not raw:
             continue
+        href = str(raw)
+        if report_dir is not None:
+            raw_path = Path(href)
+            if raw_path.is_absolute():
+                staged = Path(report_dir) / "tables" / raw_path.name
+                if staged.is_file():
+                    href = f"tables/{raw_path.name}"
         label = html.escape(str(table.get("label") or table.get("id") or raw))
-        links.append(f"<a href='{html.escape(str(raw))}'>{label}</a>")
+        links.append(f"<a href='{html.escape(href)}'>{label}</a>")
     if not links:
         return ""
     return (

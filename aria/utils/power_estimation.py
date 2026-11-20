@@ -15,13 +15,20 @@ from statistics import NormalDist
 
 
 def _as_pair(n_per_group) -> tuple[float, float]:
+    def number(value):
+        return float("nan") if isinstance(value, bool) else float(value)
+
     if isinstance(n_per_group, dict):
         vals = list(n_per_group.values())
-        if len(vals) >= 2:
-            return float(vals[0]), float(vals[1])
-    if isinstance(n_per_group, (list, tuple)) and len(n_per_group) >= 2:
-        return float(n_per_group[0]), float(n_per_group[1])
-    n = float(n_per_group)
+    elif isinstance(n_per_group, (list, tuple)):
+        vals = list(n_per_group)
+    else:
+        vals = [n_per_group]
+    if not vals:
+        return 0.0, 0.0
+    if len(vals) >= 2:
+        return number(vals[0]), number(vals[1])
+    n = number(vals[0])
     return n, n
 
 
@@ -32,12 +39,19 @@ def bulk_power_estimate(n_per_group,
                         alpha: float = 0.05) -> float:
     """Approximate two-sided Wald power for a bulk RNA-seq contrast."""
     n1, n2 = _as_pair(n_per_group)
-    if n1 <= 1 or n2 <= 1:
+    if not isfinite(n1) or not isfinite(n2) or n1 <= 1 or n2 <= 1:
         return 0.0
-    mean_expression = max(float(mean_expression or 1.0), 1.0)
-    dispersion = max(float(dispersion or 0.0), 1e-8)
-    target = abs(float(target_log2fc or 0.0))
-    alpha = min(max(float(alpha or 0.05), 1e-12), 0.999999)
+    if any(isinstance(v, bool) for v in (mean_expression, dispersion, target_log2fc, alpha)):
+        return 0.0
+    mean_expression = float(1.0 if mean_expression is None else mean_expression)
+    dispersion = float(0.0 if dispersion is None else dispersion)
+    mean_expression = max(mean_expression, 1.0) if isfinite(mean_expression) else 1.0
+    dispersion = max(dispersion, 1e-8) if isfinite(dispersion) else 0.1
+    target = abs(float(0.0 if target_log2fc is None else target_log2fc))
+    alpha = float(0.05 if alpha is None else alpha)
+    if not isfinite(target) or not isfinite(alpha) or alpha <= 0:
+        return 0.0
+    alpha = min(max(alpha, 1e-12), 0.999999)
 
     variance_log = (1.0 / n1 + 1.0 / n2) * (
         (1.0 / mean_expression) + dispersion
@@ -50,6 +64,8 @@ def bulk_power_estimate(n_per_group,
     z_alpha = nd.inv_cdf(1.0 - alpha / 2.0)
     z_effect = target / se_log2
     power = nd.cdf(-z_alpha - z_effect) + (1.0 - nd.cdf(z_alpha - z_effect))
+    if not isfinite(power):
+        return 0.0
     return round(float(min(max(power, 0.0), 1.0)), 4)
 
 

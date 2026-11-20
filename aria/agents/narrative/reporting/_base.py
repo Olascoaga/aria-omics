@@ -24,7 +24,8 @@ log = logging.getLogger("aria.narrative")
 _EXEC_SUMMARY_RANGE_LABEL_RE = re.compile(r"\d+(?:-\d+)+")
 _EXEC_SUMMARY_THOUSANDS_RE = re.compile(r"(?<=\d),(?=\d{3}(?:\D|$))")
 _EXEC_SUMMARY_NUMBER_RE = re.compile(
-    r"(?<![A-Za-z])[-+]?\d+(?:,\d{3})*(?:\.\d+)?%?(?![A-Za-z])"
+    r"(?<![A-Za-z])[-+]?\d+(?:,\d{3})*(?:\.\d+)?"
+    r"(?:[eE][+-]?\d+(?![A-Za-z0-9_]))?%?(?![A-Za-z])"
 )
 
 

@@ -2,7 +2,20 @@
 
 from __future__ import annotations
 
+import math
+
 from aria.agents.narrative.reporting._base import *
+
+
+def _finite_num(value) -> float | None:
+    """Return finite float for non-bool numeric values, else None."""
+    if value is None or isinstance(value, bool):
+        return None
+    try:
+        num = float(value)
+    except (TypeError, ValueError):
+        return None
+    return num if math.isfinite(num) else None
 
 
 class ReportSectionsMixin:
@@ -21,83 +34,84 @@ class ReportSectionsMixin:
             rows = []
 
             # Bulk RNA
-            bulk = agent_results.get("bulk_rna_agent", {})
+            bulk = agent_results.get("bulk_rna_agent") or {}
             if bulk.get("status") == "done":
-                sqc = bulk.get("findings", {}).get("sample_qc", {}) or {}
+                sqc = ((bulk.get("findings") or {}).get("sample_qc")) or {}
                 n   = sqc.get("n_samples", "?")
                 out = sqc.get("candidate_outliers", sqc.get("outliers", []))
                 sens_out = sqc.get("sensitivity_outliers_removed", [])
-                ratio = sqc.get("size_ratio", "")
-                ratio_str = (f" · library-size range {ratio:.1f}×"
-                             if isinstance(ratio, float) else "")
+                ratio_f = _finite_num(sqc.get("size_ratio"))
+                ratio_str = (f" · library-size range {ratio_f:.1f}×"
+                             if ratio_f is not None else "")
                 out_str = (f" · <span style='color:var(--amber)'>"
                            f"{len(out)} outlier(s) flagged; "
                            f"{len(sens_out)} removed in sensitivity</span>"
                            if out else " · no outliers flagged")
                 rows.append(
                     f"<tr><td>Bulk RNA-seq</td>"
-                    f"<td>{n} samples{ratio_str}{out_str}</td></tr>"
+                    f"<td>{_html.escape(str(n))} samples{ratio_str}{out_str}</td></tr>"
                 )
 
             # scRNA
-            sc = agent_results.get("scrna_agent", {})
+            sc = agent_results.get("scrna_agent") or {}
             if sc.get("status") == "done":
                 from aria.agents import _narrative_scrna as _ns
                 sc_f = _ns.unwrap_scrna_findings(sc)
                 qc   = sc_f.get("qc", {}) or {}
                 n_b  = qc.get("n_cells_before", "?")
                 n_a  = qc.get("n_cells_after", "?")
-                pct  = qc.get("pct_removed", "")
-                pct_str = (f" · {pct:.1f}% removed"
-                           if isinstance(pct, (int, float)) else "")
+                pct_f = _finite_num(qc.get("pct_removed"))
+                pct_str = (f" · {pct_f:.1f}% removed"
+                           if pct_f is not None else "")
                 rows.append(
                     f"<tr><td>scRNA-seq</td>"
-                    f"<td>{n_b} → {n_a} cells{pct_str}</td></tr>"
+                    f"<td>{_html.escape(str(n_b))} → {_html.escape(str(n_a))} cells{pct_str}</td></tr>"
                 )
 
             # Chromatin
-            chrom = agent_results.get("chromatin_agent", {})
+            chrom = agent_results.get("chromatin_agent") or {}
             if chrom.get("status") == "done":
                 chrom_f = chrom.get("findings", {}) or {}
                 for assay in ("scATAC", "bulk_ATAC", "ChIP", "CUT_AND_RUN", "CUT_AND_TAG"):
-                    af    = chrom_f.get(assay, {}).get("findings", {}) or {}
+                    af    = ((chrom_f.get(assay) or {}).get("findings")) or {}
                     peaks = af.get("peaks", {}) or {}
-                    if peaks.get("n_peaks"):
-                        frip = peaks.get("frip", "?")
-                        frip_str = (f"{frip:.2f}"
-                                    if isinstance(frip, float) else str(frip))
-                        tss  = peaks.get("tss_enrichment", "")
-                        tss_str = (f" · TSS enrichment {tss:.1f}"
-                                   if isinstance(tss, float) else "")
+                    n_peaks_f = _finite_num(peaks.get("n_peaks"))
+                    if n_peaks_f is not None:
+                        frip_f = _finite_num(peaks.get("frip"))
+                        frip_str = (f"{frip_f:.2f}"
+                                    if frip_f is not None else "?")
+                        tss_f = _finite_num(peaks.get("tss_enrichment"))
+                        tss_str = (f" · TSS enrichment {tss_f:.1f}"
+                                   if tss_f is not None else "")
                         rows.append(
                             f"<tr><td>{assay}</td>"
-                            f"<td>{peaks['n_peaks']:,} peaks · "
+                            f"<td>{int(n_peaks_f):,} peaks · "
                             f"FRiP={frip_str}{tss_str}</td></tr>"
                         )
 
             # HiC
-            hic = agent_results.get("genome_arch_agent", {})
+            hic = agent_results.get("genome_arch_agent") or {}
             if hic.get("status") == "done":
                 hic_f = hic.get("findings", {}) or {}
                 bal   = hic_f.get("balancing", {}) or {}
                 if bal.get("status"):
                     rows.append(
                         f"<tr><td>Hi-C</td>"
-                        f"<td>ICE balancing: {bal.get('status', 'done')}</td></tr>"
+                        f"<td>ICE balancing: {_html.escape(str(bal.get('status', 'done')))}</td></tr>"
                     )
 
             # Paired Multiome (RNA + ATAC)
-            integ = agent_results.get("integration_agent", {})
+            integ = agent_results.get("integration_agent") or {}
             if integ.get("status") == "done":
                 int_f = integ.get("findings", {}) or {}
                 pqc = int_f.get("paired_qc") or {}
                 if isinstance(pqc, dict) and pqc.get("status") == "success":
                     nb = pqc.get("n_cells_before", "?")
                     na = pqc.get("n_cells_after", "?")
-                    pr = pqc.get("pct_removed")
+                    pr_f = _finite_num(pqc.get("pct_removed"))
                     pr_str = (
-                        f" · {float(pr):.2f}% removed"
-                        if isinstance(pr, (int, float)) else ""
+                        f" · {pr_f:.2f}% removed"
+                        if pr_f is not None else ""
                     )
                     wnn_d = int_f.get("wnn") or {}
                     guard_str = (
@@ -119,15 +133,16 @@ class ReportSectionsMixin:
             cm_f = _cm_findings(agent_results)
             if _cm_status(cm_f)[0] == "ran":
                 n_mc = cm_f.get("n_matched_contrasts")
-                if not isinstance(n_mc, int):
+                if not isinstance(n_mc, int) or isinstance(n_mc, bool):
                     n_mc = len(cm_f.get("matched_contrasts") or [])
                 n_conc = 0
                 for mc in cm_f.get("matched_contrasts") or []:
                     dd = mc.get("de_da_summary") if isinstance(mc, dict) else None
                     if not isinstance(dd, dict):
                         continue
-                    if isinstance(dd.get("n_concordant_total"), (int, float)):
-                        n_conc += int(dd["n_concordant_total"])
+                    n_conc_f = _finite_num(dd.get("n_concordant_total"))
+                    if n_conc_f is not None:
+                        n_conc += int(n_conc_f)
                 parts = [
                     f"{_html.escape(str(n_mc))} matched contrast(s)",
                     f"{n_conc} concordant DE×DA pair(s)",
@@ -299,12 +314,12 @@ class ReportSectionsMixin:
         for d in decisions:
             rows.append(
                 f'<tr>'
-                f'<td style="color:var(--navy);font-weight:600">{d.get("step", "")}</td>'
-                f'<td>{d.get("input", "")}</td>'
-                f'<td>{d.get("normalization", "")}</td>'
-                f'<td style="color:var(--muted);font-size:0.9em">{d.get("gene_filter", "")}</td>'
+                f'<td style="color:var(--navy);font-weight:600">{_html.escape(str(d.get("step", "")))}</td>'
+                f'<td>{_html.escape(str(d.get("input", "")))}</td>'
+                f'<td>{_html.escape(str(d.get("normalization", "")))}</td>'
+                f'<td style="color:var(--muted);font-size:0.9em">{_html.escape(str(d.get("gene_filter", "")))}</td>'
                 f'<td style="color:var(--muted);font-size:0.88em;font-style:italic">'
-                f'{d.get("justification", "")}</td>'
+                f'{_html.escape(str(d.get("justification", "")))}</td>'
                 f'</tr>'
             )
 
@@ -374,13 +389,15 @@ class ReportSectionsMixin:
         def _figure(src: str, caption: str, alt: str = "") -> str:
             if not src:
                 return ""
+            safe_alt = _html.escape(str(alt or caption))
+            safe_cap = _html.escape(str(caption))
             return (
                 f'<figure style="margin:1.2rem 0;text-align:center">'
-                f'<img src="{src}" alt="{alt or caption}" '
+                f'<img src="{src}" alt="{safe_alt}" '
                 f'style="max-width:100%;height:auto;border-radius:6px;'
                 f'background:var(--bg-alt);border:1px solid var(--border)">'
                 f'<figcaption style="color:var(--muted);font-size:0.82rem;'
-                f'margin-top:0.4rem;font-style:italic">{caption}</figcaption>'
+                f'margin-top:0.4rem;font-style:italic">{safe_cap}</figcaption>'
                 f'</figure>'
             )
 
@@ -433,7 +450,7 @@ class ReportSectionsMixin:
             html_parts.append(
                 f'<h4 style="color:var(--navy);margin-top:1.5rem;'
                 f'border-bottom:2px solid var(--navy);padding-bottom:0.3rem">'
-                f'{cname}</h4>'
+                f'{_html.escape(str(cname))}</h4>'
             )
 
             # Volcano (existing)
@@ -493,18 +510,22 @@ class ReportSectionsMixin:
             tables = plots.get("tables", {}) or {}
             de_tsv = tables.get("de_genes")
             pw_tsv = tables.get("pathways")
+            slug = str(cname).replace(" ", "_").replace("/", "_")
             link_parts = []
             if de_tsv:
-                # Use relative path: report_dir/tables/<contrast>_de_genes.tsv
-                rel = f"tables/{Path(de_tsv).parent.parent.name}_de_genes.tsv"
+                de_p = Path(de_tsv)
+                prefix = de_p.parent.parent.name if de_p.parent.name == "tables" else slug
+                rel = f"tables/{prefix}_{de_p.name}"
                 link_parts.append(
-                    f'<a href="{rel}" style="color:var(--blue);'
+                    f'<a href="{_html.escape(rel)}" style="color:var(--blue);'
                     f'text-decoration:underline">DE genes (TSV)</a>'
                 )
             if pw_tsv:
-                rel = f"tables/{Path(pw_tsv).parent.parent.name}_pathways.tsv"
+                pw_p = Path(pw_tsv)
+                prefix = pw_p.parent.parent.name if pw_p.parent.name == "tables" else slug
+                rel = f"tables/{prefix}_{pw_p.name}"
                 link_parts.append(
-                    f'<a href="{rel}" style="color:var(--blue);'
+                    f'<a href="{_html.escape(rel)}" style="color:var(--blue);'
                     f'text-decoration:underline">Pathways (TSV)</a>'
                 )
             if link_parts:
@@ -574,21 +595,23 @@ class ReportSectionsMixin:
 
         # Also stage shared figures + tables at report_dir level (v3.8)
         import shutil as _sh
-        sqc = bulk.get("findings", {}).get("sample_qc", {}) if bulk else {}
+        sqc = ((bulk.get("findings") or {}).get("sample_qc")) or {} if bulk else {}
 
-        # PCA (existing)
+        # PCA (preserve real file extension — do not label .png as .svg)
         pca = sqc.get("pca_plot")
         if pca and Path(pca).exists():
             try:
-                _sh.copy2(pca, report_dir / "figures" / "pca_all_samples.svg")
+                pca_ext = Path(pca).suffix.lower() or ".svg"
+                _sh.copy2(pca, report_dir / "figures" / f"pca_all_samples{pca_ext}")
             except Exception as e:
                 log.warning(f"Stage PCA: {e}")
 
-        # MDS (new v3.8)
+        # MDS (preserve real file extension — do not label .png as .svg)
         mds = sqc.get("mds_plot")
         if mds and Path(mds).exists():
             try:
-                _sh.copy2(mds, report_dir / "figures" / "mds_all_samples.svg")
+                mds_ext = Path(mds).suffix.lower() or ".svg"
+                _sh.copy2(mds, report_dir / "figures" / f"mds_all_samples{mds_ext}")
             except Exception as e:
                 log.warning(f"Stage MDS: {e}")
 
@@ -604,12 +627,12 @@ class ReportSectionsMixin:
                                        report_dir / "figures" / fname)
                         except Exception:
                             pass
-                    break
+                        break
 
         # TPM supplementary table (new v3.8)
         # rna_bulk_de writes it into the output_dir (parent of contrast_dirs)
-        if contrasts:
-            cdir = contrasts[0].get("contrast_dir")
+        for c in contrasts:
+            cdir = c.get("contrast_dir")
             if cdir:
                 tpm_src = Path(cdir).parent / "counts_tpm.tsv"
                 if tpm_src.exists():
@@ -618,6 +641,7 @@ class ReportSectionsMixin:
                                    report_dir / "tables" / "counts_tpm.tsv")
                     except Exception as e:
                         log.warning(f"Stage TPM: {e}")
+                    break
 
         # scRNA reports usually carry rich result dictionaries rather than
         # contrast_dir/tables folders. Export those dictionaries here.

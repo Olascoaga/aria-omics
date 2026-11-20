@@ -170,15 +170,18 @@ def run_ora(query_genes, gene_sets: dict, background_genes,
     Output dicts match the Enrichr-path schema so downstream viz/narrators are
     unaffected: ``{term, padj, pvalue, overlap, odds_ratio, combined_score,
     genes}``."""
-    query = {str(g).upper() for g in (query_genes or []) if g and str(g).lower() != "nan"}
-    bg = {str(g).upper() for g in (background_genes or []) if g and str(g).lower() != "nan"}
+    query = {str(g).strip().upper() for g in ([] if query_genes is None else query_genes)
+             if g is not None and str(g).strip().lower() not in ("", "nan")}
+    bg = {str(g).strip().upper() for g in ([] if background_genes is None else background_genes)
+          if g is not None and str(g).strip().lower() not in ("", "nan")}
+    has_bg = background_genes is not None and len(bg) > 0
 
     if bg:
         query = query & bg
     else:
         bg = set(query)
         for genes in gene_sets.values():
-            bg.update(g.upper() for g in genes)
+            bg.update(str(g).strip().upper() for g in genes)
 
     M = len(bg)
     N = len(query)
@@ -187,15 +190,15 @@ def run_ora(query_genes, gene_sets: dict, background_genes,
 
     tested = []
     for term, genes in gene_sets.items():
-        gs = {g.upper() for g in genes}
-        if background_genes:
+        gs = {str(g).strip().upper() for g in genes}
+        if has_bg:
             gs = gs & bg
         n = len(gs)
         if n == 0:
             continue
         overlap = query & gs
         k = len(overlap)
-        if k < min_overlap:
+        if k < 1:
             continue
         p = hypergeom_sf(k, M, n, N)
         odds = _odds_ratio(k, M, n, N)
@@ -214,6 +217,8 @@ def run_ora(query_genes, gene_sets: dict, background_genes,
     padj = bh_correct([t["pvalue"] for t in tested])
     out = []
     for t, q in zip(tested, padj):
+        if t["_k"] < min_overlap:
+            continue
         p = float(t["pvalue"])
         q_val = float(q)
         combined = round(-math.log10(max(p, 1e-300)) * max(t["odds_ratio"], 0.0), 1)

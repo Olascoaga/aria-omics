@@ -24,6 +24,7 @@ _PHI_TOKENS = (
     "patient", "subject", "mrn", "medicalrecord", "diagnosis", "icd",
     "dateofbirth", "birthdate", "dob", "ssn", "clinical", "phi", "hospital",
     "biopsy", "specimen", "consent", "accession", "ethnicity", "zipcode",
+    "email", "phone",
 )
 # Quasi-identifiers: meaningful only in combination (age alone is common and not
 # sensitive; age + sex/gender starts to re-identify).
@@ -36,6 +37,18 @@ _HUMAN_TOKENS = ("human", "sapiens", "homosapiens", "hsapiens", "hg38", "hg19", 
 def _norm(text) -> str:
     """Lowercase and strip non-alphanumerics so `patient_id`/`patientID` match."""
     return re.sub(r"[^a-z0-9]", "", str(text).lower())
+
+
+def _tokens(text) -> set[str]:
+    text = re.sub(r"([A-Z]+)([A-Z][a-z])", r"\1 \2", str(text))
+    text = re.sub(r"([a-z0-9])([A-Z])", r"\1 \2", text)
+    words = [word for word in re.split(r"[^a-z0-9]+", text.lower()) if word]
+    tokens = set(words)
+    # Preserve compound PHI names such as medical_record and dateOfBirth.
+    for width in (2, 3):
+        tokens.update("".join(words[i:i + width]) for i in range(len(words) - width + 1)
+                      if "".join(words[i:i + width]) in _PHI_TOKENS)
+    return tokens
 
 
 def classify_sensitivity(organism: str = "",
@@ -55,16 +68,17 @@ def classify_sensitivity(organism: str = "",
     fields = [str(f) for f in (field_names or [])]
     hints = [str(h) for h in (path_hints or [])]
     normed = [_norm(x) for x in (fields + hints) if x]
+    tokens = set().union(*(_tokens(x) for x in fields + hints))
 
     is_human = any(tok in _norm(organism) for tok in _HUMAN_TOKENS) or \
         any(any(tok in n for tok in _HUMAN_TOKENS) for n in normed)
 
     phi_signals = sorted({
         tok for tok in _PHI_TOKENS
-        for n in normed if tok in n
+        if tok in tokens
     })
-    has_age = any(any(tok == n or tok in n for tok in _QUASI_AGE) for n in normed)
-    has_sex = any(any(tok == n or tok in n for tok in _QUASI_SEX) for n in normed)
+    has_age = any(tok in tokens for tok in _QUASI_AGE)
+    has_sex = any(tok in tokens for tok in _QUASI_SEX)
     quasi = []
     if has_age and has_sex:
         quasi = ["age+sex"]

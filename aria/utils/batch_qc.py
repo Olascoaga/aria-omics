@@ -24,9 +24,10 @@ correct on its own.
 from __future__ import annotations
 
 from dataclasses import dataclass
+import re
 from typing import Any
 
-# Generic technical / batch column-name tokens (substring match, lowercased).
+# Generic technical / batch column-name tokens (word boundaries, lowercased).
 # Donor/subject/patient/individual are intentionally EXCLUDED: those are the
 # biological replicate, which the pseudobulk path already models — flagging them
 # as "hidden batch" would be wrong.
@@ -54,8 +55,15 @@ class QCIssue:
 
 
 def _looks_like_batch(col: str) -> bool:
-    name = str(col).lower()
-    return any(tok in name for tok in _BATCH_TOKENS)
+    name = re.sub(r"([A-Z]+)([A-Z][a-z])", r"\1 \2", str(col))
+    name = re.sub(r"([a-z0-9])([A-Z])", r"\1 \2", name)
+    words = re.split(r"[^a-z0-9]+", name.lower())
+    # Assay names and ion-channel annotations are not technical batch labels.
+    words = [word for i, word in enumerate(words)
+             if not ((word == "run" and i >= 2 and words[i - 2:i] == ["cut", "and"])
+                     or (word == "channel" and i >= 1 and words[i - 1] == "ion"))]
+    padded = " " + " ".join(words) + " "
+    return any(" " + tok.replace("_", " ") + " " in padded for tok in _BATCH_TOKENS)
 
 
 def assess_hidden_batch(
@@ -84,13 +92,13 @@ def assess_hidden_batch(
     issues: list[QCIssue] = []
 
     # Columns that are already accounted for and must not be re-flagged.
-    modeled = {c for c in (condition_col, replicate_col, declared_batch) if c}
+    modeled = {str(c).lower() for c in (condition_col, replicate_col, declared_batch) if c}
     # If integration ran on the declared batch, that column is corrected.
     declared_lower = str(declared_batch).lower() if declared_batch else None
 
     candidates: list[str] = []
     for col in cols:
-        if col in modeled:
+        if col.lower() in modeled:
             continue
         if not _looks_like_batch(col):
             continue

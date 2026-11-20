@@ -8,16 +8,20 @@ def bh_correct(pvals):
     import numpy as np
 
     pvals = np.asarray(pvals, dtype=float)
-    n = len(pvals)
+    out = np.full_like(pvals, np.nan)
+    valid = np.isfinite(pvals)
+    n = int(valid.sum())
     if n == 0:
-        return pvals
-    order = np.argsort(pvals)
-    ranked = pvals[order]
+        return out
+    values = np.clip(pvals[valid], 0.0, 1.0)
+    order = np.argsort(values, kind="mergesort")
+    ranked = values[order]
     adj = ranked * n / (np.arange(n) + 1)
     adj = np.minimum.accumulate(adj[::-1])[::-1]
     adj = np.clip(adj, 0, 1)
-    out = np.empty(n, dtype=float)
-    out[order] = adj
+    restored = np.empty(n, dtype=float)
+    restored[order] = adj
+    out[valid] = restored
     return out
 
 
@@ -142,6 +146,8 @@ def pooled_bh_across_groups(group_pvalues: dict) -> dict:
     `group_pvalues`: {group: {gene: pvalue}}. Returns the same shape with
     pooled-BH adjusted p-values.
     """
+    import math
+
     keys: list = []
     pvals: list = []
     for grp, genes in (group_pvalues or {}).items():
@@ -149,7 +155,8 @@ def pooled_bh_across_groups(group_pvalues: dict) -> dict:
             if p is None:
                 continue
             keys.append((grp, gene))
-            pvals.append(float(p))
+            value = float(p)
+            pvals.append(value if math.isfinite(value) else float("nan"))
     out: dict = {grp: {} for grp in (group_pvalues or {})}
     if not pvals:
         return out

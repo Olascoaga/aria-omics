@@ -26,6 +26,8 @@ Four orthogonal falsification axes per claim:
 
 from __future__ import annotations
 
+import math
+import re
 from typing import Any
 
 from aria.utils.lobo_jackknife import (
@@ -37,11 +39,26 @@ from aria.utils.lobo_jackknife import (
 FALSIFICATION_SCHEMA_VERSION = "aria.falsification_certificates.v1"
 
 
+def _finite_count(value: Any) -> int:
+    """Non-bool finite numeric -> int; anything else (None/NaN/bool/str) -> 0."""
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return 0
+    if not math.isfinite(float(value)):
+        return 0
+    return int(value)
+
+
 def _min_arm_replicates(exp_ctx: dict[str, Any], agent_results: dict[str, Any]) -> tuple[int | None, str]:
     design = (exp_ctx or {}).get("design") or {}
     reps = design.get("replicates")
     if isinstance(reps, dict) and reps:
-        vals = [int(v) for v in reps.values() if isinstance(v, (int, float)) and int(v) > 0]
+        # bool is an int subclass and NaN/inf cannot be int()-ed: reject both.
+        # A 0-replicate arm is a real (untestable) design, so it is kept.
+        vals = [
+            int(v) for v in reps.values()
+            if isinstance(v, (int, float)) and not isinstance(v, bool)
+            and math.isfinite(float(v)) and v >= 0
+        ]
         if vals:
             unit = "donor" if design.get("donor_col") else "biological_replicate"
             return min(vals), unit
@@ -73,9 +90,31 @@ def _permutation_axis_for_claim(claim: dict[str, Any], agent_results: dict[str, 
             "null_family": "stratified_within_batch_label_permutation",
         }
     if modality == "cross_modal" or "cross_modal" in analysis:
+        # The sample-label permutation null exists ONLY for sample-matched link
+        # claims when the sample-matched link layer actually executed; contrast-
+        # level DE×DA, TF, and pathway layers use parametric Fisher/Spearman/BH.
+        from aria.agents.narrative.run_ledger import cross_modal_findings
+
+        claim_id = str(claim.get("claim_id") or "").lower()
+        layer = str(
+            claim.get("cross_modal_layer")
+            or (claim.get("metadata") or {}).get("cross_modal_layer")
+            or ""
+        ).lower()
+        is_sample_links_claim = (
+            "sample_links" in claim_id
+            or "sample_matched" in claim_id
+            or layer == "sample_matched_links"
+        )
+        links = cross_modal_findings(agent_results or {}).get("sample_matched_links")
+        if is_sample_links_claim and isinstance(links, dict) and links.get("ran") is True:
+            return {
+                "status": "calibrated",
+                "null_family": "sample_label_permutation_bh_fdr",
+            }
         return {
-            "status": "calibrated",
-            "null_family": "sample_label_permutation_bh_fdr",
+            "status": "parametric_bh_only",
+            "null_family": "bh_fdr_without_executed_sample_permutation",
         }
     if analysis in {"differential_expression", "pseudobulk_de", "differential_accessibility", "contrast", "differential_3d"}:
         return {
@@ -88,10 +127,78 @@ def _permutation_axis_for_claim(claim: dict[str, Any], agent_results: dict[str, 
     }
 
 
+def _safe_token(value: Any) -> str:
+    # Same normalization the narrators use for block ids (``_safe_id``).
+    text = re.sub(r"[^A-Za-z0-9_.-]+", "_", str(value or ""))
+    return text.strip("_")
+
+
+# Block-id prefixes whose remainder names ONE contrast (and group).
+_CONTRAST_SCOPED_PREFIXES = ("bulk.contrast.", "scrna.pseudobulk.")
+_CLAIM_SCOPE_FIELDS = ("contrast", "comparison", "group", "cluster")
+
+
+def _claim_has_scope_hint(claim: dict[str, Any]) -> bool:
+    if any(str(claim.get(k) or "").strip() for k in _CLAIM_SCOPE_FIELDS):
+        return True
+    cid = str(claim.get("claim_id") or "")
+    return cid.startswith(_CONTRAST_SCOPED_PREFIXES)
+
+
+def _entry_matches_claim(
+    claim: dict[str, Any], group: Any, name: Any,
+) -> bool:
+    """True when the claim identifies this (group, contrast) entry."""
+    hay = "." + str(claim.get("claim_id") or "") + "."
+    explicit_names = {
+        _safe_token(claim.get(k)) for k in ("contrast", "comparison")
+        if str(claim.get(k) or "").strip()
+    }
+    explicit_groups = {
+        _safe_token(claim.get(k)) for k in ("group", "cluster")
+        if str(claim.get(k) or "").strip()
+    }
+    name_tok = _safe_token(name)
+    if not name_tok:
+        return False
+    if explicit_names:
+        name_ok = name_tok in explicit_names
+    else:
+        name_ok = f".{name_tok}." in hay
+    if not name_ok:
+        return False
+    if group is None:
+        return True
+    group_tok = _safe_token(group)
+    if explicit_groups:
+        return group_tok in explicit_groups
+    return f".{group_tok}." in hay
+
+
+def _contrast_name(contrast: dict[str, Any], key: Any = None) -> Any:
+    for field in ("name", "comparison"):
+        if contrast.get(field):
+            return contrast.get(field)
+    test, ref = contrast.get("test"), contrast.get("reference")
+    if test is not None and ref is not None:
+        return f"{test}_vs_{ref}"
+    num, den = contrast.get("numerator"), contrast.get("denominator")
+    if num is not None and den is not None:
+        return f"{num}_vs_{den}"
+    return key
+
+
 def _extract_lobo_from_agent_results(
     claim: dict[str, Any], agent_results: dict[str, Any],
 ) -> list[dict[str, Any]]:
-    """Read executed DE/DA summaries only from the claim's matching modality."""
+    """Read executed DE/DA summaries from the claim's modality AND contrast.
+
+    When the claim identifies a specific contrast/group (``bulk.contrast.<name>``,
+    ``scrna.pseudobulk.<group>.<comparison>`` or explicit ``contrast`` /
+    ``group`` fields) only the matching entries are used; a hinted claim that
+    matches nothing yields ``[]`` (never another contrast's diagnostics).
+    Modality-wide claims fall back to all contrasts of the modality.
+    """
     if claim.get("analysis") not in {
         "differential_expression", "pseudobulk_de",
         "differential_accessibility", "contrast",
@@ -99,20 +206,24 @@ def _extract_lobo_from_agent_results(
         return []
     modality = str(claim.get("modality") or "").lower()
     modality = modality.replace("_", "").replace("-", "").replace(" ", "")
-    contrasts = []
+    # (group, contrast_name, contrast_dict)
+    entries: list[tuple[Any, Any, Any]] = []
     if modality in {"bulkrna", "bulkrnaseq"}:
         result = agent_results.get("bulk_rna_agent") or {}
         findings = result.get("findings") or result
-        contrasts.extend(findings.get("contrasts") or [])
+        for c in findings.get("contrasts") or []:
+            name = _contrast_name(c) if isinstance(c, dict) else None
+            entries.append((None, name, c))
     elif modality in {"scrna", "scrnaseq"}:
         from aria.agents.narrative.scrna import unwrap_scrna_findings
 
         result = agent_results.get("scrna_agent") or {}
         findings = unwrap_scrna_findings(result)
         pb = findings.get("pseudobulk_de") or {}
-        for group in (pb.get("per_group") or {}).values():
+        for gkey, group in (pb.get("per_group") or {}).items():
             if isinstance(group, dict):
-                contrasts.extend((group.get("per_comparison") or {}).values())
+                for ckey, c in (group.get("per_comparison") or {}).items():
+                    entries.append((gkey, ckey, c))
     elif modality in {
         "chromatin", "scatac", "bulkatac", "atac", "atacseq",
         "chip", "chipseq", "cutandrun", "cutandtag", "cut&run", "cut&tag",
@@ -121,16 +232,43 @@ def _extract_lobo_from_agent_results(
 
         findings = unwrap_chromatin_findings(agent_results.get("chromatin_agent") or {})
         seen = set()
+
+        def _add(group: Any, comparisons: Any) -> None:
+            # Aliases can point at the same comparison list in a live result.
+            if not comparisons or id(comparisons) in seen:
+                return
+            seen.add(id(comparisons))
+            items = (comparisons.items() if isinstance(comparisons, dict)
+                     else enumerate(comparisons))
+            for key, c in items:
+                if not isinstance(c, dict):
+                    continue
+                name = _contrast_name(
+                    c, key if isinstance(comparisons, dict) else None)
+                entries.append((group, name, c))
+
         for key in ("diffacc", "differential_accessibility", "bulk_diffacc"):
             da = findings.get(key) or {}
+            if not isinstance(da, dict):
+                continue
             for container in (da.get("pseudobulk") or {}, da):
-                # Aliases can point at the same comparison list in a live result.
-                comparisons = container.get("comparisons") or []
-                if id(comparisons) not in seen:
-                    contrasts.extend(comparisons)
-                    seen.add(id(comparisons))
+                if not isinstance(container, dict):
+                    continue
+                _add(None, container.get("comparisons"))
+                # scATAC per-group (cluster / cell-type) DA layout.
+                per_group = container.get("per_group")
+                if isinstance(per_group, dict):
+                    for gkey, ginfo in per_group.items():
+                        if not isinstance(ginfo, dict):
+                            continue
+                        _add(gkey, ginfo.get("comparisons"))
+                        _add(gkey, ginfo.get("per_comparison"))
+    if _claim_has_scope_hint(claim):
+        entries = [
+            e for e in entries if _entry_matches_claim(claim, e[0], e[1])
+        ]
     return [
-        c["lobo_jackknife"] for c in contrasts
+        c["lobo_jackknife"] for _, _, c in entries
         if isinstance(c, dict) and isinstance(c.get("lobo_jackknife"), dict)
     ]
 
@@ -147,7 +285,15 @@ def build_falsification_certificates(
     results = agent_results or {}
     rm = robustness_multiverse or {}
     n_arm_min, unit_kind = _min_arm_replicates(ctx, results)
-    precomputed_lobo = ctx.get("lobo_jackknife") or {}
+    precomputed_lobo = ctx.get("lobo_jackknife")
+    # Only a real precomputed LOBO summary (a dict with a status) shadows the
+    # live agent-result extraction; None / {} must not suppress it.
+    has_precomputed_lobo = (
+        isinstance(precomputed_lobo, dict)
+        and precomputed_lobo.get("status") not in (None, "")
+    )
+    if not isinstance(precomputed_lobo, dict):
+        precomputed_lobo = {}
     design = ctx.get("design") or {}
 
     inferential_analyses = {
@@ -173,7 +319,7 @@ def build_falsification_certificates(
 
         extracted_lobo = (
             _extract_lobo_from_agent_results(claim, results)
-            if "lobo_jackknife" not in ctx and is_inferential else []
+            if not has_precomputed_lobo and is_inferential else []
         )
         measured_lobo = [s for s in extracted_lobo if s.get("status") == "measured"]
 
@@ -192,16 +338,16 @@ def build_falsification_certificates(
                 "n_features_lobo_stable": precomputed_lobo.get("n_features_lobo_stable"),
             }
         elif measured_lobo:
-            n_evaluated = sum(s.get("n_features_evaluated", 0) for s in measured_lobo)
-            n_stable = sum(s.get("n_features_lobo_stable", 0) for s in measured_lobo)
+            n_evaluated = sum(_finite_count(s.get("n_features_evaluated")) for s in measured_lobo)
+            n_stable = sum(_finite_count(s.get("n_features_lobo_stable")) for s in measured_lobo)
             lobo_axis = {
                 "status": "measured",
                 "biological_unit": unit_kind,
                 "n_contrasts_measured": len(measured_lobo),
-                "n_jackknife_folds": max(s.get("n_jackknife_folds", 0) for s in measured_lobo),
+                "n_jackknife_folds": max(_finite_count(s.get("n_jackknife_folds")) for s in measured_lobo),
                 "n_features_evaluated": n_evaluated,
                 "n_features_lobo_stable": n_stable,
-                "n_single_unit_driven": sum(s.get("n_single_unit_driven", 0) for s in measured_lobo),
+                "n_single_unit_driven": sum(_finite_count(s.get("n_single_unit_driven")) for s in measured_lobo),
                 "lobo_stable_fraction": round(n_stable / n_evaluated, 4) if n_evaluated else None,
             }
         elif extracted_lobo and all(
@@ -253,7 +399,7 @@ def build_falsification_certificates(
                 (design.get("replicate_handling") or {}).get("has_technical_replicates", False)
             ),
             "batch_covariate_modeled": bool(design.get("batch_covariate") or design.get("batch_col")),
-            "low_power_n2_warning": bool(n_arm_min == 2),
+            "low_power_n2_warning": bool(n_arm_min is not None and n_arm_min <= 2),
             "causal_promotion_permitted": bool(tier == "causal_experimental"),
         }
 

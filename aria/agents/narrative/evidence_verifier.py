@@ -14,7 +14,12 @@ import re
 from typing import Any
 
 from aria.agents.narrative.types import NarrativeBlock, SemanticFact
-from aria.agents.narrative.validators import find_causal_language
+import math
+
+from aria.agents.narrative.validators import (
+    collect_named_entities,
+    find_causal_language,
+)
 
 
 class EvidenceVerificationError(ValueError):
@@ -70,7 +75,12 @@ _GENE_STOPWORDS = {
     "DESeq2", "CP10k", "R2",
 }
 
-_NUMBER_RE = re.compile(r"(?<![A-Za-z0-9_])-?\d+(?:\.\d+)?%?")
+# Scientific notation (``1.2e-09``, ``1e-05``, ``-3.5E+02``) is one numeric
+# token; the exponent must end at a non-identifier boundary so gene-like tokens
+# (``E2F1``) are never split into numbers.
+_NUMBER_RE = re.compile(
+    r"(?<![A-Za-z0-9_])-?\d+(?:\.\d+)?(?:[eE][+-]?\d+(?![A-Za-z0-9_]))?%?"
+)
 _GENE_LIKE_RE = re.compile(r"\b[A-Z][A-Z0-9_-]{2,}\b")
 # T11 (tri-audit 2026-06-14): mouse/rat gene symbols are Title-case (Sox2, Olig2,
 # Gad1, S100b), so the ALL-CAPS-only pattern above silently skipped them — a
@@ -383,7 +393,12 @@ def _issues_for_sentence(
         and licensed != "causal"
         and not block.metadata.get("causal_evidence")
     ):
-        hit = find_causal_language(sentence)
+        # Official DB term names / gene symbols carried by the block (e.g. the
+        # Reactome term "TP53 Regulates Transcription ...") are reported data,
+        # not ARIA's causal assertions.
+        hit = find_causal_language(
+            sentence, exclude=collect_named_entities(block)
+        )
         if hit and "not " not in low[max(0, low.find(hit.lower()) - 8):low.find(hit.lower())]:
             issues.append(VerificationIssue(
                 location,
@@ -702,11 +717,13 @@ def _normalize_entity(value: str) -> str:
 
 
 def _as_nonnegative_number(value: Any) -> float | None:
+    if isinstance(value, bool):
+        return None
     try:
         number = float(value)
     except (TypeError, ValueError):
         return None
-    return number if number >= 0 else None
+    return number if math.isfinite(number) and number >= 0 else None
 
 
 def _dedupe_facts(facts: list[SemanticFact]) -> list[SemanticFact]:

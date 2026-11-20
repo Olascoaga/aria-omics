@@ -205,11 +205,14 @@ def _extract_chromatin_signals(
                         if not isinstance(row, dict):
                             continue
                         pid = str(row.get("peak") or row.get("feature") or "").strip()
-                        lfc = _finite_float(row.get("log2fc") or row.get("score"))
-                        if pid and pid not in da_peaks:
+                        raw_lfc = row.get("log2fc")
+                        if raw_lfc is None:
+                            raw_lfc = row.get("score")
+                        lfc = _finite_float(raw_lfc)
+                        if pid and pid not in da_peaks and lfc is not None:
                             da_peaks[pid] = {
                                 "peak": pid,
-                                "log2fc": round(lfc, 4) if lfc is not None else 1.0,
+                                "log2fc": round(lfc, 4),
                             }
 
     motifs = cf.get("motifs") if isinstance(cf, dict) else None
@@ -334,11 +337,60 @@ def build_cross_modal_evidence_graph(
         anti_deg = wnn.get("anti_degradation") or {}
         axis_statuses = {}
         if isinstance(anti_deg, dict):
-            for ax_name, ax_payload in (anti_deg.get("axes") or {}).items():
-                if isinstance(ax_payload, dict):
-                    axis_statuses[str(ax_name)] = str(
-                        ax_payload.get("status") or "unknown"
-                    )
+            if isinstance(anti_deg.get("axes"), dict):
+                for ax_name, ax_payload in anti_deg["axes"].items():
+                    if isinstance(ax_payload, dict):
+                        axis_statuses[str(ax_name)] = str(
+                            ax_payload.get("status") or "unknown"
+                        )
+            else:
+                issues_list = anti_deg.get("issues") or []
+                issue_sev_by_code = {
+                    str(it.get("code")): str(it.get("severity") or "warn")
+                    for it in issues_list
+                    if isinstance(it, dict) and it.get("code")
+                }
+                axis_issue_map = {
+                    "modality_preservation": (
+                        "rna_structure_degraded",
+                        "atac_structure_degraded",
+                        "rna_uninformative_downweighted",
+                        "atac_uninformative_downweighted",
+                        "isolated_wnn_cells",
+                    ),
+                    "rare_population_retention": (
+                        "rare_population_degraded",
+                        "reference_rare_population_degraded",
+                        "rare_population_partially_diluted",
+                    ),
+                    "spurious_bridge_screen": ("spurious_bridge_candidate",),
+                    "per_cluster_weight_audit": (
+                        "missing_modality_weights",
+                        "global_modality_imbalance",
+                        "cluster_modality_collapse",
+                    ),
+                    "held_out_check": ("held_out_joint_degraded",),
+                }
+                for ax_name, codes in axis_issue_map.items():
+                    ax_payload = anti_deg.get(ax_name)
+                    if not isinstance(ax_payload, dict):
+                        continue
+                    if ax_payload.get("status"):
+                        axis_statuses[ax_name] = str(ax_payload["status"])
+                        continue
+                    sevs = [
+                        issue_sev_by_code[c]
+                        for c in codes
+                        if c in issue_sev_by_code
+                    ]
+                    if "degraded" in sevs:
+                        axis_statuses[ax_name] = "degraded"
+                    elif sevs:
+                        axis_statuses[ax_name] = "warn"
+                    elif ax_payload.get("evaluable") is False:
+                        axis_statuses[ax_name] = "not_evaluable"
+                    else:
+                        axis_statuses[ax_name] = "pass"
         _put_node(
             "guardrail:wnn_anti_degradation",
             "guardrail",
@@ -352,6 +404,35 @@ def build_cross_modal_evidence_graph(
         )
 
     # MOFA+ active & excluded confounder factor nodes.
+    def _mofa_view_r2(fac_dict: dict[str, Any], target: str) -> Any:
+        direct = fac_dict.get(f"{target}_r2")
+        if direct is not None:
+            return direct
+        r2_view = fac_dict.get("r2_by_view")
+        if not isinstance(r2_view, dict) or not r2_view:
+            return None
+        if r2_view.get(target) is not None:
+            return r2_view.get(target)
+        views_meta = mofa.get("views") if isinstance(mofa, dict) else None
+        if isinstance(views_meta, dict):
+            for vname, vinfo in views_meta.items():
+                if (
+                    isinstance(vinfo, dict)
+                    and str(vinfo.get("kind") or "").lower() == target
+                    and r2_view.get(vname) is not None
+                ):
+                    return r2_view.get(vname)
+        hints = (
+            ("rna", "gex", "expr", "transcript")
+            if target == "rna"
+            else ("atac", "peak", "chrom", "open")
+        )
+        for vname, val in r2_view.items():
+            low = str(vname).lower()
+            if val is not None and any(h in low for h in hints):
+                return val
+        return None
+
     n_mofa_shared = 0
     n_mofa_excluded = 0
     if stage_flags["mofa"] and isinstance(mofa, dict):
@@ -370,9 +451,8 @@ def build_cross_modal_evidence_graph(
             )
             if cls_name == "shared":
                 n_mofa_shared += 1
-            r2_view = fac.get("r2_by_view") if isinstance(fac.get("r2_by_view"), dict) else {}
-            rna_v = fac.get("rna_r2") if fac.get("rna_r2") is not None else r2_view.get("rna")
-            atac_v = fac.get("atac_r2") if fac.get("atac_r2") is not None else r2_view.get("atac")
+            rna_v = _mofa_view_r2(fac, "rna")
+            atac_v = _mofa_view_r2(fac, "atac")
             _put_node(
                 f"mofa:Factor_{fid}",
                 "mofa_factor",
@@ -389,9 +469,8 @@ def build_cross_modal_evidence_graph(
             if fid is None:
                 continue
             reasons = [str(r) for r in (ex.get("exclusion_reasons") or [])]
-            r2_view = ex.get("r2_by_view") if isinstance(ex.get("r2_by_view"), dict) else {}
-            rna_v = ex.get("rna_r2") if ex.get("rna_r2") is not None else r2_view.get("rna")
-            atac_v = ex.get("atac_r2") if ex.get("atac_r2") is not None else r2_view.get("atac")
+            rna_v = _mofa_view_r2(ex, "rna")
+            atac_v = _mofa_view_r2(ex, "atac")
             n_mofa_excluded += 1
             _put_node(
                 f"mofa:Factor_{fid}",
@@ -448,7 +527,7 @@ def build_cross_modal_evidence_graph(
                 "relation": "peak_to_gene_association",
                 "sign": sign,
                 "corr": round(corr, 4),
-                "padj": _round_num(padj, 6),
+                "padj": padj,
                 "region_class": region_class,
                 "shared_cell_universe": True,
                 "shared_upstream": [],
@@ -573,7 +652,7 @@ def build_cross_modal_evidence_graph(
                     ),
                     "sign_class": sign_class,
                     "tf_gene_corr": _round_num(tf_corr, 4),
-                    "padj": _round_num(padj, 6),
+                    "padj": padj,
                     "rna_atac_aucell_corr": _round_num(aucell_r, 4),
                     "shared_cell_universe": True,
                     "shared_upstream": ["peak_to_gene"],
@@ -649,7 +728,7 @@ def build_cross_modal_evidence_graph(
                     "negative" if sign_class.startswith("neg_") else "positive"
                 ),
                 "tf_gene_corr": _round_num(tf_corr, 4),
-                "padj": _round_num(padj, 6),
+                "padj": padj,
                 "rna_atac_aucell_corr": _round_num(aucell_r, 4),
                 "motif_family_ambiguity": paralog_ambig,
                 "depth_confounded": depth_conf,
@@ -710,7 +789,7 @@ def build_cross_modal_evidence_graph(
                 "region_class": str(link.get("region_class") or "cis"),
                 "sign": "positive" if corr >= 0 else "negative",
                 "corr": round(corr, 4),
-                "padj": _round_num(padj, 6),
+                "padj": padj,
                 "shared_cell_universe": True,
                 "shared_upstream": [],
                 "independent_contrast_support": cross_contrast,

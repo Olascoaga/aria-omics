@@ -872,8 +872,13 @@ def _de_da_block(route, mc, multi, engine) -> NarrativeBlock | None:
             if fp is not None:
                 ev.append(_ev(route, "directional Fisher p-value", _fmt_p(fp)))
                 txt += f" (p = {_fmt_p(fp)})"
+                metrics["fisher_pvalue"] = fp
             stats.append(txt)
             metrics["fisher_odds_ratio"] = odds
+        elif fp is not None:
+            ev.append(_ev(route, "directional Fisher p-value", _fmt_p(fp)))
+            stats.append(f"the directional Fisher test gave p = {_fmt_p(fp)}")
+            metrics["fisher_pvalue"] = fp
         if stats:
             joined = "; ".join(stats)
             claim += " " + joined[0].upper() + joined[1:] + "."
@@ -1032,7 +1037,12 @@ def _sample_links_block(route, links: dict) -> NarrativeBlock | None:
         f"accessibility and expression ({n_pos} positive, {n_neg} negative)."
     )
     perm = links.get("permutation_null") or {}
-    efdr = _finite(perm.get("empirical_fdr_at_padj")) if isinstance(perm, dict) else None
+    efdr = None
+    if isinstance(perm, dict):
+        raw_efdr = perm.get("empirical_fdr_at_padj")
+        if raw_efdr is None:
+            raw_efdr = perm.get("held_out_discovery_fraction")
+        efdr = _finite(raw_efdr)
     n_perm = _int(perm.get("n_permutations")) if isinstance(perm, dict) else None
     if efdr is not None and n_perm:
         ev += [_ev(route, "sample permutations", n_perm),
