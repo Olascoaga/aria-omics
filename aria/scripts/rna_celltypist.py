@@ -378,6 +378,11 @@ def rna_celltypist(params: dict) -> dict:
         if _looks_lognorm_10k(raw_adata):
             adata = raw_adata
 
+    # D1-C5: never mutate original_adata in place when normalizing or clearing
+    # .raw for CellTypist — original_adata is written to annotated.h5ad below.
+    if adata is original_adata:
+        adata = original_adata.copy()
+
     if not _looks_lognorm_10k(adata):
         if adata.X.min() < 0:
             return {

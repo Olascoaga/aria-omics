@@ -1009,13 +1009,20 @@ class OrchestratorAgent(BaseAgent):
                 resolve_fork_ledger_path,
             )
             replayed_dm = exp_context.get("replayed_decision_manifest")
-            locked_params = None
+            manifest_locked_params = None
+            runtime_locked_params = None
             commitment_status = "locked_before_execution"
             replayed_sha = None
             if isinstance(replayed_dm, dict):
                 commitment_status = "replay_locked"
                 replayed_sha = replayed_dm.get("manifest_sha256")
-                locked_params = dict(
+                # Keep core specification's locked_parameter_decisions identical to the
+                # replayed manifest so specification_sha256 and fork_index stay invariant,
+                # while forwarding realized_parameter_decisions to runtime ParameterAdvisor.
+                manifest_locked_params = dict(
+                    replayed_dm.get("locked_parameter_decisions") or {}
+                )
+                runtime_locked_params = dict(
                     replayed_dm.get("locked_parameter_decisions")
                     or replayed_dm.get("realized_parameter_decisions")
                     or {}
@@ -1026,7 +1033,7 @@ class OrchestratorAgent(BaseAgent):
                 plan=plan,
                 biological_intent=intent,
                 commitment_status=commitment_status,
-                locked_parameter_decisions=locked_params,
+                locked_parameter_decisions=manifest_locked_params,
                 replayed_from_manifest_sha256=replayed_sha,
             )
             ws_dir = Path.home() / ".aria" / "workspace" / experiment_id
@@ -1042,8 +1049,8 @@ class OrchestratorAgent(BaseAgent):
                 "analytical_fork_ledger": fork_summary,
             }
             intent["decision_manifest_sha256"] = committed_manifest.get("manifest_sha256")
-            if locked_params:
-                intent["locked_parameter_decisions"] = locked_params
+            if runtime_locked_params:
+                intent["locked_parameter_decisions"] = runtime_locked_params
         except Exception as exc:
             log.warning(f"Could not commit pre-execution DecisionManifest: {exc}", exc_info=True)
 

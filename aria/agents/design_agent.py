@@ -529,7 +529,7 @@ class DesignAgent(BaseAgent):
         if self._organism and self._genome:
             geo_opt = f"{self._organism} ({self._genome})"
             if geo_opt in std_options:
-                options = std_options
+                options = [geo_opt] + [o for o in std_options if o != geo_opt]
                 geo_note = ""
             else:
                 options = [geo_opt] + [o for o in std_options

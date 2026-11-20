@@ -294,6 +294,15 @@ class scRNAAgent(
                 log.info(
                     f"Pseudobulk skipped: {pb_result.get('reason', '?')}"
                 )
+                findings["pseudobulk_de"] = pb_result
+            elif pb_result.get("status") == "error":
+                log.warning(
+                    f"Pseudobulk DE failed: {pb_result.get('reason', '?')} — "
+                    f"{(pb_result.get('details') or '')[:200]}"
+                )
+                findings["pseudobulk_de"] = pb_result
+            elif pb_result:
+                findings["pseudobulk_de"] = pb_result
 
         # 6. Trajectory (developmental / time-course intent) ──────────────
         if ((self._needs_trajectory(intent)
@@ -515,6 +524,21 @@ class scRNAAgent(
                 continue
         return values
 
+    _GENERIC_SAMPLE_STEMS = {
+        "filtered_feature_bc_matrix",
+        "raw_feature_bc_matrix",
+        "feature_bc_matrix",
+        "matrix",
+        "counts",
+        "adata",
+    }
+    _SKIP_PARENT_DIRS = {
+        "outs",
+        "filtered_feature_bc_matrix",
+        "raw_feature_bc_matrix",
+        "feature_bc_matrix",
+    }
+
     @staticmethod
     def _sample_id_from_path(path: str) -> str:
         """
@@ -522,22 +546,47 @@ class scRNAAgent(
         Strips well-known 10x suffixes so sample accessions stay readable
         (e.g. sample01_raw_feature_bc_matrix.h5 -> sample01).
 
+        When the filename stem is a generic 10x/AnnData name (e.g.
+        `filtered_feature_bc_matrix.h5`, `matrix.h5ad`, `counts.h5ad`),
+        derives the sample ID from the enclosing directory (skipping standard
+        CellRanger wrapper directories like `outs`).
+
         Also strips a leading `qc_filtered_` and rejects ARIA intermediate
         stems so a user who accidentally re-feeds a workspace output (e.g.
         `clustered.h5ad`) does not produce recursive `qc_filtered_clustered`
         artefacts.
         """
-        stem = Path(path).stem
-        for suffix in ("_raw_feature_bc_matrix",
-                       "_filtered_feature_bc_matrix",
-                       "_feature_bc_matrix",
-                       "_matrix"):
-            if stem.endswith(suffix):
-                stem = stem[: -len(suffix)]
-                break
+        p = Path(path)
+        stem = p.stem
         if stem.startswith("qc_filtered_"):
             stem = stem[len("qc_filtered_"):]
-        if stem in scRNAAgent._ARIA_INTERMEDIATE_STEMS:
+        if stem.lower() not in scRNAAgent._GENERIC_SAMPLE_STEMS:
+            for suffix in ("_raw_feature_bc_matrix",
+                           "_filtered_feature_bc_matrix",
+                           "_feature_bc_matrix",
+                           "_matrix"):
+                if stem.endswith(suffix):
+                    stem = stem[: -len(suffix)]
+                    break
+        if stem.startswith("qc_filtered_"):
+            stem = stem[len("qc_filtered_"):]
+        if not stem or stem.lower() in scRNAAgent._GENERIC_SAMPLE_STEMS:
+            derived = ""
+            for parent in p.parents:
+                pname = parent.name
+                if not pname:
+                    break
+                if (pname.lower() in scRNAAgent._SKIP_PARENT_DIRS
+                        or pname.lower() in scRNAAgent._GENERIC_SAMPLE_STEMS
+                        or pname in scRNAAgent._ARIA_INTERMEDIATE_STEMS):
+                    continue
+                derived = pname
+                break
+            if derived:
+                stem = derived
+        if (not stem
+                or stem in scRNAAgent._ARIA_INTERMEDIATE_STEMS
+                or stem.lower() in scRNAAgent._GENERIC_SAMPLE_STEMS):
             # Fall back to a hash of the full path so reruns over the same
             # intermediate stay stable but never collide with the canonical
             # intermediate name.

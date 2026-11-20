@@ -384,7 +384,24 @@ def integration_paired_qc(params: dict[str, Any]) -> dict[str, Any]:
     atac_filt.obs["total_peak_counts"] = atac_totals[kept_idx_arr]
     atac_filt.obs["n_peaks_by_counts"] = atac_n_peaks[kept_idx_arr]
 
-    if sample_id is not None:
+    def _has_multilevel_sample_id(obs_df: Any) -> bool:
+        if obs_df is None or "sample_id" not in obs_df.columns:
+            return False
+        vals = obs_df["sample_id"].dropna()
+        return int(vals.astype(str).nunique()) >= 2
+
+    shared_in_obs = (
+        mdata_in.obs.reindex(kept_barcodes)
+        if getattr(mdata_in, "obs", None) is not None and len(mdata_in.obs.columns) > 0
+        else None
+    )
+    has_cohort_sample_ids = (
+        _has_multilevel_sample_id(shared_in_obs)
+        or _has_multilevel_sample_id(rna_filt.obs)
+        or _has_multilevel_sample_id(atac_filt.obs)
+    )
+
+    if sample_id is not None and not has_cohort_sample_ids:
         rna_filt.obs["sample_id"] = sample_id
         atac_filt.obs["sample_id"] = sample_id
 
@@ -398,11 +415,22 @@ def integration_paired_qc(params: dict[str, Any]) -> dict[str, Any]:
     mdata_out.update()
 
     # Preserve shared top-level mdata.obs columns aligned to kept_barcodes.
-    if getattr(mdata_in, "obs", None) is not None and len(mdata_in.obs.columns) > 0:
-        shared_in_obs = mdata_in.obs.reindex(kept_barcodes)
+    if shared_in_obs is not None:
         for col in shared_in_obs.columns:
             if col not in mdata_out.obs.columns:
                 mdata_out.obs[col] = shared_in_obs[col].values
+
+    # Preserve top-level mdata_in.uns (especially aria_cohort_merge for auto Harmony).
+    in_uns = getattr(mdata_in, "uns", None)
+    if in_uns is not None and len(in_uns) > 0:
+        from aria.utils.wnn_diagnostics import sanitize_for_hdf5_uns
+
+        for uns_key, uns_val in in_uns.items():
+            if uns_key not in mdata_out.uns and uns_val is not None:
+                try:
+                    mdata_out.uns[uns_key] = sanitize_for_hdf5_uns(uns_val)
+                except Exception:
+                    continue
 
     mdata_out.obs["rna_total_counts"] = rna_totals[kept_idx_arr]
     mdata_out.obs["rna_n_genes_by_counts"] = rna_n_genes[kept_idx_arr]
@@ -411,7 +439,7 @@ def integration_paired_qc(params: dict[str, Any]) -> dict[str, Any]:
     mdata_out.obs["atac_total_peak_counts"] = atac_totals[kept_idx_arr]
     mdata_out.obs["atac_n_peaks_by_counts"] = atac_n_peaks[kept_idx_arr]
     mdata_out.obs["pass_joint_qc"] = True
-    if sample_id is not None:
+    if sample_id is not None and not has_cohort_sample_ids and not _has_multilevel_sample_id(mdata_out.obs):
         mdata_out.obs["sample_id"] = sample_id
     if transferred_labels is not None and transferred_mask is not None and target_label_col:
         mdata_out.obs[target_label_col] = transferred_labels

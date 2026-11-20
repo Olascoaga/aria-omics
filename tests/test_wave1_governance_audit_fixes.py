@@ -424,7 +424,11 @@ def test_cross_modal_synthesis_perfect_concordance_and_held_out_fdr():
     de_da = next(b for b in blocks if "cross_modal_de_da" in b.id)
     assert any(ev.label == "directional Fisher p-value" for ev in de_da.evidence)
     links = next(b for b in blocks if "cross_modal_sample_links" in b.id)
-    assert any(ev.label == "empirical permutation FDR" for ev in links.evidence)
+    assert any(
+        ev.label == "held-out null discovery rate (per-pair FPR)"
+        for ev in links.evidence
+    )
+    assert not any(ev.label == "empirical permutation FDR" for ev in links.evidence)
 
 
 def test_cross_modal_triangulation_preserves_padj_mofa_views_and_wnn_axes():

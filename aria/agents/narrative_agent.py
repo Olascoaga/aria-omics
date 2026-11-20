@@ -812,6 +812,9 @@ for small-effect genes.""",
         integ = agent_results.get("integration_agent", {})
         if integ.get("status") == "done":
             from aria.agents.narrative.narrators.integration import (
+                _count_factor_collection,
+                _mofa_n_bio_active,
+                _mofa_quarantined_ids,
                 unwrap_integration_findings,
             )
             int_f = unwrap_integration_findings(integ)
@@ -833,8 +836,16 @@ for small-effect genes.""",
                 )
             mofa = int_f.get("mofa") or {}
             if isinstance(mofa, dict) and mofa.get("status") == "success":
+                quar_ids = _mofa_quarantined_ids(mofa)
+                bio_fallback = (
+                    _count_factor_collection(mofa.get("shared_factors"), excluded_ids=quar_ids)
+                    + _count_factor_collection(mofa.get("modality_specific_factors"), excluded_ids=quar_ids)
+                )
+                if not (mofa.get("shared_factors") or mofa.get("modality_specific_factors")):
+                    bio_fallback = max(0, int(mofa.get("n_active_factors") or 0) - len(quar_ids))
+                n_bio = _mofa_n_bio_active(mofa, bio_fallback)
                 int_parts.append(
-                    f"MOFA+ retained {mofa.get('n_active_factors', 0)} of "
+                    f"MOFA+ retained {n_bio} active biological of "
                     f"{mofa.get('n_factors', 0)} factors "
                     f"({len(mofa.get('excluded_factors') or [])} confounder factors quarantined)"
                 )
@@ -861,6 +872,9 @@ for small-effect genes.""",
         if integ.get("status") != "done":
             return ""
         from aria.agents.narrative.narrators.integration import (
+            _count_factor_collection,
+            _mofa_n_bio_active,
+            _mofa_quarantined_ids,
             unwrap_integration_findings,
         )
         int_f = unwrap_integration_findings(integ)
@@ -888,8 +902,16 @@ for small-effect genes.""",
             )
         reg_clauses: list[str] = []
         if isinstance(mofa, dict) and mofa.get("status") == "success":
+            quar_ids = _mofa_quarantined_ids(mofa)
+            bio_fallback = (
+                _count_factor_collection(mofa.get("shared_factors"), excluded_ids=quar_ids)
+                + _count_factor_collection(mofa.get("modality_specific_factors"), excluded_ids=quar_ids)
+            )
+            if not (mofa.get("shared_factors") or mofa.get("modality_specific_factors")):
+                bio_fallback = max(0, int(mofa.get("n_active_factors") or 0) - len(quar_ids))
+            n_bio = _mofa_n_bio_active(mofa, bio_fallback)
             reg_clauses.append(
-                f"MOFA+ retained {mofa.get('n_active_factors', 0)} of "
+                f"MOFA+ retained {n_bio} active biological of "
                 f"{mofa.get('n_factors', 0)} fitted factors "
                 f"({len(mofa.get('excluded_factors') or [])} confounder factor(s) quarantined)"
             )

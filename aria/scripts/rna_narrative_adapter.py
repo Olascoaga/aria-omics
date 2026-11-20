@@ -108,13 +108,20 @@ def adapt(report: Union[dict, str, Path],
             100.0 * (n_before - n_after) / n_before
             if n_before else 0.0
         )
+        mt_thr = _first_mt_threshold(per_sample)
+        if mt_thr is None:
+            for key in ("mt_threshold_used", "mt_threshold", "mt_high"):
+                if qc.get(key) is not None:
+                    mt_thr = qc.get(key)
+                    break
         findings["qc"] = {
-            "n_cells_before": n_before,
-            "n_cells_after":  n_after,
-            "pct_removed":    round(pct_rm, 1),
-            "n_samples":      qc.get("n_samples", len(per_sample)),
-            "per_sample":     per_sample,
-            "mt_threshold":   _first_mt_threshold(per_sample),
+            "n_cells_before":    n_before,
+            "n_cells_after":     n_after,
+            "pct_removed":       round(pct_rm, 1),
+            "n_samples":         qc.get("n_samples", len(per_sample)),
+            "per_sample":        per_sample,
+            "mt_threshold":      mt_thr,
+            "mt_threshold_used": mt_thr,
         }
 
     # Concat (multi-sample) ───────────────────────────────────────────────
@@ -185,6 +192,16 @@ def adapt(report: Union[dict, str, Path],
             "n_unique_labels": ct.get("n_unique_labels"),
             "n_cells":         ct.get("n_cells"),
             "predictions_path": ct.get("predictions_path"),
+            "celltypist": {
+                "status":                       ct.get("status"),
+                "model_used":                   ct.get("model_used"),
+                "model_source":                 ct.get("model_source"),
+                "model_warning":                ct.get("model_warning"),
+                "per_cluster":                  per_cl,
+                "confidence_available":         ct.get("confidence_available"),
+                "confidence_extraction_failed": ct.get("confidence_extraction_failed"),
+                "warnings":                     ct.get("warnings", []) or [],
+            },
         }
         output_h5ad = ct.get("output_path") or output_h5ad
 
@@ -211,23 +228,31 @@ def adapt(report: Union[dict, str, Path],
         if mode == "pseudobulk":
             pw_target_key = "pseudobulk_pathways"
         findings[pw_target_key] = {
-            "organism":    pw.get("organism", organism),
-            "databases":   pw.get("databases", {}),
-            "per_cluster": pw.get("per_cluster", {}),
+            "organism":          pw.get("organism", organism),
+            "databases":         pw.get("databases", {}),
+            "ora_method":        pw.get("ora_method"),
+            "gene_set_versions": pw.get("gene_set_versions", {}) or {},
+            "databases_skipped": pw.get("databases_skipped", []) or [],
+            "background_size":   pw.get("background_size"),
+            "background_source": pw.get("background_source"),
+            "per_cluster":       pw.get("per_cluster", {}),
+            "output_csv":        pw.get("output_csv"),
         }
 
     # Cell-cell communication (v4.3.7) ────────────────────────────────────
     ccc = stages.get("cell_communication") or stages.get("cellcomm")
     if ccc and ccc.get("status") in ("success", "done"):
         findings["cell_communication"] = {
-            "status":             "done",
-            "method":             ccc.get("method"),
-            "n_cell_types":       ccc.get("n_cell_types"),
-            "n_interactions":     ccc.get("n_interactions"),
+            "status":              "done",
+            "method":              ccc.get("method"),
+            "n_cell_types":        ccc.get("n_cell_types"),
+            "n_interactions":      ccc.get("n_interactions"),
+            "n_interactions_total": ccc.get("n_interactions_total"),
+            "n_significant":       ccc.get("n_significant"),
             "n_autocrine_dropped": ccc.get("n_autocrine_dropped", 0),
-            "top_interactions":   ccc.get("top_interactions", []) or [],
-            "top_pairs":          ccc.get("top_pairs", []) or [],
-            "output_path":        ccc.get("output_path"),
+            "top_interactions":    ccc.get("top_interactions", []) or [],
+            "top_pairs":           ccc.get("top_pairs", []) or [],
+            "output_path":         ccc.get("output_path"),
         }
         # cellcomm mode's input h5ad is the annotated/clustered one; use
         # it as the figure source so UMAP fallback kicks in.
@@ -253,13 +278,22 @@ def adapt(report: Union[dict, str, Path],
     pb = stages.get("pseudobulk")
     if pb and pb.get("status") in ("success", "done"):
         findings["pseudobulk_de"] = {
-            "groupby":       pb.get("groupby"),
-            "condition_col": pb.get("condition_col"),
-            "replicate_col": pb.get("replicate_col"),
-            "covariates":    pb.get("covariates", []) or [],
-            "thresholds":    pb.get("thresholds", {}) or {},
-            "n_groups":      pb.get("n_groups"),
-            "per_group":     pb.get("per_group", {}) or {},
+            "groupby":               pb.get("groupby"),
+            "condition_col":         pb.get("condition_col"),
+            "replicate_col":         pb.get("replicate_col"),
+            "covariates":            pb.get("covariates", []) or [],
+            "thresholds":            pb.get("thresholds", {}) or {},
+            "multiple_testing":      pb.get("multiple_testing", {}) or {},
+            "lfc_shrinkage":         pb.get("lfc_shrinkage"),
+            "count_source":          pb.get("count_source"),
+            "lognorm_recovered":     pb.get("lognorm_recovered"),
+            "power":                 pb.get("power"),
+            "robustness_multiverse": pb.get("robustness_multiverse"),
+            "paired_design":         pb.get("paired_design"),
+            "n_groups":              pb.get("n_groups"),
+            "per_group":             pb.get("per_group", {}) or {},
+            "output_csv":            pb.get("output_csv"),
+            "full_results_csv":      pb.get("full_results_csv"),
         }
         # For pseudobulk runs, the source h5ad is the input — fall back
         # to that since there's no clustering output here.
@@ -339,11 +373,14 @@ def adapt(report: Union[dict, str, Path],
 
 
 def _first_mt_threshold(per_sample: list) -> Optional[float]:
-    """Pull the first sample's mt_threshold, if available."""
+    """Pull the first sample's mt threshold, checking mt_threshold_used first."""
     for s in per_sample or []:
-        v = s.get("mt_threshold") or s.get("mt_high")
-        if v is not None:
-            return v
+        if not isinstance(s, dict):
+            continue
+        for key in ("mt_threshold_used", "mt_threshold", "mt_high"):
+            v = s.get(key)
+            if v is not None:
+                return v
     return None
 
 

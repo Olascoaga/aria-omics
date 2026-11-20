@@ -191,7 +191,10 @@ class ReportRenderMixin:
             )
 
     def _speculative_verification_state(
-        self, run_ledger: dict | None, narrative_blocks: list | None
+        self,
+        run_ledger: dict | None,
+        narrative_blocks: list | None,
+        n_withheld: int = 0,
     ) -> "VerificationReceipt":
         """Resolve the REAL W-CLAIM / W-LEDGER state for the causal gate (rail #1).
 
@@ -217,6 +220,7 @@ class ReportRenderMixin:
         """
         from aria.agents.narrative.hypothesis import VerificationReceipt
 
+        withheld_count = max(0, int(n_withheld or 0))
         if narrative_blocks is None:
             w_claim_passed = False
             w_claim_complete = False
@@ -230,10 +234,11 @@ class ReportRenderMixin:
                 .get("status")
                 == "unsupported"
             )
-            w_claim_passed = n_unsupported == 0
+            w_claim_passed = n_unsupported == 0 and withheld_count == 0
             w_claim_complete = True
             w_claim_evidence = (
-                f"{len(narrative_blocks)} block(s), {n_unsupported} unsupported"
+                f"{len(narrative_blocks)} block(s), {n_unsupported} unsupported, "
+                f"{withheld_count} withheld"
             )
 
         has_ledger_record = (
@@ -267,7 +272,8 @@ class ReportRenderMixin:
                                         run_ledger: dict | None,
                                         exp_ctx: dict,
                                         narrative_blocks: list | None = None,
-                                        report_dir: Optional[Path] = None
+                                        report_dir: Optional[Path] = None,
+                                        n_withheld: int = 0,
                                         ) -> str:
         """ADR-057 S9: render the opt-in SPECULATIVE hypotheses section, or ''.
 
@@ -294,7 +300,7 @@ class ReportRenderMixin:
             if llm is not None:
                 proposer = LLMProposer.from_provider(llm)
             verification = self._speculative_verification_state(
-                run_ledger, narrative_blocks
+                run_ledger, narrative_blocks, n_withheld=n_withheld
             )
             section = build_speculative_section(
                 agent_results, run_ledger, exp_ctx, proposer=proposer,
@@ -525,9 +531,13 @@ class ReportRenderMixin:
         # existing reports are unchanged. Only built downstream of a non-aborted
         # report (W-CLAIM/W-LEDGER passed), over audited evidence only, and fully
         # guarded so it can never break report generation.
+        n_withheld = int(
+            (public_compilation.summary() or {}).get("n_withheld", 0) or 0
+        )
         speculative_html = self._build_speculative_section_html(
             agent_results, run_ledger, exp_ctx,
             narrative_blocks=narrative_blocks, report_dir=report_dir,
+            n_withheld=n_withheld,
         )
         executive_summary_warning_html = ""
         if executive_summary_warning:

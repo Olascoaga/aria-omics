@@ -486,7 +486,7 @@ class GenomeArchAgent(BaseAgent):
 
         if target_res not in available:
             coarser = [r for r in sorted(available) if r >= target_res]
-            target_res = coarser[0] if coarser else sorted(available)[0]
+            target_res = coarser[0] if coarser else sorted(available)[-1]
 
         base_ram = estimate_ram_gb(target_res)
         req_ram = base_ram * scale
@@ -676,9 +676,19 @@ class GenomeArchAgent(BaseAgent):
             or (exp_ctx.get("design") or {}).get("sample_sheet")
         )
         if len(files) >= 2 and sample_meta and comparisons:
+            bal_sids = (
+                qc_result.get("balanced_sample_ids")
+                if isinstance(qc_result, dict) and qc_result.get("balanced_files")
+                else None
+            )
+            diff_sids = (
+                bal_sids
+                if isinstance(bal_sids, list) and len(bal_sids) == len(files)
+                else exp_ctx.get("sample_ids")
+            )
             diff_params: dict = {
                 "files": files,
-                "sample_ids": exp_ctx.get("sample_ids"),
+                "sample_ids": diff_sids,
                 "sample_metadata": sample_meta,
                 "condition_col": contract.get("condition_col") or "condition",
                 "replicate_col": contract.get("replicate_col") or "replicate",

@@ -17,6 +17,7 @@ from aria.agents.narrative.types import NarrativeBlock, SemanticFact
 import math
 
 from aria.agents.narrative.validators import (
+    _unnegated_causal_hit,
     collect_named_entities,
     find_causal_language,
 )
@@ -388,18 +389,14 @@ def _issues_for_sentence(
 
     claim_meta = block.metadata.get("claim") or {}
     licensed = claim_meta.get("licensed_language")
-    if (
-        licensed
-        and licensed != "causal"
-        and not block.metadata.get("causal_evidence")
-    ):
+    if licensed and licensed != "causal":
         # Official DB term names / gene symbols carried by the block (e.g. the
         # Reactome term "TP53 Regulates Transcription ...") are reported data,
         # not ARIA's causal assertions.
-        hit = find_causal_language(
+        hit = _unnegated_causal_hit(
             sentence, exclude=collect_named_entities(block)
         )
-        if hit and "not " not in low[max(0, low.find(hit.lower()) - 8):low.find(hit.lower())]:
+        if hit:
             issues.append(VerificationIssue(
                 location,
                 sentence,
@@ -578,6 +575,29 @@ def _claim_semantic_facts(
     return _dedupe_facts(facts)
 
 
+def _active_fdr_strategy(block: NarrativeBlock) -> str | None:
+    metrics = block.metrics or {}
+    strategy = str(metrics.get("fdr_strategy") or "").strip().lower()
+    if strategy in {"per_cluster", "local"}:
+        return "per_cluster"
+    if strategy == "global":
+        return "global"
+    n_sig = _as_nonnegative_number(metrics.get("n_significant"))
+    n_glob = _as_nonnegative_number(metrics.get("n_significant_global"))
+    n_loc = _as_nonnegative_number(metrics.get("n_significant_local"))
+    if (
+        n_sig is not None
+        and n_glob is not None
+        and n_loc is not None
+        and n_glob != n_loc
+    ):
+        if n_sig == n_loc:
+            return "per_cluster"
+        if n_sig == n_glob:
+            return "global"
+    return None
+
+
 def _evidence_item_facts(
     block: NarrativeBlock,
     evidence: Any,
@@ -618,14 +638,32 @@ def _evidence_item_facts(
                 polarity="affirmed", value=value, source=ref_id,
             ))
 
-    if label.casefold() in _DE_COUNT_LABELS:
+    lower_label = label.casefold()
+    if lower_label in _DE_COUNT_LABELS:
         count = _as_nonnegative_number(value)
         if count is not None:
-            facts.append(SemanticFact(
-                subject="*", subject_type="gene_set", predicate=predicate,
-                polarity="negated" if count == 0 else "affirmed",
-                value=value, source=ref_id,
-            ))
+            emit = True
+            if lower_label in {"global-fdr de genes", "local-fdr de genes"}:
+                strategy = _active_fdr_strategy(block)
+                ev_labels = {
+                    str(getattr(item, "label", "") or "").strip().casefold()
+                    for item in (block.evidence or [])
+                }
+                has_both_fdr = {
+                    "global-fdr de genes", "local-fdr de genes"
+                }.issubset(ev_labels)
+                if strategy == "per_cluster":
+                    emit = lower_label == "local-fdr de genes"
+                elif strategy == "global":
+                    emit = lower_label == "global-fdr de genes"
+                elif has_both_fdr:
+                    emit = lower_label == "global-fdr de genes"
+            if emit:
+                facts.append(SemanticFact(
+                    subject="*", subject_type="gene_set", predicate=predicate,
+                    polarity="negated" if count == 0 else "affirmed",
+                    value=value, source=ref_id,
+                ))
     return facts
 
 
@@ -634,20 +672,25 @@ def _metric_facts(block: NarrativeBlock) -> list[SemanticFact]:
     if analysis not in _INFERENTIAL_FACT_ANALYSES:
         return []
     predicate = _fact_predicate_for_analysis(analysis)
-    facts: list[SemanticFact] = []
-    for key in ("n_significant", "n_significant_global", "n_significant_local"):
-        if key not in (block.metrics or {}):
+    metrics = block.metrics or {}
+    strategy = _active_fdr_strategy(block)
+    if strategy == "per_cluster":
+        priority = ("n_significant", "n_significant_local", "n_significant_global")
+    else:
+        priority = ("n_significant", "n_significant_global", "n_significant_local")
+    for key in priority:
+        if key not in metrics:
             continue
-        value = block.metrics.get(key)
+        value = metrics.get(key)
         count = _as_nonnegative_number(value)
         if count is None:
             continue
-        facts.append(SemanticFact(
+        return [SemanticFact(
             subject="*", subject_type="gene_set", predicate=predicate,
             polarity="negated" if count == 0 else "affirmed",
             value=value, source=f"{block.id}:metric:{key}",
-        ))
-    return facts
+        )]
+    return []
 
 
 def _semantic_support_issue(

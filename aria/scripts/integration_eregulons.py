@@ -194,8 +194,9 @@ def _load_precomputed_p2g_csv(
                     continue
             if min_corr is not None and abs(corr) < float(min_corr):
                 continue
-            if max_padj is not None and padj_val is not None and padj_val > float(max_padj):
-                continue
+            if max_padj is not None:
+                if padj_val is None or padj_val > float(max_padj):
+                    continue
             try:
                 dist_bp = int(round(float(r["distance_bp"])))
             except (KeyError, TypeError, ValueError):
@@ -210,10 +211,17 @@ def _load_precomputed_p2g_csv(
                     "region_class": str(r.get("region_class") or "cis"),
                 }
             )
+    n_fdr_sig = sum(
+        1
+        for lk in links
+        if lk["padj"] is not None
+        and math.isfinite(lk["padj"])
+        and lk["padj"] <= 0.05
+    )
     return {
         "links": links,
         "n_tested": n_total,
-        "n_fdr_significant": len(links),
+        "n_fdr_significant": n_fdr_sig,
         "background_match": "precomputed_csv",
     }
 
@@ -538,15 +546,21 @@ def integration_eregulons(params: dict) -> dict[str, Any]:
                 "error_type": "ATACMatrixNotLoadable",
                 "details": str(atac_err),
             }
-        r_idx_map = {str(b): i for i, b in enumerate(rna_adata.obs_names)}
-        a_idx_map = {str(b): i for i, b in enumerate(atac_adata.obs_names)}
+        rna_obs_list = [str(b) for b in rna_adata.obs_names]
+        atac_obs_list = [str(b) for b in atac_adata.obs_names]
+        if len(set(rna_obs_list)) != len(rna_obs_list) or len(set(atac_obs_list)) != len(atac_obs_list):
+            return {
+                "status": "error",
+                "error_type": "DuplicateBarcodes",
+                "details": (
+                    "Duplicate cell barcodes detected in split RNA/ATAC inputs; "
+                    "candidate eRegulon assembly requires unique barcodes per modality."
+                ),
+            }
+        r_idx_map = {b: i for i, b in enumerate(rna_obs_list)}
+        a_idx_map = {b: i for i, b in enumerate(atac_obs_list)}
         atac_set = set(a_idx_map)
-        seen_bc: set[str] = set()
-        barcodes = []
-        for bc in (str(x) for x in rna_adata.obs_names):
-            if bc in atac_set and bc not in seen_bc:
-                barcodes.append(bc)
-                seen_bc.add(bc)
+        barcodes = [bc for bc in rna_obs_list if bc in atac_set]
         if len(barcodes) < min_shared_cells:
             return {
                 "status": "error",

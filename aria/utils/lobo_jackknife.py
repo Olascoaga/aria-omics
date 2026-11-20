@@ -78,8 +78,10 @@ def _unpaired_fold_stats(
     if not moderate:
         with np.errstate(divide="ignore", invalid="ignore"):
             _, pvals = stats.ttest_ind(x_num, x_den, axis=1, equal_var=False)
+        padj = bh_adjust(pvals)
+        padj = np.where(np.isfinite(padj), padj, 1.0)
         pvals = np.where(np.isfinite(pvals), pvals, 1.0)
-        return lfc, pvals, bh_adjust(pvals)
+        return lfc, pvals, padj
 
     v1 = np.var(x_num, axis=1, ddof=1)
     v2 = np.var(x_den, axis=1, ddof=1)
@@ -92,8 +94,10 @@ def _unpaired_fold_stats(
     se = np.sqrt(np.maximum(s2_post * (1.0 / n1 + 1.0 / n2), 1e-15))
     t_stat = lfc / se
     pvals = 2.0 * stats.t.sf(np.abs(t_stat), df=df_obs + d0)
+    padj = bh_adjust(pvals)
+    padj = np.where(np.isfinite(padj), padj, 1.0)
     pvals = np.where(np.isfinite(pvals), pvals, 1.0)
-    return lfc, pvals, bh_adjust(pvals)
+    return lfc, pvals, padj
 
 
 def _paired_fold_stats(
@@ -113,10 +117,12 @@ def _paired_fold_stats(
     if not moderate:
         se = np.sqrt(np.maximum(v_diff / k, 1e-15))
         with np.errstate(divide="ignore", invalid="ignore"):
-            t_stat = np.where(v_diff > 0, lfc / se, np.where(np.abs(lfc) > 0, np.inf, 0.0))
+            t_stat = np.where(v_diff > 0, lfc / se, np.where(np.abs(lfc) > 0, np.inf, np.nan))
         pvals = 2.0 * stats.t.sf(np.abs(t_stat), df=df_obs)
+        padj = bh_adjust(pvals)
+        padj = np.where(np.isfinite(padj), padj, 1.0)
         pvals = np.where(np.isfinite(pvals), pvals, 1.0)
-        return lfc, pvals, bh_adjust(pvals)
+        return lfc, pvals, padj
 
     pos = v_diff[np.isfinite(v_diff) & (v_diff > 1e-12)]
     s0_sq = float(np.median(pos)) if pos.size > 0 else 1e-4
@@ -125,8 +131,10 @@ def _paired_fold_stats(
     se = np.sqrt(np.maximum(s2_post / k, 1e-15))
     t_stat = lfc / se
     pvals = 2.0 * stats.t.sf(np.abs(t_stat), df=df_obs + d0)
+    padj = bh_adjust(pvals)
+    padj = np.where(np.isfinite(padj), padj, 1.0)
     pvals = np.where(np.isfinite(pvals), pvals, 1.0)
-    return lfc, pvals, bh_adjust(pvals)
+    return lfc, pvals, padj
 
 
 def compute_lobo_jackknife(
@@ -153,9 +161,15 @@ def compute_lobo_jackknife(
 
     moderate = bool(n_features_universe >= 20)
 
-    # Check paired-donor mode first if unit_to_donor was provided
+    num_cols = [i for i, u in enumerate(unit_ids) if unit_to_group.get(u) == numerator]
+    den_cols = [i for i, u in enumerate(unit_ids) if unit_to_group.get(u) == denominator]
+
+    # Check paired-donor mode first if unit_to_donor was provided.
+    # For partially paired designs, enter paired_mode ONLY when all units are paired
+    # OR n_pairs >= 3; otherwise fall back to unpaired LOBO when both arms have >= 3 units.
     paired_mode = False
     donor_pairs: list[tuple[str, int, int]] = []
+    n_unpaired_units_excluded = 0
     if unit_to_donor:
         num_by_donor: dict[str, int] = {}
         den_by_donor: dict[str, int] = {}
@@ -170,8 +184,14 @@ def compute_lobo_jackknife(
                 den_by_donor[donor] = col_i
         shared_donors = sorted(set(num_by_donor) & set(den_by_donor))
         if shared_donors:
-            paired_mode = True
-            donor_pairs = [(d, num_by_donor[d], den_by_donor[d]) for d in shared_donors]
+            cand_pairs = [(d, num_by_donor[d], den_by_donor[d]) for d in shared_donors]
+            paired_cols = {c for _, nc, dc in cand_pairs for c in (nc, dc)}
+            unpaired_count = sum(1 for c in (num_cols + den_cols) if c not in paired_cols)
+            all_units_paired = unpaired_count == 0
+            if all_units_paired or len(cand_pairs) >= 3 or min(len(num_cols), len(den_cols)) < 3:
+                paired_mode = True
+                donor_pairs = cand_pairs
+                n_unpaired_units_excluded = unpaired_count
 
     if paired_mode:
         n_pairs = len(donor_pairs)
@@ -184,6 +204,7 @@ def compute_lobo_jackknife(
                 "denominator": denominator,
                 "n_units_numerator": n_pairs,
                 "n_units_denominator": n_pairs,
+                "n_unpaired_units_excluded": n_unpaired_units_excluded,
                 "minimum_required_per_arm": 3,
                 "n_features_universe": n_features_universe,
                 "per_feature": {},
@@ -203,8 +224,6 @@ def compute_lobo_jackknife(
         n_den_out = n_pairs
         design_mode = "paired_donor"
     else:
-        num_cols = [i for i, u in enumerate(unit_ids) if unit_to_group.get(u) == numerator]
-        den_cols = [i for i, u in enumerate(unit_ids) if unit_to_group.get(u) == denominator]
         n_num_out = len(num_cols)
         n_den_out = len(den_cols)
         if min(n_num_out, n_den_out) < 3:
@@ -314,7 +333,7 @@ def compute_lobo_jackknife(
             }
 
     n_eval = len(eval_ids)
-    return {
+    result_dict = {
         "status": "measured",
         "design_mode": design_mode,
         "variance_moderation": "empirical_bayes_smyth2004" if moderate else "exact_welch_or_paired_t",
@@ -334,6 +353,9 @@ def compute_lobo_jackknife(
         ),
         "per_feature": per_feature,
     }
+    if paired_mode:
+        result_dict["n_unpaired_units_excluded"] = n_unpaired_units_excluded
+    return result_dict
 
 
 def compute_counts_lobo_jackknife(

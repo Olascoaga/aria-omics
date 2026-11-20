@@ -21,6 +21,8 @@ Detects:
 """
 
 from __future__ import annotations
+import json
+import logging
 import os
 import re
 import uuid
@@ -36,6 +38,8 @@ from aria.memory.memory import ARIAMemory
 from aria.utils.assay_detector import AssayDetector
 from aria.utils.multiome_contracts import infer_multiome_contract
 from aria.utils.provenance import hash_file
+
+log = logging.getLogger("aria.data_audit")
 
 
 # ── File signature patterns ──────────────────────────────────────────────────
@@ -583,7 +587,8 @@ class DataAuditAgent(BaseAgent):
                     multiome_manifest_obj = json.loads(
                         cand_mm.read_text(encoding="utf-8")
                     )
-                except Exception:
+                except (OSError, json.JSONDecodeError) as exc:
+                    log.warning("Could not parse multiome manifest %s: %s", cand_mm, exc)
                     multiome_manifest_obj = str(cand_mm)
         elif isinstance(multiome_manifest_obj, (str, Path)):
             mm_path = Path(str(multiome_manifest_obj))
@@ -595,8 +600,8 @@ class DataAuditAgent(BaseAgent):
                     multiome_manifest_obj = json.loads(
                         mm_path.read_text(encoding="utf-8")
                     )
-                except Exception:
-                    pass
+                except (OSError, json.JSONDecodeError) as exc:
+                    log.warning("Could not parse multiome manifest %s: %s", mm_path, exc)
 
         # The manifest JSON and barcode whitelists are assay metadata, not
         # modality payloads. Keep them in the audit scan/provenance but do not
@@ -1420,13 +1425,21 @@ class DataAuditAgent(BaseAgent):
         genome = "unknown"
         organism = "unknown"
 
+        def _has_hint(hint: str) -> bool:
+            return bool(
+                re.search(
+                    rf"(?<![a-z0-9]){re.escape(hint.lower())}(?![a-z0-9])",
+                    search_text,
+                )
+            )
+
         for g, hints in GENOME_HINTS.items():
-            if any(h.lower() in search_text for h in hints):
+            if any(_has_hint(h) for h in hints):
                 genome = g
                 break
 
         for org, hints in ORGANISM_HINTS.items():
-            if any(h.lower() in search_text for h in hints):
+            if any(_has_hint(h) for h in hints):
                 organism = org
                 break
 

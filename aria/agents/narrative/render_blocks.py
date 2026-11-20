@@ -14,6 +14,7 @@ from aria.agents.narrative.types import NarrativeBlock
 from aria.agents.narrative.validators import (
     validate_blocks,
     NarrativeValidationError,
+    _unnegated_causal_hit,
     find_causal_language,
     collect_named_entities,
 )
@@ -124,14 +125,20 @@ def _render_block(block: NarrativeBlock,
     # F-SCI-CAUSAL (audit 2026-05-28): the causal guard in validate_blocks only
     # scans claim+evidence. Scan the FINAL composed prose too — that is what the
     # reader sees — and surface a visible warning if unlicensed causal phrasing
-    # slipped in (unless the block declares explicit causal evidence).
+    # slipped in (unless causal language is licensed for this estimand).
     block_warnings = list(block.warnings or [])
-    if not block.metadata.get("causal_evidence"):
+    claim_meta = block.metadata.get("claim") or {}
+    licensed = claim_meta.get("licensed_language")
+    causal_allowed = (
+        licensed == "causal"
+        or (not licensed and block.metadata.get("causal_evidence") is True)
+    )
+    if not causal_allowed:
         # B5 (audit 2026-05-29): redact external named entities (DB term names,
         # gene symbols) that compose_prose interpolates into the prose so a GO/
         # Reactome term like "TP53 Regulates Transcription…" does not trip the
         # guard. Only ARIA's authored phrasing should be evaluated.
-        causal_hit = find_causal_language(
+        causal_hit = _unnegated_causal_hit(
             raw_prose, exclude=collect_named_entities(block)
         )
         if causal_hit:

@@ -26,7 +26,11 @@ import re
 from dataclasses import asdict, dataclass, field
 
 from aria.agents.narrative.evidence_verifier import _claim_entities
-from aria.agents.narrative.run_ledger import _NOT_RUN_STATUSES, _node_index
+from aria.agents.narrative.run_ledger import (
+    _EXECUTED_LEDGER_STATUSES,
+    _NOT_RUN_STATUSES,
+    _node_index,
+)
 
 from .types import EvidenceSignal, Hypothesis
 
@@ -472,7 +476,7 @@ def verify_hypothesis_grounding(
             node = index.get(ref)
             if node is None:
                 not_run.append({"node_id": ref, "status": "no_ledger_node"})
-            elif node.get("status") in _NOT_RUN_STATUSES:
+            elif node.get("status") not in _EXECUTED_LEDGER_STATUSES:
                 not_run.append(
                     {
                         "node_id": ref,

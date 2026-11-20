@@ -33,6 +33,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspa
 
 from aria.scripts._base import mocks_allowed, run_script
 from aria.scripts.hic_preprocess import _check_hic_stage_cache, _save_hic_stage_cache
+from aria.utils.hic_constants import list_mcool_resolutions
 
 STAGE_VERSION = 1
 PIXEL_CHUNK_SIZE = 5_000_000
@@ -62,19 +63,41 @@ def _resolve_cooler_uri(path: str, resolution: int) -> tuple[str, int]:
     import cooler
 
     if path.lower().endswith(".mcool"):
-        avail = sorted(
-            int(p.split("/")[-1])
-            for p in cooler.fileops.list_coolers(path)
-            if "/resolutions/" in p and p.split("/")[-1].isdigit()
-        )
-        if not avail:
+        res_map = list_mcool_resolutions(path)
+        if not res_map:
             raise ValueError(f"No resolutions inside .mcool: {path}")
-        chosen = int(resolution) if int(resolution) in avail else min(
+        avail = sorted(res_map.keys())
+        chosen = int(resolution) if int(resolution) in res_map else min(
             avail, key=lambda r: abs(r - int(resolution))
         )
-        return f"{path}::resolutions/{chosen}", chosen
+        return f"{path}::{res_map[chosen]}", chosen
     clr = cooler.Cooler(path)
     return path, int(clr.binsize)
+
+
+def _resolve_scc_uri(
+    path: str,
+    base_resolution: int,
+    explicit_scc_resolution: int | None = None,
+) -> tuple[str, int]:
+    """Select the resolution used for HiCRep SCC (defaults .mcool to >= 40 kb to prevent Micro-C OOM)."""
+    if path.lower().endswith(".mcool"):
+        res_map = list_mcool_resolutions(path)
+        if not res_map:
+            raise ValueError(f"No resolutions inside .mcool: {path}")
+        avail = sorted(res_map.keys())
+        if explicit_scc_resolution is not None:
+            target = int(explicit_scc_resolution)
+            chosen = target if target in res_map else min(avail, key=lambda r: abs(r - target))
+        elif int(base_resolution) < 40_000:
+            ge_40k = [r for r in avail if r >= 40_000]
+            chosen = ge_40k[0] if ge_40k else avail[-1]
+        else:
+            chosen = int(base_resolution) if int(base_resolution) in res_map else min(
+                avail, key=lambda r: abs(r - int(base_resolution))
+            )
+        return f"{path}::{res_map[chosen]}", chosen
+    return _resolve_cooler_uri(path, base_resolution)
 
 
 def _has_valid_weights(clr) -> bool:
@@ -144,29 +167,31 @@ def _stage_and_balance_cooler(
     out_dir: Path,
     force_rebalance: bool,
     warnings: list[str],
+    extra_resolutions: list[int] | None = None,
 ) -> tuple[str | None, int, dict[str, Any]]:
     import cooler
     import numpy as np
 
+    is_mcool = input_path.lower().endswith(".mcool")
+    res_map = list_mcool_resolutions(input_path) if is_mcool else {}
     uri, chosen_res = _resolve_cooler_uri(input_path, resolution)
     clr = cooler.Cooler(uri)
 
     # Check if all needed resolutions already carry ICE weights
     resolutions_to_check = [chosen_res]
-    if input_path.lower().endswith(".mcool"):
-        avail = sorted(
-            int(p.split("/")[-1])
-            for p in cooler.fileops.list_coolers(input_path)
-            if "/resolutions/" in p and p.split("/")[-1].isdigit()
-        )
+    if is_mcool:
+        avail = sorted(res_map.keys())
         for r in avail:
             if r >= 100_000 and r not in resolutions_to_check:
                 resolutions_to_check.append(r)
+        for er in extra_resolutions or []:
+            if int(er) in res_map and int(er) not in resolutions_to_check:
+                resolutions_to_check.append(int(er))
 
     if not force_rebalance:
         all_weighted = True
         for r in resolutions_to_check:
-            r_uri = f"{input_path}::resolutions/{r}" if input_path.lower().endswith(".mcool") else input_path
+            r_uri = f"{input_path}::{res_map[r]}" if is_mcool else input_path
             if not _has_valid_weights(cooler.Cooler(r_uri)):
                 all_weighted = False
                 break
@@ -179,7 +204,7 @@ def _stage_and_balance_cooler(
                 "frac_valid_bins": round(n_valid / max(len(w), 1), 4),
             }
 
-    ext = ".mcool" if input_path.lower().endswith(".mcool") else ".cool"
+    ext = ".mcool" if is_mcool else ".cool"
     staged_path = out_dir / f"{sample_id}.balanced{ext}"
     if Path(input_path).resolve() != staged_path.resolve():
         shutil.copy2(input_path, staged_path)
@@ -187,7 +212,7 @@ def _stage_and_balance_cooler(
 
     balance_meta: dict[str, Any] = {"already_balanced": False}
     for r in resolutions_to_check:
-        r_uri = f"{staged_path}::resolutions/{r}" if ext == ".mcool" else str(staged_path)
+        r_uri = f"{staged_path}::{res_map[r]}" if is_mcool else str(staged_path)
         r_clr = cooler.Cooler(r_uri)
         if not force_rebalance and _has_valid_weights(r_clr):
             continue
@@ -218,7 +243,7 @@ def _stage_and_balance_cooler(
             if r == chosen_res:
                 return None, chosen_res, {"already_balanced": False, "converged": False}
 
-    final_uri = f"{staged_path}::resolutions/{chosen_res}" if ext == ".mcool" else str(staged_path)
+    final_uri = f"{staged_path}::{res_map[chosen_res]}" if is_mcool else str(staged_path)
     final_clr = cooler.Cooler(final_uri)
     if _has_valid_weights(final_clr):
         w = np.asarray(final_clr.bins()[:]["weight"], dtype=float)
@@ -333,13 +358,46 @@ def _compute_ps_decay(clr, out_tsv: Path) -> dict[str, Any]:
     }
 
 
+def _build_box_kernel(n_dim: int, h_win: int):
+    """Row-stochastic 1D box-smoothing operator K so K @ M @ K.T is symmetric and preserves constants."""
+    import numpy as np
+    import scipy.sparse as sp
+
+    diags = [np.ones(n_dim - abs(d), dtype=float) for d in range(-h_win, h_win + 1)]
+    k_mat = sp.diags(
+        diags,
+        offsets=list(range(-h_win, h_win + 1)),
+        shape=(n_dim, n_dim),
+        format="csr",
+    )
+    row_sums = np.asarray(k_mat.sum(axis=1), dtype=float).ravel()
+    inv = np.where(row_sums > 0.0, 1.0 / row_sums, 0.0)
+    return (sp.diags(inv) @ k_mat).tocsr()
+
+
+def _box_smooth_2d(m_sym, n_dim: int, h_win: int, kernel_cache: dict[tuple[int, int], Any] | None = None):
+    """Symmetric 2D mean filter ``K @ M @ K.T`` preserving symmetry and constant matrices."""
+    if h_win <= 0:
+        return m_sym.tocoo()
+    key = (n_dim, h_win)
+    if kernel_cache is not None and key in kernel_cache:
+        k_op = kernel_cache[key]
+    else:
+        k_op = _build_box_kernel(n_dim, h_win)
+        if kernel_cache is not None:
+            kernel_cache[key] = k_op
+    return (k_op @ m_sym @ k_op.T).tocoo()
+
+
 def _compute_hicrep_scc(
     sample_uris: list[tuple[str, str]],
     max_distance_bp: int = 2_000_000,
+    max_diag_cap: int = 200,
 ) -> tuple[dict[str, dict[str, float | None]], float | None]:
     """HiCRep stratum-adjusted correlation coefficient (Yang et al. 2017) across
-    coolers sharing a bin coordinate grid, using sparse banded 2D mean smoothing
-    (no dense N x N OOM) and rank-based vstran stratum weights."""
+    coolers sharing a bin coordinate grid, using symmetric sparse banded 2D mean
+    smoothing (``K @ M @ K.T``), per-chromosome streaming (zero genome-wide OOM),
+    and rank-based vstran stratum weights."""
     import cooler
     import numpy as np
     import scipy.sparse as sp
@@ -355,13 +413,23 @@ def _compute_hicrep_scc(
         b_other = clr.bins()[:][["chrom", "start", "end"]].reset_index(drop=True)
         if int(clr.binsize) != binsize or len(b_other) != len(base_bins):
             return {}, None
-        if not (b_other["chrom"].astype(str).equals(base_bins["chrom"].astype(str))
-                and np.array_equal(b_other["start"].to_numpy(), base_bins["start"].to_numpy())):
+        if not (
+            np.array_equal(
+                b_other["chrom"].astype(str).to_numpy(),
+                base_bins["chrom"].astype(str).to_numpy(),
+            )
+            and np.array_equal(
+                b_other["start"].to_numpy(dtype=np.int64),
+                base_bins["start"].to_numpy(dtype=np.int64),
+            )
+        ):
             return {}, None
 
     max_diag = max(3, int(max_distance_bp // max(binsize, 1)))
     nbins_total = int(coolers[0][1].info.get("nbins", len(base_bins)))
     start_diag = 2 if nbins_total >= 20 else 1
+    if max_diag_cap > 0:
+        max_diag = min(max_diag, int(max_diag_cap))
     if max_diag < start_diag:
         max_diag = start_diag
     # Yang et al. (2017) resolution-scaled 2D mean-filter half-window h.
@@ -377,29 +445,31 @@ def _compute_hicrep_scc(
 
     # Cache 1D sparse box-smoothing operator K by (n, h) across samples.
     kernel_cache: dict[tuple[int, int], Any] = {}
+    sids = [sid for sid, _ in coolers]
+    use_bal_by_sid = {sid: _has_valid_weights(clr) for sid, clr in coolers}
+    pair_num: dict[tuple[int, int], float] = {
+        (i, j): 0.0 for i in range(len(sids)) for j in range(i + 1, len(sids))
+    }
+    pair_den: dict[tuple[int, int], float] = {
+        (i, j): 0.0 for i in range(len(sids)) for j in range(i + 1, len(sids))
+    }
 
-    def _get_box_kernel(n_dim: int, h_win: int):
-        key = (n_dim, h_win)
-        if key not in kernel_cache:
-            diags = [np.ones(n_dim - abs(d), dtype=float) for d in range(-h_win, h_win + 1)]
-            k_mat = sp.diags(diags, offsets=list(range(-h_win, h_win + 1)), shape=(n_dim, n_dim), format="csr")
-            row_sums = np.asarray(k_mat.sum(axis=1), dtype=float).ravel()
-            inv = np.where(row_sums > 0.0, 1.0 / row_sums, 0.0)
-            kernel_cache[key] = sp.diags(inv) @ k_mat
-        return kernel_cache[key]
+    # Stream chromosome by chromosome so dense diagonals are freed after each chromosome.
+    max_elems_per_chrom_sample = 10_000_000
+    for ch in chroms:
+        n = int(len(coolers[0][1].bins().fetch(ch)))
+        if n <= start_diag:
+            continue
+        k_budget = max(start_diag, max_elems_per_chrom_sample // max(n, 1))
+        k_hi = min(max_diag, n - 1, k_budget)
+        if k_hi < start_diag:
+            continue
+        h_ch = min(h_base, max(0, (n - start_diag - 1) // 4))
 
-    # Extract cis strata vectors per sample out-of-core via sparse COO fetch + banded 2D smoothing.
-    strata_by_sample: dict[str, dict[int, np.ndarray]] = {}
-    for sid, clr in coolers:
-        use_bal = _has_valid_weights(clr)
-        per_diag: dict[int, list[np.ndarray]] = {k: [] for k in range(start_diag, max_diag + 1)}
-        for ch in chroms:
+        ch_strata: dict[str, dict[int, np.ndarray]] = {}
+        for sid, clr in coolers:
+            use_bal = use_bal_by_sid[sid]
             bins_ch = clr.bins().fetch(ch)
-            n = int(len(bins_ch))
-            if n <= start_diag:
-                continue
-            k_hi = min(max_diag, n - 1)
-            h_ch = min(h_base, max(0, (n - start_diag - 1) // 4))
             bad_bin = (
                 ~np.isfinite(np.asarray(bins_ch["weight"], dtype=float))
                 if (use_bal and "weight" in bins_ch.columns)
@@ -424,8 +494,7 @@ def _compute_hicrep_scc(
             if h_ch > 0 and rows_b.size > 0:
                 m_up = sp.coo_matrix((vals_b, (rows_b, cols_b)), shape=(n, n)).tocsr()
                 m_sym = m_up + m_up.T
-                k_op = _get_box_kernel(n, h_ch)
-                sm = (k_op @ m_sym @ k_op).tocoo()
+                sm = _box_smooth_2d(m_sym, n, h_ch, kernel_cache=kernel_cache)
                 sm_offs = sm.col - sm.row
                 sm_mask = (sm_offs >= start_diag) & (sm_offs <= k_hi) & np.isfinite(sm.data)
                 rows_b = sm.row[sm_mask]
@@ -452,52 +521,49 @@ def _compute_hicrep_scc(
                             vk = vk[ok_b]
                         if rk.size > 0:
                             diag_arrays[k][rk] = vk
-            for k in range(start_diag, k_hi + 1):
-                per_diag[k].append(diag_arrays[k])
-        strata_by_sample[sid] = {
-            k: np.concatenate(arrs) if arrs else np.empty(0, dtype=float)
-            for k, arrs in per_diag.items()
-        }
+            ch_strata[sid] = diag_arrays
 
-    sids = [sid for sid, _ in coolers]
+        for i in range(len(sids)):
+            s1 = sids[i]
+            for j in range(i + 1, len(sids)):
+                s2 = sids[j]
+                for k in range(start_diag, k_hi + 1):
+                    x = ch_strata[s1][k]
+                    y = ch_strata[s2][k]
+                    if x.size < 3:
+                        continue
+                    # Yang et al. (2017) Section 2.2: filter both-zero pairs per stratum
+                    # before variance-stabilizing rank weighting and Pearson correlation.
+                    valid = np.isfinite(x) & np.isfinite(y) & ((x > 0.0) | (y > 0.0))
+                    n_k = int(valid.sum())
+                    if n_k < 3:
+                        continue
+                    xv = x[valid]
+                    yv = y[valid]
+                    if float(np.std(xv)) <= 1e-12 or float(np.std(yv)) <= 1e-12:
+                        continue
+                    r_k = float(np.corrcoef(xv, yv)[0, 1])
+                    if not math.isfinite(r_k):
+                        continue
+                    rx = rankdata(xv, method="average") / float(n_k)
+                    ry = rankdata(yv, method="average") / float(n_k)
+                    sx = float(np.std(rx))
+                    sy = float(np.std(ry))
+                    if sx <= 1e-12 or sy <= 1e-12:
+                        continue
+                    w_k = float(n_k) * sx * sy
+                    pair_num[(i, j)] += w_k * r_k
+                    pair_den[(i, j)] += w_k
+        kernel_cache.clear()
+
     matrix: dict[str, dict[str, float | None]] = {s: {} for s in sids}
     off_diag_vals: list[float] = []
-
     for i, s1 in enumerate(sids):
         matrix[s1][s1] = 1.0
         for j in range(i + 1, len(sids)):
             s2 = sids[j]
-            num = 0.0
-            den = 0.0
-            for k in range(start_diag, max_diag + 1):
-                x = strata_by_sample[s1][k]
-                y = strata_by_sample[s2][k]
-                if x.size < 3:
-                    continue
-                # Yang et al. (2017) Section 2.2: filter both-zero pairs per stratum
-                # before variance-stabilizing rank weighting and Pearson correlation.
-                valid = np.isfinite(x) & np.isfinite(y) & ((x > 0.0) | (y > 0.0))
-                n_k = int(valid.sum())
-                if n_k < 3:
-                    continue
-                xv = x[valid]
-                yv = y[valid]
-                if float(np.std(xv)) <= 1e-12 or float(np.std(yv)) <= 1e-12:
-                    continue
-                r_k = float(np.corrcoef(xv, yv)[0, 1])
-                if not math.isfinite(r_k):
-                    continue
-                # Yang et al. (2017) vstran rank-normalized variance-stabilizing weights:
-                # w_k = N_k * std(rank(x) / N_k) * std(rank(y) / N_k)
-                rx = rankdata(xv, method="average") / float(n_k)
-                ry = rankdata(yv, method="average") / float(n_k)
-                sx = float(np.std(rx))
-                sy = float(np.std(ry))
-                if sx <= 1e-12 or sy <= 1e-12:
-                    continue
-                w_k = float(n_k) * sx * sy
-                num += w_k * r_k
-                den += w_k
+            num = pair_num[(i, j)]
+            den = pair_den[(i, j)]
             if den > 0.0 and math.isfinite(num / den):
                 scc: float | None = round(float(num / den), 4)
                 off_diag_vals.append(scc)
@@ -559,9 +625,15 @@ def hic_qc_and_balance(params: dict) -> dict:
         sample_ids.append(cand)
 
     raw_input_files = list(valid_files)
+    explicit_scc_res = (
+        int(params["scc_resolution"])
+        if params.get("scc_resolution") is not None
+        else None
+    )
     manifest_params = {
         "genome": genome,
         "resolution": resolution,
+        "scc_resolution": explicit_scc_res,
         "force_rebalance": force_rebalance,
         "sample_ids": sample_ids,
     }
@@ -616,12 +688,24 @@ def hic_qc_and_balance(params: dict) -> dict:
 
     results_per_file: list[dict[str, Any]] = []
     balanced_files: list[str] = []
+    balanced_sample_ids: list[str] = []
     sample_uris_for_scc: list[tuple[str, str]] = []
+    scc_res_used: int | None = None
 
     for sid, fpath in zip(sample_ids, valid_files):
         try:
+            extra_res: list[int] = []
+            if fpath.lower().endswith(".mcool"):
+                _, target_scc_res = _resolve_scc_uri(fpath, resolution, explicit_scc_res)
+                extra_res.append(target_scc_res)
             balanced_path, chosen_res, bal_meta = _stage_and_balance_cooler(
-                fpath, sid, resolution, out_dir, force_rebalance, warnings
+                fpath,
+                sid,
+                resolution,
+                out_dir,
+                force_rebalance,
+                warnings,
+                extra_resolutions=extra_res,
             )
             active_path = balanced_path or fpath
             uri, actual_res = _resolve_cooler_uri(active_path, chosen_res)
@@ -643,7 +727,13 @@ def hic_qc_and_balance(params: dict) -> dict:
             results_per_file.append(rec)
             if balanced_path:
                 balanced_files.append(balanced_path)
-                sample_uris_for_scc.append((sid, uri))
+                balanced_sample_ids.append(sid)
+                scc_uri, scc_res_cur = _resolve_scc_uri(
+                    balanced_path, actual_res, explicit_scc_res
+                )
+                if scc_res_used is None:
+                    scc_res_used = scc_res_cur
+                sample_uris_for_scc.append((sid, scc_uri))
         except Exception as exc:
             results_per_file.append({
                 "sample_id": sid,
@@ -725,8 +815,10 @@ def hic_qc_and_balance(params: dict) -> dict:
         "ps_curve_tsv": primary_ps,
         "scc_matrix": scc_matrix,
         "mean_replicate_scc": mean_scc,
+        "scc_resolution": scc_res_used,
         "scc_tsv": scc_tsv,
         "balanced_files": balanced_files,
+        "balanced_sample_ids": balanced_sample_ids,
         "per_file": results_per_file,
         "thresholds": {
             "min_cis_trans_ratio": min_cis_trans,
@@ -762,6 +854,7 @@ def _mock_hic_qc_bundle(files: list[str], resolution: int) -> dict:
         "cis_trans_ratio": 0.72,
         "long_range_cis": 0.45,
         "balanced_files": [],
+        "balanced_sample_ids": [],
         "per_file": [
             {
                 "file": f,

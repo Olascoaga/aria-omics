@@ -33,6 +33,7 @@ from typing import Any
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from aria.scripts._base import run_script
+from aria.utils.hic_constants import list_mcool_resolutions
 from aria.utils.provenance import hash_file
 from aria.utils.stage_manifest import (
     build_stage_manifest,
@@ -541,11 +542,7 @@ def hic_preprocess(params: dict) -> dict:
 
         try:
             if low.endswith(".mcool"):
-                res_paths = cooler.fileops.list_coolers(str(src))
-                res_vals = sorted(
-                    int(p.split("/")[-1]) for p in res_paths
-                    if "/resolutions/" in p and p.split("/")[-1].isdigit()
-                )
+                res_vals = sorted(list_mcool_resolutions(str(src)).keys())
                 cooler_files.append(str(src))
                 processed_samples.append({
                     "sample_id": sid,
@@ -563,11 +560,7 @@ def hic_preprocess(params: dict) -> dict:
                 if build_mcool and any(r > src_res and r % src_res == 0 for r in zoom_res):
                     mcool_out = sdir / f"{sid}.mcool"
                     out_path = _zoomify_cooler(src, mcool_out, src_res, zoom_res, threads)
-                    res_paths = cooler.fileops.list_coolers(str(out_path))
-                    res_vals = sorted(
-                        int(p.split("/")[-1]) for p in res_paths
-                        if "/resolutions/" in p and p.split("/")[-1].isdigit()
-                    ) or [src_res]
+                    res_vals = sorted(list_mcool_resolutions(str(out_path)).keys()) or [src_res]
                 cooler_files.append(str(out_path))
                 processed_samples.append({
                     "sample_id": sid,
@@ -586,11 +579,7 @@ def hic_preprocess(params: dict) -> dict:
                 if build_mcool:
                     mcool_out = sdir / f"{sid}.mcool"
                     out_path = _zoomify_cooler(cool_out, mcool_out, base_res, zoom_res, threads)
-                    res_vals = sorted(
-                        int(p.split("/")[-1])
-                        for p in cooler.fileops.list_coolers(str(out_path))
-                        if "/resolutions/" in p and p.split("/")[-1].isdigit()
-                    ) or [base_res]
+                    res_vals = sorted(list_mcool_resolutions(str(out_path)).keys()) or [base_res]
                 cooler_files.append(str(out_path))
                 processed_samples.append({
                     "sample_id": sid,
@@ -612,11 +601,7 @@ def hic_preprocess(params: dict) -> dict:
                 if build_mcool:
                     mcool_out = sdir / f"{sid}.mcool"
                     out_path = _zoomify_cooler(cool_out, mcool_out, base_res, zoom_res, threads)
-                    res_vals = sorted(
-                        int(p.split("/")[-1])
-                        for p in cooler.fileops.list_coolers(str(out_path))
-                        if "/resolutions/" in p and p.split("/")[-1].isdigit()
-                    ) or [base_res]
+                    res_vals = sorted(list_mcool_resolutions(str(out_path)).keys()) or [base_res]
                 cooler_files.append(str(out_path))
                 processed_samples.append({
                     "sample_id": sid,
@@ -640,11 +625,7 @@ def hic_preprocess(params: dict) -> dict:
                     out_path = _zoomify_cooler(
                         cool_out, mcool_out, chosen_res, zoom_res, threads
                     )
-                    res_vals = sorted(
-                        int(p.split("/")[-1])
-                        for p in cooler.fileops.list_coolers(str(out_path))
-                        if "/resolutions/" in p and p.split("/")[-1].isdigit()
-                    ) or [chosen_res]
+                    res_vals = sorted(list_mcool_resolutions(str(out_path)).keys()) or [chosen_res]
                 cooler_files.append(str(out_path))
                 processed_samples.append({
                     "sample_id": sid,

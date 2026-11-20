@@ -325,7 +325,9 @@ def test_ora_overlap_filter_does_not_shrink_bh_family():
     filtered = run_ora(query, sets, universe, padj_max=1.01, min_overlap=2)
     assert [r["term"] for r in filtered] == ["both"]
     assert filtered[0]["padj"] == next(r["padj"] for r in all_terms if r["term"] == "both")
-    assert filtered[0]["padj"] == pytest.approx(filtered[0]["pvalue"] * 2)
+    # All 3 non-empty background-intersected gene sets (including 0-overlap "none")
+    # belong to the BH multiple-testing denominator (CDX-01).
+    assert filtered[0]["padj"] == pytest.approx(filtered[0]["pvalue"] * 3)
 
 
 @pytest.mark.parametrize("col", ["runx1_score", "cut_and_run", "pruned", "ion_channel_score"])

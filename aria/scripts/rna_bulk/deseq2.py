@@ -6,13 +6,50 @@ from __future__ import annotations
 import warnings
 
 
-def _build_design_formula(design_factor: str, covariates: list) -> str:
+def _quote_formula_term(name: str) -> str:
+    """Quote non-identifier column names for formulaic using backticks."""
+    import keyword
+    text = str(name)
+    if text.isidentifier() and not keyword.iskeyword(text):
+        return text
+    escaped = text.replace("`", "\\`")
+    return f"`{escaped}`"
+
+
+def _can_wrap_in_formulaic_c(name: str) -> bool:
+    """True when formulaic safely parses ``C(<term>, Treatment(...))``."""
+    import keyword
+    text = str(name)
+    return "." not in text and not keyword.iskeyword(text)
+
+
+def _build_design_formula(
+    design_factor: str,
+    covariates: list,
+    *,
+    ref_level: str | None = None,
+) -> str:
     """Build a DESeq2 design with covariates first and the factor of interest
     last (DESeq2/pydeseq2 convention). Covariates are deduped and never repeat
     the factor of interest. P0-4: honors the confirmed `~ batch + condition`
-    design instead of a hardcoded `~ condition`."""
-    terms = [c for c in dict.fromkeys(covariates or []) if c and c != design_factor]
-    return "~ " + " + ".join(terms + [design_factor])
+    design instead of a hardcoded `~ condition`.
+
+    When ``ref_level`` is supplied, encodes the explicit formulaic treatment
+    reference ``C(<factor>, Treatment(reference=<ref_level>))`` so pydeseq2
+    0.5+ (where ``ref_level=`` is deprecated and ignored) uses the exact
+    contrast denominator as the baseline level.
+    """
+    terms = [
+        _quote_formula_term(c)
+        for c in dict.fromkeys(covariates or [])
+        if c and c != design_factor
+    ]
+    q_factor = _quote_formula_term(design_factor)
+    if ref_level is not None and _can_wrap_in_formulaic_c(design_factor):
+        factor_term = f"C({q_factor}, Treatment(reference={str(ref_level)!r}))"
+    else:
+        factor_term = q_factor
+    return "~ " + " + ".join(terms + [factor_term])
 
 
 def _resolve_covariates(metadata, design_factor: str, covariates: list) -> tuple:
@@ -40,21 +77,68 @@ def _resolve_covariates(metadata, design_factor: str, covariates: list) -> tuple
 def _shrink_coeff(dds, condition_col: str, test_lvl: str):
     """Find the apeGLM LFC coefficient column for test-vs-ref (P1-1 / ADR-023).
 
-    pydeseq2 names coefficients patsy-style, e.g. ``condition[T.treat]``. With the
-    dds reference fixed to the contrast's ref level, the only non-reference level
-    is ``test_lvl``, so that column is exactly the test-vs-ref effect.
+    Matches ONLY the exact ``[T.<test_lvl>]`` suffix on ``condition_col``
+    (plain, backtick-quoted, or formulaic ``C(<condition_col>, ...)[T.<test_lvl>]``).
+    Never falls back to substring containment (which could match ``[T.KO_ctrl]``
+    when ``test_lvl == 'KO'`` and invert every LFC sign).
     """
     try:
         cols = [str(c) for c in dds.varm["LFC"].columns]
     except Exception:
         return None
-    exact = f"{condition_col}[T.{test_lvl}]"
-    if exact in cols:
-        return exact
+    cond = str(condition_col)
+    q_cond = _quote_formula_term(cond)
+    suffix = f"[T.{test_lvl}]"
+    cond_tokens = {cond, q_cond, f"`{cond}`"}
     for c in cols:
-        if c.startswith(str(condition_col)) and str(test_lvl) in c:
+        if not c.endswith(suffix):
+            continue
+        lhs = c[: -len(suffix)].strip()
+        if lhs in cond_tokens:
             return c
+    for c in cols:
+        if not c.endswith(suffix):
+            continue
+        lhs = c[: -len(suffix)].strip()
+        if lhs.startswith("C(") and lhs.endswith(")"):
+            inner = lhs[2:-1].strip()
+            for tok in sorted(cond_tokens, key=len, reverse=True):
+                if inner.startswith(tok):
+                    rest = inner[len(tok):].lstrip()
+                    if not rest or rest.startswith(","):
+                        return c
     return None
+
+
+def _detect_shrink_sign_flip(raw_lfc, shrunk_lfc) -> bool:
+    """Guard against shrinking the inverted contrast coefficient.
+
+    Returns True when a clear majority of well-separated raw MLEs flipped sign
+    after ``lfc_shrink`` (something apeGLM shrinking toward 0 never does on the
+    correctly oriented coefficient).
+    """
+    import numpy as np
+
+    raw = np.asarray(raw_lfc, dtype=float)
+    shrunk = np.asarray(shrunk_lfc, dtype=float)
+    if raw.shape != shrunk.shape or raw.size == 0:
+        return False
+    clear = (
+        np.isfinite(raw)
+        & np.isfinite(shrunk)
+        & (np.abs(raw) >= 0.5)
+        & (np.abs(shrunk) >= 0.1)
+    )
+    n_clear = int(clear.sum())
+    if n_clear == 0:
+        return False
+    flipped = np.sign(raw[clear]) != np.sign(shrunk[clear])
+    flip_frac = float(flipped.mean())
+    if n_clear >= 3 and flip_frac > 0.5:
+        return True
+    if flip_frac == 1.0 and float(np.abs(raw[clear]).max()) >= 1.0:
+        return True
+    return False
 
 
 # F8 (preprint audit 2026-06-19): warning categories that are benign third-party
@@ -99,17 +183,21 @@ def _run_deseq2(counts, metadata, design_factor: str,
     pilot/legacy datasets); the resulting block is flagged with
     low_power_warning in the return dict.
     """
+    import numpy as np
     import pandas as pd
     warnings = []
 
+    num_str = str(numerator)
+    den_str = str(denominator)
     # Filter to comparison groups only
-    mask      = metadata[design_factor].isin([numerator, denominator])
+    mask      = metadata[design_factor].astype(str).isin([num_str, den_str])
     meta_sub  = metadata[mask].copy()
+    meta_sub[design_factor] = meta_sub[design_factor].astype(str)
     counts_sub = counts[meta_sub.index].copy()
 
     group_sizes = meta_sub[design_factor].value_counts().to_dict()
-    n_num = int(group_sizes.get(numerator, 0))
-    n_den = int(group_sizes.get(denominator, 0))
+    n_num = int(group_sizes.get(num_str, 0))
+    n_den = int(group_sizes.get(den_str, 0))
 
     if n_num < min_replicates_per_condition or n_den < min_replicates_per_condition:
         return {
@@ -181,14 +269,30 @@ def _run_deseq2(counts, metadata, design_factor: str,
         )
 
         # P0-4: fit the covariate-adjusted design (covariates first, factor of
-        # interest last). The contrast still names `design_factor` explicitly.
+        # interest last). Keep the readable formula for reporting, and encode
+        # the explicit Treatment(reference=denominator) level in the formulaic
+        # design passed to pydeseq2 0.5+ (where ref_level= is ignored).
         design_formula = _build_design_formula(design_factor, usable_covariates)
+        model_design = _build_design_formula(
+            design_factor, usable_covariates, ref_level=den_str
+        )
 
-        # P1-1/ADR-023: fix the reference to the contrast's denominator so the
-        # apeGLM coefficient (design_factor[T.numerator]) is exactly the
-        # numerator-vs-denominator effect we shrink. Only when shrinkage is on,
-        # so the disabled path is byte-identical to the legacy behavior.
-        ref_kwargs = {"ref_level": [design_factor, denominator]} if lfc_shrink else {}
+        # Ensure categorical/continuous covariate dtypes match design_check, and
+        # order design_factor with denominator first so both formulaic C(...)
+        # and plain categorical encodings orient the contrast as num vs den.
+        for col in design_check.get("continuous_factors", []) or []:
+            if col in meta_sub.columns and col != design_factor:
+                meta_sub[col] = pd.to_numeric(meta_sub[col], errors="coerce")
+        for col in design_check.get("categorical_factors", []) or []:
+            if col in meta_sub.columns and col != design_factor:
+                meta_sub[col] = meta_sub[col].astype(str)
+        meta_sub[design_factor] = pd.Categorical(
+            meta_sub[design_factor].astype(str),
+            categories=[den_str, num_str],
+        )
+
+        # Legacy pre-0.5 fallback kwargs only (pydeseq2 0.5+ ignores ref_level).
+        ref_kwargs = {"ref_level": [design_factor, den_str]} if lfc_shrink else {}
 
         # Optional multi-core: pydeseq2 parallelizes the per-gene dispersion/LFC
         # fits over n_cpus (DeseqStats reuses dds.inference, so the Wald tests
@@ -203,10 +307,9 @@ def _run_deseq2(counts, metadata, design_factor: str,
             dds = DeseqDataSet(
                 counts=counts_sub.T,
                 metadata=meta_sub,
-                design=design_formula,
+                design=model_design,
                 refit_cooks=True,
                 quiet=True,
-                **ref_kwargs,
                 **par_kwargs,
             )
         except TypeError:
@@ -223,7 +326,7 @@ def _run_deseq2(counts, metadata, design_factor: str,
         # records every warning emitted in this scope; non-benign ones are surfaced
         # in `warnings` below. This changes NO estimation — only warning handling.
         wald_kwargs = {
-            "contrast": [design_factor, numerator, denominator],
+            "contrast": [design_factor, num_str, den_str],
             "alpha": padj_thr,
             "quiet": True,
         }
@@ -254,25 +357,45 @@ def _run_deseq2(counts, metadata, design_factor: str,
         warnings.extend(_serialize_fit_warnings(_fit_warns))
 
         # P1-1/ADR-023: apeGLM LFC shrinkage. Keep the raw MLE LFC, shrink in
-        # place, and fall back to raw if the coefficient is unavailable or
-        # shrinkage raises (never break the DE). apeGLM leaves p-values unchanged.
+        # place, and fall back to raw if the coefficient is unavailable,
+        # shrinkage raises, or the post-shrink sign-flip guard triggers.
         shrink_applied = False
         shrink_reason = None
         raw_lfc = stat_res.results_df["log2FoldChange"].copy()
+        raw_lfc_se = (
+            stat_res.results_df["lfcSE"].copy()
+            if "lfcSE" in stat_res.results_df.columns
+            else None
+        )
         if lfc_shrink:
-            coeff = _shrink_coeff(dds, design_factor, numerator)
+            coeff = _shrink_coeff(dds, design_factor, num_str)
             if coeff is None:
                 shrink_reason = "apeGLM coefficient not found"
             else:
                 try:
                     stat_res.lfc_shrink(coeff=coeff)
-                    shrink_applied = True
+                    if _detect_shrink_sign_flip(
+                        raw_lfc, stat_res.results_df["log2FoldChange"]
+                    ):
+                        stat_res.results_df["log2FoldChange"] = raw_lfc
+                        if raw_lfc_se is not None:
+                            stat_res.results_df["lfcSE"] = raw_lfc_se
+                        shrink_reason = (
+                            "lfc_shrink sign-flip detected; reverted to raw MLE"
+                        )
+                        warnings.append(
+                            f"apeGLM LFC shrinkage for '{num_str} vs {den_str}' "
+                            f"flipped the sign of clear raw MLEs on coeff "
+                            f"'{coeff}'; reverted to unshrunken MLE log2FoldChange."
+                        )
+                    else:
+                        shrink_applied = True
                 except Exception as _sx:
                     shrink_reason = f"lfc_shrink failed: {str(_sx)[:120]}"
         else:
             shrink_reason = "disabled"
 
-        results_df = stat_res.results_df.dropna(subset=["padj"])
+        results_df = stat_res.results_df.dropna(subset=["padj"]).copy()
         results_df["log2FoldChange_raw"] = raw_lfc.reindex(results_df.index)
 
         # T15 (scATAC P0 W0.4): OPT-IN, additive exposure of pydeseq2's per-gene
@@ -285,7 +408,13 @@ def _run_deseq2(counts, metadata, design_factor: str,
                 dds.var["_LFC_converged"].reindex(results_df.index)
             )
 
-        sig = results_df[results_df["padj"] < padj_thr]
+        padj_vals = pd.to_numeric(results_df["padj"], errors="coerce")
+        lfc_vals = pd.to_numeric(results_df["log2FoldChange"], errors="coerce")
+        sig = results_df[
+            np.isfinite(padj_vals)
+            & (padj_vals < padj_thr)
+            & np.isfinite(lfc_vals)
+        ]
         # Sort by padj ascending (most significant first) so that
         # downstream "top N" slicing returns the most reliable hits,
         # not the most extreme log2FC (which can be noisy at low counts).

@@ -9,7 +9,9 @@ state their assumptions so they never masquerade as measured model power.
 from __future__ import annotations
 
 import math
+import re
 from copy import deepcopy
+from pathlib import Path
 from typing import Any
 
 
@@ -174,10 +176,10 @@ def _assess_contrast(
         power = 0.0
         mde = None
     else:
-        z_alpha = 1.96 if assumptions["alpha"] <= 0.05 else _z_for_alpha(assumptions["alpha"])
+        z_alpha = _z_for_alpha(assumptions["alpha"])
         z_power = 0.84
-        z_effect = assumptions["target_log2fc"] / se
-        power = _normal_cdf(z_effect - z_alpha)
+        z_effect = abs(assumptions["target_log2fc"]) / se
+        power = _normal_cdf(z_effect - z_alpha) + _normal_cdf(-z_effect - z_alpha)
         mde = (z_alpha + z_power) * se
 
     return {
@@ -309,14 +311,43 @@ def _batch_confounding(
     if not batch_map:
         return {"confounded": False, "reason": "no_batch_map"}
 
+    batch_entries = [
+        (str(stem), str(batch))
+        for stem, batch in batch_map.items()
+        if str(stem)
+    ]
+    exact_map = {stem: batch for stem, batch in batch_entries}
+    longest_entries = sorted(batch_entries, key=lambda kv: (-len(kv[0]), kv[0]))
+
+    def _match_batch(sample_name: str) -> str | None:
+        if sample_name in exact_map:
+            return exact_map[sample_name]
+        sample_path = Path(sample_name)
+        for cand in (sample_path.name, sample_path.stem):
+            if cand in exact_map:
+                return exact_map[cand]
+        # Token-boundary match (longest key first) so "S1" never steals "S10".
+        for stem, batch in longest_entries:
+            if re.search(rf"(?<![A-Za-z0-9]){re.escape(stem)}(?![A-Za-z0-9])", sample_name):
+                return batch
+        # Fallback longest-key substring match, refusing digit-prefix collisions ("S1" vs "S10").
+        for stem, batch in longest_entries:
+            idx = sample_name.find(stem)
+            if idx == -1:
+                continue
+            end = idx + len(stem)
+            if stem[-1].isdigit() and end < len(sample_name) and sample_name[end].isdigit():
+                continue
+            return batch
+        return None
+
     condition_batches: dict[str, list[str]] = {}
     for condition, samples in groups.items():
         batches = set()
         for sample in samples:
-            for stem, batch in batch_map.items():
-                if str(stem) in str(sample):
-                    batches.add(str(batch))
-                    break
+            matched = _match_batch(str(sample))
+            if matched is not None:
+                batches.add(matched)
         condition_batches[condition] = sorted(batches)
 
     populated = {

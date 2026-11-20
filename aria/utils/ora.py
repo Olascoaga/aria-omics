@@ -189,8 +189,13 @@ def run_ora(query_genes, gene_sets: dict, background_genes,
         return []
 
     tested = []
+    n_zero_overlap = 0
     for term, genes in gene_sets.items():
-        gs = {str(g).strip().upper() for g in genes}
+        gs = {
+            str(g).strip().upper()
+            for g in genes
+            if g is not None and str(g).strip().lower() not in ("", "nan")
+        }
         if has_bg:
             gs = gs & bg
         n = len(gs)
@@ -199,6 +204,10 @@ def run_ora(query_genes, gene_sets: dict, background_genes,
         overlap = query & gs
         k = len(overlap)
         if k < 1:
+            # CDX-01: keep every non-empty background-intersected gene set in the
+            # BH multiple-testing family (p = 1.0 when k == 0) so zero-overlap
+            # pathways never shrink the denominator m and deflate padj.
+            n_zero_overlap += 1
             continue
         p = hypergeom_sf(k, M, n, N)
         odds = _odds_ratio(k, M, n, N)
@@ -214,10 +223,12 @@ def run_ora(query_genes, gene_sets: dict, background_genes,
     if not tested:
         return []
 
-    padj = bh_correct([t["pvalue"] for t in tested])
+    all_pvalues = [t["pvalue"] for t in tested] + [1.0] * n_zero_overlap
+    padj = bh_correct(all_pvalues)
+    effective_min_overlap = max(1, int(min_overlap))
     out = []
-    for t, q in zip(tested, padj):
-        if t["_k"] < min_overlap:
+    for t, q in zip(tested, padj[:len(tested)]):
+        if t["_k"] < effective_min_overlap:
             continue
         p = float(t["pvalue"])
         q_val = float(q)

@@ -142,15 +142,19 @@ def _chromap_version() -> str:
 
 
 def _barcode_source(read_format: str, r1, r3, barcode):
-    """Resolve chromap bc:start:length against the available FASTQ streams."""
+    """Resolve chromap 0-based inclusive bc:start:end[:strand] against the available FASTQ streams."""
     for segment in read_format.split(","):
         fields = segment.strip().split(":")
-        if len(fields) == 3 and fields[0] == "bc":
+        if len(fields) in (3, 4) and fields[0] == "bc":
+            if len(fields) == 4 and fields[3] not in ("+", "-"):
+                break
             try:
-                start, length = int(fields[1]), int(fields[2])
+                start, end = int(fields[1]), int(fields[2])
             except ValueError:
                 break
-            return barcode or r1, (start, None if length < 0 else start + length)
+            if start < 0 or (end >= 0 and end < start):
+                break
+            return barcode or r1, (start, None if end < 0 else end + 1)
     return barcode, None
 
 

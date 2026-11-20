@@ -148,24 +148,103 @@ def _power_disclosure_for_strategy(fdr_strategy: str) -> dict:
 COMPOSITION_COLLINEARITY_MAX = 0.8
 
 
+def _quote_formula_term(name: str) -> str:
+    """Quote non-identifier column names for formulaic using backticks."""
+    import keyword
+    text = str(name)
+    if text.isidentifier() and not keyword.iskeyword(text):
+        return text
+    escaped = text.replace("`", "\\`")
+    return f"`{escaped}`"
+
+
+def _can_wrap_in_formulaic_c(name: str) -> bool:
+    """True when formulaic safely parses ``C(<term>, Treatment(...))``."""
+    import keyword
+    text = str(name)
+    return "." not in text and not keyword.iskeyword(text)
+
+
+def _build_design_formula(
+    condition_col: str,
+    covariates: list,
+    *,
+    ref_level: str | None = None,
+) -> str:
+    """Build a formulaic DESeq2 design with explicit treatment reference level."""
+    terms = [
+        _quote_formula_term(c)
+        for c in dict.fromkeys(covariates or [])
+        if c and c != condition_col
+    ]
+    q_cond = _quote_formula_term(condition_col)
+    if ref_level is not None and _can_wrap_in_formulaic_c(condition_col):
+        cond_term = f"C({q_cond}, Treatment(reference={str(ref_level)!r}))"
+    else:
+        cond_term = q_cond
+    return "~ " + " + ".join(terms + [cond_term])
+
+
 def _shrink_coeff(dds, condition_col: str, test_lvl: str) -> str | None:
     """Find the apeGLM LFC coefficient column for test-vs-ref (C4 shrinkage).
 
-    pydeseq2 names coefficients patsy-style, e.g. ``condition[T.treat]``. With the
-    dds reference fixed to the contrast's ref level, the only non-reference level
-    is ``test_lvl``, so that column is exactly the test-vs-ref effect.
+    Matches ONLY the exact ``[T.<test_lvl>]`` suffix on ``condition_col``
+    (plain, backtick-quoted, or formulaic ``C(<condition_col>, ...)[T.<test_lvl>]``).
+    Never falls back to substring containment (which could match ``[T.KO_ctrl]``
+    when ``test_lvl == 'KO'`` and invert every LFC sign).
     """
     try:
         cols = [str(c) for c in dds.varm["LFC"].columns]
     except Exception:
         return None
-    exact = f"{condition_col}[T.{test_lvl}]"
-    if exact in cols:
-        return exact
+    cond = str(condition_col)
+    q_cond = _quote_formula_term(cond)
+    suffix = f"[T.{test_lvl}]"
+    cond_tokens = {cond, q_cond, f"`{cond}`"}
     for c in cols:
-        if c.startswith(str(condition_col)) and str(test_lvl) in c:
+        if not c.endswith(suffix):
+            continue
+        lhs = c[: -len(suffix)].strip()
+        if lhs in cond_tokens:
             return c
+    for c in cols:
+        if not c.endswith(suffix):
+            continue
+        lhs = c[: -len(suffix)].strip()
+        if lhs.startswith("C(") and lhs.endswith(")"):
+            inner = lhs[2:-1].strip()
+            for tok in sorted(cond_tokens, key=len, reverse=True):
+                if inner.startswith(tok):
+                    rest = inner[len(tok):].lstrip()
+                    if not rest or rest.startswith(","):
+                        return c
     return None
+
+
+def _detect_shrink_sign_flip(raw_lfc, shrunk_lfc) -> bool:
+    """Guard against shrinking the inverted contrast coefficient."""
+    import numpy as np
+
+    raw = np.asarray(raw_lfc, dtype=float)
+    shrunk = np.asarray(shrunk_lfc, dtype=float)
+    if raw.shape != shrunk.shape or raw.size == 0:
+        return False
+    clear = (
+        np.isfinite(raw)
+        & np.isfinite(shrunk)
+        & (np.abs(raw) >= 0.5)
+        & (np.abs(shrunk) >= 0.1)
+    )
+    n_clear = int(clear.sum())
+    if n_clear == 0:
+        return False
+    flipped = np.sign(raw[clear]) != np.sign(shrunk[clear])
+    flip_frac = float(flipped.mean())
+    if n_clear >= 3 and flip_frac > 0.5:
+        return True
+    if flip_frac == 1.0 and float(np.abs(raw[clear]).max()) >= 1.0:
+        return True
+    return False
 
 
 def _abs_corr(x, y) -> float | None:
@@ -364,14 +443,14 @@ def rna_pseudobulk_de(params: dict) -> dict:
     # ── Resolve count source ──────────────────────────────────────────────
     count_classification = {}
 
-    def _looks_integerlike(mat) -> tuple[bool, float, dict]:
+    def _looks_integerlike(mat, g_names=None) -> tuple[bool, float, dict]:
         # Shared classifier on a RANDOM sampled slice (P-RAWCLASS / R7): the
         # old first-200-row probe was biased when the h5ad is ordered by cell
         # type or condition. Raw counts are non-negative integers with a large
         # max; log-normalized data sits in [0, ~10].
         info = classify_matrix(
             mat,
-            gene_ids=gene_names,
+            gene_ids=(gene_names if g_names is None else g_names),
             source_hint=(counts_data_path or data_path),
         )
         return bool(info["is_raw_counts"]), float(info["max"]), info
@@ -393,37 +472,56 @@ def rna_pseudobulk_de(params: dict) -> dict:
         frac_int   = float((np.abs(recovered - np.round(recovered)) < 0.05).mean())
         return frac_int >= 0.85
 
+    counts_from_raw = False
     if counts_adata is not None:
         counts = counts_adata.X
         gene_names = list(counts_adata.var_names)
+        integerlike, max_val, count_classification = _looks_integerlike(counts, gene_names)
+        # D1-C4: when counts_adata.X is not integer-like (e.g. QC'd Seurat
+        # h5ad whose .X is scaled/log-normalized while .raw.X holds raw or
+        # log-normalized counts), check counts_adata.raw.X before failing.
+        if not integerlike and use_raw and counts_adata.raw is not None:
+            raw_counts = counts_adata.raw.X
+            raw_genes = list(counts_adata.raw.var_names)
+            raw_intlike, raw_max, raw_cls = _looks_integerlike(raw_counts, raw_genes)
+            if raw_intlike or (
+                allow_lognorm_recovery
+                and float(raw_cls.get("min", -1.0)) >= 0.0
+                and (
+                    float(count_classification.get("min", 0.0)) < 0.0
+                    or raw_cls.get("kind") == "log_normalized"
+                )
+            ):
+                counts = raw_counts
+                gene_names = raw_genes
+                integerlike, max_val, count_classification = raw_intlike, raw_max, raw_cls
+                counts_from_raw = True
     elif use_raw and adata.raw is not None:
         counts     = adata.raw.X
         gene_names = list(adata.raw.var_names)
+        integerlike, max_val, count_classification = _looks_integerlike(counts, gene_names)
+        counts_from_raw = True
     else:
         counts     = adata.X
         gene_names = list(adata.var_names)
+        integerlike, max_val, count_classification = _looks_integerlike(counts, gene_names)
 
     background_genes, background_genes_degraded = _expressed_background(
         counts, gene_names
     )
 
-    integerlike, max_val, count_classification = _looks_integerlike(counts)
     needs_recovery       = False
     if not integerlike:
-        if counts_adata is not None:
-            return {"status":     "error",
-                    "error_type": "NonIntegerCounts",
-                    "count_classification": count_classification,
-                    "details":    (f"counts_data_path was supplied but its X "
-                                   f"matrix is not raw integer counts "
-                                   f"(kind={count_classification.get('kind')}, "
-                                   f"score={count_classification.get('raw_count_score', 0):.2f}, "
-                                   f"max={max_val:.2f}).")}
         if not allow_lognorm_recovery:
+            src_desc = (
+                "counts_data_path was supplied but its count matrix is not raw integer counts"
+                if counts_adata is not None
+                else "counts appear non-integer"
+            )
             return {"status":     "error",
                     "error_type": "NonIntegerCounts",
                     "count_classification": count_classification,
-                    "details":    (f"counts appear non-integer "
+                    "details":    (f"{src_desc} "
                                    f"(kind={count_classification.get('kind')}, "
                                    f"score={count_classification.get('raw_count_score', 0):.2f}, "
                                    f"max={max_val:.2f}). "
@@ -432,13 +530,23 @@ def rna_pseudobulk_de(params: dict) -> dict:
                                    f"with raw counts.")}
         # Tolerate both Seurat-derived (nCount_RNA) and scanpy-derived
         # (total_counts / n_counts) library-size column names — try the
-        # requested one first, then the common alternatives.
+        # requested one first, then the common alternatives across adata.obs
+        # and (when supplied) aligned counts_adata.obs.
         candidate_libsize_cols = [lib_size_col,
                                    "nCount_RNA", "total_counts", "n_counts"]
         chosen_libsize_col = None
-        for c in candidate_libsize_cols:
-            if c and c in adata.obs.columns:
-                chosen_libsize_col = c
+        lib_sizes_source = None
+        for obs_df in (
+            [adata.obs, counts_adata.obs]
+            if counts_adata is not None
+            else [adata.obs]
+        ):
+            for c in candidate_libsize_cols:
+                if c and c in obs_df.columns:
+                    chosen_libsize_col = c
+                    lib_sizes_source = obs_df[c].values
+                    break
+            if chosen_libsize_col is not None:
                 break
         if chosen_libsize_col is None:
             return {"status":     "error",
@@ -447,7 +555,20 @@ def rna_pseudobulk_de(params: dict) -> dict:
                                    f"but none of {candidate_libsize_cols} are "
                                    f"in obs. Cannot recover counts.")}
         lib_size_col = chosen_libsize_col
-        if not _validate_lognorm_recovery(counts, adata.obs[lib_size_col].values):
+        recovery_ok = _validate_lognorm_recovery(counts, lib_sizes_source)
+        if (not recovery_ok and counts_adata is not None and use_raw
+                and counts_adata.raw is not None and not counts_from_raw):
+            raw_counts = counts_adata.raw.X
+            if _validate_lognorm_recovery(raw_counts, lib_sizes_source):
+                counts = raw_counts
+                gene_names = list(counts_adata.raw.var_names)
+                _, max_val, count_classification = _looks_integerlike(counts, gene_names)
+                background_genes, background_genes_degraded = _expressed_background(
+                    counts, gene_names
+                )
+                counts_from_raw = True
+                recovery_ok = True
+        if not recovery_ok:
             return {"status":     "error",
                     "error_type": "LognormRecoveryFailed",
                     "details":    (f"reversing with lib_size_col="
@@ -457,7 +578,7 @@ def rna_pseudobulk_de(params: dict) -> dict:
         needs_recovery = True
         # Stash for the aggregation loop to use on each per-replicate block.
         # Avoids materializing a 295K x 31K dense recovery matrix.
-        lib_sizes_full = np.asarray(adata.obs[lib_size_col].values, dtype=float)
+        lib_sizes_full = np.asarray(lib_sizes_source, dtype=float)
 
     # Validate obs columns
     for col in [groupby, condition_col, replicate_col, *covariates]:
@@ -718,9 +839,19 @@ def rna_pseudobulk_de(params: dict) -> dict:
                 }
                 continue
             continuous_factors = design_check.get("continuous_factors", [])
+            categorical_factors = design_check.get("categorical_factors", [])
             for col in continuous_factors:
                 if col in meta_sub.columns:
                     meta_sub[col] = pd.to_numeric(meta_sub[col], errors="coerce")
+            for col in categorical_factors:
+                if col in meta_sub.columns and col != condition_col:
+                    meta_sub[col] = meta_sub[col].astype(str)
+            test_str = str(test_lvl)
+            ref_str = str(ref_lvl)
+            meta_sub[condition_col] = pd.Categorical(
+                meta_sub[condition_col].astype(str),
+                categories=[ref_str, test_str],
+            )
             try:
                 means = counts_sub.mean(axis=1).astype(float)
                 variances = counts_sub.var(axis=1, ddof=1).astype(float)
@@ -739,40 +870,64 @@ def rna_pseudobulk_de(params: dict) -> dict:
                     mean_expression=mean_expression,
                 )
                 dds_params = inspect.signature(DeseqDataSet).parameters
+                covs_for_formula = [
+                    f for f in design_factors if f and f != condition_col
+                ]
+                model_design = _build_design_formula(
+                    condition_col, covs_for_formula, ref_level=ref_str
+                )
                 dds_kwargs = {
                     "counts": counts_sub.T,    # samples × genes
                     "metadata": meta_sub,
-                    "design_factors": design_factors,
                     "refit_cooks": True,
                 }
-                if continuous_factors and "continuous_factors" in dds_params:
-                    dds_kwargs["continuous_factors"] = continuous_factors
-                # Fix the reference to the contrast's ref level so the apeGLM
-                # coefficient (condition[T.test]) is exactly test-vs-ref.
-                if lfc_shrink_enabled and "ref_level" in dds_params:
-                    dds_kwargs["ref_level"] = [condition_col, ref_lvl]
+                if "design" in dds_params:
+                    dds_kwargs["design"] = model_design
+                    if "quiet" in dds_params:
+                        dds_kwargs["quiet"] = True
+                else:
+                    dds_kwargs["design_factors"] = design_factors
+                    if continuous_factors and "continuous_factors" in dds_params:
+                        dds_kwargs["continuous_factors"] = continuous_factors
+                    if lfc_shrink_enabled and "ref_level" in dds_params:
+                        dds_kwargs["ref_level"] = [condition_col, ref_str]
                 dds = DeseqDataSet(**dds_kwargs)
                 dds.deseq2()
                 stat_res = DeseqStats(
                     dds,
-                    contrast=[condition_col, test_lvl, ref_lvl],
+                    contrast=[condition_col, test_str, ref_str],
                 )
                 stat_res.summary()
 
                 # C4: apeGLM shrinkage. Keep the raw MLE LFC, shrink in place,
-                # fall back to raw if the coefficient is unavailable or shrinkage
-                # raises (never break the DE).
+                # fall back to raw if the coefficient is unavailable, shrinkage
+                # raises, or the post-shrink sign-flip guard triggers.
                 shrink_applied = False
                 shrink_reason = None
                 raw_lfc = stat_res.results_df["log2FoldChange"].copy()
+                raw_lfc_se = (
+                    stat_res.results_df["lfcSE"].copy()
+                    if "lfcSE" in stat_res.results_df.columns
+                    else None
+                )
                 if lfc_shrink_enabled:
-                    coeff = _shrink_coeff(dds, condition_col, test_lvl)
+                    coeff = _shrink_coeff(dds, condition_col, test_str)
                     if coeff is None:
                         shrink_reason = "apeGLM coefficient not found"
                     else:
                         try:
                             stat_res.lfc_shrink(coeff=coeff)
-                            shrink_applied = True
+                            if _detect_shrink_sign_flip(
+                                raw_lfc, stat_res.results_df["log2FoldChange"]
+                            ):
+                                stat_res.results_df["log2FoldChange"] = raw_lfc
+                                if raw_lfc_se is not None:
+                                    stat_res.results_df["lfcSE"] = raw_lfc_se
+                                shrink_reason = (
+                                    "lfc_shrink sign-flip detected; reverted to raw MLE"
+                                )
+                            else:
+                                shrink_applied = True
                         except Exception as _sx:
                             shrink_reason = f"lfc_shrink failed: {str(_sx)[:120]}"
                 else:

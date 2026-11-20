@@ -189,9 +189,14 @@ class BulkRNAAgent(BaseAgent):
             contrasts = []
         # ────────────────────────────────────────────────────────────────────
 
+        _group_vals = list(group_labels.values())
+        if _group_vals and all(isinstance(v, (list, tuple, set)) for v in _group_vals):
+            _detected_groups = sorted(str(g) for g in group_labels.keys())
+        else:
+            _detected_groups = sorted({str(v) for v in _group_vals})
         self.publish_status(
             experiment_id,
-            f"Detected groups: {sorted(set(group_labels.values()))}",
+            f"Detected groups: {_detected_groups}",
             0.68,
         )
         if not contrasts:
@@ -208,12 +213,16 @@ class BulkRNAAgent(BaseAgent):
             exp_ctx.get("lfc_threshold_provenance")
             or ("explicit_global_lfc" if "global_lfc" in exp_ctx else "default"))
         output_dir = self._output_dir(files)
+        confirmed_covariates = self._design_covariates(design) if design else []
         metadata_file = (
             str(self._write_design_metadata(
                 group_labels,
                 design_factor,
                 output_dir,
                 replicate_units=replicate_units,
+                covariates=confirmed_covariates,
+                exp_ctx=exp_ctx,
+                design=design,
             ))
             if design and group_labels else ""
         )
@@ -246,6 +255,37 @@ class BulkRNAAgent(BaseAgent):
         if proto_for_de.get("umi_config"):
             de_extra_params["umi_config"] = proto_for_de["umi_config"]
 
+        # D1-H3: never fabricate conflicting human/hg38 defaults when only one
+        # of organism/genome is specified; read from exp_ctx, design, or
+        # genome_config, and forward an explicit GTF when available.
+        genome_cfg = exp_ctx.get("genome_config", {}) or {}
+        resolved_organism = (
+            exp_ctx.get("organism")
+            or (design or {}).get("organism")
+            or genome_cfg.get("organism")
+            or ""
+        )
+        resolved_genome = (
+            exp_ctx.get("genome")
+            or (design or {}).get("genome")
+            or genome_cfg.get("genome")
+            or ""
+        )
+        resolved_gtf = (
+            exp_ctx.get("gtf")
+            or exp_ctx.get("gtf_file")
+            or genome_cfg.get("gtf")
+            or genome_cfg.get("gtf_file")
+            or ""
+        )
+        species_params: dict = {}
+        if resolved_organism:
+            species_params["organism"] = resolved_organism
+        if resolved_genome:
+            species_params["genome"] = resolved_genome
+        if resolved_gtf:
+            species_params["gtf"] = str(resolved_gtf)
+
         result = self.env.run_in_stack(
             stack="rna",
             script_path="aria/scripts/rna_bulk_de.py",
@@ -256,12 +296,11 @@ class BulkRNAAgent(BaseAgent):
                 "contrasts":      contrasts,
                 # P0-4: forward confirmed covariates (e.g. batch) so DESeq2 fits
                 # `~ batch + condition`, not a bare `~ condition`.
-                "covariates":     self._design_covariates(design) if design else [],
+                "covariates":     confirmed_covariates,
                 "technical_replicate_col": (
                     "biological_unit" if replicate_units else ""
                 ),
-                "organism":       exp_ctx.get("organism", "Homo sapiens"),
-                "genome":         exp_ctx.get("genome", "hg38"),
+                **species_params,
                 "output_dir":     output_dir,
                 "run_pathways":   True,
                 "padj_threshold": padj_thr,
@@ -300,6 +339,30 @@ class BulkRNAAgent(BaseAgent):
         self.publish_status(experiment_id, "BulkRNAAgent complete.", 1.0)
         return {"status": "done", "findings": result}
 
+    _GENE_COLS = {
+        "geneid", "gene_id", "ensembl", "ensembl_id", "entrez", "entrez_id",
+        "", "gene", "gene_name", "symbol", "gene_symbol", "feature", "name",
+        "chr", "start", "end", "strand", "length",
+    }
+
+    @staticmethod
+    def _read_counts_header(path: str | Path) -> list[str]:
+        """Read the first non-empty, non-comment header row of a counts file."""
+        p = Path(path)
+        opener = gzip.open if str(p).endswith(".gz") else open
+        header = ""
+        with opener(p, "rt", encoding="utf-8", errors="replace") as f:
+            for line in f:
+                stripped = line.strip()
+                if not stripped or stripped.startswith("#"):
+                    continue
+                header = line.rstrip("\r\n")
+                break
+        if not header:
+            return []
+        sep = "\t" if "\t" in header else ","
+        return [c.strip().strip('"').strip("'") for c in header.split(sep)]
+
     #  v4.0 Design integration ─────────────────────────────────────────
     def _apply_design(self, design: dict, files: list, experiment_id: str):
         """
@@ -318,69 +381,130 @@ class BulkRNAAgent(BaseAgent):
                 if alias:
                     alias_to_group[str(alias)] = grp
 
-        # Read actual column names from the first count file (gzip-aware)
+        # Read actual column names from the first count file (gzip + comment-aware)
         try:
-            p = Path(files[0])
-            opener = gzip.open if str(p).endswith(".gz") else open
-            with opener(p, "rt") as f:
-                header = f.readline().rstrip("\n")
-            sep      = "\t" if "\t" in header else ","
-            colnames = [c.strip().strip('"').strip("'") for c in header.split(sep)]
+            colnames = self._read_counts_header(files[0])
+            if not colnames:
+                raise ValueError("empty header")
         except Exception as e:
             raise ValueError(f"Cannot read header from counts file {files[0]}: {e}")
 
-        _GENE_COLS = {"geneid", "gene_id", "ensembl_id", "", "gene",
-                      "gene_name", "symbol", "feature", "name"}
+        all_candidates = {**sample_stems, **alias_to_group}
+        ordered_cols = [c for c in colnames if c.lower() not in self._GENE_COLS]
 
-        # Map stem→group to column→group using fuzzy match
+        def _boundary_matches(token: str, text: str) -> bool:
+            if not token:
+                return False
+            return bool(re.search(
+                rf"(?<![A-Za-z0-9]){re.escape(token)}(?![A-Za-z0-9])",
+                text,
+                flags=re.IGNORECASE,
+            ))
+
+        # Map stem→group to column→group: exact (raw or normalized) first so
+        # e.g. S1 never collides with S10, then boundary-delimited match, then
+        # substring fallback. Multiple aliases resolving to the SAME group are
+        # unambiguous.
         group_labels = {}
-        for col in colnames:
-            if col.lower() in _GENE_COLS:
-                continue
-            best_match = None
+        for col in ordered_cols:
             col_norm = _normalise_sample_token(col)
-            for stem, grp in {**sample_stems, **alias_to_group}.items():
-                stem_norm = _normalise_sample_token(stem)
-                if stem in col or stem_norm in col_norm:
-                    if best_match is not None:
-                        log.warning(
-                            f"Ambiguous column '{col}' matches both group "
-                            f"'{best_match}' and '{stem}' — skipping, will "
-                            f"retry with suffix-trimming or positional fallback."
-                        )
-                        best_match = None
-                        break
-                    best_match = grp
-            if best_match:
-                group_labels[col] = best_match
-                
+            col_leaf = Path(col).name
+            col_leaf_stem = re.sub(
+                r"\.(?:sorted\.)?(?:bam|sam|cram|fastq\.gz|fq\.gz|fastq|fq|counts|tsv|csv|txt)$",
+                "",
+                col_leaf,
+                flags=re.IGNORECASE,
+            )
+            col_leaf_norm = _normalise_sample_token(col_leaf_stem)
 
-                # Attempt to match by trimming potential technical replicate suffixes (_1, _2, etc.)
-        ordered_cols = [c for c in colnames if c.lower() not in _GENE_COLS]
+            exact_groups = {
+                grp
+                for stem, grp in all_candidates.items()
+                if stem == col
+                or stem == col_leaf
+                or stem == col_leaf_stem
+                or (
+                    _normalise_sample_token(stem)
+                    and _normalise_sample_token(stem) in {col_norm, col_leaf_norm}
+                )
+            }
+            if len(exact_groups) == 1:
+                group_labels[col] = next(iter(exact_groups))
+                continue
+            if len(exact_groups) > 1:
+                log.warning(
+                    f"Ambiguous exact column '{col}' matches multiple groups "
+                    f"{sorted(exact_groups)} — skipping."
+                )
+                continue
+
+            boundary_groups = {
+                grp
+                for stem, grp in all_candidates.items()
+                if _boundary_matches(str(stem), col)
+                or _boundary_matches(str(stem), col_leaf_stem)
+            }
+            if len(boundary_groups) == 1:
+                group_labels[col] = next(iter(boundary_groups))
+                continue
+            if len(boundary_groups) > 1:
+                log.warning(
+                    f"Ambiguous column '{col}' matches multiple groups "
+                    f"{sorted(boundary_groups)} — skipping, will retry with "
+                    f"suffix-trimming or positional fallback."
+                )
+                continue
+
+            sub_groups = {
+                grp
+                for stem, grp in all_candidates.items()
+                if (stem and str(stem) in col)
+                or (_normalise_sample_token(stem) and _normalise_sample_token(stem) in col_norm)
+            }
+            if len(sub_groups) == 1:
+                group_labels[col] = next(iter(sub_groups))
+            elif len(sub_groups) > 1:
+                log.warning(
+                    f"Ambiguous column '{col}' matches multiple groups "
+                    f"{sorted(sub_groups)} — skipping, will retry with "
+                    f"suffix-trimming or positional fallback."
+                )
+
+        # Attempt to match by trimming potential technical replicate suffixes (_1, _2, etc.)
         if not group_labels:
             for col in ordered_cols:
-                best_match = None
                 col_norm = _normalise_sample_token(col)
-                for stem, grp in {**sample_stems, **alias_to_group}.items():
-                    # Trim common suffixes from col
-                    col_base = re.sub(r"[_\-]?[12]$", "", col)
-                    col_base_norm = _normalise_sample_token(col_base)
-                    stem_norm = _normalise_sample_token(stem)
+                col_base = re.sub(r"[_\-]?[12]$", "", col)
+                col_base_norm = _normalise_sample_token(col_base)
+                exact_trim = {
+                    grp
+                    for stem, grp in all_candidates.items()
+                    if col_base == stem
+                    or (col_base_norm and col_base_norm == _normalise_sample_token(stem))
+                }
+                if len(exact_trim) == 1:
+                    group_labels[col] = next(iter(exact_trim))
+                    continue
+                if len(exact_trim) > 1:
+                    continue
+                fuzzy_trim = {
+                    grp
+                    for stem, grp in all_candidates.items()
                     if (
-                        col_base == stem
-                        or stem.startswith(col_base)
-                        or col_base.startswith(stem)
-                        or col_base_norm == stem_norm
-                        or stem_norm.startswith(col_base_norm)
-                        or col_base_norm.startswith(stem_norm)
-                        or stem_norm in col_norm
-                    ):
-                        if best_match is not None:
-                            best_match = None
-                            break
-                        best_match = grp
-                if best_match:
-                    group_labels[col] = best_match
+                        (col_base and (stem.startswith(col_base) or col_base.startswith(stem)))
+                        or (
+                            col_base_norm
+                            and _normalise_sample_token(stem)
+                            and (
+                                _normalise_sample_token(stem).startswith(col_base_norm)
+                                or col_base_norm.startswith(_normalise_sample_token(stem))
+                                or _normalise_sample_token(stem) in col_norm
+                            )
+                        )
+                    )
+                }
+                if len(fuzzy_trim) == 1:
+                    group_labels[col] = next(iter(fuzzy_trim))
 
         # Fallback: if no match, assign from design directly (assumes column order)
         if not group_labels:
@@ -492,27 +616,251 @@ class BulkRNAAgent(BaseAgent):
         return contrasts
 
     @staticmethod
+    def _load_sample_metadata_rows(source) -> dict[str, dict]:
+        """Normalise sample metadata from a dict, list-of-dicts, or TSV/CSV path
+        into ``{sample_id: {col: value, ...}}``."""
+        if not source:
+            return {}
+        id_keys = (
+            "sample", "sample_id", "sample_name", "library", "library_id",
+            "id", "name", "run", "accession", "geo_accession", "",
+        )
+        rows_by_id: dict[str, dict] = {}
+        if isinstance(source, dict):
+            # Could be {sample_id: {col: val}}
+            for sid, meta in source.items():
+                if isinstance(meta, dict):
+                    rows_by_id[str(sid).strip()] = dict(meta)
+            return rows_by_id
+        if isinstance(source, (str, Path)):
+            p = Path(source)
+            if not p.is_file():
+                return {}
+            try:
+                opener = gzip.open if str(p).endswith(".gz") else open
+                with opener(p, "rt", encoding="utf-8-sig", errors="replace") as fh:
+                    sample_lines = []
+                    for line in fh:
+                        if line.strip() and not line.lstrip().startswith("#"):
+                            sample_lines.append(line)
+                    if not sample_lines:
+                        return {}
+                sep = "\t" if "\t" in sample_lines[0] else ","
+                reader = csv.DictReader(sample_lines, delimiter=sep)
+                source = list(reader)
+            except Exception as exc:
+                log.debug(f"Could not read metadata source {p}: {exc}")
+                return {}
+        if isinstance(source, list):
+            for row in source:
+                if not isinstance(row, dict):
+                    continue
+                lower_keys = {str(k or "").strip().lower(): k for k in row.keys()}
+                sid_val = None
+                for key in id_keys:
+                    if key in lower_keys:
+                        raw = row.get(lower_keys[key])
+                        if raw is not None and str(raw).strip():
+                            sid_val = str(raw).strip()
+                            break
+                if sid_val is None and row:
+                    first_k = next(iter(row.keys()))
+                    raw = row.get(first_k)
+                    if raw is not None and str(raw).strip():
+                        sid_val = str(raw).strip()
+                if sid_val is not None:
+                    rows_by_id[sid_val] = {
+                        str(k).strip(): v for k, v in row.items() if k is not None
+                    }
+        return rows_by_id
+
+    @classmethod
+    def _resolve_covariate_values(
+        cls,
+        sample_names: list[str],
+        covariates: list[str],
+        exp_ctx: dict | None = None,
+        design: dict | None = None,
+    ) -> dict[str, dict[str, object]]:
+        """Resolve confirmed covariate values per count-matrix sample ID from
+        exp_ctx/design metadata sources (BI-02)."""
+        if not sample_names or not covariates:
+            return {}
+        exp_ctx = exp_ctx or {}
+        design = design or {}
+        inferred = exp_ctx.get("inferred_design") or {}
+
+        raw_sources = [
+            exp_ctx.get("sample_metadata"),
+            design.get("sample_metadata"),
+            inferred.get("sample_sheet"),
+            design.get("sample_sheet"),
+            exp_ctx.get("metadata_file"),
+            exp_ctx.get("sample_metadata_path"),
+            design.get("metadata_file"),
+        ]
+        parsed_sources = [
+            rows for src in raw_sources
+            if (rows := cls._load_sample_metadata_rows(src))
+        ]
+        if not parsed_sources:
+            return {}
+
+        # Build alias equivalence groups so a count column matching an alias
+        # can still look up covariate metadata keyed by the canonical stem or
+        # another alias.
+        alias_groups: list[set[str]] = []
+        sample_aliases = design.get("sample_aliases") or {}
+        if isinstance(sample_aliases, dict):
+            for stem, aliases in sample_aliases.items():
+                grp = {str(stem)}
+                if isinstance(aliases, (list, tuple, set)):
+                    grp.update(str(a) for a in aliases if a)
+                elif aliases:
+                    grp.add(str(aliases))
+                alias_groups.append(grp)
+
+        def _match_row(sample: str, source_map: dict[str, dict]) -> dict | None:
+            if sample in source_map:
+                return source_map[sample]
+            leaf = Path(sample).name
+            leaf_stem = re.sub(
+                r"\.(?:sorted\.)?(?:bam|sam|cram|fastq\.gz|fq\.gz|fastq|fq|counts|tsv|csv|txt)$",
+                "",
+                leaf,
+                flags=re.IGNORECASE,
+            )
+            for cand in (leaf, leaf_stem):
+                if cand in source_map:
+                    return source_map[cand]
+            s_norm = _normalise_sample_token(sample)
+            leaf_norm = _normalise_sample_token(leaf_stem)
+            for grp in alias_groups:
+                grp_norms = {_normalise_sample_token(a) for a in grp}
+                if sample in grp or leaf_stem in grp or s_norm in grp_norms or leaf_norm in grp_norms:
+                    for alias in grp:
+                        if alias in source_map:
+                            return source_map[alias]
+                    norm_hits = [
+                        k for k in source_map
+                        if _normalise_sample_token(k) in grp_norms
+                    ]
+                    if len(norm_hits) == 1:
+                        return source_map[norm_hits[0]]
+            norm_matches = [
+                k for k in source_map
+                if _normalise_sample_token(k) in {s_norm, leaf_norm}
+                and _normalise_sample_token(k)
+            ]
+            if len(norm_matches) == 1:
+                return source_map[norm_matches[0]]
+            boundary_matches = [
+                k for k in source_map
+                if k and re.search(
+                    rf"(?<![A-Za-z0-9]){re.escape(k)}(?![A-Za-z0-9])",
+                    sample,
+                    flags=re.IGNORECASE,
+                )
+            ]
+            if len(boundary_matches) == 1:
+                return source_map[boundary_matches[0]]
+            return None
+
+        def _extract_cov(row: dict, cov: str):
+            if cov in row:
+                return row[cov]
+            cov_l = cov.lower()
+            for k, v in row.items():
+                if str(k).strip().lower() == cov_l:
+                    return v
+            return None
+
+        def _is_missing(val) -> bool:
+            if val is None:
+                return True
+            if isinstance(val, float):
+                import math
+                return not math.isfinite(val)
+            return str(val).strip().lower() in ("", "nan", "none")
+
+        resolved: dict[str, dict[str, object]] = {}
+        for cov in dict.fromkeys(covariates):
+            if not cov:
+                continue
+            per_sample: dict[str, object] = {}
+            for sample in sample_names:
+                for source_map in parsed_sources:
+                    row = _match_row(sample, source_map)
+                    if row is None:
+                        continue
+                    val = _extract_cov(row, cov)
+                    if not _is_missing(val):
+                        per_sample[sample] = val
+                        break
+            if per_sample:
+                resolved[cov] = per_sample
+        return resolved
+
+    @classmethod
     def _write_design_metadata(
+        cls,
         group_labels: dict[str, str],
         design_factor: str,
         output_dir: str | Path,
         *,
         replicate_units: dict[str, str] | None = None,
+        covariates: list[str] | None = None,
+        exp_ctx: dict | None = None,
+        design: dict | None = None,
+        covariate_values: dict[str, dict[str, object]] | None = None,
     ) -> Path:
-        """Persist the confirmed sample-to-group mapping for rna_bulk_de.py."""
+        """Persist the confirmed sample-to-group mapping (and any resolved
+        confirmed covariates) for rna_bulk_de.py."""
         out = Path(output_dir)
         out.mkdir(parents=True, exist_ok=True)
         path = out / "confirmed_design_metadata.tsv"
+
+        reserved = {"sample", design_factor}
+        if replicate_units:
+            reserved.add("biological_unit")
+
+        cov_list = [
+            c for c in dict.fromkeys(covariates or [])
+            if c and c not in reserved
+        ]
+        cov_data: dict[str, dict[str, object]] = {}
+        if cov_list and (exp_ctx is not None or design is not None):
+            cov_data.update(
+                cls._resolve_covariate_values(
+                    list(group_labels.keys()),
+                    cov_list,
+                    exp_ctx=exp_ctx,
+                    design=design,
+                )
+            )
+        if covariate_values:
+            for cov, mapping in covariate_values.items():
+                if cov and cov not in reserved and isinstance(mapping, dict):
+                    cov_data[cov] = dict(mapping)
+                    if cov not in cov_list:
+                        cov_list.append(cov)
+
+        active_covs = [c for c in cov_list if c in cov_data]
+
         with path.open("w", encoding="utf-8", newline="") as handle:
             writer = csv.writer(handle, delimiter="\t", lineterminator="\n")
             header = ["sample", design_factor]
             if replicate_units:
                 header.append("biological_unit")
+            header.extend(active_covs)
             writer.writerow(header)
             for sample, group in group_labels.items():
                 row = [sample, group]
                 if replicate_units:
                     row.append(replicate_units[sample])
+                for cov in active_covs:
+                    val = cov_data[cov].get(sample, "")
+                    row.append("" if val is None else val)
                 writer.writerow(row)
         return path
 
@@ -633,14 +981,16 @@ class BulkRNAAgent(BaseAgent):
             },
         }
 
-    @staticmethod
-    def _read_sample_names(path: str) -> list[str]:
+    @classmethod
+    def _read_sample_names(cls, path: str) -> list[str]:
         try:
             p = Path(path)
-            if not p.exists(): return []
-            with (gzip.open if str(p).endswith(".gz") else open)(p, "rt") as f: header = f.readline().rstrip("\n")
-            return [c for c in header.split("\t" if "\t" in header else ",") if c.lower().strip() not in {"gene_id", "geneid", "gene", "", "chr", "start", "end", "strand", "length", "gene_name", "symbol", "feature", "ensembl", "ensembl_id", "entrez", "entrez_id"}]
-        except Exception as e: return []
+            if not p.exists():
+                return []
+            cols = cls._read_counts_header(p)
+            return [c for c in cols if c.lower().strip() not in cls._GENE_COLS]
+        except Exception:
+            return []
 
     @staticmethod
     def _infer_groups_local(samples: list[str]) -> dict:

@@ -65,6 +65,7 @@ def test_de_per_cluster_reuses_existing_rank_genes_groups(tmp_path, monkeypatch)
             self.var_names = self.raw.var_names
             self.uns = {
                 "rank_genes_groups": {
+                    "params": {"groupby": "leiden", "use_raw": True, "method": "wilcoxon"},
                     "names": np.array(
                         [("marker_a", "marker_b"), ("marker_b", "marker_a")],
                         dtype=dtype,

@@ -275,8 +275,9 @@ def _render_compartment_insulation_track(
         mid_mb = mid_mb[order]
         e1_clean = e1_clean[order]
 
-        pos_label = "+E1 (unphased)" if pc1_validated is False else "A (+E1)"
-        neg_label = "-E1 (unphased)" if pc1_validated is False else "B (-E1)"
+        unphased = pc1_validated is not True
+        pos_label = "+E1 (unphased)" if unphased else "A (+E1)"
+        neg_label = "-E1 (unphased)" if unphased else "B (-E1)"
         ax_e1.fill_between(
             mid_mb, e1_clean, 0.0,
             where=np.isfinite(e1_clean) & (e1_clean > 0),
@@ -290,7 +291,7 @@ def _render_compartment_insulation_track(
         ax_e1.axhline(0.0, lw=0.7, color="#444444")
         ax_e1.legend(frameon=False, fontsize=7.5, loc="upper right")
         ax_e1.set_ylabel("Eigenvector E1", fontsize=8.5, color=_TEXT)
-        title_suffix = " (unphased polarity)" if pc1_validated is False else ""
+        title_suffix = " (unphased polarity)" if unphased else ""
         if sub_i is not None:
             ax_e1.set_title(f"Compartment E1 & Insulation Profile ({chrom}){title_suffix}", fontsize=10, color=_TEXT)
         else:
@@ -356,12 +357,15 @@ def _pick_mappable_window(clr, chrom: str, chosen: int, max_bins: int, has_w: bo
             if good.size > 0:
                 region_start = int(bins_df["start"].iloc[int(good[0])])
         if region_start is None and not bins_df.empty:
-            # Scan pixels on chrom for first nonzero contact bin when weights are absent or all-NaN.
-            b_lo, b_hi = clr.extent(chrom)
-            pix = clr.pixels()[:]
-            sub = pix[(pix["bin1_id"] >= b_lo) & (pix["bin1_id"] < b_hi) & (pix["count"] > 0)]
-            if not sub.empty:
-                first_local = int(sub["bin1_id"].min()) - int(b_lo)
+            # Scan strictly cis sparse contacts on chrom (zero genome-wide RAM load).
+            mat = clr.matrix(balance=False, sparse=True).fetch(chrom)
+            coo = mat.tocoo()
+            pos_mask = np.isfinite(coo.data) & (coo.data > 0)
+            if np.any(pos_mask):
+                first_local = min(
+                    int(np.min(coo.row[pos_mask])),
+                    int(np.min(coo.col[pos_mask])),
+                )
                 if 0 <= first_local < len(bins_df):
                     region_start = int(bins_df["start"].iloc[first_local])
     except Exception:
@@ -392,18 +396,17 @@ def _render_contact_map(
     import numpy as np
     import pandas as pd
 
+    from aria.utils.hic_constants import list_mcool_resolutions
+
     if cooler_path.lower().endswith(".mcool"):
-        avail = sorted(
-            int(p.split("/")[-1])
-            for p in cooler.fileops.list_coolers(cooler_path)
-            if "/resolutions/" in p and p.split("/")[-1].isdigit()
-        )
-        if not avail:
+        res_map = list_mcool_resolutions(cooler_path)
+        if not res_map:
             return None
-        chosen = int(resolution) if int(resolution) in avail else min(
+        avail = sorted(res_map.keys())
+        chosen = int(resolution) if int(resolution) in res_map else min(
             avail, key=lambda r: abs(r - int(resolution))
         )
-        uri = f"{cooler_path}::resolutions/{chosen}"
+        uri = f"{cooler_path}::{res_map[chosen]}"
     else:
         uri = cooler_path
         chosen = int(cooler.Cooler(uri).binsize)

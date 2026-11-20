@@ -80,6 +80,7 @@ def _quantify_fragments(fragments_path, peaks_path):
     import numpy as np
     import pandas as pd
     from scipy import sparse
+    from aria.utils.peak2gene_core import canonical_contig
 
     intervals = []
     with _open_text(peaks_path) as handle:
@@ -87,9 +88,10 @@ def _quantify_fragments(fragments_path, peaks_path):
             if not line.strip() or line.startswith(("#", "track", "browser")):
                 continue
             row = line.split()
-            chrom, start, end = row[0], int(row[1]), int(row[2])
+            raw_chrom, start, end = row[0], int(row[1]), int(row[2])
             if start < 0 or end <= start:
                 _fail("NonGenomicPeakFeatures", line)
+            chrom = canonical_contig(raw_chrom) or raw_chrom
             intervals.append((chrom, start, end))
     if not intervals or len(set(intervals)) != len(intervals):
         _fail("NonGenomicPeakFeatures", "BED must contain unique, valid peaks")
@@ -106,8 +108,9 @@ def _quantify_fragments(fragments_path, peaks_path):
             maxima.append(running)
         index[chrom] = (values, starts, maxima)
     cells, counts = {}, {}
-    for chrom, start, end, barcode, count in _fragment_rows(fragments_path):
+    for raw_chrom, start, end, barcode, count in _fragment_rows(fragments_path):
         row = cells.setdefault(barcode, len(cells))
+        chrom = canonical_contig(raw_chrom) or raw_chrom
         if chrom not in index:
             continue
         values, starts, maxima = index[chrom]
@@ -225,6 +228,13 @@ def _translate_barcodes(rna, atac, params):
         direct = dict(zip(ab, rmap))
         reverse = {_revcomp(b): a for b, a in direct.items()}
 
+        rset = set(rnames)
+        rna_bare_to_full: dict[str, str] | None = None
+        if params.get("normalize_10x_suffix", True):
+            rb_obs = [_split_suffix(b)[0] for b in rnames]
+            if len(set(rb_obs)) == len(rb_obs):
+                rna_bare_to_full = dict(zip(rb_obs, rnames))
+
         def translated(table):
             out = []
             for barcode in anames:
@@ -234,7 +244,12 @@ def _translate_barcodes(rna, atac, params):
                     out.append(None)
                 else:
                     target_base, target_suffix = _split_suffix(target)
-                    out.append(target_base + (suffix or target_suffix))
+                    cand = target_base + (suffix or target_suffix)
+                    if rna_bare_to_full is not None and cand not in rset:
+                        matched_rna = rna_bare_to_full.get(target_base)
+                        if matched_rna is not None:
+                            cand = matched_rna
+                    out.append(cand)
             return out
 
         candidates = {
@@ -248,7 +263,6 @@ def _translate_barcodes(rna, atac, params):
                 "atac_barcode_orientation must be direct, reverse_complement, or auto",
             )
         if orientation == "auto":
-            rset = set(rnames)
             orientation = max(
                 candidates, key=lambda key: sum(b in rset for b in candidates[key])
             )
@@ -634,8 +648,14 @@ def integration_assemble_multiome(params: dict[str, Any]) -> dict[str, Any]:
         frag_path = params.get("fragments_path") or raw_fragments_path
         if frag_path and Path(frag_path).is_file():
             totals, mito = {}, {}
+            translation_active = translation.get("mode") != "shared_barcodes"
             for chrom, _, _, barcode, count in _fragment_rows(frag_path):
-                t_bc = raw_to_translated.get(barcode, barcode)
+                if translation_active:
+                    if barcode not in raw_to_translated:
+                        continue
+                    t_bc = raw_to_translated[barcode]
+                else:
+                    t_bc = raw_to_translated.get(barcode, barcode)
                 totals[t_bc] = totals.get(t_bc, 0) + count
                 if chrom.lower() in {"chrm", "chrmt", "mt", "m"}:
                     mito[t_bc] = mito.get(t_bc, 0) + count

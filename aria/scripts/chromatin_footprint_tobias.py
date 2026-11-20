@@ -251,9 +251,22 @@ def _null_label_controls(
     n_total = int(matrix.shape[1])
     if paired:
         n_pairs = n_a
-        masks = list(range(1, (2 ** n_pairs) - 1))
-        if len(masks) > max_permutations:
-            masks = random.Random(random_seed).sample(masks, max_permutations)
+        limit = max(0, int(max_permutations))
+        total_masks = max(0, (1 << n_pairs) - 2) if n_pairs >= 2 else 0
+        if total_masks == 0 or limit == 0:
+            masks: list[int] = []
+        elif total_masks <= limit:
+            masks = list(range(1, (1 << n_pairs) - 1))
+        else:
+            rng = random.Random(random_seed)
+            upper = (1 << n_pairs) - 1
+            seen_masks: set[int] = set()
+            masks = []
+            while len(masks) < limit:
+                mask = rng.randrange(1, upper)
+                if mask not in seen_masks:
+                    seen_masks.add(mask)
+                    masks.append(mask)
         fractions: list[float] = []
         for mask in masks:
             idx_a = [n_pairs + idx if mask & (1 << idx) else idx
@@ -462,16 +475,25 @@ def infer_replicate_footprints(
     descriptive_reason = None
     batches = [str((replicate_batches or {}).get(rep) or "").strip()
                for rep in replicates]
-    batch_adjusted = (pairing_status == "independent" and bool(batches)
-                      and all(batches) and len(set(batches)) >= 2)
-    if batch_adjusted:
-        batch_design = _batch_design(batches, range(len(reps_a)))
+    has_multi_batch = (
+        bool(batches) and all(batches) and len(set(batches)) >= 2
+        and bool(reps_a) and bool(reps_b)
+    )
+    if has_multi_batch:
         cond_batches = {group_a: set(batches[:len(reps_a)]),
                         group_b: set(batches[len(reps_a):])}
-        if (cond_batches[group_a].isdisjoint(cond_batches[group_b])
-                or np.linalg.matrix_rank(batch_design) < batch_design.shape[1]
+        if cond_batches[group_a].isdisjoint(cond_batches[group_b]):
+            descriptive_reason = "batch_condition_confounded"
+    batch_adjusted = (
+        pairing_status == "independent" and has_multi_batch
+        and descriptive_reason is None
+    )
+    if batch_adjusted:
+        batch_design = _batch_design(batches, range(len(reps_a)))
+        if (np.linalg.matrix_rank(batch_design) < batch_design.shape[1]
                 or batch_design.shape[0] - batch_design.shape[1] < 1):
             descriptive_reason = "batch_condition_confounded"
+            batch_adjusted = False
     if (descriptive_reason is None and (len(reps_a) < min_replicates_per_condition
                                        or len(reps_b) < min_replicates_per_condition)):
         descriptive_reason = "insufficient_biological_replicates"
@@ -483,7 +505,7 @@ def infer_replicate_footprints(
             ranked.append({
                 "tf": str(record.get("tf") or motif),
                 "motif_id": str(record.get("motif_id") or motif),
-                "change": round(mean_a - mean_b, 4),
+                "change": float(mean_a - mean_b),
                 "mean_score_a": mean_a, "mean_score_b": mean_b,
                 "n_sites": int(record.get("n_sites") or 0),
             })
@@ -536,12 +558,12 @@ def infer_replicate_footprints(
             zip(complete, pvalues, adjusted)):
         mean_a = float(np.mean(matrix[row_idx, :len(reps_a)]))
         mean_b = float(np.mean(matrix[row_idx, len(reps_a):]))
+        effect_val = float(effects[row_idx]) if batch_adjusted else float(mean_a - mean_b)
         results.append({
             "tf": str(record.get("tf") or motif),
             "motif_id": str(record.get("motif_id") or motif),
-            "change": round(float(effects[row_idx]) if batch_adjusted
-                            else mean_a - mean_b, 4),
-            **({"raw_change": round(mean_a - mean_b, 4)} if batch_adjusted else {}),
+            "change": effect_val,
+            **({"raw_change": float(mean_a - mean_b)} if batch_adjusted else {}),
             "mean_score_a": mean_a,
             "mean_score_b": mean_b,
             "pvalue": pvalue,
@@ -825,7 +847,9 @@ def _aggregate_plots(bindetect_dir: Path, signals: dict[str, str], tfs: list[str
         sig_args += [str(signals[g])]
     out: dict[str, dict[str, str]] = {}
     for tf in tfs:
-        sanitized = tf.replace("::", "")
+        sanitized = re.sub(r"[^A-Za-z0-9_.-]+", "", tf)
+        if not sanitized:
+            continue
         beds = sorted(bindetect_dir.glob(f"{sanitized}_*/beds/*_all.bed"))
         if not beds:
             continue

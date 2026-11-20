@@ -110,8 +110,39 @@ def _run_ambient_decontamination(adata, params: dict) -> dict:
     }
 
 
+def _input_fingerprint(data_path) -> dict | None:
+    """Stable lightweight fingerprint for the QC input file or MEX directory."""
+    if not data_path:
+        return None
+    from pathlib import Path
+    try:
+        p = Path(data_path)
+        if not p.exists():
+            return None
+        if p.is_dir():
+            entries = []
+            for child in sorted(p.iterdir(), key=lambda c: c.name):
+                try:
+                    st = child.stat()
+                    entries.append([child.name, int(st.st_size), int(st.st_mtime_ns)])
+                except OSError:
+                    continue
+            return {"kind": "dir", "entries": entries}
+        st = p.stat()
+        return {"kind": "file", "size": int(st.st_size), "mtime_ns": int(st.st_mtime_ns)}
+    except OSError:
+        return None
+
+
 def _cache_params(params: dict) -> dict:
+    from pathlib import Path
+    raw_data_path = params.get("data_path")
+    resolved_data_path = (
+        str(Path(raw_data_path).resolve()) if raw_data_path else None
+    )
     return {
+        "data_path": resolved_data_path,
+        "input_fingerprint": _input_fingerprint(raw_data_path),
         "organism": str(params.get("organism", "Homo sapiens")),
         "mt_threshold": (
             None if params.get("mt_threshold") is None
@@ -132,7 +163,7 @@ def _cache_params(params: dict) -> dict:
 
 
 def _cache_matches(cached: dict, expected: dict) -> bool:
-    return cached.get("cache_version") == 7 and cached.get("cache_params") == expected
+    return cached.get("cache_version") == 8 and cached.get("cache_params") == expected
 
 
 def _mad_bounds(values, n_mad: float = 3.0, *, log_space: bool = False,
@@ -612,7 +643,7 @@ def rna_qc(params: dict) -> dict:
             "mean": round(float(adata.obs["pct_counts_mt"].mean()), 3),
             "max":  round(float(adata.obs["pct_counts_mt"].max()), 3),
         },
-        "cache_version": 7,
+        "cache_version": 8,
         "cache_params": cache_params,
     }
     try:

@@ -72,7 +72,12 @@ def _format_motif_source(val: Any, default: str = "JASPAR2024_CORE_vertebrates")
     return _clean_token(val, default)
 
 
-def _count_factor_collection(val: Any, *, exclude_confounders: bool = True) -> int:
+def _count_factor_collection(
+    val: Any,
+    *,
+    exclude_confounders: bool = True,
+    excluded_ids: set[str] | None = None,
+) -> int:
     items: list[Any] = []
     if isinstance(val, dict):
         for sub in val.values():
@@ -82,14 +87,23 @@ def _count_factor_collection(val: Any, *, exclude_confounders: bool = True) -> i
         items.extend(val)
     if not exclude_confounders:
         return len(items)
-    return sum(
-        1
-        for item in items
-        if not (
-            isinstance(item, dict)
-            and bool(item.get("excluded_from_biological_interpretation"))
-        )
-    )
+    quar = excluded_ids or set()
+    count = 0
+    for item in items:
+        if isinstance(item, dict):
+            fid = item.get("factor_id") if item.get("factor_id") is not None else item.get("factor")
+            if (
+                bool(item.get("excluded_from_biological_interpretation"))
+                or bool(item.get("technical_depth_flag"))
+                or bool(item.get("cell_cycle_flag"))
+                or bool(item.get("batch_flag"))
+                or (fid is not None and str(fid) in quar)
+            ):
+                continue
+        elif str(item) in quar:
+            continue
+        count += 1
+    return count
 
 
 def _finite_round(val: Any, digits: int = 4) -> float | None:
@@ -382,24 +396,110 @@ def _pct_or_none(val: Any) -> float | None:
     return _finite_round(f * 100.0, 2)
 
 
+def _mofa_quarantined_ids(mofa: dict[str, Any]) -> set[str]:
+    """Full set of factor IDs quarantined as technical/confounder (depth/cell-cycle/batch)."""
+    ids: set[str] = set()
+    for ex in mofa.get("excluded_factors") or []:
+        if isinstance(ex, dict):
+            fid = ex.get("factor_id") if ex.get("factor_id") is not None else ex.get("factor")
+            if fid is not None:
+                ids.add(str(fid))
+        elif ex is not None:
+            ids.add(str(ex))
+    ids.update(str(i) for i in _mofa_batch_factor_ids(mofa))
+    for fac in mofa.get("top_factors") or []:
+        if not isinstance(fac, dict):
+            continue
+        fid = fac.get("factor_id") if fac.get("factor_id") is not None else fac.get("factor")
+        if fid is None:
+            continue
+        if (
+            fac.get("excluded_from_biological_interpretation")
+            or fac.get("technical_depth_flag")
+            or fac.get("cell_cycle_flag")
+            or fac.get("batch_flag")
+        ):
+            ids.add(str(fid))
+    return ids
+
+
+def _mofa_confounder_categories(mofa: dict[str, Any]) -> list[str]:
+    """Derive observed confounder categories from ``excluded_factors`` reasons/flags."""
+    top_by_id: dict[str, dict[str, Any]] = {}
+    for fac in mofa.get("top_factors") or []:
+        if not isinstance(fac, dict):
+            continue
+        fid = fac.get("factor_id") if fac.get("factor_id") is not None else fac.get("factor")
+        if fid is not None:
+            top_by_id[str(fid)] = fac
+
+    has_depth = False
+    has_cycle = False
+    has_batch = False
+    for ex in mofa.get("excluded_factors") or []:
+        sources: list[dict[str, Any]] = []
+        if isinstance(ex, dict):
+            sources.append(ex)
+            fid = ex.get("factor_id") if ex.get("factor_id") is not None else ex.get("factor")
+            if fid is not None and str(fid) in top_by_id:
+                sources.append(top_by_id[str(fid)])
+        elif ex is not None and str(ex) in top_by_id:
+            sources.append(top_by_id[str(ex)])
+        for src in sources:
+            if src.get("technical_depth_flag"):
+                has_depth = True
+            if src.get("cell_cycle_flag"):
+                has_cycle = True
+            if src.get("batch_flag"):
+                has_batch = True
+            for raw in src.get("exclusion_reasons") or []:
+                low = str(raw).lower()
+                if "depth" in low:
+                    has_depth = True
+                if "cycle" in low:
+                    has_cycle = True
+                if "batch" in low or "donor" in low:
+                    has_batch = True
+
+    cats: list[str] = []
+    if has_depth:
+        cats.append("sequencing depth")
+    if has_cycle:
+        cats.append("cell-cycle scores")
+    if has_batch:
+        cats.append("batch/donor covariates")
+    return cats
+
+
+def _join_or_phrase(items: list[str], fallback: str) -> str:
+    if not items:
+        return fallback
+    if len(items) == 1:
+        return items[0]
+    if len(items) == 2:
+        return f"{items[0]} or {items[1]}"
+    return ", ".join(items[:-1]) + f", or {items[-1]}"
+
+
 def _mofa_n_bio_active(mofa: dict[str, Any], fallback: int) -> int:
     """Active factors that are NOT quarantined (depth/cell-cycle/batch)."""
     factors = mofa.get("top_factors")
     if not isinstance(factors, list) or not factors:
         return int(fallback)
-    excluded_ids = {
-        str(ex.get("factor_id") if ex.get("factor_id") is not None else ex.get("factor"))
-        for ex in (mofa.get("excluded_factors") or [])
-        if isinstance(ex, dict)
-    }
-    excluded_ids.update(str(i) for i in _mofa_batch_factor_ids(mofa))
+    excluded_ids = _mofa_quarantined_ids(mofa)
+    has_explicit_active = any(isinstance(f, dict) and "active" in f for f in factors)
     n = 0
     for fac in factors:
-        if not isinstance(fac, dict) or fac.get("active") is not True:
+        if not isinstance(fac, dict):
+            continue
+        if has_explicit_active:
+            if fac.get("active") is not True:
+                continue
+        elif fac.get("active") is False:
             continue
         fid = fac.get("factor_id") if fac.get("factor_id") is not None else fac.get("factor")
         if (
-            str(fid) in excluded_ids
+            (fid is not None and str(fid) in excluded_ids)
             or fac.get("excluded_from_biological_interpretation")
             or fac.get("technical_depth_flag")
             or fac.get("cell_cycle_flag")
@@ -904,8 +1004,13 @@ class IntegrationNarrator:
         n_trained = int(mofa.get("n_cells_trained") or n_cells)
         n_factors = int(mofa.get("n_factors") or 0)
         n_active = int(mofa.get("n_active_factors") or 0)
-        n_shared = _count_factor_collection(mofa.get("shared_factors"))
-        n_spec = _count_factor_collection(mofa.get("modality_specific_factors"))
+        quarantined_ids = _mofa_quarantined_ids(mofa)
+        n_shared = _count_factor_collection(
+            mofa.get("shared_factors"), excluded_ids=quarantined_ids
+        )
+        n_spec = _count_factor_collection(
+            mofa.get("modality_specific_factors"), excluded_ids=quarantined_ids
+        )
         excluded = list(mofa.get("excluded_factors") or [])
         n_excl = len(excluded)
         # Wave 4A: ``n_active_factors`` includes quarantined confounders while
@@ -985,13 +1090,14 @@ class IntegrationNarrator:
                 severity="info",
             )
         ]
+        excl_cats = _mofa_confounder_categories(mofa)
         if n_excl > 0:
+            excl_phrase = _join_or_phrase(excl_cats, "technical or cell-cycle covariates")
             caveats.append(
                 Caveat(
                     text=(
-                        f"{n_excl} MOFA+ factor(s) correlated with sequencing depth "
-                        "or cell-cycle scores were quarantined from biological "
-                        "factor rankings."
+                        f"{n_excl} MOFA+ factor(s) associated with {excl_phrase} "
+                        "were quarantined from biological factor rankings."
                     ),
                     severity="warning",
                 )
@@ -1037,12 +1143,21 @@ class IntegrationNarrator:
                 "; per-view non-additive R2 could not be resolved for both "
                 "RNA and ATAC views"
             )
+        claim_conf_phrase = _join_or_phrase(
+            [
+                c.replace("sequencing depth", "sequencing-depth")
+                 .replace("cell-cycle scores", "cell-cycle")
+                 .replace("batch/donor covariates", "batch/donor")
+                for c in excl_cats
+            ],
+            "technical or cell-cycle",
+        )
         claim = (
             f"MOFA+ decomposition across {n_cells} cells ({n_factors} fitted "
             f"factors) retained {n_bio_active} active biological factors "
             f"({n_shared} shared and {n_spec} modality-specific; {n_active} "
-            f"active in total), quarantined {n_excl} technical or "
-            f"cell-cycle confounder factor(s){r2_clause}."
+            f"active in total), quarantined {n_excl} {claim_conf_phrase} "
+            f"confounder factor(s){r2_clause}."
         )
         return NarrativeBlock(
             id="multiome.mofa",
@@ -1506,10 +1621,15 @@ class IntegrationNarrator:
         if _stage_state(mofa) == "ok" and isinstance(mofa, dict):
             n_fac = mofa.get("n_factors", "?")
             n_excl = len(mofa.get("excluded_factors") or [])
+            quarantined_ids = _mofa_quarantined_ids(mofa)
             n_act = _mofa_n_bio_active(
                 mofa,
-                _count_factor_collection(mofa.get("shared_factors"))
-                + _count_factor_collection(mofa.get("modality_specific_factors")),
+                _count_factor_collection(
+                    mofa.get("shared_factors"), excluded_ids=quarantined_ids
+                )
+                + _count_factor_collection(
+                    mofa.get("modality_specific_factors"), excluded_ids=quarantined_ids
+                ),
             )
             batch_ids = _mofa_batch_factor_ids(mofa)
             batch_clause = (
@@ -1526,13 +1646,23 @@ class IntegrationNarrator:
                     f"cells followed by closed-form ridge posterior projection to "
                     f"all cells."
                 )
+            excl_cats = _mofa_confounder_categories(mofa)
+            if n_excl > 0 and excl_cats:
+                conf_clause = (
+                    f"Factors associated with {_join_or_phrase(excl_cats, 'technical covariates')} "
+                    f"were quarantined ({n_excl} excluded)"
+                )
+            else:
+                conf_clause = (
+                    f"Factors were screened for sequencing-depth, cell-cycle, and "
+                    f"batch/donor confounding ({n_excl} excluded)"
+                )
             paragraphs.append(
                 f"MOFA+ latent factor decomposition: Joint automatic relevance "
                 f"determination factor analysis (mofapy2, {n_fac} initial factors) "
                 f"was fit over feature-standardized log1p-CP10k highly variable "
                 f"RNA genes and TF-IDF hypervariable ATAC peaks.{sub_clause} "
-                f"Factors exhibiting sequencing-depth association (|r| >= 0.70) "
-                f"or cell-cycle enrichment were quarantined ({n_excl} excluded), "
+                f"{conf_clause}, "
                 f"yielding {n_act} active biological factors with non-additive "
                 f"total variance explained reported per view.{batch_clause}"
             )

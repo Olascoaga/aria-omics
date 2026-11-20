@@ -331,8 +331,15 @@ def render_motif_dotplot(motifs: dict, out_path: Path, top_n: int = 8) -> Option
     import math
 
     per_group = (motifs or {}).get("per_group") or {}
-    # Wave 2A: keep only genuinely ENRICHED motifs (finite log2_enrichment > 0;
-    # SnapATAC2 depleted rows carry <0 / -inf) with a finite padj in [0, 1].
+    raw_padj_max = (motifs or {}).get("padj_max", 0.05)
+    try:
+        padj_max = float(raw_padj_max) if raw_padj_max is not None else 0.05
+    except (TypeError, ValueError):
+        padj_max = 0.05
+    if not (math.isfinite(padj_max) and 0.0 < padj_max <= 1.0):
+        padj_max = 0.05
+    # Wave 2A + Wave 5C: keep only genuinely SIGNIFICANT ENRICHED motifs
+    # (finite log2_enrichment > 0 and finite 0 <= padj < padj_max).
     best: dict = {}
     for group, info in per_group.items():
         for m in (info or {}).get("top_motifs", []) or []:
@@ -343,7 +350,7 @@ def render_motif_dotplot(motifs: dict, out_path: Path, top_n: int = 8) -> Option
                 l2e = float(m.get("log2_enrichment"))
             except (TypeError, ValueError):
                 continue
-            if not (math.isfinite(padj) and 0.0 <= padj <= 1.0):
+            if not (math.isfinite(padj) and 0.0 <= padj < padj_max):
                 continue
             if not (math.isfinite(l2e) and l2e > 0.0):
                 continue
@@ -417,17 +424,23 @@ def render_motif_dotplot(motifs: dict, out_path: Path, top_n: int = 8) -> Option
         plt.colorbar(sc, ax=ax, fraction=0.04, pad=0.02, label="log2 enrichment")
         # Size legend: three representative -log10(padj) levels.
         if y_top > 0:
-            levels = sorted({round(v, 1) for v in (y_top / 4.0, y_top / 2.0, y_top)
-                             if v > 0})
+            raw_levels = [v for v in (y_top / 4.0, y_top / 2.0, y_top) if v > 0]
+            if y_top >= 1.0:
+                levels = sorted({round(v, 1) for v in raw_levels if round(v, 1) > 0})
+            else:
+                levels = sorted({float(f"{v:.2g}") for v in raw_levels})
+            if not levels:
+                levels = [float(f"{y_top:.2g}")]
         else:
             levels = [0.0]
         handles = [ax.scatter([], [], s=float(_area([lv])[0]), c="#bdbdbd",
                               edgecolors="black", linewidths=0.3)
                    for lv in levels]
-        labels = [f"{lv:g}" for lv in levels]
+        fmt_level = (lambda lv: f"{lv:g}" if lv >= 1.0 else f"{lv:.2g}")
+        labels = [fmt_level(lv) for lv in levels]
         title = "-log10 padj"
         if cap is not None:
-            labels[-1] = f"{levels[-1]:g} (padj=0 cap)"
+            labels[-1] = f"{fmt_level(levels[-1])} (padj=0 cap)"
             title += f"\n({int(zero.sum())} padj=0 capped at {cap:.1f})"
         ax.legend(handles, labels, title=title, loc="upper left",
                   bbox_to_anchor=(1.28, 1.0), frameon=False, fontsize=6,
@@ -627,6 +640,10 @@ def render_frip_distribution(qc: dict, out_path: Path,
     ``thresholds["min_frip"]`` (``qc["thresholds"]``) when supplied, else the
     modality default (ChIP 0.01, CUT&RUN 0.05, CUT&Tag 0.10, ATAC 0.20)."""
     dist = (qc or {}).get("frip_distribution")
+    if dist is None or len(dist) == 0:
+        per_sample = (qc or {}).get("frip_per_sample")
+        if isinstance(per_sample, dict) and per_sample:
+            dist = [v for v in per_sample.values() if v is not None]
     if dist is None or len(dist) == 0:
         return None
     import matplotlib

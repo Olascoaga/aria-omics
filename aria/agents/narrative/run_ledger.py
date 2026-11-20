@@ -306,29 +306,42 @@ def _is_planned(spec: dict, phrases: list[str]) -> bool:
     return any(kw in phrase for phrase in phrases for kw in spec["plan_kw"])
 
 
+_SUCCESS_FINDING_STATUSES = frozenset({"success", "ok", "done", "ran", "executed"})
+_SKIPPED_FINDING_STATUSES = frozenset({"skipped", "blocked", "cancelled", "canceled"})
+_ERROR_FINDING_STATUSES = frozenset({"error", "failed", "timeout", "timed_out"})
+_NOT_RUN_FINDING_STATUSES = frozenset({"not_run", "missing", "pending", "unavailable", "partial", "incomplete"})
+_FINDING_STATUS_PRIORITY = {"ran": 4, "executed": 4, "error": 3, "skipped": 2, "not_run": 1}
+
+
 def _status_from_finding(val: Any) -> tuple[str, str | None]:
     """Map an agent-result finding value to (status, reason)."""
     if val is None:
         return "not_run", None
+    if isinstance(val, bool):
+        return ("ran", None) if val else ("not_run", None)
     if isinstance(val, dict):
         st = str(val.get("status") or "").lower().strip()
-        if st == "not_run":
-            return "not_run", val.get("reason")
-        if st in ("skipped", "blocked"):
-            return "skipped", (val.get("reason") or val.get("details"))
-        if st in ("error", "failed"):
+        if st in _ERROR_FINDING_STATUSES:
             return "error", (
-                val.get("error_type") or val.get("details") or val.get("reason")
+                val.get("error_type") or val.get("details") or val.get("reason") or st
             )
+        if st in _SKIPPED_FINDING_STATUSES:
+            return "skipped", (val.get("reason") or val.get("details") or (None if st == "skipped" else st))
+        if st in _NOT_RUN_FINDING_STATUSES:
+            return "not_run", (val.get("reason") or val.get("details") or (None if st == "not_run" else st))
         # A clean skip (``{"status": "success", "ran": False, ...}``) is a
         # skip, never an execution: check ``ran is False`` before the status.
         if val.get("ran") is False:
             return "skipped", val.get("reason")
-        if st in ("success", "ok", "done"):
+        if st in _SUCCESS_FINDING_STATUSES:
             return "ran", None
+        if st:
+            # Unknown / non-success explicit status fails closed rather than
+            # silently promoting to "ran".
+            return "not_run", (val.get("reason") or val.get("details") or f"non_success_status:{st}")
         if val.get("ran") is True:
             return "ran", None
-        # Structured dict with content but no explicit status -> it ran.
+        # Structured dict with content and no explicit status -> it ran.
         return ("ran", None) if val else ("not_run", None)
     if isinstance(val, (list, tuple)):
         return ("ran", None) if len(val) else ("not_run", None)
@@ -408,13 +421,20 @@ def _entries_for(modality: str, specs: list[dict], findings: dict,
     entries: list[dict] = []
     for spec in specs:
         planned = _is_planned(spec, phrases)
-        val = None
+        best_status, best_reason = "not_run", None
+        best_prio = 0
         for fk in spec["finding_keys"]:
             if fk in findings:
-                val = findings[fk]
-                break
-        status, reason = _status_from_finding(val)
-        ran = status == "ran"
+                cand_status, cand_reason = _status_from_finding(findings[fk])
+                cand_prio = _FINDING_STATUS_PRIORITY.get(cand_status, 0)
+                if cand_prio > best_prio:
+                    best_status, best_reason, best_prio = (
+                        cand_status,
+                        cand_reason,
+                        cand_prio,
+                    )
+        status, reason = best_status, best_reason
+        ran = status in _EXECUTED_LEDGER_STATUSES
         entries.append({
             "modality": modality,
             "analysis": spec["key"],
@@ -737,7 +757,11 @@ _NON_DESCRIPTIVE_TIERS = {
     "causal_experimental",
 }
 
-# Statuses that mean the analysis did not actually produce results.
+# Allowlist of ledger statuses proving execution produced results.
+_EXECUTED_LEDGER_STATUSES = frozenset({"ran", "executed"})
+
+# Statuses that mean the analysis did not actually produce results (retained for
+# backward compatibility; callers enforce _EXECUTED_LEDGER_STATUSES allowlist).
 _NOT_RUN_STATUSES = {
     "not_run", "skipped", "error", "failed", "blocked", "cancelled", "missing",
 }
@@ -953,7 +977,7 @@ def link_claims_to_ledger(claims: list[dict],
             reason = "ledger node has no node_type"
         elif not node.get("provenance"):
             reason = "ledger node has no provenance"
-        elif status in _NOT_RUN_STATUSES:
+        elif status not in _EXECUTED_LEDGER_STATUSES:
             reason = "public claim cites an analysis that did not run"
         if reason:
             violations.append({
@@ -1014,7 +1038,7 @@ def verify_blocks_against_ledger(blocks: list,
             reason = "ledger node has no node_type"
         elif not node.get("provenance"):
             reason = "ledger node has no provenance"
-        elif status in _NOT_RUN_STATUSES:
+        elif status not in _EXECUTED_LEDGER_STATUSES:
             reason = "public claim cites an analysis that did not run"
         if reason:
             violations.append({

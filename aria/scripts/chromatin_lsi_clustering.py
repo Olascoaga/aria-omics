@@ -68,8 +68,33 @@ from aria.scripts._base import run_script, mocks_allowed
 CACHE_VERSION = 2
 
 
+def _input_signature(data_path) -> dict:
+    from pathlib import Path
+
+    if not data_path:
+        return {"data_path": None, "size": None, "mtime_ns": None}
+    p = Path(str(data_path)).expanduser()
+    try:
+        resolved = str(p.resolve())
+    except OSError:
+        resolved = str(p)
+    try:
+        st = p.stat()
+        return {
+            "data_path": resolved,
+            "size": int(st.st_size),
+            "mtime_ns": int(st.st_mtime_ns),
+        }
+    except OSError:
+        return {"data_path": resolved, "size": None, "mtime_ns": None}
+
+
 def _cache_params(params: dict) -> dict:
+    sig = _input_signature(params.get("data_path"))
     return {
+        "data_path": sig["data_path"],
+        "input_size": sig["size"],
+        "input_mtime_ns": sig["mtime_ns"],
         "n_components": int(params.get("n_components", 50)),
         "n_neighbors": int(params.get("n_neighbors", 15)),
         "resolution": float(params.get("resolution", 1.0)),

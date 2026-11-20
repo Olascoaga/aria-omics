@@ -183,37 +183,72 @@ def _extract_chromatin_signals(
     except Exception:
         cf = chrom.get("findings", chrom) if isinstance(chrom, dict) else {}
 
+    def _harvest_da_peaks(rows: Any, *, overwrite: bool = True) -> None:
+        for row in rows or []:
+            if not isinstance(row, dict):
+                continue
+            pid = str(row.get("peak") or row.get("feature") or "").strip()
+            raw_lfc = row.get("log2fc")
+            if raw_lfc is None:
+                raw_lfc = row.get("log2FoldChange")
+            if raw_lfc is None:
+                raw_lfc = row.get("score")
+            lfc = _finite_float(raw_lfc)
+            if not pid or lfc is None:
+                continue
+            prev = da_peaks.get(pid)
+            if prev is None or (overwrite and abs(lfc) > abs(prev["log2fc"])):
+                da_peaks[pid] = {"peak": pid, "log2fc": round(lfc, 4)}
+
+    def _harvest_comparisons(comparisons: Any) -> bool:
+        found = False
+        if isinstance(comparisons, dict):
+            comp_iter = comparisons.values()
+        elif isinstance(comparisons, list):
+            comp_iter = comparisons
+        else:
+            return False
+        for comp in comp_iter:
+            if not isinstance(comp, dict):
+                continue
+            st = str(comp.get("status") or "").lower().strip()
+            if st in _NON_RUN_STATUSES or comp.get("ran") is False:
+                continue
+            if st in _EXECUTED_STATUSES or comp.get("ran") is True or comp.get("top_peaks"):
+                found = True
+                _harvest_da_peaks(comp.get("top_peaks"))
+        return found
+
     da = cf.get("differential_accessibility") if isinstance(cf, dict) else None
     if isinstance(da, dict):
         pb = da.get("pseudobulk") or {}
-        if isinstance(pb, dict) and str(pb.get("status") or "").lower() == "success":
+        if isinstance(pb, dict) and (
+            pb.get("ran") is True or str(pb.get("status") or "").lower() == "success"
+        ):
             da_ran = True
-            for row in pb.get("top_peaks") or []:
-                if not isinstance(row, dict):
-                    continue
-                pid = str(row.get("peak") or row.get("feature") or "").strip()
-                lfc = _finite_float(row.get("log2fc"))
-                if pid and lfc is not None:
-                    da_peaks[pid] = {"peak": pid, "log2fc": round(lfc, 4)}
+            _harvest_da_peaks(pb.get("top_peaks"))
+            _harvest_comparisons(pb.get("comparisons"))
+            pb_per_group = pb.get("per_group") or {}
+            if isinstance(pb_per_group, dict):
+                for grp_info in pb_per_group.values():
+                    if isinstance(grp_info, dict):
+                        _harvest_comparisons(grp_info.get("comparisons"))
+                        _harvest_comparisons(grp_info.get("per_comparison"))
+        # Top-level bulk ATAC comparisons & top_peaks
+        if _harvest_comparisons(da.get("comparisons")):
+            da_ran = True
+        if da.get("top_peaks") and (
+            da.get("ran") is True or str(da.get("status") or "").lower() == "success"
+        ):
+            da_ran = True
+            _harvest_da_peaks(da.get("top_peaks"))
         pc = da.get("per_cluster") or {}
         if isinstance(pc, dict) and pc.get("ran"):
             da_ran = True
             top_by_cl = pc.get("top_peaks_by_cluster") or {}
             if isinstance(top_by_cl, dict):
                 for rows in top_by_cl.values():
-                    for row in rows or []:
-                        if not isinstance(row, dict):
-                            continue
-                        pid = str(row.get("peak") or row.get("feature") or "").strip()
-                        raw_lfc = row.get("log2fc")
-                        if raw_lfc is None:
-                            raw_lfc = row.get("score")
-                        lfc = _finite_float(raw_lfc)
-                        if pid and pid not in da_peaks and lfc is not None:
-                            da_peaks[pid] = {
-                                "peak": pid,
-                                "log2fc": round(lfc, 4),
-                            }
+                    _harvest_da_peaks(rows, overwrite=False)
 
     motifs = cf.get("motifs") if isinstance(cf, dict) else None
     if isinstance(motifs, dict) and motifs.get("ran"):
@@ -227,7 +262,7 @@ def _extract_chromatin_signals(
                     if not isinstance(row, dict):
                         continue
                     tf_name = str(
-                        row.get("tf") or row.get("motif_name") or ""
+                        row.get("name") or row.get("tf") or row.get("motif_name") or ""
                     ).strip()
                     if tf_name:
                         for part in tf_name.replace("::", ",").split(","):
@@ -436,16 +471,116 @@ def build_cross_modal_evidence_graph(
     n_mofa_shared = 0
     n_mofa_excluded = 0
     if stage_flags["mofa"] and isinstance(mofa, dict):
+        def _norm_fid(raw: Any) -> str | None:
+            if raw is None or isinstance(raw, bool):
+                return None
+            if isinstance(raw, dict):
+                raw = (
+                    raw.get("factor_id")
+                    if raw.get("factor_id") is not None
+                    else raw.get("factor")
+                )
+                if raw is None or isinstance(raw, bool):
+                    return None
+            text = str(raw).strip()
+            if not text:
+                return None
+            low = text.lower()
+            if low.startswith("factor_"):
+                text = text[7:].strip()
+            elif low.startswith("factor "):
+                text = text[7:].strip()
+            return text or None
+
+        _CONFOUNDER_FLAG_KEYS = (
+            "batch_flag",
+            "technical_depth_flag",
+            "cell_cycle_flag",
+            "confounder_flag",
+        )
+        excluded_records: dict[str, dict[str, Any]] = {}
+
+        def _register_excluded(
+            fid_str: str,
+            reasons: list[str] | None = None,
+            rna_v: Any = None,
+            atac_v: Any = None,
+        ) -> None:
+            rec = excluded_records.setdefault(
+                fid_str,
+                {"reasons": [], "rna_v": None, "atac_v": None},
+            )
+            for r in reasons or []:
+                rs = str(r).strip()
+                if rs and rs not in rec["reasons"]:
+                    rec["reasons"].append(rs)
+            if rec["rna_v"] is None and rna_v is not None:
+                rec["rna_v"] = rna_v
+            if rec["atac_v"] is None and atac_v is not None:
+                rec["atac_v"] = atac_v
+
+        # Quarantine confounder/excluded factors BEFORE the active loop so they
+        # only emit as excluded_confounder nodes and never increment n_shared_factors.
+        for ex in mofa.get("excluded_factors") or []:
+            fid_str = _norm_fid(ex)
+            if fid_str is None:
+                continue
+            if isinstance(ex, dict):
+                reasons = [str(r) for r in (ex.get("exclusion_reasons") or [])]
+                for fk in _CONFOUNDER_FLAG_KEYS:
+                    if ex.get(fk):
+                        reasons.append(fk)
+                _register_excluded(
+                    fid_str,
+                    reasons=reasons,
+                    rna_v=_mofa_view_r2(ex, "rna"),
+                    atac_v=_mofa_view_r2(ex, "atac"),
+                )
+            else:
+                _register_excluded(fid_str, reasons=["excluded_factor"])
+
+        for id_field, default_reason in (
+            ("batch_factor_ids", "batch_confounded"),
+            ("batch_confounded_factors", "batch_confounded"),
+            ("cell_cycle_factor_ids", "cell_cycle_confounded"),
+            ("technical_factor_id", "technical_depth_confounded"),
+        ):
+            raw_ids = mofa.get(id_field)
+            if raw_ids is None or isinstance(raw_ids, bool):
+                continue
+            items = raw_ids if isinstance(raw_ids, (list, tuple, set)) else [raw_ids]
+            for item in items:
+                fid_str = _norm_fid(item)
+                if fid_str is not None:
+                    _register_excluded(fid_str, reasons=[default_reason])
+
+        active_factors: list[tuple[str, dict[str, Any]]] = []
         for fac in mofa.get("top_factors") or []:
             if not isinstance(fac, dict):
                 continue
-            if fac.get("active") is False or bool(
-                fac.get("excluded_from_biological_interpretation")
-            ):
+            fid_str = _norm_fid(fac)
+            if fid_str is None:
                 continue
-            fid = fac.get("factor_id") if fac.get("factor_id") is not None else fac.get("factor")
-            if fid is None:
+            flag_reasons = [fk for fk in _CONFOUNDER_FLAG_KEYS if fac.get(fk)]
+            is_quarantined = (
+                bool(flag_reasons)
+                or bool(fac.get("excluded_from_biological_interpretation"))
+                or fid_str in excluded_records
+            )
+            if is_quarantined:
+                reasons = [str(r) for r in (fac.get("exclusion_reasons") or [])] + flag_reasons
+                _register_excluded(
+                    fid_str,
+                    reasons=reasons,
+                    rna_v=_mofa_view_r2(fac, "rna"),
+                    atac_v=_mofa_view_r2(fac, "atac"),
+                )
                 continue
+            if fac.get("active") is False:
+                continue
+            active_factors.append((fid_str, fac))
+
+        for fid_str, fac in active_factors:
             cls_name = str(
                 fac.get("category") or fac.get("classification") or "active"
             )
@@ -454,39 +589,32 @@ def build_cross_modal_evidence_graph(
             rna_v = _mofa_view_r2(fac, "rna")
             atac_v = _mofa_view_r2(fac, "atac")
             _put_node(
-                f"mofa:Factor_{fid}",
+                f"mofa:Factor_{fid_str}",
                 "mofa_factor",
-                f"Factor {fid}",
+                f"Factor {fid_str}",
                 status="active",
                 classification=cls_name,
                 rna_r2=_round_num(rna_v, 6),
                 atac_r2=_round_num(atac_v, 6),
             )
-        for ex in mofa.get("excluded_factors") or []:
-            if not isinstance(ex, dict):
-                continue
-            fid = ex.get("factor_id") if ex.get("factor_id") is not None else ex.get("factor")
-            if fid is None:
-                continue
-            reasons = [str(r) for r in (ex.get("exclusion_reasons") or [])]
-            rna_v = _mofa_view_r2(ex, "rna")
-            atac_v = _mofa_view_r2(ex, "atac")
+        for fid_str, rec in excluded_records.items():
+            reasons = list(rec["reasons"])
             n_mofa_excluded += 1
             _put_node(
-                f"mofa:Factor_{fid}",
+                f"mofa:Factor_{fid_str}",
                 "mofa_factor",
-                f"Factor {fid}",
+                f"Factor {fid_str}",
                 status="excluded_confounder",
                 classification="excluded_confounder",
                 exclusion_reasons=reasons,
-                rna_r2=_round_num(rna_v, 6),
-                atac_r2=_round_num(atac_v, 6),
+                rna_r2=_round_num(rec["rna_v"], 6),
+                atac_r2=_round_num(rec["atac_v"], 6),
             )
             regulatory_axes.append({
-                "axis_id": f"mofa_confounder:Factor_{fid}",
+                "axis_id": f"mofa_confounder:Factor_{fid_str}",
                 "axis_kind": "latent_factor_confounder",
                 "classification": "caveated_ambiguous",
-                "subject": f"Factor {fid}",
+                "subject": f"Factor {fid_str}",
                 "target_gene": None,
                 "cis_peak": None,
                 "tf_regulator": None,
@@ -511,14 +639,14 @@ def build_cross_modal_evidence_graph(
             if not gene or not peak or corr is None:
                 continue
             region_class = str(link.get("region_class") or "cis")
-            dist_bp = link.get("distance_bp")
+            dist_bp = _finite_float(link.get("distance_bp"))
             _put_node(f"gene:{gene}", "gene", gene)
             _put_node(
                 f"peak:{peak}",
                 "cis_peak",
                 peak,
                 region_class=region_class,
-                distance_bp=int(dist_bp) if isinstance(dist_bp, (int, float)) else None,
+                distance_bp=int(round(dist_bp)) if dist_bp is not None else None,
             )
             sign = "positive" if corr >= 0 else "negative"
             edges.append({

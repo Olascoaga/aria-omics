@@ -9,7 +9,11 @@ import re
 
 def resolve_sample_ids(paths: list[str], sample_ids: list[str] | None = None) -> list[str]:
     """Resolve safe, deterministic, unique sample prefixes in input order."""
-    explicit = sample_ids is not None and len(sample_ids) == len(paths)
+    if sample_ids is not None and len(sample_ids) != len(paths):
+        raise ValueError(
+            f"sample_ids length ({len(sample_ids)}) must match paths length ({len(paths)})"
+        )
+    explicit = sample_ids is not None
     resolved, used = [], set()
     for index, path in enumerate(paths):
         if explicit:
@@ -34,7 +38,7 @@ def resolve_sample_ids(paths: list[str], sample_ids: list[str] | None = None) ->
 
 
 def _peak_intervals(adata) -> list[tuple[str, int, int]]:
-    from aria.utils.peak2gene_core import parse_peak_coord
+    from aria.utils.peak2gene_core import canonical_contig, parse_peak_coord
 
     coordinates = []
     has_columns = {"chrom", "start", "end"} <= set(adata.var.columns)
@@ -51,7 +55,8 @@ def _peak_intervals(adata) -> list[tuple[str, int, int]]:
                 coord = None
         if coord is None or not coord[0] or coord[1] < 0 or coord[2] <= coord[1]:
             raise ValueError(f"feature {name!r} is not a valid genomic interval")
-        coordinates.append(coord)
+        chrom = canonical_contig(coord[0]) or coord[0]
+        coordinates.append((chrom, coord[1], coord[2]))
     if not coordinates:
         raise ValueError("input has no genomic peak features")
     return coordinates

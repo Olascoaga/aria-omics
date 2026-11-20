@@ -28,6 +28,7 @@ from __future__ import annotations
 
 import json
 import logging
+import math
 import uuid
 from pathlib import Path
 from typing import Optional
@@ -1007,18 +1008,26 @@ class ChromatinAgent(BaseAgent):
             "bwa_index": exp_ctx.get("bwa_index"),
             "output_dir": str(out_dir / "aligned"),
             "threads": int(exp_ctx.get("threads", 8)),
-            "mapq": int(exp_ctx.get("atac_mapq",
-                        exp_ctx.get("mapq", 30))),
             "remove_mito": bool(exp_ctx.get("atac_remove_mito",
                                 exp_ctx.get("remove_mito", True))),
         }
+        explicit_mapq = exp_ctx.get("atac_mapq")
+        if explicit_mapq is None:
+            explicit_mapq = exp_ctx.get("mapq")
+        if explicit_mapq is not None:
+            align_params["mapq"] = int(explicit_mapq)
         if data_type != "bulk_ATAC":
             align_params["assay_type"] = data_type
         for opt_key in ("remove_duplicates", "spikein_contig_prefix",
                         "spikein_fasta", "spikein_bwa_index",
-                        "spikein_scale_numerator"):
+                        "spikein_scale_constant", "spikein_scale_numerator"):
             if exp_ctx.get(opt_key) is not None:
                 align_params[opt_key] = exp_ctx[opt_key]
+        if ("spikein_scale_constant" not in align_params
+                and exp_ctx.get("spikein_scale_numerator") is not None):
+            align_params["spikein_scale_constant"] = exp_ctx[
+                "spikein_scale_numerator"
+            ]
         align = self.env.run_in_stack(
             stack="atacseq",
             script_path="aria/scripts/atac_align.py",
@@ -1206,48 +1215,115 @@ class ChromatinAgent(BaseAgent):
 
         BAM-level QC cannot measure FRiP before peaks exist; once peak calling
         has run and ``chromatin_peaks`` measured FRiP, merge it into
-        ``findings['qc']``. For ATAC-seq, ``pass_qc`` requires both FRiP and
-        TSS enrichment; for ChIP-seq, CUT&RUN, and CUT&Tag (where marks such as
-        H3K27me3, H3K9me3, or distal enhancers need not enrich at TSSs),
-        ``pass_qc`` closes on assay-calibrated FRiP."""
+        ``findings['qc']`` and re-evaluate thresholds/failures via
+        ``chromatin_qc._default_bulk_qc_thresholds`` and
+        ``chromatin_qc._bulk_qc_failures``. Prior measured failures (such as
+        ``NRF < min_nrf``) and ``pass_qc=False`` are preserved and never
+        upgraded to ``True``; ``qc_complete`` stays ``False`` when any sample
+        failed QC or a required gating metric remains missing."""
         qc = findings.get("qc")
         if not isinstance(qc, dict) or not isinstance(peaks_result, dict):
             return
         if peaks_result.get("frip") is None:
             return
+
+        from aria.scripts.chromatin_qc import (
+            _bulk_qc_failures,
+            _default_bulk_qc_thresholds,
+        )
+
+        prior_pass_qc = qc.get("pass_qc")
+        prior_failures = [
+            str(f) for f in (qc.get("qc_failures") or []) if f
+        ]
+
         qc["frip"] = peaks_result["frip"]
-        if peaks_result.get("frip_per_sample"):
-            qc["frip_per_sample"] = peaks_result["frip_per_sample"]
+        frip_per_sample = peaks_result.get("frip_per_sample")
+        if isinstance(frip_per_sample, dict) and frip_per_sample:
+            qc["frip_per_sample"] = dict(frip_per_sample)
+            qc["frip_distribution"] = [
+                float(v) for v in frip_per_sample.values() if v is not None
+            ]
         qc["frip_source"] = "chromatin_peaks"
         not_computed = [
             m for m in (qc.get("metrics_not_computed") or [])
             if not str(m).strip().lower().startswith("frip")
         ]
         qc["metrics_not_computed"] = not_computed
+
         data_type = str(
             qc.get("data_type") or peaks_result.get("data_type") or "bulk_ATAC"
         )
-        th = qc.get("thresholds") if isinstance(qc.get("thresholds"),
-                                                dict) else {}
-        default_min_frip = (
-            0.01 if data_type == "ChIP"
-            else 0.03 if data_type in {"CUT_AND_RUN", "CUT_AND_TAG"}
-            else 0.2
+        existing_th = (
+            qc.get("thresholds") if isinstance(qc.get("thresholds"), dict)
+            else {}
         )
-        min_frip = float(th.get("min_frip", default_min_frip))
-        require_tss = data_type not in {"ChIP", "CUT_AND_RUN", "CUT_AND_TAG"}
-        if qc.get("frip") is not None:
-            if require_tss:
-                if qc.get("tss_enrichment") is not None:
-                    min_tss = float(th.get("min_tss", 5.0))
-                    qc["qc_complete"] = True
-                    qc["pass_qc"] = bool(
-                        float(qc["frip"]) >= min_frip
-                        and float(qc["tss_enrichment"]) >= min_tss
-                    )
-            else:
-                qc["qc_complete"] = True
-                qc["pass_qc"] = bool(float(qc["frip"]) >= min_frip)
+        th = {**_default_bulk_qc_thresholds(data_type), **existing_th}
+        qc["thresholds"] = th
+        require_tss = bool(th.get("require_tss", data_type == "bulk_ATAC"))
+
+        frip_val = float(qc["frip"])
+        tss_val = (
+            float(qc["tss_enrichment"])
+            if qc.get("tss_enrichment") is not None
+            else None
+        )
+        nrf_val = (
+            float(qc["nrf"]) if qc.get("nrf") is not None else None
+        )
+
+        new_failures = _bulk_qc_failures(
+            th, require_tss, frip_val, tss_val, nrf_val
+        )
+        merged_failures: list[str] = []
+        for failure in (*prior_failures, *new_failures):
+            if failure not in merged_failures:
+                merged_failures.append(failure)
+        qc["qc_failures"] = merged_failures
+        warnings = qc.get("warnings")
+        if isinstance(warnings, list):
+            for failure in new_failures:
+                if failure not in warnings:
+                    warnings.append(failure)
+
+        had_sample_failure = (
+            any(
+                str(w).startswith("Could not QC ")
+                for w in (qc.get("warnings") or [])
+            )
+            or bool(qc.get("n_samples_failed"))
+            or (
+                isinstance(qc.get("per_sample"), list)
+                and any(
+                    isinstance(s, dict)
+                    and s.get("status") in {"failed", "error"}
+                    for s in qc["per_sample"]
+                )
+            )
+            or (
+                isinstance(frip_per_sample, dict)
+                and qc.get("n_samples") is not None
+                and len(frip_per_sample) > int(qc["n_samples"])
+            )
+            or (
+                qc.get("n_samples_expected") is not None
+                and qc.get("n_samples") is not None
+                and int(qc["n_samples"]) < int(qc["n_samples_expected"])
+            )
+        )
+
+        gating_present = (tss_val is not None) if require_tss else True
+        complete = (
+            (not not_computed) and gating_present and (not had_sample_failure)
+        )
+        qc["qc_complete"] = bool(complete)
+
+        if prior_pass_qc is False or merged_failures:
+            qc["pass_qc"] = False
+        elif complete:
+            qc["pass_qc"] = True
+        else:
+            qc["pass_qc"] = None
 
     def _run_bulk_atac(self, experiment_id: str, exp_ctx: dict,
                        intent: dict, files: list) -> dict:
@@ -2347,6 +2423,31 @@ class ChromatinAgent(BaseAgent):
         "control", "input", "igg", "mock_igg", "igg_control", "input_control",
     })
 
+    @staticmethod
+    def _parse_bool_flag(value) -> bool:
+        if isinstance(value, bool):
+            return value
+        if value is None:
+            return False
+        if isinstance(value, (int, float)):
+            return bool(value) and value == value
+        return str(value).strip().lower() in {"1", "true", "yes", "y"}
+
+    @staticmethod
+    def _parse_optional_float(value) -> Optional[float]:
+        if value is None or isinstance(value, bool):
+            return None
+        if isinstance(value, str):
+            text = value.strip()
+            if not text or text.lower() in {"na", "n/a", "nan", "none", "null", "."}:
+                return None
+            value = text
+        try:
+            f = float(value)
+        except (TypeError, ValueError):
+            return None
+        return f if math.isfinite(f) else None
+
     def _resolve_epigenomic_samples(
         self,
         exp_ctx: dict,
@@ -2404,10 +2505,42 @@ class ChromatinAgent(BaseAgent):
         else:
             sids = [_strip_known_suffixes(str(f)) for f in files]
 
+        sid_by_resolved: dict[str, str] = {}
+        for sid, f in zip(sids, files):
+            f_str = str(f)
+            try:
+                sid_by_resolved[str(Path(f_str).resolve())] = sid
+            except OSError:
+                sid_by_resolved[f_str] = sid
+        if isinstance(preprocessing, dict):
+            for rec in (preprocessing.get("bam_files") or []):
+                if not isinstance(rec, dict) or not rec.get("bam"):
+                    continue
+                rec_sid = str(rec.get("sample_id") or rec.get("name") or "").strip()
+                if not rec_sid:
+                    continue
+                bam_str = str(rec["bam"])
+                try:
+                    sid_by_resolved.setdefault(str(Path(bam_str).resolve()), rec_sid)
+                except OSError:
+                    sid_by_resolved.setdefault(bam_str, rec_sid)
+
         target_files: list[str] = []
         target_sids: list[str] = []
-        control_files: list[str] = list(raw_controls)
-        seen_controls = set(control_resolved)
+        control_files: list[str] = []
+        control_sids: list[str] = []
+        seen_controls: set[str] = set()
+        for cf in raw_controls:
+            try:
+                cf_res = str(Path(cf).resolve())
+            except OSError:
+                cf_res = cf
+            if cf_res not in seen_controls:
+                control_files.append(cf)
+                control_sids.append(
+                    sid_by_resolved.get(cf_res, _strip_known_suffixes(cf))
+                )
+                seen_controls.add(cf_res)
 
         for sid, f in zip(sids, files):
             f_str = str(f)
@@ -2419,12 +2552,13 @@ class ChromatinAgent(BaseAgent):
             role = str(meta.get("role") or meta.get("sample_role") or "").strip().lower()
             is_ctrl = (
                 f_res in control_resolved
-                or bool(meta.get("is_control"))
+                or self._parse_bool_flag(meta.get("is_control"))
                 or role in self._CONTROL_ROLE_TOKENS
             )
             if is_ctrl:
                 if f_res not in seen_controls:
                     control_files.append(f_str)
+                    control_sids.append(sid)
                     seen_controls.add(f_res)
             else:
                 target_files.append(f_str)
@@ -2437,13 +2571,15 @@ class ChromatinAgent(BaseAgent):
         spikein_counts: dict[str, float] = {}
         if isinstance(exp_ctx.get("spikein_counts"), dict):
             for k, v in exp_ctx["spikein_counts"].items():
-                if v is not None:
-                    spikein_counts[str(k)] = float(v)
+                parsed = self._parse_optional_float(v)
+                if parsed is not None:
+                    spikein_counts[str(k)] = parsed
         spikein_sf: dict[str, float] = {}
         if isinstance(exp_ctx.get("spikein_scale_factors"), dict):
             for k, v in exp_ctx["spikein_scale_factors"].items():
-                if v is not None:
-                    spikein_sf[str(k)] = float(v)
+                parsed = self._parse_optional_float(v)
+                if parsed is not None:
+                    spikein_sf[str(k)] = parsed
 
         if isinstance(preprocessing, dict):
             for rec in (preprocessing.get("bam_files") or []):
@@ -2452,30 +2588,40 @@ class ChromatinAgent(BaseAgent):
                 sid = str(rec.get("sample_id") or rec.get("name") or "").strip()
                 if not sid:
                     continue
-                if rec.get("spikein_reads") is not None and sid not in spikein_counts:
-                    spikein_counts[sid] = float(rec["spikein_reads"])
-                if rec.get("spikein_scale_factor") is not None and sid not in spikein_sf:
-                    spikein_sf[sid] = float(rec["spikein_scale_factor"])
+                if sid not in spikein_counts:
+                    parsed_c = self._parse_optional_float(rec.get("spikein_reads"))
+                    if parsed_c is not None:
+                        spikein_counts[sid] = parsed_c
+                if sid not in spikein_sf:
+                    parsed_s = self._parse_optional_float(rec.get("spikein_scale_factor"))
+                    if parsed_s is not None:
+                        spikein_sf[sid] = parsed_s
 
-        for sid in target_sids:
+        for sid in (*target_sids, *control_sids):
             meta = meta_by_sid.get(sid) or {}
             for ck in ("spikein_reads", "spikein_counts", "heterologous_reads"):
-                if meta.get(ck) is not None and sid not in spikein_counts:
-                    spikein_counts[sid] = float(meta[ck])
+                if sid not in spikein_counts:
+                    parsed_c = self._parse_optional_float(meta.get(ck))
+                    if parsed_c is not None:
+                        spikein_counts[sid] = parsed_c
             for sk in ("spikein_scale_factor", "scale_factor"):
-                if meta.get(sk) is not None and sid not in spikein_sf:
-                    spikein_sf[sid] = float(meta[sk])
+                if sid not in spikein_sf:
+                    parsed_s = self._parse_optional_float(meta.get(sk))
+                    if parsed_s is not None:
+                        spikein_sf[sid] = parsed_s
 
+        known_sids = set(target_sids) | set(control_sids)
         return {
             "target_files": target_files,
             "target_sample_ids": target_sids if declared_sids or meta_by_sid else None,
             "all_target_sids": target_sids,
             "control_files": control_files,
+            "control_sample_ids": control_sids,
             "parsed_sample_metadata": meta_by_sid or None,
             "spikein_counts": {k: v for k, v in spikein_counts.items()
-                               if k in set(target_sids)},
+                               if k in known_sids},
             "spikein_scale_factors": {k: v for k, v in spikein_sf.items()
-                                      if k in set(target_sids)},
+                                      if k in known_sids},
         }
 
     def _run_epigenomic_bulk(self, experiment_id: str, exp_ctx: dict,
@@ -2551,6 +2697,7 @@ class ChromatinAgent(BaseAgent):
             exp_ctx, files, preprocessing=preprocessing)
         target_files = resolved["target_files"]
         control_files = resolved["control_files"]
+        control_sids = resolved.get("control_sample_ids") or []
         target_sample_ids = resolved["target_sample_ids"]
         all_target_sids = resolved["all_target_sids"]
         spikein_counts = resolved["spikein_counts"]
@@ -2625,9 +2772,11 @@ class ChromatinAgent(BaseAgent):
             peaks_params["control_files"] = control_files
         if exp_ctx.get("seacr_mode"):
             peaks_params["seacr_mode"] = str(exp_ctx["seacr_mode"])
-        if exp_ctx.get("seacr_top_fraction") is not None:
-            peaks_params["seacr_top_fraction"] = float(
-                exp_ctx["seacr_top_fraction"])
+        seacr_top_q = exp_ctx.get("seacr_top_quantile")
+        if seacr_top_q is None:
+            seacr_top_q = exp_ctx.get("seacr_top_fraction")
+        if seacr_top_q is not None:
+            peaks_params["seacr_top_quantile"] = float(seacr_top_q)
         if exp_ctx.get("idr_threshold") is not None:
             peaks_params["idr_threshold"] = float(exp_ctx["idr_threshold"])
         if exp_ctx.get("blacklist_bed"):
@@ -2639,8 +2788,13 @@ class ChromatinAgent(BaseAgent):
         if reference_fasta:
             peaks_params["reference_fasta"] = str(reference_fasta)
         if spikein_sf and all(sid in spikein_sf for sid in all_target_sids):
-            peaks_params["spikein_scale_factors"] = [
+            peaks_params["target_scale_factors"] = [
                 float(spikein_sf[sid]) for sid in all_target_sids
+            ]
+        if (control_files and control_sids and spikein_sf
+                and all(sid in spikein_sf for sid in control_sids)):
+            peaks_params["control_scale_factors"] = [
+                float(spikein_sf[sid]) for sid in control_sids
             ]
 
         peaks_result = self.env.run_in_stack(
@@ -2706,13 +2860,16 @@ class ChromatinAgent(BaseAgent):
                     "validation_level": "production",
                 }
             if run_da:
+                target_sid_set = set(all_target_sids)
                 self._run_bulk_atac_da_branch(
                     experiment_id, exp_ctx, intent, contract, findings,
                     count_result, peaks_result=peaks_result,
                     files=target_files, run_footprinting=False,
                     data_type=assay_type,
-                    spikein_counts=spikein_counts,
-                    spikein_scale_factors=spikein_sf,
+                    spikein_counts={k: v for k, v in spikein_counts.items()
+                                    if k in target_sid_set},
+                    spikein_scale_factors={k: v for k, v in spikein_sf.items()
+                                           if k in target_sid_set},
                 )
 
         return {"status": "done", "findings": findings}

@@ -679,9 +679,34 @@ class HiCNarrator:
 
     def _differential_3d_block(self, diff3d: dict[str, Any], findings: dict[str, Any]) -> NarrativeBlock:
         comps = [c for c in (diff3d.get("comparisons") or []) if isinstance(c, dict)]
-        n_comps = _as_int(diff3d.get("n_comparisons"))
-        if n_comps is None:
-            n_comps = len(comps)
+
+        def _contrast_tested(c: dict[str, Any]) -> bool:
+            if c.get("ran") is False or c.get("descriptive_only") is True:
+                return False
+            st = str(c.get("status") or "").strip().lower()
+            if st in {"skipped", "error", "failed"}:
+                return False
+            return True
+
+        tested_comps = [c for c in comps if _contrast_tested(c)]
+        skipped_comps = [c for c in comps if not _contrast_tested(c)]
+        if comps:
+            n_comps = len(tested_comps)
+        else:
+            n_comps = _as_int(diff3d.get("n_comparisons")) or 0
+
+        topo = findings.get("topology") if isinstance(findings.get("topology"), dict) else findings
+        comp_stage = (topo or {}).get("compartments") if isinstance(topo, dict) else None
+        raw_pc1_val = diff3d.get("pc1_validated")
+        if raw_pc1_val is True:
+            is_phased = True
+        elif raw_pc1_val is False:
+            is_phased = False
+        else:
+            is_phased = bool(
+                isinstance(comp_stage, dict) and comp_stage.get("pc1_validated") is True
+            )
+
         n_sig_comp = _as_int(
             diff3d.get("n_significant_compartment_bins")
             if diff3d.get("n_significant_compartment_bins") is not None
@@ -693,7 +718,7 @@ class HiCNarrator:
                     _first_key(c, "n_differential_compartment_bins",
                                "n_sig_compartments", "n_significant_e1")
                 ) or 0
-                for c in comps
+                for c in tested_comps
             )
         n_switches = _as_int(diff3d.get("n_ab_switches"))
         if n_switches is None:
@@ -703,7 +728,13 @@ class HiCNarrator:
                     if _as_int(c.get("n_ab_switches")) is not None
                     else (_as_int(c.get("n_a_to_b")) or 0) + (_as_int(c.get("n_b_to_a")) or 0)
                 )
-                for c in comps
+                for c in tested_comps
+            )
+        n_unphased_flips = _as_int(diff3d.get("n_unphased_sign_flips"))
+        if n_unphased_flips is None:
+            n_unphased_flips = sum(
+                _as_int(c.get("n_unphased_sign_flips")) or 0
+                for c in tested_comps
             )
         n_sig_ins = _as_int(
             diff3d.get("n_differential_insulation_bins")
@@ -716,7 +747,7 @@ class HiCNarrator:
                     _first_key(c, "n_differential_insulation_bins",
                                "n_differential_boundaries", "n_sig_insulation")
                 ) or 0
-                for c in comps
+                for c in tested_comps
             )
 
         evidence: list[EvidenceItem] = [
@@ -724,10 +755,15 @@ class HiCNarrator:
             _ev("Method", "empirical-Bayes moderated linear model with BH-FDR", "hic_topology"),
             _ev("Contrasts tested", n_comps, "hic_topology"),
             _ev("Differential compartment bins", n_sig_comp, "hic_topology"),
-            _ev("Compartment switches", n_switches, "hic_topology"),
-            _ev("Differential insulation bins", n_sig_ins, "hic_topology"),
         ]
-        for c in comps:
+        if is_phased:
+            evidence.append(_ev("Compartment switches", n_switches, "hic_topology"))
+        else:
+            if n_switches > 0:
+                evidence.append(_ev("Compartment switches (phased chroms)", n_switches, "hic_topology"))
+            evidence.append(_ev("Unphased E1 sign flips", n_unphased_flips, "hic_topology"))
+        evidence.append(_ev("Differential insulation bins", n_sig_ins, "hic_topology"))
+        for c in tested_comps:
             label = _clean_token(c.get("contrast") or c.get("comparison") or f"{c.get('test')}_vs_{c.get('reference')}")
             comp_csv = c.get("differential_compartments_csv") or c.get("compartments_csv")
             ins_csv = c.get("differential_insulation_csv") or c.get("insulation_csv")
@@ -736,12 +772,29 @@ class HiCNarrator:
             if ins_csv:
                 evidence.append(_ev(f"Differential insulation ({label})", "csv", "hic_topology", path=str(ins_csv)))
 
-        claim = (
-            f"Hi-C replicate-level differential topology testing across {n_comps} "
-            f"contrast(s) identified {n_sig_comp} differential compartment bin(s), "
-            f"including {n_switches} compartment switch(es), and {n_sig_ins} "
-            f"differential insulation bin(s)."
-        )
+        if is_phased:
+            claim = (
+                f"Hi-C replicate-level differential topology testing across {n_comps} "
+                f"contrast(s) identified {n_sig_comp} differential compartment bin(s), "
+                f"including {n_switches} compartment switch(es), and {n_sig_ins} "
+                f"differential insulation bin(s)."
+            )
+        elif n_switches > 0:
+            claim = (
+                f"Hi-C replicate-level differential topology testing across {n_comps} "
+                f"contrast(s) identified {n_sig_comp} differential compartment bin(s), "
+                f"including {n_switches} phased compartment switch(es) and "
+                f"{n_unphased_flips} unphased E1 sign flip(s), and {n_sig_ins} "
+                f"differential insulation bin(s)."
+            )
+        else:
+            claim = (
+                f"Hi-C replicate-level differential topology testing across {n_comps} "
+                f"contrast(s) identified {n_sig_comp} differential compartment bin(s), "
+                f"including {n_unphased_flips} unphased E1 sign flip(s) (A/B polarity unvalidated), "
+                f"and {n_sig_ins} differential insulation bin(s)."
+            )
+
         caveats = [
             Caveat(
                 "Differential compartment and insulation shifts are observational "
@@ -750,6 +803,24 @@ class HiCNarrator:
                 severity="info",
             )
         ]
+        if not is_phased:
+            caveats.append(
+                Caveat(
+                    "Eigenvector E1 was not phased against a verified GC or gene-density track "
+                    "across all analyzed chromosomes; directional A-to-B / B-to-A compartment "
+                    "switch labels are suppressed and sign reversals are reported as unphased sign flips.",
+                    severity="warning",
+                )
+            )
+        for sc in skipped_comps:
+            sc_label = _clean_token(sc.get("contrast") or sc.get("comparison") or f"{sc.get('test')}_vs_{sc.get('reference')}")
+            sc_reason = _clean_token(sc.get("reason") or sc.get("status") or "skipped")
+            caveats.append(
+                Caveat(
+                    f"Contrast {sc_label} was skipped from statistical testing ({sc_reason}).",
+                    severity="warning",
+                )
+            )
         for w in diff3d.get("warnings") or []:
             caveats.append(Caveat(_clean_token(w), severity="warning"))
 
@@ -760,7 +831,7 @@ class HiCNarrator:
             block_type="result",
             title="Differential 3D compartment & insulation reorganization",
             status="success",
-            confidence="medium",
+            confidence="medium" if is_phased else "low",
             claim=claim,
             evidence=evidence,
             figures=_figure_entries(
@@ -773,7 +844,9 @@ class HiCNarrator:
                 "n_comparisons": n_comps,
                 "n_significant_compartment_bins": n_sig_comp,
                 "n_ab_switches": n_switches,
+                "n_unphased_sign_flips": n_unphased_flips,
                 "n_significant_boundaries": n_sig_ins,
+                "pc1_validated": is_phased,
             },
             metadata={"validation_level": diff3d.get("validation_level") or "production"},
         )
@@ -849,9 +922,14 @@ class HiCNarrator:
             )
         diff3d = (topo or {}).get("differential_3d") or {}
         if _stage_state(diff3d) == "ok" and diff3d.get("ran") is True and not diff3d.get("descriptive_only"):
+            diff_e1_desc = (
+                "per-replicate phased E1 compartment scores"
+                if diff3d.get("pc1_validated") is True
+                else "per-replicate unphased E1 compartment scores (sign-aligned across replicates without A/B polarity validation)"
+            )
             out.append(
-                "Differential 3D organization: per-replicate phased E1 compartment "
-                "scores and log2 insulation profiles were tested across biological "
+                f"Differential 3D organization: {diff_e1_desc} "
+                "and log2 insulation profiles were tested across biological "
                 "conditions using empirical-Bayes variance-moderated linear models "
                 "with Benjamini-Hochberg FDR control."
             )

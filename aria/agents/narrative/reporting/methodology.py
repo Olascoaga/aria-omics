@@ -27,12 +27,17 @@ class MethodologyMixin:
                 log.info(f"Scoped memory snapshot for {experiment_id}: "
                          f"{result.get('tables')}")
             else:
-                dest.write_bytes(b"")
+                # Do not emit an invalid 0-byte SQLite placeholder when memory is
+                # in-memory or export is unavailable.
+                if dest.exists() and dest.stat().st_size == 0:
+                    dest.unlink(missing_ok=True)
         except Exception as exc:
             log.warning(f"Could not write scoped memory snapshot: {exc}")
-            # Fail closed: never leave (or fall back to) the full lab DB.
+            # Fail closed: never fall back to the full lab DB and never leave a
+            # 0-byte placeholder file that breaks capsule verification or disk polling.
             try:
-                dest.write_bytes(b"")
+                if dest.exists() and dest.stat().st_size == 0:
+                    dest.unlink(missing_ok=True)
             except Exception:
                 pass
 

@@ -452,12 +452,16 @@ class PseudobulkMixin:
             )
             if pw.get("status") == "success":
                 pw_findings = {
-                    "organism":    pw.get("organism"),
-                    "databases":   pw.get("databases", {}),
-                    "background_size": pw.get("background_size"),
+                    "organism":          pw.get("organism"),
+                    "databases":         pw.get("databases", {}),
+                    "ora_method":        pw.get("ora_method"),
+                    "gene_set_versions": pw.get("gene_set_versions", {}),
+                    "databases_skipped": pw.get("databases_skipped", []),
+                    "background_size":   pw.get("background_size"),
                     "background_source": pw.get("background_source"),
-                    "params_sha256": pw.get("params_sha256"),
-                    "per_cluster": pw.get("per_cluster", {}),
+                    "params_sha256":     pw.get("params_sha256"),
+                    "per_cluster":       pw.get("per_cluster", {}),
+                    "output_csv":        pw.get("output_csv"),
                 }
 
         # 5. Build the finding payload + announce on the bus
@@ -469,6 +473,9 @@ class PseudobulkMixin:
             "from_obs":      use_obs_design,
             "thresholds":    pb.get("thresholds", {}),
             "multiple_testing": pb.get("multiple_testing", {}),
+            "lfc_shrinkage": pb.get("lfc_shrinkage"),
+            "power":         pb.get("power"),
+            "robustness_multiverse": pb.get("robustness_multiverse"),
             "background_size": pb.get("background_size"),
             "background_source": pb.get("background_source"),
             "count_source": pb.get("count_source"),
@@ -480,6 +487,8 @@ class PseudobulkMixin:
             "auto_paired_donor_covariate": pb.get("auto_paired_donor_covariate"),
             "n_groups":      pb.get("n_groups"),
             "per_group":     pb.get("per_group", {}),
+            "output_csv":    pb.get("output_csv"),
+            "full_results_csv": pb.get("full_results_csv"),
         }
         # Summary line
         per_group = pb.get("per_group", {}) or {}
@@ -505,6 +514,7 @@ class PseudobulkMixin:
         if da_result.get("status") == "success":
             da_payload = {
                 "method":                 da_result.get("method"),
+                "model":                  da_result.get("model"),
                 "groupby":                da_result.get("groupby"),
                 "condition_col":          da_result.get("condition_col"),
                 "replicate_col":          da_result.get("replicate_col"),

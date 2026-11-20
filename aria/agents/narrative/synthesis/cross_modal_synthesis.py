@@ -1037,18 +1037,23 @@ def _sample_links_block(route, links: dict) -> NarrativeBlock | None:
         f"accessibility and expression ({n_pos} positive, {n_neg} negative)."
     )
     perm = links.get("permutation_null") or {}
-    efdr = None
-    if isinstance(perm, dict):
-        raw_efdr = perm.get("empirical_fdr_at_padj")
-        if raw_efdr is None:
-            raw_efdr = perm.get("held_out_discovery_fraction")
-        efdr = _finite(raw_efdr)
+    efdr = _finite(perm.get("empirical_fdr_at_padj")) if isinstance(perm, dict) else None
+    held_fpr = (
+        _finite(perm.get("held_out_discovery_fraction"))
+        if isinstance(perm, dict) else None
+    )
     n_perm = _int(perm.get("n_permutations")) if isinstance(perm, dict) else None
     if efdr is not None and n_perm:
         ev += [_ev(route, "sample permutations", n_perm),
                _ev(route, "empirical permutation FDR", _fmt_p(efdr))]
         claim += (f" A sample-label permutation null ({n_perm} permutations) "
                   f"estimated an empirical FDR of {_fmt_p(efdr)}.")
+    elif held_fpr is not None and n_perm:
+        ev += [_ev(route, "sample permutations", n_perm),
+               _ev(route, "held-out null discovery rate (per-pair FPR)", _fmt_p(held_fpr))]
+        claim += (f" A sample-label permutation null ({n_perm} permutations) "
+                  f"yielded a held-out null discovery rate (per-pair FPR) of "
+                  f"{_fmt_p(held_fpr)}.")
     genes = _name_symbols(links.get("top_links") or [], "gene")
     if genes and n_sig:
         ev.append(_ev(route, "top linked genes", ", ".join(genes)))

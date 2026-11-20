@@ -406,17 +406,20 @@ def summarize_de_da(frame, promoter_bp=2000):
            "n_genes_tested": 0,
            "gene_counting_unit": "gene_by_matched_contrast",
            **_counts(frame), "concordance_fraction": None, "fisher_odds_ratio": None, "fisher_pvalue": None,
-           "enrichment_odds_ratio": None, "enrichment_pvalue": None, **_correlations(frame),
+           "enrichment_odds_ratio": None, "enrichment_pvalue": None, **_correlations(pd.DataFrame()),
            "promoter_spearman_r": None, "promoter_spearman_pvalue": None,
            "top_concordant_genes": [], "top_discordant_genes": []}
     if frame.empty:
         out["gene_counts"] = _counts(frame)
         return out
     keys = [c for c in ("contrast_id", "gene_key") if c in frame]
-    primary = frame.assign(_distance=frame.distance_to_tss.abs(), _effect=frame.atac_log2fc.abs()).sort_values(
-        ["atac_padj", "_distance", "_effect", "peak"], ascending=[True, True, False, True]).drop_duplicates(keys)
+    sorted_frame = frame.assign(_distance=frame.distance_to_tss.abs(), _effect=frame.atac_log2fc.abs()).sort_values(
+        ["atac_padj", "_distance", "_effect", "peak"], ascending=[True, True, False, True])
+    primary = sorted_frame.drop_duplicates(keys) if keys else sorted_frame
+    gene_counts = _counts(primary)
     out["n_genes_tested"] = len(primary)
-    out["gene_counts"] = _counts(primary)
+    out["gene_counts"] = gene_counts
+    out.update(_correlations(primary))
     # Enrichment is based on any DA peak per gene, not the representative peak.
     gene_sig = frame.groupby(keys)[["rna_significant", "atac_significant"]].any()
     both = int((gene_sig.rna_significant & gene_sig.atac_significant).sum())
@@ -427,13 +430,15 @@ def summarize_de_da(frame, promoter_bp=2000):
     if neither > 0:
         odds, p = fisher_exact(out["gene_enrichment_contingency"], alternative="two-sided")
         out.update(enrichment_odds_ratio=finite(odds), enrichment_pvalue=finite(p))
-    if out["n_both_significant"]:
-        out["concordance_fraction"] = out["n_concordant_total"] / out["n_both_significant"]
-    if out["n_concordant_total"] + out["n_discordant_total"] >= 2:
-        odds, p = fisher_exact([[out["n_concordant_up"], out["n_discordant_rna_up_atac_down"]],
-                               [out["n_discordant_rna_down_atac_up"], out["n_concordant_down"]]], alternative="two-sided")
+    if gene_counts["n_both_significant"]:
+        out["concordance_fraction"] = gene_counts["n_concordant_total"] / gene_counts["n_both_significant"]
+    if gene_counts["n_concordant_total"] + gene_counts["n_discordant_total"] >= 2:
+        odds, p = fisher_exact([[gene_counts["n_concordant_up"], gene_counts["n_discordant_rna_up_atac_down"]],
+                               [gene_counts["n_discordant_rna_down_atac_up"], gene_counts["n_concordant_down"]]], alternative="two-sided")
         out.update(fisher_odds_ratio=finite(odds), fisher_pvalue=finite(p))
-    promoter = _correlations(frame[frame.distance_to_tss.abs() <= promoter_bp])
+    promoter_sorted = sorted_frame[sorted_frame.distance_to_tss.abs() <= promoter_bp]
+    promoter_primary = promoter_sorted.drop_duplicates(keys) if (keys and not promoter_sorted.empty) else promoter_sorted
+    promoter = _correlations(promoter_primary)
     out.update(promoter_spearman_r=promoter["spearman_r"], promoter_spearman_pvalue=promoter["spearman_pvalue"])
     for kind in ("concordant", "discordant"):
         subset = primary[primary.classification.str.startswith(kind)].sort_values(["rna_padj", "atac_padj"], na_position="last")
@@ -547,9 +552,11 @@ def tf_layer(atac, comp, rna_df, flipped, alpha, warnings, expression=None):
         if padj is None or not 0.0 <= padj < alpha or direction is None:
             continue
         score = finite(motif.get("log2_enrichment"))
+        if score is not None and score <= 0:
+            continue
         evidence.append({**motif, "source": "motif", "direction_sign": -direction if flipped else direction,
                          # Zero FDR alone provides no finite enrichment magnitude.
-                         "chromatin_score": abs(score) if score is not None else -math.log10(padj) if padj > 0 else None})
+                         "chromatin_score": score if score is not None else -math.log10(padj) if padj > 0 else None})
     foot_rows, orientation = _footprint_records(unwrap(atac.get("footprinting", {})), comp, warnings)
     for row in foot_rows:
         if 0.0 <= row["padj"] < alpha and row["change"] != 0:
@@ -688,9 +695,12 @@ def pathway_layer(rna, atac, rcomp, acomp, alpha):
 
 def _pathway_sort_key(row):
     larger, smaller = max(row["rna_padj"], row["atac_padj"]), min(row["rna_padj"], row["atac_padj"])
+    term_key = row.get("term_key")
+    if term_key is None:
+        term_key = str(row.get("safe_label") or row.get("term") or "").casefold()
     # A reported zero has unknown precision; rank it conservatively without
     # changing the measured p-values or their geometric mean.
-    return (row["geometric_mean_padj"] if smaller > 0 else larger, larger, smaller, row["term_key"])
+    return (row["geometric_mean_padj"] if smaller > 0 else larger, larger, smaller, term_key)
 
 
 def aggregate_pathways(rna_terms, atac_terms, frame, ran):
@@ -935,11 +945,18 @@ def sample_matched_layer(rna_cpm, atac_cpm, models, params, warnings):
     frame["n_samples"] = len(shared)
     frame = frame.sort_values(["padj", "empirical_pvalue", "gene", "peak"], kind="stable")
     significant = frame[frame.padj < params["padj_threshold"]]
+    held_n = int((held_padj < params["padj_threshold"]).sum())
+    empirical_fdr_at_padj = (
+        min(1.0, float(held_n) / float(len(significant)))
+        if len(significant) > 0
+        else None
+    )
     result.update(ran=True, reason=None, n_pairs_tested=len(frame), n_significant_links=len(significant),
                   n_positive_links=int((significant.pearson_r > 0).sum()), n_negative_links=int((significant.pearson_r < 0).sum()),
                   permutation_null={"n_permutations": draws, "seed": params["seed"], "method": "pooled_absolute_pearson_sample_permutation",
-                                    "n_null_statistics": len(pool), "held_out_n_significant": int((held_padj < params["padj_threshold"]).sum()),
+                                    "n_null_statistics": len(pool), "held_out_n_significant": held_n,
                                     "held_out_discovery_fraction": float(np.mean(held_padj < params["padj_threshold"])),
+                                    "empirical_fdr_at_padj": empirical_fdr_at_padj,
                                     "held_out_draw_independent": True}, top_links=frame.head(20).to_dict("records"))
     return frame, result
 
@@ -1066,8 +1083,9 @@ def render_starburst(de_da, tfs, pathways, summary, output_dir):
             b.legend(frameon=False, fontsize=7)
         c.set_title("C  Shared functional pathways", loc="left", fontweight="bold")
         if not pathways.empty:
+            ordered = sorted(pathways.to_dict("records"), key=_pathway_sort_key)
             rows = (
-                pathways.sort_values(["geometric_mean_padj", "safe_label"], kind="stable")
+                pd.DataFrame(ordered)
                 .drop_duplicates("safe_label")
                 .head(7)
                 .iloc[::-1]

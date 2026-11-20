@@ -29,6 +29,7 @@ database fact, not a mechanistic claim about the cluster.
 
 from __future__ import annotations
 
+from dataclasses import replace as _dc_replace
 import re
 from pathlib import Path
 
@@ -158,6 +159,31 @@ def unwrap_chromatin_findings(agent_result: dict) -> dict:
     return out
 
 
+def _iter_chromatin_modality_findings(
+    agent_result: dict,
+) -> list[tuple[str | None, dict]]:
+    """Yield ``[(modality_key_or_None, findings_dict), ...]`` for every
+    chromatin modality present under ``agent_result['findings']`` without
+    overwriting earlier modalities."""
+    if not isinstance(agent_result, dict):
+        return []
+    findings = agent_result.get("findings", agent_result)
+    if not isinstance(findings, dict):
+        return []
+    modality_subs = [
+        (k, v) for k, v in findings.items()
+        if k in _CHROMATIN_MODALITY_KEYS and isinstance(v, dict)
+    ]
+    if not modality_subs:
+        return [(None, findings)] if findings else []
+    out: list[tuple[str | None, dict]] = []
+    for mod_key, sub in modality_subs:
+        nested = sub.get("findings", sub)
+        if isinstance(nested, dict) and nested:
+            out.append((mod_key, nested))
+    return out
+
+
 class ChromatinNarrator:
     name = "chromatin"
 
@@ -165,12 +191,38 @@ class ChromatinNarrator:
         return (
             agent_name == "chromatin_agent"
             and isinstance(agent_result, dict)
-            and bool(unwrap_chromatin_findings(agent_result))
+            and bool(_iter_chromatin_modality_findings(agent_result))
         )
 
     def collect(self, agent_name: str, agent_result: dict,
                 context: dict | None = None) -> list[NarrativeBlock]:
-        findings = unwrap_chromatin_findings(agent_result)
+        entries = _iter_chromatin_modality_findings(agent_result)
+        if not entries:
+            return []
+        multi = len(entries) > 1
+        blocks: list[NarrativeBlock] = []
+        seen_ids: set[str] = set()
+        for mod_key, findings in entries:
+            mod_blocks = self._collect_single_modality(findings)
+            if multi and mod_key:
+                mod_tok = _safe_id(mod_key)
+                for b in mod_blocks:
+                    bid = b.id
+                    if bid in seen_ids or (
+                        mod_tok not in bid
+                        and not (mod_key == "bulk_ATAC" and "bulk_atac" in bid)
+                    ):
+                        bid = f"{bid}.{mod_tok}"
+                        b = _dc_replace(b, id=bid)
+                    seen_ids.add(b.id)
+                    blocks.append(b)
+            else:
+                for b in mod_blocks:
+                    seen_ids.add(b.id)
+                    blocks.append(b)
+        return blocks
+
+    def _collect_single_modality(self, findings: dict) -> list[NarrativeBlock]:
         blocks: list[NarrativeBlock] = []
 
         preprocessing = {
@@ -208,7 +260,12 @@ class ChromatinNarrator:
             blocks.append(self._clustering_block(lsi))
 
         da = findings.get("differential_accessibility")
-        if isinstance(da, dict) and _ok(da):
+        if isinstance(da, dict) and (
+            _ok(da)
+            or da.get("status") == "skipped"
+            or (da.get("data_type") in _BULK_CHROMATIN_MODALITIES
+                and da.get("ran") is False)
+        ):
             blocks.extend(self._diffacc_blocks(da))
 
         motifs = findings.get("motifs")
@@ -392,7 +449,7 @@ class ChromatinNarrator:
                 "mitochondrial reads removed" if remove_mito
                 else "mitochondrial reads retained", src),
             _ev("Duplicate handling",
-                "samtools markdup -r" if remove_dup
+                "samtools markdup (removed with -F 1804)" if remove_dup
                 else "duplicates marked and retained", src),
         ]
         if reads_post_filter:
@@ -860,8 +917,11 @@ class ChromatinNarrator:
 
     # ── Differential accessibility / binding ───────────────────────────────
     def _diffacc_blocks(self, da: dict) -> list[NarrativeBlock]:
-        if da.get("data_type") in _BULK_CHROMATIN_MODALITIES and da.get("ran"):
-            return [self._bulk_atac_diffacc_block(da)]
+        if da.get("data_type") in _BULK_CHROMATIN_MODALITIES:
+            if da.get("ran"):
+                return [self._bulk_atac_diffacc_block(da)]
+            if da.get("status") == "skipped" or da.get("ran") is False:
+                return [self._bulk_atac_diffacc_skipped_block(da)]
 
         blocks: list[NarrativeBlock] = []
         padj_max = da.get("padj_max")
@@ -946,13 +1006,62 @@ class ChromatinNarrator:
 
         return blocks
 
+    def _bulk_atac_diffacc_skipped_block(self, da: dict) -> NarrativeBlock:
+        data_type = str(da.get("data_type") or "bulk_ATAC")
+        is_atac = data_type == "bulk_ATAC"
+        mod_title = "Bulk ATAC" if is_atac else _modality_label(data_type)
+        reason = str(da.get("reason") or "prerequisites missing")
+        evidence = [
+            _ev("Analysis",
+                "Bulk ATAC differential accessibility" if is_atac
+                else f"{mod_title} differential binding",
+                "chromatin_bulk_diffacc"),
+            _ev("Modality", data_type, "chromatin_bulk_diffacc"),
+            _ev("Skip reason", reason, "chromatin_bulk_diffacc"),
+        ]
+        evidence = [e for e in evidence if e.value is not None]
+        block_id = (
+            "chromatin.differential_accessibility.bulk_atac_skipped"
+            if is_atac
+            else f"chromatin.differential_accessibility.{_safe_id(data_type)}_skipped"
+        )
+        title = (
+            "Bulk ATAC differential accessibility not run"
+            if is_atac
+            else f"{mod_title} differential binding not run"
+        )
+        caveats = [Caveat(
+            f"{mod_title} differential "
+            f"{'accessibility' if is_atac else 'binding'} was not run: {reason}.",
+            severity="warning",
+        )]
+        for warning in da.get("warnings") or []:
+            caveats.append(Caveat(str(warning), severity="warning"))
+        return NarrativeBlock(
+            id=block_id,
+            modality="chromatin",
+            analysis="differential_accessibility",
+            block_type="limitation",
+            title=title,
+            status="limitation",
+            confidence="insufficient",
+            claim="",
+            evidence=evidence,
+            caveats=caveats,
+            metrics={"data_type": data_type, "ran": False, "reason": reason},
+            metadata={"validation_level": da.get("validation_level")
+                      or "production"},
+        )
+
     def _bulk_atac_diffacc_block(self, da: dict) -> NarrativeBlock:
         data_type = str(da.get("data_type") or "bulk_ATAC")
         is_atac = data_type == "bulk_ATAC"
         mod_title = "Bulk ATAC" if is_atac else _modality_label(data_type)
         norm_mode = da.get("normalization_mode")
-        if norm_mode is None and isinstance(da.get("spikein_normalization"), dict) \
-                and da["spikein_normalization"].get("applied") is True:
+        if norm_mode is None and isinstance(da.get("spikein_normalization"), dict) and (
+            da["spikein_normalization"].get("used") is True
+            or da["spikein_normalization"].get("applied") is True
+        ):
             norm_mode = "heterologous_spikein"
         n_comps = da.get("n_comparisons_success")
         n_sig = da.get("n_sig_total")
@@ -1367,22 +1476,64 @@ class ChromatinNarrator:
                   "is supporting association, not causation."
             )
         else:
-            claim = (
-                f"Tn5-bias-corrected footprinting descriptively ranked {n_ranked} of "
-                f"{n_tested} TF motifs by differential binding occupancy between {ga} "
-                f"and {gb} (uncorrected p over a pseudobulk-per-"
-                f"{group_kind.rstrip('s')} contrast; not FDR-controlled significance)."
-                f"{cross_txt}")
-            caveat_text = (
-                "Differential TF footprinting here is DESCRIPTIVE, not inferential: "
-                f"TOBIAS pools every cell/sample of each of the {group_kind} into one "
-                "pseudobulk, so the per-site p-values ignore biological replication and "
-                "are NOT FDR-controlled — the motifs are ranked candidates, not "
-                "significant hits. A footprint-occupancy difference between "
-                f"{group_kind} is also associative: it is not evidence that the factor "
-                "regulates a gene or drives the state. Footprints are Tn5-bias-corrected; "
-                "concordant RNA is supporting association, not causation."
+            ranking_basis = summary.get("ranking_basis") or {}
+            reason = inference.get("reason")
+            is_non_pseudobulk_desc = (
+                reason == "batch_condition_confounded"
+                or ranking_basis.get("pseudobulk") is False
             )
+            if is_non_pseudobulk_desc:
+                reason_phrase = (
+                    "batch and condition are confounded"
+                    if reason == "batch_condition_confounded"
+                    else str(reason).replace("_", " ")
+                    if reason
+                    else "replicate-level inference prerequisites were not met"
+                )
+                claim = (
+                    f"Tn5-bias-corrected footprinting descriptively ranked "
+                    f"{n_ranked} of {n_tested} TF motifs by replicate-mean "
+                    f"binding occupancy difference between {ga} and {gb} "
+                    f"({reason_phrase}; descriptive only, not FDR-controlled "
+                    f"significance).{cross_txt}"
+                )
+                caveat_text = (
+                    "Differential TF footprinting here is DESCRIPTIVE, not "
+                    "inferential: "
+                    + (
+                        "batch and condition are confounded across biological "
+                        "replicates, so no hypothesis test was run and motifs "
+                        "are ranked only by replicate-mean score difference "
+                        "(not FDR-controlled significance). "
+                        if reason == "batch_condition_confounded" else
+                        f"replicate-level statistical inference was not run "
+                        f"({reason_phrase}), so motifs are ranked only by "
+                        "replicate-mean score difference (not FDR-controlled "
+                        "significance). "
+                    )
+                    + f"A footprint-occupancy difference between {group_kind} "
+                      "is also associative: it is not evidence that the factor "
+                      "regulates a gene or drives the state. Footprints are "
+                      "Tn5-bias-corrected; concordant RNA is supporting "
+                      "association, not causation."
+                )
+            else:
+                claim = (
+                    f"Tn5-bias-corrected footprinting descriptively ranked {n_ranked} of "
+                    f"{n_tested} TF motifs by differential binding occupancy between {ga} "
+                    f"and {gb} (uncorrected p over a pseudobulk-per-"
+                    f"{group_kind.rstrip('s')} contrast; not FDR-controlled significance)."
+                    f"{cross_txt}")
+                caveat_text = (
+                    "Differential TF footprinting here is DESCRIPTIVE, not inferential: "
+                    f"TOBIAS pools every cell/sample of each of the {group_kind} into one "
+                    "pseudobulk, so the per-site p-values ignore biological replication and "
+                    "are NOT FDR-controlled — the motifs are ranked candidates, not "
+                    "significant hits. A footprint-occupancy difference between "
+                    f"{group_kind} is also associative: it is not evidence that the factor "
+                    "regulates a gene or drives the state. Footprints are Tn5-bias-corrected; "
+                    "concordant RNA is supporting association, not causation."
+                )
 
         figures = []
         volcano_png = (footprinting.get("volcano_plot") or {}).get("png")
@@ -1470,12 +1621,25 @@ class ChromatinNarrator:
                          "and is low power.")
         else:
             reason = inference.get("reason")
-            text += (
-                " Biological replicate inference was not possible"
-                + (f" ({reason})" if reason else "")
-                + "; each condition was pooled into one pseudobulk, so the motif "
-                "ranking is descriptive and not FDR-controlled (BINDetect site-level "
-                "p-values ignore biological replication).")
+            ranking_basis = summary.get("ranking_basis") or {}
+            is_non_pseudobulk = (
+                reason == "batch_condition_confounded"
+                or ranking_basis.get("pseudobulk") is False
+            )
+            if is_non_pseudobulk:
+                text += (
+                    " Biological replicate inference was not possible"
+                    + (f" ({reason})" if reason else "")
+                    + "; per-replicate motif scores were summarized only as "
+                    "descriptive replicate-mean differences (no hypothesis "
+                    "test and not FDR-controlled).")
+            else:
+                text += (
+                    " Biological replicate inference was not possible"
+                    + (f" ({reason})" if reason else "")
+                    + "; each condition was pooled into one pseudobulk, so the motif "
+                    "ranking is descriptive and not FDR-controlled (BINDetect site-level "
+                    "p-values ignore biological replication).")
         text += (" A footprint-occupancy difference is associative and is not "
                  "evidence of causal gene regulation.")
         return text
@@ -1499,13 +1663,13 @@ class ChromatinNarrator:
         )
         mod_title = "Bulk ATAC" if data_type == "bulk_ATAC" else _modality_label(data_type)
         aligned_here = (
-            pre.get("analysis") in {"bulk_atac_alignment", "epigenomic_alignment"}
-            and pre.get("ran")
+            str(pre.get("analysis") or "").endswith("_alignment")
+            and bool(pre.get("ran"))
         )
         if aligned_here:
             filt = pre.get("filter") or {}
             dup_txt = (
-                "duplicate-marked and removed (samtools markdup -r)"
+                "duplicate-marked (samtools markdup) and removed (-F 1804)"
                 if filt.get("remove_duplicates", True)
                 else "duplicate-marked without removal (preserving sparse enzymatic cleavage fragments)"
             )
@@ -1607,6 +1771,7 @@ class ChromatinNarrator:
                 if (
                     da.get("normalization_mode") == "heterologous_spikein"
                     or (da.get("spikein_normalization") or {}).get("used") is True
+                    or (da.get("spikein_normalization") or {}).get("applied") is True
                 )
                 else ""
             )
@@ -1660,9 +1825,7 @@ class ChromatinNarrator:
             out.append(footprint_txt)
         return out
 
-    def methods(self, agent_name: str, agent_result: dict,
-                context: dict | None = None) -> list[str]:
-        findings = unwrap_chromatin_findings(agent_result)
+    def _methods_single_modality(self, findings: dict) -> list[str]:
         if _is_bulk_chromatin(findings):
             return self._bulk_atac_methods(findings)
         out: list[str] = []
@@ -1706,26 +1869,41 @@ class ChromatinNarrator:
             out.append(footprint_txt)
         return out
 
+    def methods(self, agent_name: str, agent_result: dict,
+                context: dict | None = None) -> list[str]:
+        entries = _iter_chromatin_modality_findings(agent_result)
+        out: list[str] = []
+        for _mod_key, findings in entries:
+            for para in self._methods_single_modality(findings):
+                if para not in out:
+                    out.append(para)
+        return out
+
     def figures(self, agent_name: str, agent_result: dict,
                 report_dir: Path | None = None) -> list[dict]:
         # W0.1 (scATAC P0): surface figures rendered by
         # `_narrative_chromatin.generate_figures` into findings["figures"]
         # ({key: png_path}). Empty until the figure pipeline runs (honest).
-        findings = unwrap_chromatin_findings(agent_result)
-        figs = findings.get("figures") or {}
-        out = []
-        for key, value in figs.items():
-            if isinstance(value, str):
-                out.append({
-                    "id": key,
-                    "path": value,
-                    "caption": str(key).replace("_", " "),
-                })
+        entries = _iter_chromatin_modality_findings(agent_result)
+        multi = len(entries) > 1
+        out: list[dict] = []
+        seen_ids: set[str] = set()
+        for mod_key, findings in entries:
+            figs = findings.get("figures") or {}
+            for key, value in figs.items():
+                if isinstance(value, str):
+                    fid = str(key)
+                    if multi and mod_key and fid in seen_ids:
+                        fid = f"{_safe_id(mod_key)}_{fid}"
+                    seen_ids.add(fid)
+                    out.append({
+                        "id": fid,
+                        "path": value,
+                        "caption": str(key).replace("_", " "),
+                    })
         return out
 
-    def tables(self, agent_name: str, agent_result: dict,
-               report_dir: Path | None = None) -> list[dict]:
-        findings = unwrap_chromatin_findings(agent_result)
+    def _tables_single_modality(self, findings: dict) -> list[dict]:
         tables = []
         peaks = findings.get("peaks") or {}
         if peaks.get("peaks_path"):
@@ -1808,4 +1986,19 @@ class ChromatinNarrator:
                 tables.append({"id": "chromatin.footprint_bindetect",
                                "path": footprinting["bindetect_results"],
                                "label": "TOBIAS BINDetect motif summary"})
+        return tables
+
+    def tables(self, agent_name: str, agent_result: dict,
+               report_dir: Path | None = None) -> list[dict]:
+        entries = _iter_chromatin_modality_findings(agent_result)
+        multi = len(entries) > 1
+        tables: list[dict] = []
+        seen_ids: set[str] = set()
+        for mod_key, findings in entries:
+            for t in self._tables_single_modality(findings):
+                tid = t["id"]
+                if multi and mod_key and tid in seen_ids:
+                    t = {**t, "id": f"{tid}.{_safe_id(mod_key)}"}
+                seen_ids.add(t["id"])
+                tables.append(t)
         return tables

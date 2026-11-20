@@ -119,26 +119,69 @@ def _compose_de(block: NarrativeBlock) -> str:
 
 
 def _compose_pseudobulk(block: NarrativeBlock) -> str:
+    metrics = block.metrics or {}
+    strategy = str(metrics.get("fdr_strategy") or "").strip().lower()
     n_global = _ev(
-        block, "global-FDR DE genes", block.metrics.get("n_significant_global")
+        block, "global-FDR DE genes", metrics.get("n_significant_global")
     )
     n_local = _ev(
-        block, "local-FDR DE genes", block.metrics.get("n_significant_local")
+        block, "local-FDR DE genes", metrics.get("n_significant_local")
     )
     up = _ev(block, "up genes")
     down = _ev(block, "down genes")
     genes = _top_gene_phrases(block)
-    local_text = (
-        f"; {n_local} passed the per-block local FDR threshold"
-        if n_local is not None and n_local != n_global else ""
-    )
-    direction = ""
-    if up is not None and down is not None:
-        direction = f" ({up} higher, {down} lower)"
     gene_text = f" Top genes in this block include {genes}." if genes else ""
     correction = (
         " The DE model included a composition covariate."
-        if block.metrics.get("corrected_for_composition") else ""
+        if metrics.get("corrected_for_composition") else ""
+    )
+
+    def _direction_for(target_count) -> str:
+        if up is None or down is None:
+            return ""
+        if (
+            _is_finite_number(up)
+            and _is_finite_number(down)
+            and _is_finite_number(target_count)
+            and int(float(up)) + int(float(down)) != int(float(target_count))
+        ):
+            return ""
+        return f" ({up} higher, {down} lower)"
+
+    if strategy == "per_cluster":
+        primary = n_local if n_local is not None else metrics.get("n_significant")
+        direction = _direction_for(primary)
+        global_text = (
+            f"; {n_global} passed the global-FDR threshold"
+            if n_global is not None and n_global != primary else ""
+        )
+        if primary is None:
+            return (
+                f"{block.title} completed pseudobulk differential expression analysis"
+                f"{direction}{global_text}.{gene_text}{correction}"
+            )
+        return (
+            f"{block.title} contributed {primary} per-cluster local-FDR DE genes"
+            f"{direction}{global_text}.{gene_text}{correction}"
+        )
+
+    direction = _direction_for(n_global)
+    local_dir = ""
+    if (
+        not direction
+        and n_local is not None
+        and n_local != n_global
+        and up is not None
+        and down is not None
+        and _is_finite_number(up)
+        and _is_finite_number(down)
+        and _is_finite_number(n_local)
+        and int(float(up)) + int(float(down)) == int(float(n_local))
+    ):
+        local_dir = f" ({up} higher, {down} lower)"
+    local_text = (
+        f"; {n_local} passed the per-block local FDR threshold{local_dir}"
+        if n_local is not None and n_local != n_global else ""
     )
     if n_global is None:
         return (

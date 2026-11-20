@@ -187,6 +187,20 @@ def validate_multiome_contract(exp_context: dict[str, Any]) -> dict[str, Any]:
             "findings": [],
         }
 
+    if not checks["object_type_recognized"]:
+        findings.append(_finding(
+            "blocking",
+            "multiome_contract_unrecognized_object_type",
+            (
+                f"Unrecognized multiome contract object_type "
+                f"{contract.get('object_type')!r}; cannot verify same-cell contract."
+            ),
+            (
+                "Set `object_type` to a supported value "
+                f"({', '.join(sorted(_ALLOWED_OBJECT_TYPES))})."
+            ),
+        ))
+
     if contract.get("degradation") == "mixed_paired_and_unpaired_containers":
         findings.append(_finding(
             "blocking",
@@ -465,6 +479,17 @@ def _arc_parent(path: str) -> str:
     return str(Path(path.rstrip("/")).parent)
 
 
+def _arc_outs_dir(path_norm: str, kind: str) -> str | None:
+    """Return the Cell Ranger ARC ``outs/`` directory if ``path_norm`` is a ``{kind}_feature_bc_matrix``
+    file, directory, or matrix file directly inside that directory."""
+    if _is_arc_matrix(path_norm, kind):
+        return _arc_parent(path_norm)
+    parent = _arc_parent(path_norm)
+    if _is_arc_matrix(parent, kind):
+        return _arc_parent(parent)
+    return None
+
+
 def _drop_arc_raw_siblings(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Cell Ranger ARC `outs/` ships `raw_` and `filtered_` matrices of ONE run.
 
@@ -473,16 +498,17 @@ def _drop_arc_raw_siblings(records: list[dict[str, Any]]) -> list[dict[str, Any]
     not turn a single run into a multi-container cohort.
     """
     filtered_dirs = {
-        _arc_parent(str(r.get("path")))
+        outs_dir
         for r in records
-        if r.get("path") and _is_arc_matrix(str(r.get("path")), "filtered")
+        if r.get("path")
+        for outs_dir in (_arc_outs_dir(_norm_container_path(str(r.get("path"))), "filtered"),)
+        if outs_dir is not None
     }
     return [
         r for r in records
         if not (
             r.get("path")
-            and _is_arc_matrix(str(r.get("path")), "raw")
-            and _arc_parent(str(r.get("path"))) in filtered_dirs
+            and _arc_outs_dir(_norm_container_path(str(r.get("path"))), "raw") in filtered_dirs
         )
     ]
 
@@ -505,7 +531,12 @@ def _unpaired_container_files(
     """
     paired_norm = {_norm_container_path(p) for p in paired_paths}
     paired_dirs = tuple(p.rstrip("/") + "/" for p in paired_norm)
-    paired_arc_parents = {_arc_parent(p) for p in paired_norm}
+    paired_arc_parents: set[str] = set()
+    for p in paired_norm:
+        par = _arc_parent(p)
+        paired_arc_parents.add(par)
+        if _is_arc_matrix(par, "filtered"):
+            paired_arc_parents.add(_arc_parent(par))
     out: list[str] = []
     seen_norm: set[str] = set()
     mods = exp_context.get("modalities") or {}
@@ -516,8 +547,9 @@ def _unpaired_container_files(
             low = p_str.lower()
             if p_norm in paired_norm or p_norm.startswith(paired_dirs):
                 continue
-            if _is_arc_matrix(p_norm, "raw") and _arc_parent(p_norm) in paired_arc_parents:
-                # Unfiltered sibling of a Cell Ranger ARC run (same library).
+            raw_outs = _arc_outs_dir(p_norm, "raw")
+            if raw_outs is not None and raw_outs in paired_arc_parents:
+                # Unfiltered sibling of a Cell Ranger ARC run (file, dir, or MEX child).
                 continue
             if any(low.endswith(sfx) for sfx in _COUNT_CONTAINER_SUFFIXES):
                 if p_norm not in seen_norm:
@@ -534,7 +566,7 @@ def _paired_h5mu_records(exp_context: dict[str, Any]) -> list[dict[str, Any]]:
         fmt = str(evidence.get("format") or "").lower()
         if fmt in _H5MU_FORMATS:
             if rec.get("path"):
-                inspected_h5mu_paths.add(str(rec.get("path")))
+                inspected_h5mu_paths.add(_norm_container_path(str(rec.get("path"))))
             if evidence.get("paired_rna"):
                 records.append(rec)
     if records:
@@ -543,46 +575,56 @@ def _paired_h5mu_records(exp_context: dict[str, Any]) -> list[dict[str, Any]]:
     # Filename fallback only marks a candidate when AssayDetector has not
     # already inspected the `.h5mu` path and determined `paired_rna` is false.
     # When an uninspected `.h5mu` exists on disk (e.g. explicit library_types),
-    # inspect its modalities so ATAC-only `.h5mu` files are not misclassified
-    # as paired RNA+ATAC multiome inputs.
+    # inspect its modalities and fail closed on empty/corrupt/unpaired files.
     seen_paths: set[str] = set()
     mods = exp_context.get("modalities") or {}
     for mod_key in ("scATAC", "scRNA"):
         for path in mods.get(mod_key, []) or []:
             p_str = str(path)
+            p_norm = _norm_container_path(p_str)
             if (
                 p_str.lower().endswith(".h5mu")
-                and p_str not in seen_paths
-                and p_str not in inspected_h5mu_paths
+                and p_norm not in seen_paths
+                and p_norm not in inspected_h5mu_paths
             ):
-                seen_paths.add(p_str)
+                seen_paths.add(p_norm)
                 p_obj = Path(p_str)
-                if p_obj.is_file() and p_obj.stat().st_size > 0:
+                if p_obj.is_file():
+                    if p_obj.stat().st_size == 0:
+                        # Fail closed on empty on-disk .h5mu files.
+                        continue
                     try:
                         from aria.utils.mudata_io import read_h5mu_summary
 
                         summary = read_h5mu_summary(p_str, backed=True)
                     except Exception:
-                        summary = {}
+                        summary = {"status": "error", "error_type": "ReadError"}
                     if summary.get("error_type") == "MuDataToolingMissing":
                         try:
                             import h5py
                             from aria.utils.mudata_io import _ATAC_KEYS, _RNA_KEYS, _match_modality
-
-                            if h5py.is_hdf5(p_str):
-                                with h5py.File(p_str, "r") as hf:
-                                    if "mod" in hf and hasattr(hf["mod"], "keys"):
-                                        mkeys = [str(k) for k in hf["mod"].keys()]
-                                        summary = {
-                                            "status": "success",
-                                            "modalities": {k: {} for k in mkeys},
-                                            "is_paired_rna_atac": bool(
-                                                _match_modality(mkeys, _ATAC_KEYS)
-                                                and _match_modality(mkeys, _RNA_KEYS)
-                                            ),
-                                        }
-                        except Exception:
-                            pass
+                        except ImportError:
+                            h5py = None
+                        if h5py is not None:
+                            try:
+                                if not h5py.is_hdf5(p_str):
+                                    summary = {"status": "error", "error_type": "NotAnH5mu"}
+                                else:
+                                    with h5py.File(p_str, "r") as hf:
+                                        if "mod" in hf and hasattr(hf["mod"], "keys"):
+                                            mkeys = [str(k) for k in hf["mod"].keys()]
+                                            summary = {
+                                                "status": "success",
+                                                "modalities": {k: {} for k in mkeys},
+                                                "is_paired_rna_atac": bool(
+                                                    _match_modality(mkeys, _ATAC_KEYS)
+                                                    and _match_modality(mkeys, _RNA_KEYS)
+                                                ),
+                                            }
+                                        else:
+                                            summary = {"status": "error", "error_type": "MissingModGroup"}
+                            except Exception:
+                                summary = {"status": "error", "error_type": "CorruptH5mu"}
                     if summary.get("status") == "success":
                         if not summary.get("is_paired_rna_atac"):
                             continue
@@ -595,6 +637,9 @@ def _paired_h5mu_records(exp_context: dict[str, Any]) -> list[dict[str, Any]]:
                             },
                             "confidence": "high",
                         })
+                        continue
+                    if summary.get("error_type") != "MuDataToolingMissing":
+                        # Fail closed on corrupt / unreadable on-disk .h5mu files.
                         continue
                 records.append({
                     "path": p_str,

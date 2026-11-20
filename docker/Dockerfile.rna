@@ -14,7 +14,9 @@ FROM ${ARIA_BASE_IMAGE}
 
 ARG MAMBA_DOCKERFILE_ACTIVATE=1
 # Pinned numpy<2 and the strict conda-forge>bioconda priority live in the yml.
-RUN micromamba install -y -n base -f /opt/aria/envs/aria-rna-env.yml && \
+# Pre-install conda-forge python-annoy so pip does not compile annoy without g++.
+RUN micromamba install -y -n base -c conda-forge python-annoy && \
+    micromamba install -y -n base -f /opt/aria/envs/aria-rna-env.yml && \
     micromamba clean --all --yes
 
 # Install ARIA itself into the solved environment.

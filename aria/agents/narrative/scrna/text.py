@@ -248,17 +248,20 @@ def _describe_trajectory_context(findings: dict) -> list[str]:
                 "velocity or time-course support."
             )
     if pt.get("computed") and pt.get("pseudotime_by_group"):
-        ordered = sorted(
-            pt.get("pseudotime_by_group", {}).items(),
-            key=lambda kv: kv[1],
-        )
-        first = ordered[0][0]
-        last = ordered[-1][0]
-        lines.append(
-            f"DPT context: groups span pseudotime from {first} to {last} "
-            f"(root={pt.get('root_used', 'auto')}). Interpret this as an "
-            "ordering on the observed manifold, not elapsed biological time."
-        )
+        finite_pt = [
+            (g, v_num)
+            for g, v in (pt.get("pseudotime_by_group") or {}).items()
+            if (v_num := _finite_number(v)) is not None
+        ]
+        if finite_pt:
+            ordered = sorted(finite_pt, key=lambda kv: (kv[1], str(kv[0])))
+            first = ordered[0][0]
+            last = ordered[-1][0]
+            lines.append(
+                f"DPT context: groups span pseudotime from {first} to {last} "
+                f"(root={pt.get('root_used', 'auto')}). Interpret this as an "
+                "ordering on the observed manifold, not elapsed biological time."
+            )
     return lines
 
 
@@ -287,15 +290,17 @@ def summarize_scrna_text(findings: dict) -> str:
 
     integ = findings.get("integration") or {}
     if integ.get("status") in ("done", "success"):
-        s_b = integ.get("silhouette_before")
-        s_a = integ.get("silhouette_after")
+        s_b = _finite_number(integ.get("silhouette_before"))
+        s_a = _finite_number(integ.get("silhouette_after"))
+        delta = _finite_number(integ.get("batch_correction_delta"))
         method = integ.get("method", "harmony")
         if s_b is not None and s_a is not None:
+            delta_val = (s_b - s_a) if delta is None else delta
             lines.append(
                 f"Batch correction ({method}) across "
                 f"{integ.get('n_batches', '?')} batches: "
                 f"silhouette {s_b:+.3f} → {s_a:+.3f} "
-                f"(Δ={integ.get('batch_correction_delta', 0):+.3f}; "
+                f"(Δ={delta_val:+.3f}; "
                 f"lower silhouette indicates better mixing)."
             )
     elif integ.get("status") == "skipped":
@@ -414,7 +419,12 @@ def summarize_scrna_text(findings: dict) -> str:
                     lines.append("Largest abundance shifts: " + "; ".join(desc) + ".")
 
     pb = findings.get("pseudobulk_de") or {}
-    if pb:
+    if pb and pb.get("status") in ("error", "skipped") and not pb.get("per_group"):
+        pb_detail = pb.get("reason") or pb.get("details") or "did not complete"
+        lines.append(
+            f"Pseudobulk DE ({pb.get('status')}): {pb_detail}."
+        )
+    elif pb:
         n_groups = pb.get("n_groups", 0)
         per_group = pb.get("per_group", {}) or {}
         n_success = sum(
@@ -567,6 +577,7 @@ def summarize_scrna_text(findings: dict) -> str:
     if ccc.get("status") in ("done", "success"):
         method = ccc.get("method", "?")
         n_int = ccc.get("n_interactions", 0)
+        n_sig = ccc.get("n_significant")
         n_ct = ccc.get("n_cell_types", 0)
         n_auto = ccc.get("n_autocrine_dropped", 0)
         top_pairs = ccc.get("top_pairs", [])[:3]
@@ -574,9 +585,16 @@ def summarize_scrna_text(findings: dict) -> str:
             f" Top sender→receiver pairs: {'; '.join(top_pairs)}."
             if top_pairs else ""
         )
+        if n_sig is not None:
+            ia_clause = (
+                f"{n_sig} significant L-R interactions "
+                f"({n_int} tested non-autocrine)"
+            )
+        else:
+            ia_clause = f"{n_int} tested non-autocrine L-R interactions"
         lines.append(
             f"Cell-cell communication landscape ({method}): "
-            f"{n_int} significant L-R interactions across {n_ct} cell types "
+            f"{ia_clause} across {n_ct} cell types "
             f"({n_auto} autocrine pairs excluded).{pair_str}"
         )
         lines.extend(_describe_cellcomm_context(findings, limit=5))
@@ -604,9 +622,14 @@ def summarize_scrna_text(findings: dict) -> str:
         if pt.get("computed"):
             root = pt.get("root_used", "auto")
             pt_by = pt.get("pseudotime_by_group", {}) or {}
-            if pt_by:
-                ordered = sorted(pt_by.items(), key=lambda kv: kv[1])
-                order_str = " → ".join(g for g, _ in ordered)
+            finite_pt = [
+                (g, v_num)
+                for g, v in pt_by.items()
+                if (v_num := _finite_number(v)) is not None
+            ]
+            if finite_pt:
+                ordered = sorted(finite_pt, key=lambda kv: (kv[1], str(kv[0])))
+                order_str = " → ".join(str(g) for g, _ in ordered)
                 traj_line += (
                     f" DPT pseudotime (root: {root}) orders groups "
                     f"{order_str}."
@@ -850,7 +873,7 @@ def build_scrna_methods(findings: dict) -> str:
         lines.append(line)
 
     pb = findings.get("pseudobulk_de") or {}
-    if pb:
+    if pb and pb.get("status") not in ("error", "skipped"):
         thr = pb.get("thresholds", {}) or {}
         mt = pb.get("multiple_testing", {}) or {}
         n_tests_clause = (

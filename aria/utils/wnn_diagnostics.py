@@ -507,10 +507,12 @@ def _compute_held_out_check(
         joint_bimodal_cos = 0.5 * (joint_r + joint_a)
 
         weight_oof_mae: float | None = None
-        if rna_weights is not None and np.all(np.isfinite(oof_weights)):
-            weight_oof_mae = round(
-                float(np.mean(np.abs(rna_weights - oof_weights))), 4
-            )
+        if rna_weights is not None:
+            fin_w = np.isfinite(rna_weights) & np.isfinite(oof_weights)
+            if np.any(fin_w):
+                weight_oof_mae = round(
+                    float(np.mean(np.abs(rna_weights[fin_w] - oof_weights[fin_w]))), 4
+                )
 
         split_dim = {
             "evaluable": True,
@@ -910,8 +912,16 @@ def compute_wnn_anti_degradation_diagnostics(
 
     rna_inf = bool(held_out.get("rna_manifold_informative", True))
     atac_inf = bool(held_out.get("atac_manifold_informative", True))
-    mean_rw = float(np.mean(rna_w)) if rna_w is not None else None
-    mean_aw = float(np.mean(atac_w)) if atac_w is not None else None
+    mean_rw: float | None = None
+    if rna_w is not None:
+        fin_rw = rna_w[np.isfinite(rna_w)]
+        if fin_rw.size > 0:
+            mean_rw = float(np.mean(fin_rw))
+    mean_aw: float | None = None
+    if atac_w is not None:
+        fin_aw = atac_w[np.isfinite(atac_w)]
+        if fin_aw.size > 0:
+            mean_aw = float(np.mean(fin_aw))
 
     if mean_r_adj is not None and mean_r_adj < 0.10:
         if rna_inf:

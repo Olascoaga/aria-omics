@@ -48,6 +48,7 @@ def default_answer_policy(cp_num, question: str, options: list) -> str:
     """
     q = question or ""
     opts = list(options or [])
+    first_opt = opts[0] if opts else "Continue"
 
     def first_matching(substr: str) -> Optional[str]:
         for o in opts:
@@ -61,11 +62,11 @@ def default_answer_policy(cp_num, question: str, options: list) -> str:
 
     # CP2.1 — confirm inferred groups
     if cp_num == 2.1:
-        return first_matching("confirm groups") or (opts[0] if opts else opts[0])
+        return first_matching("confirm groups") or first_opt
 
     # CP2.2 — organism: opts[0] is ARIA's pre-seeded inferred organism
     if cp_num == 2.2:
-        return opts[0]
+        return first_opt
 
     # CP2.3 — factor: pick the option equal to ARIA's proposed factor
     if cp_num == 2.3:
@@ -76,31 +77,31 @@ def default_answer_policy(cp_num, question: str, options: list) -> str:
                 if o.strip().lower() == proposed.lower():
                     return o
         non_cancel = [o for o in opts if "cancel" not in o.lower()]
-        return non_cancel[0] if non_cancel else opts[0]
+        return non_cancel[0] if non_cancel else first_opt
 
     # CP2.4 — batch covariate: do not add unless ARIA pre-seeded one
     if cp_num == 2.4:
-        return first_matching("ignore batch") or first_matching("no") or opts[0]
+        return first_matching("ignore batch") or first_matching("no") or first_opt
 
     # CP2.5 — pseudoreplication: treat as independent biological replicates
     if cp_num == 2.5:
-        return first_matching("independent biological replicates") or opts[0]
+        return first_matching("independent biological replicates") or first_opt
 
     # CP2.6 — confirm assembled design
     if cp_num == 2.6:
-        return first_matching("proceed") or opts[0]
+        return first_matching("proceed") or first_opt
 
     # CP3.5 — proceed despite non-blocking audit warnings
     if cp_num == 3.5:
         non_cancel = [o for o in opts if "cancel" not in o.lower()]
-        return non_cancel[0] if non_cancel else opts[0]
+        return non_cancel[0] if non_cancel else first_opt
 
     # CP2 — analysis plan: recommended + optional supported analyses
     if cp_num == 2:
-        return first_matching("optional") or first_matching("recommended") or opts[0]
+        return first_matching("optional") or first_matching("recommended") or first_opt
 
     # CP3 / CP4 / CP5 and anything else: take the recommended (first) option
-    return opts[0] if opts else "Continue"
+    return first_opt
 
 
 @dataclass
@@ -332,7 +333,7 @@ def _find_report_on_disk(
             continue
         if reproducible_mode:
             mem_snap = d / "memory_snapshot.sqlite"
-            if not mem_snap.is_file() or mem_snap.stat().st_size == 0:
+            if mem_snap.exists() and mem_snap.stat().st_size == 0:
                 continue
         return str(html)
     return None

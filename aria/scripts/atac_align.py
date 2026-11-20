@@ -95,7 +95,10 @@ def atac_align(params: dict) -> dict:
     spikein_fasta = str(params.get("spikein_fasta") or "")
     spikein_bwa_index = str(params.get("spikein_bwa_index") or spikein_fasta or "")
     spikein_contig_prefix = str(params.get("spikein_contig_prefix") or "")
-    spikein_scale_constant = float(params.get("spikein_scale_constant", 10000.0))
+    raw_scale_const = params.get("spikein_scale_constant")
+    if raw_scale_const is None:
+        raw_scale_const = params.get("spikein_scale_numerator", 10000.0)
+    spikein_scale_constant = float(raw_scale_const)
     mito_contigs = tuple(params.get("mito_contigs") or DEFAULT_MITO_CONTIGS)
     allow_mock = mocks_allowed(params)
     warnings: list[str] = []
@@ -183,8 +186,15 @@ def atac_align(params: dict) -> dict:
             parameters["hic_chimeric"] = True
         if spikein_bwa_index:
             parameters["spikein_bwa_index"] = spikein_bwa_index
+        if spikein_fasta:
+            parameters["spikein_fasta"] = spikein_fasta
+            if Path(spikein_fasta).is_file():
+                inputs.append(file_record(spikein_fasta))
         if spikein_contig_prefix:
             parameters["spikein_contig_prefix"] = spikein_contig_prefix
+        if (spikein_bwa_index or spikein_fasta or spikein_contig_prefix
+                or spikein_scale_constant != 10000.0):
+            parameters["spikein_scale_constant"] = spikein_scale_constant
         manifest = stage_manifest_path(output_dir, f"atac_align_{sid}")
         cached = load_valid_stage_result(
             manifest, expected_inputs=inputs, expected_parameters=parameters)
@@ -411,12 +421,14 @@ def _align_sample(sample: dict, bwa_index: str, output_dir: Path,
                 result["status"] = "failed"
                 return result
 
-        # 4. mark duplicates (remove with -r when remove_duplicates=True; keep
-        # marked duplicates when remove_duplicates=False for sparse CUT&RUN/CUT&Tag)
-        markdup_cmd = ["samtools", "markdup"]
-        if remove_duplicates:
-            markdup_cmd.append("-r")
-        markdup_cmd += ["-@", str(threads), str(coordsort), str(markdup)]
+        # 4. mark duplicates without -r so markdup.bam retains 0x400 duplicate
+        # flags and flagstat reports true pct_dup; downstream samtools view
+        # -F 1804 removes marked duplicates from final_bam when
+        # remove_duplicates=True (or retains them via -F 780 when False).
+        markdup_cmd = [
+            "samtools", "markdup", "-@", str(threads),
+            str(coordsort), str(markdup),
+        ]
         if not _run(markdup_cmd, warnings, name, "markdup"):
             result["status"] = "failed"
             return result
@@ -559,13 +571,30 @@ def _count_spikein_index(
     if r2:
         align_cmd.append(r2)
     count_cmd = ["samtools", "view", "-c", "-F", "2308", "-q", "10", "-"]
+    import tempfile
     try:
-        with subprocess.Popen(align_cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL) as src:
-            proc = subprocess.run(count_cmd, stdin=src.stdout, capture_output=True, text=True, timeout=7200)
-            src.stdout.close()
-            src.wait()
-        if proc.returncode == 0:
-            return int(proc.stdout.strip())
+        with tempfile.TemporaryFile(mode="w+t") as err1:
+            with subprocess.Popen(
+                align_cmd, stdout=subprocess.PIPE, stderr=err1,
+            ) as src:
+                try:
+                    proc = subprocess.run(
+                        count_cmd, stdin=src.stdout, capture_output=True,
+                        text=True, timeout=7200,
+                    )
+                finally:
+                    if src.stdout is not None:
+                        src.stdout.close()
+                src_rc = src.wait()
+            if src_rc == 0 and proc.returncode == 0:
+                return int(proc.stdout.strip())
+            err1.seek(0)
+            err_msg = (err1.read() + "\n" + (proc.stderr or "")).strip()[-300:]
+            warnings.append(
+                f"{name}: spike-in alignment failed "
+                f"(bwa-mem2 rc={src_rc}, samtools rc={proc.returncode}): "
+                f"{err_msg}"
+            )
     except Exception as exc:
         warnings.append(f"{name}: spike-in alignment failed: {exc}")
     return None

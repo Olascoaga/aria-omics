@@ -41,6 +41,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspa
 
 from aria.scripts._base import mocks_allowed, run_script
 from aria.scripts.hic_preprocess import _check_hic_stage_cache, _save_hic_stage_cache
+from aria.utils.hic_constants import list_mcool_resolutions
 
 STAGE_VERSION = 1
 EXCLUDED_CHROMS = frozenset({"chrM", "MT", "chrMT", "M", "chrEBV", "EBV"})
@@ -92,19 +93,38 @@ def _resolve_uri(fpath: str, resolution: int) -> tuple[str, int]:
     import cooler
 
     if str(fpath).lower().endswith(".mcool"):
-        avail = sorted(
-            int(p.split("/")[-1])
-            for p in cooler.fileops.list_coolers(fpath)
-            if "/resolutions/" in p and p.split("/")[-1].isdigit()
-        )
-        if not avail:
+        res_map = list_mcool_resolutions(fpath)
+        if not res_map:
             raise ValueError(f"No resolutions inside .mcool: {fpath}")
-        chosen = int(resolution) if int(resolution) in avail else min(
+        avail = sorted(res_map.keys())
+        chosen = int(resolution) if int(resolution) in res_map else min(
             avail, key=lambda r: abs(r - int(resolution))
         )
-        return f"{fpath}::resolutions/{chosen}", chosen
+        return f"{fpath}::{res_map[chosen]}", chosen
     clr = cooler.Cooler(fpath)
     return fpath, int(clr.binsize)
+
+
+def _coords_match(df_a, df_b) -> bool:
+    """Compare genomic bin coordinates without pandas Categorical category-set pitfalls."""
+    import numpy as np
+
+    if len(df_a) != len(df_b):
+        return False
+    return bool(
+        np.array_equal(
+            df_a["chrom"].astype(str).to_numpy(),
+            df_b["chrom"].astype(str).to_numpy(),
+        )
+        and np.array_equal(
+            df_a["start"].to_numpy(dtype=np.int64),
+            df_b["start"].to_numpy(dtype=np.int64),
+        )
+        and np.array_equal(
+            df_a["end"].to_numpy(dtype=np.int64),
+            df_b["end"].to_numpy(dtype=np.int64),
+        )
+    )
 
 
 def _has_valid_weights(clr) -> bool:
@@ -135,7 +155,7 @@ def _ensure_balanced_cooler(fpath: str, resolution: int, out_dir: Path):
     if not staged.exists():
         shutil.copy2(fpath, staged)
         staged.chmod(0o644)
-    s_uri = f"{staged}::resolutions/{chosen_res}" if ext == ".mcool" else str(staged)
+    s_uri, _ = _resolve_uri(str(staged), chosen_res)
     s_clr = cooler.Cooler(s_uri)
     if not _has_valid_weights(s_clr):
         nbins = int(s_clr.info.get("nbins", 0))
@@ -231,8 +251,8 @@ def _parse_gtf_tss(gtf_path: str | None) -> list[tuple[str, int, str]]:
     return genes
 
 
-def _phasing_valid_chroms(phasing_df, chroms: list[str]) -> set[str]:
-    """Return chromosomes whose phasing track has finite non-zero variance."""
+def _phasing_valid_chroms(phasing_df, chroms: list[str], clr=None) -> set[str]:
+    """Return chromosomes whose phasing track has finite non-zero variance over valid ICE bins."""
     import numpy as np
 
     if phasing_df is None or phasing_df.empty:
@@ -241,15 +261,47 @@ def _phasing_valid_chroms(phasing_df, chroms: list[str]) -> set[str]:
     if not val_col:
         return set()
     vcol = val_col[0]
+
+    ice_valid_by_chrom: dict[str, np.ndarray] | None = None
+    ice_valid_full: np.ndarray | None = None
+    if clr is not None and "weight" in list(clr.bins().columns):
+        try:
+            bins_w = clr.bins()[:][["chrom", "start", "end", "weight"]]
+            w_arr = np.asarray(bins_w["weight"], dtype=float)
+            w_ok = np.isfinite(w_arr) & (w_arr > 0.0)
+            if len(w_ok) == len(phasing_df) and _coords_match(bins_w, phasing_df):
+                ice_valid_full = w_ok
+            else:
+                ice_valid_by_chrom = {}
+                b_ch = bins_w["chrom"].astype(str).to_numpy()
+                b_st = bins_w["start"].to_numpy(dtype=np.int64)
+                for ch in chroms:
+                    cm = b_ch == str(ch)
+                    ice_valid_by_chrom[str(ch)] = b_st[cm & w_ok]
+        except Exception:
+            ice_valid_full = None
+            ice_valid_by_chrom = None
+
     valid: set[str] = set()
+    p_ch = phasing_df["chrom"].astype(str).to_numpy()
+    p_st = phasing_df["start"].to_numpy(dtype=np.int64)
+    p_val = phasing_df[vcol].to_numpy(dtype=float)
     for ch in chroms:
-        sub = phasing_df[phasing_df["chrom"].astype(str) == str(ch)]
-        if sub.empty:
+        ch_s = str(ch)
+        mask = p_ch == ch_s
+        if ice_valid_full is not None:
+            mask = mask & ice_valid_full
+        elif ice_valid_by_chrom is not None:
+            valid_starts = ice_valid_by_chrom.get(ch_s)
+            if valid_starts is None or valid_starts.size == 0:
+                continue
+            mask = mask & np.isin(p_st, valid_starts)
+        if not np.any(mask):
             continue
-        vals = sub[vcol].to_numpy(dtype=float)
+        vals = p_val[mask]
         fin = vals[np.isfinite(vals)]
         if fin.size >= 5 and float(np.std(fin)) > 1e-12:
-            valid.add(str(ch))
+            valid.add(ch_s)
     return valid
 
 
@@ -273,7 +325,7 @@ def _run_eigs_per_chrom_safe(
             n_eigs=n_eigs, ignore_diags=ignore_diags, seed=seed,
         )
 
-    valid_phased = _phasing_valid_chroms(phasing_df, chroms)
+    valid_phased = _phasing_valid_chroms(phasing_df, chroms, clr=clr)
     if len(valid_phased) == len(chroms):
         return _run_eigs_cis_deterministic(
             eig_mod, clr, phasing_track=phasing_df, view_df=view_df,
@@ -314,12 +366,13 @@ def _run_eigs_per_chrom_safe(
 def _build_phasing_track(clr, chroms: list[str], genome_fasta: str | None, gtf_path: str | None):
     """Build a ``(chrom, start, end, phasing_score)`` DataFrame for ``eigs_cis``.
 
-    Returns ``(phasing_df | None, phasing_method, pc1_validated)``."""
+    Returns ``(phasing_df | None, phasing_method, pc1_validated, phased_chroms)``."""
     import numpy as np
     import pandas as pd
 
     bins_df = clr.bins()[:][["chrom", "start", "end"]].copy()
     bins_df["chrom"] = bins_df["chrom"].astype(str)
+    chrom_strs = [str(c) for c in chroms]
 
     # 1. Local genome FASTA GC fraction (gold standard for cooltools eigs_cis)
     if genome_fasta and Path(str(genome_fasta)).is_file():
@@ -332,7 +385,7 @@ def _build_phasing_track(clr, chroms: list[str], genome_fasta: str | None, gtf_p
                 for r in refs:
                     for al in _chrom_aliases(r):
                         alias_to_ref.setdefault(al, r)
-                matched = [(c, alias_to_ref[c]) for c in chroms if c in alias_to_ref]
+                matched = [(c, alias_to_ref[c]) for c in chrom_strs if c in alias_to_ref]
                 if matched:
                     gc_vals = np.full(len(bins_df), np.nan, dtype=float)
                     for ch, ref_ch in matched:
@@ -353,9 +406,10 @@ def _build_phasing_track(clr, chroms: list[str], genome_fasta: str | None, gtf_p
                                 gc_vals[idx_pos] = (sub.count("G") + sub.count("C")) / float(atgc)
                     cand_df = bins_df[["chrom", "start", "end"]].copy()
                     cand_df["GC"] = gc_vals
-                    valid_ch = _phasing_valid_chroms(cand_df, chroms)
+                    valid_ch = _phasing_valid_chroms(cand_df, chrom_strs, clr=clr)
                     if valid_ch:
-                        return cand_df, "gc_content", True
+                        all_phased = bool(chrom_strs) and (set(chrom_strs) <= valid_ch)
+                        return cand_df, "gc_content", all_phased, valid_ch
         except Exception:
             pass
 
@@ -382,11 +436,12 @@ def _build_phasing_track(clr, chroms: list[str], genome_fasta: str | None, gtf_p
                 counts[offsets[target_ch] + b] += 1.0
         cand_df = bins_df[["chrom", "start", "end"]].copy()
         cand_df["gene_density"] = counts
-        valid_ch = _phasing_valid_chroms(cand_df, chroms)
+        valid_ch = _phasing_valid_chroms(cand_df, chrom_strs, clr=clr)
         if valid_ch:
-            return cand_df, "gene_density", True
+            all_phased = bool(chrom_strs) and (set(chrom_strs) <= valid_ch)
+            return cand_df, "gene_density", all_phased, valid_ch
 
-    return None, "unphased_arbitrary_sign", False
+    return None, "unphased_arbitrary_sign", False, set()
 
 
 def _bh_fdr(pvals):
@@ -491,9 +546,6 @@ def _compute_compartments(
                 "details": "No analyzable nuclear chromosomes found in cooler.",
             }
 
-        phasing_df, phasing_method, pc1_validated = _build_phasing_track(
-            clr, chroms, genome_fasta, gtf_path
-        )
         # Filter out tiny scaffolds that would degrade genome-wide ignore_diags or n_eigs.
         long_chroms = [
             c for c in view_df["chrom"]
@@ -501,6 +553,13 @@ def _compute_compartments(
         ]
         if long_chroms and len(long_chroms) < len(view_df):
             view_df = view_df[view_df["chrom"].isin(long_chroms)].reset_index(drop=True)
+        analyzed_chroms = [str(c) for c in view_df["chrom"].tolist()]
+        phasing_df, phasing_method, _, phased_chroms = _build_phasing_track(
+            clr, analyzed_chroms, genome_fasta, gtf_path
+        )
+        phased_chroms_analyzed = [c for c in analyzed_chroms if c in phased_chroms]
+        unphased_chroms = [c for c in analyzed_chroms if c not in phased_chroms]
+        pc1_validated = bool(analyzed_chroms) and (set(analyzed_chroms) <= phased_chroms)
         nbins_min = min(int(clr.chromsizes[c]) // max(actual_res, 1) for c in view_df["chrom"])
         n_eigs = min(3, max(1, nbins_min - 2))
         ignore_diags = _safe_ignore_diags(clr, view_df, actual_res)
@@ -550,9 +609,16 @@ def _compute_compartments(
         pct_B = b_bins / total_bins * 100.0
 
         export_df = eigvecs_df[["chrom", "start", "end", "E1"]].copy()
+        row_phased = export_df["chrom"].astype(str).isin(phased_chroms).to_numpy(dtype=bool)
         export_df["compartment"] = np.where(
-            export_df["E1"] > 0, "A",
-            np.where(export_df["E1"] < 0, "B", "unassigned"),
+            row_phased & (export_df["E1"] > 0), "A",
+            np.where(
+                row_phased & (export_df["E1"] < 0), "B",
+                np.where(
+                    (~row_phased) & (export_df["E1"] > 0), "+E1_unphased",
+                    np.where((~row_phased) & (export_df["E1"] < 0), "-E1_unphased", "unassigned"),
+                ),
+            ),
         )
         comp_tsv = out_path / "compartments.tsv"
         export_df.to_csv(comp_tsv, sep="\t", index=False)
@@ -562,13 +628,20 @@ def _compute_compartments(
         bg_df.to_csv(comp_bg, sep="\t", header=False, index=False)
 
         warnings: list[str] = []
-        note = (
-            f"E1 phased via {phasing_method} (positive E1 = active A compartment)."
-            if pc1_validated else
-            "PC1 sign is unphased (neither genome_fasta nor GTF staged); "
-            "provide genome_fasta or gtf to validate A/B polarity."
-        )
-        if not pc1_validated:
+        if pc1_validated:
+            note = f"E1 phased via {phasing_method} (positive E1 = active A compartment)."
+        elif phased_chroms_analyzed:
+            note = (
+                f"E1 phased via {phasing_method} on {len(phased_chroms_analyzed)}/{len(analyzed_chroms)} "
+                f"chromosome(s); unphased chromosomes ({', '.join(unphased_chroms[:5])}) retain arbitrary E1 sign."
+            )
+            warnings.append("unphased_E1_sign_arbitrary")
+            warnings.append(f"partial_unphased_chroms:{','.join(unphased_chroms)}")
+        else:
+            note = (
+                "PC1 sign is unphased (neither genome_fasta nor GTF staged); "
+                "provide genome_fasta or gtf to validate A/B polarity."
+            )
             warnings.append("unphased_E1_sign_arbitrary")
 
         return {
@@ -584,6 +657,8 @@ def _compute_compartments(
             "n_ab_switches": 0,  # single-sample run; cross-condition switches live in differential_3d
             "pc1_validated": bool(pc1_validated),
             "phasing_method": phasing_method,
+            "phased_chroms": phased_chroms_analyzed,
+            "unphased_chroms": unphased_chroms,
             "compartments_tsv": str(comp_tsv),
             "compartments_bedgraph": str(comp_bg),
             "compartment_tracks": compartment_tracks,
@@ -928,54 +1003,57 @@ def _compute_loops(
     try:
         out_path = Path(out_dir)
         out_path.mkdir(parents=True, exist_ok=True)
-        clr, actual_res = _ensure_balanced_cooler(fpath, resolution, out_path)
-        if actual_res < 4_000:
-            # cooltools.dotfinder.recommend_kernels raises ValueError below 4 kb (Micro-C 1-2 kb).
-            fallback_res = None
-            if str(fpath).lower().endswith(".mcool"):
-                import cooler as _cooler
 
-                avail_ok = sorted(
-                    int(p.split("/")[-1])
-                    for p in _cooler.fileops.list_coolers(fpath)
-                    if "/resolutions/" in p
-                    and p.split("/")[-1].isdigit()
-                    and 4_000 <= int(p.split("/")[-1]) <= 25_000
-                )
+        # Check [4_000, 25_000] resolution bounds (and .mcool fallback) BEFORE staging/balancing.
+        target_res = int(resolution)
+        if str(fpath).lower().endswith(".mcool"):
+            res_map = list_mcool_resolutions(fpath)
+            if not res_map:
+                raise ValueError(f"No resolutions inside .mcool: {fpath}")
+            avail = sorted(res_map.keys())
+            resolved_res = target_res if target_res in res_map else min(
+                avail, key=lambda r: abs(r - target_res)
+            )
+            if not (4_000 <= resolved_res <= 25_000):
+                avail_ok = [r for r in avail if 4_000 <= r <= 25_000]
                 if avail_ok:
-                    fallback_res = avail_ok[0]
-            if fallback_res is not None:
-                clr, actual_res = _ensure_balanced_cooler(fpath, fallback_res, out_path)
-            else:
-                return {
-                    "status": "skipped",
-                    "ran": False,
-                    "data_type": "HiC",
-                    "analysis": "loops",
-                    "validation_level": "production",
-                    "resolution": int(actual_res),
-                    "n_loops": 0,
-                    "reason": "resolution_too_fine_for_default_donut_kernels",
-                    "message": (
-                        f"Loop dot calling with cooltools default donut kernels requires "
-                        f"4 kb - 25 kb resolution; available resolution was {actual_res:,} bp."
-                    ),
-                }
-        if actual_res > 25_000:
+                    resolved_res = avail_ok[0]
+            target_res = resolved_res
+        else:
+            target_res = int(cooler.Cooler(fpath).binsize)
+
+        if target_res < 4_000:
             return {
                 "status": "skipped",
                 "ran": False,
                 "data_type": "HiC",
                 "analysis": "loops",
                 "validation_level": "production",
-                "resolution": int(actual_res),
+                "resolution": int(target_res),
+                "n_loops": 0,
+                "reason": "resolution_too_fine_for_default_donut_kernels",
+                "message": (
+                    f"Loop dot calling with cooltools default donut kernels requires "
+                    f"4 kb - 25 kb resolution; available resolution was {target_res:,} bp."
+                ),
+            }
+        if target_res > 25_000:
+            return {
+                "status": "skipped",
+                "ran": False,
+                "data_type": "HiC",
+                "analysis": "loops",
+                "validation_level": "production",
+                "resolution": int(target_res),
                 "n_loops": 0,
                 "reason": "resolution_too_coarse_for_dot_calling",
                 "message": (
                     f"Loop dot calling requires <= 25 kb resolution; "
-                    f"finest available resolution was {actual_res:,} bp."
+                    f"finest available resolution was {target_res:,} bp."
                 ),
             }
+
+        clr, actual_res = _ensure_balanced_cooler(fpath, target_res, out_path)
 
         chroms = _get_chromosomes(clr, chromosomes)
         view_df = _build_view_df(clr, chroms)
@@ -1331,6 +1409,7 @@ def _compute_differential_3d(params: dict, out_dir: str) -> dict:
     phasing_df = None
     phasing_built = False
     phasing_coords = None
+    phased_chroms: set[str] = set()
     pc1_validated = False
     phasing_method = "unphased_arbitrary_sign"
 
@@ -1340,16 +1419,23 @@ def _compute_differential_3d(params: dict, out_dir: str) -> dict:
         clr_c, actual_comp_res = _ensure_balanced_cooler(fpath, comp_res, out_path / sid)
         chroms = _get_chromosomes(clr_c, chromosomes)
         vdf_c = _build_view_df(clr_c, chroms)
-        cur_bins = clr_c.bins()[:][["chrom", "start", "end"]].reset_index(drop=True)
+        long_c = [
+            c for c in vdf_c["chrom"]
+            if (int(clr_c.chromsizes[c]) // max(actual_comp_res, 1)) >= 6
+        ]
+        if long_c and len(long_c) < len(vdf_c):
+            vdf_c = vdf_c[vdf_c["chrom"].isin(long_c)].reset_index(drop=True)
+        analyzed_c = [str(c) for c in vdf_c["chrom"].tolist()]
+        vdf_chrom_set = set(analyzed_c)
+        all_bins_c = clr_c.bins()[:][["chrom", "start", "end"]]
+        cur_bins = all_bins_c[all_bins_c["chrom"].astype(str).isin(vdf_chrom_set)].reset_index(drop=True)
         if not phasing_built:
-            phasing_df, phasing_method, pc1_validated = _build_phasing_track(
-                clr_c, chroms, genome_fasta, gtf_path
+            phasing_df, phasing_method, _, phased_chroms = _build_phasing_track(
+                clr_c, analyzed_c, genome_fasta, gtf_path
             )
             phasing_coords = cur_bins
             phasing_built = True
-        elif phasing_coords is not None and (
-            len(cur_bins) != len(phasing_coords) or not cur_bins.equals(phasing_coords)
-        ):
+        elif phasing_coords is not None and not _coords_match(cur_bins, phasing_coords):
             return {
                 "status": "error",
                 "error_type": "CoordinateMismatch",
@@ -1358,36 +1444,42 @@ def _compute_differential_3d(params: dict, out_dir: str) -> dict:
                     "(mismatched resolution or chromosome assembly across Hi-C inputs)."
                 ),
             }
-        long_c = [
-            c for c in vdf_c["chrom"]
-            if (int(clr_c.chromsizes[c]) // max(actual_comp_res, 1)) >= 6
-        ]
-        if long_c and len(long_c) < len(vdf_c):
-            vdf_c = vdf_c[vdf_c["chrom"].isin(long_c)].reset_index(drop=True)
+        else:
+            sample_valid_phased = _phasing_valid_chroms(phasing_df, analyzed_c, clr=clr_c)
+            phased_chroms &= sample_valid_phased
+
         nb_min = min(int(clr_c.chromsizes[c]) // max(actual_comp_res, 1) for c in vdf_c["chrom"])
+        # Pass phasing track restricted to the analyzed chromosomes so extra contigs do not misalign.
+        phasing_for_sample = (
+            phasing_df[phasing_df["chrom"].astype(str).isin(vdf_chrom_set)].reset_index(drop=True)
+            if phasing_df is not None
+            else None
+        )
         _, ev_df = _run_eigs_per_chrom_safe(
             eig,
             clr_c,
-            phasing_df=phasing_df,
+            phasing_df=phasing_for_sample,
             view_df=vdf_c,
             n_eigs=min(3, max(1, nb_min - 2)),
             ignore_diags=_safe_ignore_diags(clr_c, vdf_c, actual_comp_res),
             seed=0,
         )
-        # If unphased, align sign of sample i >= 1 to sample 0 PER CHROMOSOME so arbitrary
-        # per-chromosome eigenvector flips do not create artificial cross-replicate deltas!
-        if not pc1_validated and e1_by_sid:
+        # Always align cross-replicate E1 sign for chromosomes NOT in phased_chroms so
+        # arbitrary per-chromosome eigenvector flips never create artificial deltas.
+        if e1_by_sid:
             ref_df = next(iter(e1_by_sid.values()))
-            ev_df = ev_df.copy()
-            for ch_name in vdf_c["chrom"]:
-                r_mask = ref_df["chrom"].astype(str) == str(ch_name)
-                c_mask = ev_df["chrom"].astype(str) == str(ch_name)
-                ref_ch = ref_df.loc[r_mask, "E1"].to_numpy(dtype=float)
-                cur_ch = ev_df.loc[c_mask, "E1"].to_numpy(dtype=float)
-                if ref_ch.shape == cur_ch.shape:
-                    ok = np.isfinite(ref_ch) & np.isfinite(cur_ch)
-                    if ok.sum() >= 5 and float(np.dot(ref_ch[ok], cur_ch[ok])) < 0:
-                        ev_df.loc[c_mask, "E1"] = -cur_ch
+            unphased_for_align = [c for c in analyzed_c if c not in phased_chroms]
+            if unphased_for_align:
+                ev_df = ev_df.copy()
+                for ch_name in unphased_for_align:
+                    r_mask = ref_df["chrom"].astype(str) == ch_name
+                    c_mask = ev_df["chrom"].astype(str) == ch_name
+                    ref_ch = ref_df.loc[r_mask, "E1"].to_numpy(dtype=float)
+                    cur_ch = ev_df.loc[c_mask, "E1"].to_numpy(dtype=float)
+                    if ref_ch.shape == cur_ch.shape:
+                        ok = np.isfinite(ref_ch) & np.isfinite(cur_ch)
+                        if ok.sum() >= 5 and float(np.dot(ref_ch[ok], cur_ch[ok])) < 0:
+                            ev_df.loc[c_mask, "E1"] = -cur_ch
         e1_by_sid[sid] = ev_df[["chrom", "start", "end", "E1"]].reset_index(drop=True)
 
         clr_t, actual_tad_res = _ensure_balanced_cooler(fpath, tad_res, out_path / sid)
@@ -1436,7 +1528,7 @@ def _compute_differential_3d(params: dict, out_dir: str) -> dict:
     base_e1_coords = next(iter(e1_by_sid.values()))[["chrom", "start", "end"]]
     base_ins_coords = next(iter(ins_by_sid.values()))[["chrom", "start", "end"]]
     for sid, df_e1 in e1_by_sid.items():
-        if len(df_e1) != len(base_e1_coords) or not df_e1[["chrom", "start", "end"]].equals(base_e1_coords):
+        if not _coords_match(df_e1, base_e1_coords):
             return {
                 "status": "error",
                 "error_type": "CoordinateMismatch",
@@ -1446,7 +1538,7 @@ def _compute_differential_3d(params: dict, out_dir: str) -> dict:
                 ),
             }
     for sid, df_in in ins_by_sid.items():
-        if len(df_in) != len(base_ins_coords) or not df_in[["chrom", "start", "end"]].equals(base_ins_coords):
+        if not _coords_match(df_in, base_ins_coords):
             return {
                 "status": "error",
                 "error_type": "CoordinateMismatch",
@@ -1455,6 +1547,11 @@ def _compute_differential_3d(params: dict, out_dir: str) -> dict:
                     "(mismatched resolution or chromosome assembly across Hi-C inputs)."
                 ),
             }
+
+    analyzed_chroms = list(dict.fromkeys(base_e1_coords["chrom"].astype(str).tolist()))
+    phased_chroms_analyzed = [c for c in analyzed_chroms if c in phased_chroms]
+    unphased_chroms = [c for c in analyzed_chroms if c not in phased_chroms]
+    pc1_validated = bool(analyzed_chroms) and (set(analyzed_chroms) <= phased_chroms)
 
     rep_keys = sorted(rep_units.keys())
     rep_conditions = [k[0] for k in rep_keys]
@@ -1540,25 +1637,24 @@ def _compute_differential_3d(params: dict, out_dir: str) -> dict:
             & (np.abs(comp_df["delta_E1"]) >= delta_e1_min)
         )
         comp_df["significant"] = sig_e1
-        if pc1_validated:
-            switch_cls = np.where(
-                sig_e1 & (comp_df["mean_E1_test"] > 0) & (comp_df["mean_E1_ref"] < 0),
-                "B_to_A",
-                np.where(
-                    sig_e1 & (comp_df["mean_E1_test"] < 0) & (comp_df["mean_E1_ref"] > 0),
-                    "A_to_B",
-                    np.where(sig_e1, "quantitative_shift", "unchanged"),
-                ),
-            )
-        else:
+        row_phased = comp_df["chrom"].astype(str).isin(phased_chroms).to_numpy(dtype=bool)
+        if not pc1_validated:
             warnings.append(
                 f"{tag}: unphased_E1_directional_A_B_labels_suppressed (provide genome_fasta or gtf)"
             )
-            switch_cls = np.where(
-                sig_e1 & ((comp_df["mean_E1_test"] * comp_df["mean_E1_ref"]) < 0),
-                "unphased_sign_flip",
-                np.where(sig_e1, "quantitative_shift", "unchanged"),
-            )
+        switch_cls = np.where(
+            sig_e1 & row_phased & (comp_df["mean_E1_test"] > 0) & (comp_df["mean_E1_ref"] < 0),
+            "B_to_A",
+            np.where(
+                sig_e1 & row_phased & (comp_df["mean_E1_test"] < 0) & (comp_df["mean_E1_ref"] > 0),
+                "A_to_B",
+                np.where(
+                    sig_e1 & (~row_phased) & ((comp_df["mean_E1_test"] * comp_df["mean_E1_ref"]) < 0),
+                    "unphased_sign_flip",
+                    np.where(sig_e1, "quantitative_shift", "unchanged"),
+                ),
+            ),
+        )
         comp_df["switch_class"] = switch_cls
         comp_csv = out_path / f"differential_compartments_{tag}.csv"
         comp_df.to_csv(comp_csv, index=False)
@@ -1591,7 +1687,13 @@ def _compute_differential_3d(params: dict, out_dir: str) -> dict:
         n_a_to_b = int((switch_cls == "A_to_B").sum())
         n_b_to_a = int((switch_cls == "B_to_A").sum())
         n_switches = n_a_to_b + n_b_to_a
-        switch_rows = comp_df[comp_df["switch_class"].isin(["A_to_B", "B_to_A"])].sort_values("padj")
+        n_unphased_flips = int((switch_cls == "unphased_sign_flip").sum())
+        switch_classes_to_rank = (
+            ["A_to_B", "B_to_A", "unphased_sign_flip"]
+            if n_unphased_flips > 0
+            else ["A_to_B", "B_to_A"]
+        )
+        switch_rows = comp_df[comp_df["switch_class"].isin(switch_classes_to_rank)].sort_values("padj")
         top_switches = [
             {
                 "chrom": str(r.chrom),
@@ -1618,6 +1720,7 @@ def _compute_differential_3d(params: dict, out_dir: str) -> dict:
             "n_ab_switches": int(n_switches),
             "n_a_to_b": n_a_to_b,
             "n_b_to_a": n_b_to_a,
+            "n_unphased_sign_flips": n_unphased_flips,
             "top_switches": top_switches,
             "differential_compartments_csv": str(comp_csv),
             "n_bins_tested_insulation": int(ins_out["padj"].notna().sum()),
@@ -1629,6 +1732,9 @@ def _compute_differential_3d(params: dict, out_dir: str) -> dict:
 
     any_ran = any(c.get("ran") for c in contrast_results)
     total_switches = sum(int(c.get("n_ab_switches", 0)) for c in contrast_results if c.get("ran"))
+    total_unphased_flips = sum(
+        int(c.get("n_unphased_sign_flips", 0)) for c in contrast_results if c.get("ran")
+    )
     total_diff_ins = sum(int(c.get("n_differential_insulation_bins", 0)) for c in contrast_results if c.get("ran"))
     primary_comp_csv = next(
         (c.get("differential_compartments_csv") for c in contrast_results if c.get("differential_compartments_csv")),
@@ -1649,10 +1755,13 @@ def _compute_differential_3d(params: dict, out_dir: str) -> dict:
         "method": "empirical_bayes_moderated_ols_bh_fdr",
         "pc1_validated": bool(pc1_validated),
         "phasing_method": phasing_method,
+        "phased_chroms": phased_chroms_analyzed,
+        "unphased_chroms": unphased_chroms,
         "padj_max": padj_max,
         "delta_e1_min": delta_e1_min,
         "delta_insulation_min": delta_ins_min,
         "n_ab_switches": int(total_switches),
+        "n_unphased_sign_flips": int(total_unphased_flips),
         "n_differential_insulation_bins": int(total_diff_ins),
         "differential_compartments_csv": primary_comp_csv,
         "differential_insulation_csv": primary_ins_csv,

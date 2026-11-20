@@ -16,15 +16,103 @@ from __future__ import annotations
 
 from contextlib import contextmanager
 from datetime import datetime, timezone
+import hashlib
 import json
+import math
 import os
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 from typing import Any
 
 from aria.utils.provenance import hash_params
 
 DECISION_MANIFEST_SCHEMA = "aria.decision_manifest.v1"
 FORK_LEDGER_SCHEMA = "aria.fork_ledger.v1"
+
+
+def _is_private_absolute_path(value: str) -> bool:
+    text = str(value or "")
+    if not text:
+        return False
+    try:
+        return (
+            Path(text).is_absolute()
+            or PureWindowsPath(text).is_absolute()
+            or text.startswith("~/")
+        )
+    except (OSError, ValueError):
+        return False
+
+
+def _portable_path_ref(value: str, content_sha256: Any = None) -> str:
+    digest = str(content_sha256 or "").strip()
+    if digest and digest != "unavailable":
+        return f"input://sha256/{digest}"
+    path_digest = hashlib.sha256(str(value).encode("utf-8")).hexdigest()
+    return f"private-path://sha256/{path_digest}"
+
+
+def _sanitize_portable_value(value: Any, *, content_sha256: Any = None) -> Any:
+    if isinstance(value, dict):
+        item_sha = value.get("sha256")
+        return {
+            key: _sanitize_portable_value(
+                item,
+                content_sha256=item_sha if key == "path" else None,
+            )
+            for key, item in value.items()
+        }
+    if isinstance(value, list):
+        return [_sanitize_portable_value(item) for item in value]
+    if isinstance(value, tuple):
+        return [_sanitize_portable_value(item) for item in value]
+    if isinstance(value, Path):
+        value = str(value)
+    if isinstance(value, str) and _is_private_absolute_path(value):
+        return _portable_path_ref(value, content_sha256)
+    return value
+
+
+def _sanitize_free_text_paths(text: str, ctx: dict[str, Any]) -> str:
+    out = str(text or "")
+    if not out:
+        return out
+    replacements: dict[str, str] = {}
+    for rec in ctx.get("input_files") or []:
+        if isinstance(rec, dict) and rec.get("path"):
+            raw = str(rec["path"])
+            if _is_private_absolute_path(raw):
+                replacements[raw] = _portable_path_ref(raw, rec.get("sha256"))
+    for paths in (ctx.get("modalities") or {}).values():
+        if isinstance(paths, list):
+            for raw_p in paths:
+                raw = str(raw_p)
+                if _is_private_absolute_path(raw) and raw not in replacements:
+                    replacements[raw] = _portable_path_ref(raw)
+    data_dir = ctx.get("data_dir")
+    if isinstance(data_dir, (str, Path)):
+        raw_dir = str(data_dir)
+        if _is_private_absolute_path(raw_dir) and raw_dir not in replacements:
+            replacements[raw_dir] = _portable_path_ref(raw_dir)
+    for private, public in sorted(
+        replacements.items(), key=lambda kv: len(kv[0]), reverse=True
+    ):
+        out = out.replace(private, public)
+    if _is_private_absolute_path(out):
+        return _portable_path_ref(out)
+    return out
+
+
+def _threshold_float(primary: Any, fallback: Any, default: float) -> float:
+    for candidate in (primary, fallback, default):
+        if candidate is None or isinstance(candidate, bool):
+            continue
+        try:
+            val = float(candidate)
+        except (TypeError, ValueError):
+            continue
+        if math.isfinite(val):
+            return val
+    return float(default)
 
 
 @contextmanager
@@ -107,8 +195,22 @@ def _normalize_design(design: dict[str, Any] | None) -> dict[str, Any]:
     for c in contrasts:
         if isinstance(c, dict):
             norm_contrasts.append({
-                "numerator": str(c.get("numerator") or c.get("treatment") or c.get("group1") or ""),
-                "denominator": str(c.get("denominator") or c.get("control") or c.get("group2") or ""),
+                "numerator": str(
+                    c.get("numerator")
+                    or c.get("test")
+                    or c.get("case")
+                    or c.get("treatment")
+                    or c.get("group1")
+                    or ""
+                ),
+                "denominator": str(
+                    c.get("denominator")
+                    or c.get("reference")
+                    or c.get("baseline")
+                    or c.get("control")
+                    or c.get("group2")
+                    or ""
+                ),
                 "factor": str(c.get("factor") or d.get("condition_col") or d.get("main_factor") or d.get("factor") or ""),
             })
         elif isinstance(c, (list, tuple)) and len(c) >= 2:
@@ -216,11 +318,18 @@ def build_decision_manifest(
         for k, v in sorted(modalities_map.items())
     }
     reproducible = bool(ctx.get("reproducible_mode", False))
-    raw_q = str(
-        intent.get("raw_user_question")
-        or intent.get("user_question")
-        or ctx.get("user_question")
-        or ""
+    raw_q = _sanitize_free_text_paths(
+        str(
+            intent.get("raw_user_question")
+            or intent.get("user_question")
+            or ctx.get("user_question")
+            or ""
+        ),
+        ctx,
+    )
+    summary_text = _sanitize_free_text_paths(
+        str(intent.get("summary") or raw_q[:200]),
+        ctx,
     )
 
     core_spec = {
@@ -228,22 +337,28 @@ def build_decision_manifest(
         "organism": str(ctx.get("organism") or ""),
         "genome": str(ctx.get("genome") or ""),
         "modalities": modalities_summary,
-        "design": _normalize_design(ctx.get("design")),
+        "design": _sanitize_portable_value(_normalize_design(ctx.get("design"))),
         "thresholds": {
-            "global_padj": float(ctx.get("global_padj", (plan or {}).get("padj_threshold", 0.05))),
-            "global_lfc": float(ctx.get("global_lfc", (plan or {}).get("lfc_threshold", 1.0))),
+            "global_padj": _threshold_float(
+                ctx.get("global_padj"), (plan or {}).get("padj_threshold"), 0.05
+            ),
+            "global_lfc": _threshold_float(
+                ctx.get("global_lfc"), (plan or {}).get("lfc_threshold"), 1.0
+            ),
             "lfc_threshold_provenance": str(
                 ctx.get("lfc_threshold_provenance")
                 or (plan or {}).get("lfc_threshold_provenance")
                 or "default"
             ),
         },
-        "analysis_plan": _normalize_plan(plan, ctx),
+        "analysis_plan": _sanitize_portable_value(_normalize_plan(plan, ctx)),
         "parameter_grid_policy": {
             "leiden_grid": "canonical_union_12pt" if reproducible else "intent_window_4pt",
             "historical_bonus_disabled": reproducible,
         },
-        "locked_parameter_decisions": dict(sorted((locked_parameter_decisions or {}).items())),
+        "locked_parameter_decisions": _sanitize_portable_value(
+            dict(sorted((locked_parameter_decisions or {}).items()))
+        ),
     }
     specification_sha256 = hash_params(core_spec)
 
@@ -262,9 +377,9 @@ def build_decision_manifest(
         "replayed_from_manifest_sha256": replayed_from_manifest_sha256,
         "biological_intent": {
             "analysis_type": str(intent.get("analysis_type") or "differential"),
-            "comparison": str(intent.get("comparison") or ""),
+            "comparison": _sanitize_free_text_paths(str(intent.get("comparison") or ""), ctx),
             "raw_user_question": raw_q,
-            "summary": str(intent.get("summary") or raw_q[:200]),
+            "summary": summary_text,
         },
         **core_spec,
     }
@@ -433,7 +548,11 @@ def commit_decision_manifest(
             total_distinct_specs = len(distinct_specs) + 1
 
         effective_status = str(manifest.get("commitment_status") or "locked_before_execution")
-        if fork_index > 0 and effective_status == "locked_before_execution" and not is_exact_spec_replay:
+        if is_exact_spec_replay:
+            matched_status = str(matched.get("commitment_status") or "")
+            if fork_index > 0 and effective_status == "locked_before_execution" and matched_status:
+                effective_status = matched_status
+        elif fork_index > 0 and effective_status == "locked_before_execution":
             effective_status = "post_hoc_fork"
 
         ledger_record = {

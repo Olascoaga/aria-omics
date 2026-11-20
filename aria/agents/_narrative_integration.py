@@ -59,12 +59,12 @@ _GUARDRAIL_COLORS = {
 }
 
 
-# Wave 2A: TF x peak2gene sign classes -> (colour, short tag, legend label).
+# Wave 2A / ADR-064: strictly non-causal TF x peak2gene sign classes -> (colour, short tag, legend label).
 _SIGN_CLASS_STYLE = {
-    "pos_tf_pos_p2g": ("#0f766e", "TF+/p2g+", "pos_tf_pos_p2g (concordant activator candidate)"),
-    "neg_tf_pos_p2g": ("#d97706", "TF-/p2g+", "neg_tf_pos_p2g (inverse TF candidate)"),
-    "pos_tf_neg_p2g": ("#7c3aed", "TF+/p2g-", "pos_tf_neg_p2g (repressive-link candidate)"),
-    "neg_tf_neg_p2g": ("#be123c", "TF-/p2g-", "neg_tf_neg_p2g (double-negative candidate)"),
+    "pos_tf_pos_p2g": ("#0f766e", "TF+/p2g+", "pos_tf_pos_p2g (concordant TF+ / p2g+)"),
+    "neg_tf_pos_p2g": ("#d97706", "TF-/p2g+", "neg_tf_pos_p2g (inverse TF- / p2g+)"),
+    "pos_tf_neg_p2g": ("#7c3aed", "TF+/p2g-", "pos_tf_neg_p2g (discordant TF+ / p2g-)"),
+    "neg_tf_neg_p2g": ("#be123c", "TF-/p2g-", "neg_tf_neg_p2g (double-negative TF- / p2g-)"),
 }
 _SIGN_CLASS_OTHER = ("#64748b", "?", "other / unclassified sign")
 
@@ -690,15 +690,33 @@ def render_mofa_variance_explained(
             return None, 0.0, 0.0
         return fid, _view_r2(row, "rna"), _view_r2(row, "atac")
 
-    def _flag_reasons(row: dict[str, Any]) -> list[str]:
+    batch_ids_top: set[int] = set()
+    for bkey in ("batch_factor_ids", "batch_confounded_factors"):
+        for item in mofa_findings.get(bkey) or []:
+            raw_b = item
+            if isinstance(item, dict):
+                raw_b = item.get("factor_id") if item.get("factor_id") is not None else item.get("factor")
+            try:
+                if raw_b is not None:
+                    batch_ids_top.add(int(raw_b))
+            except (TypeError, ValueError):
+                pass
+
+    def _flag_reasons(row: dict[str, Any], fid: int | None = None) -> list[str]:
         reasons = [str(r) for r in (row.get("exclusion_reasons") or [])]
-        if not reasons:  # fall back to the boolean flags when reasons are absent
-            if row.get("technical_depth_flag"):
-                reasons.append("sequencing_depth_correlated")
-            if row.get("cell_cycle_flag"):
-                reasons.append("cell_cycle_correlated")
-            if row.get("batch_flag"):
-                reasons.append("batch_or_donor_confounded")
+        low_joined = " ".join(reasons).lower()
+        if row.get("technical_depth_flag") and "depth" not in low_joined:
+            reasons.append("sequencing_depth_correlated")
+        if row.get("cell_cycle_flag") and "cycle" not in low_joined:
+            reasons.append("cell_cycle_correlated")
+        if (row.get("batch_flag") or (fid is not None and fid in batch_ids_top)) and (
+            "batch" not in low_joined and "donor" not in low_joined
+        ):
+            ba = row.get("batch_association")
+            bcol = ba.get("batch_key") if isinstance(ba, dict) else None
+            reasons.append(
+                f"batch_or_donor_confounded:{bcol}" if bcol else "batch_or_donor_confounded"
+            )
         return reasons
 
     for row in active:
@@ -707,7 +725,13 @@ def render_mofa_variance_explained(
         fid, r_pct, a_pct = _extract_fac_r2(row)
         if fid is None:
             continue
-        is_ex_row = bool(row.get("excluded_from_biological_interpretation"))
+        is_ex_row = bool(
+            row.get("excluded_from_biological_interpretation")
+            or row.get("batch_flag")
+            or row.get("technical_depth_flag")
+            or row.get("cell_cycle_flag")
+            or fid in batch_ids_top
+        )
         factor_map[fid] = {
             "factor": fid,
             "rna_pct": r_pct,
@@ -718,7 +742,7 @@ def render_mofa_variance_explained(
                 else str(row.get("category") or row.get("classification") or "active")
             ),
             "excluded": is_ex_row,
-            "reasons": _flag_reasons(row),
+            "reasons": _flag_reasons(row, fid),
         }
     for row in excluded:
         if not isinstance(row, dict):
@@ -732,7 +756,7 @@ def render_mofa_variance_explained(
             "atac_pct": a_pct,
             "classification": "excluded_confounder",
             "excluded": True,
-            "reasons": _flag_reasons(row),
+            "reasons": _flag_reasons(row, fid),
         }
     if not factor_map:
         return None

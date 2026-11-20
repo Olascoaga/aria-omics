@@ -73,8 +73,15 @@ def chromatin_peaks(params: dict) -> dict:
         }
     seacr_mode = str(params.get("seacr_mode") or ("relaxed" if assay_class in {"histone", "broad"} else "stringent"))
     seacr_norm = str(params.get("seacr_norm") or "norm")
-    seacr_top_quantile = float(params.get("seacr_top_quantile", 0.01))
-    target_scale_factors = params.get("target_scale_factors")
+    raw_top_q = params.get("seacr_top_quantile")
+    if raw_top_q is None:
+        raw_top_q = params.get("seacr_top_fraction", 0.01)
+    seacr_top_quantile = float(raw_top_q)
+    target_scale_factors = (
+        params.get("target_scale_factors")
+        if params.get("target_scale_factors") is not None
+        else params.get("spikein_scale_factors")
+    )
     control_scale_factors = params.get("control_scale_factors")
     run_idr = bool(
         params.get(
@@ -224,6 +231,7 @@ def chromatin_peaks(params: dict) -> dict:
         )
         if dom_res.get("status") == "error":
             return dom_res
+        warnings.extend(dom_res.get("warnings") or [])
         effective_format = "BROAD_DOMAIN_BINS"
     else:
         effective_params, effective_format = _effective_macs3_params(
@@ -755,11 +763,16 @@ def _replicate_reproducibility(valid_files: list[str],
 
 
 def _read_peak_intervals(peaks_file: str) -> list[tuple[str, int, int]]:
+    import gzip
+
     intervals: list[tuple[str, int, int]] = []
     try:
-        with open(peaks_file, encoding="utf-8") as handle:
+        with open(peaks_file, "rb") as probe:
+            is_gz = probe.read(2) == b"\x1f\x8b"
+        opener = gzip.open if is_gz else open
+        with opener(peaks_file, "rt", encoding="utf-8") as handle:
             for line in handle:
-                if not line.strip() or line.startswith("#"):
+                if not line.strip() or line.startswith(("#", "track", "browser")):
                     continue
                 parts = line.rstrip("\n").split("\t")
                 if len(parts) < 3:
@@ -771,7 +784,7 @@ def _read_peak_intervals(peaks_file: str) -> list[tuple[str, int, int]]:
                     continue
                 if end > start:
                     intervals.append((parts[0], start, end))
-    except OSError:
+    except (OSError, UnicodeDecodeError, EOFError):
         return []
     return intervals
 
@@ -871,20 +884,28 @@ def _filter_blacklist(peaks_path, blacklist_bed):
     if not blacklist_bed or not Path(blacklist_bed).is_file():
         return 0
     index = _interval_index(_read_peak_intervals(str(blacklist_bed)))
+    if not index:
+        return 0
     kept = []
     removed = 0
-    with open(peaks_path) as handle:
+    with open(peaks_path, encoding="utf-8") as handle:
         for line in handle:
             cols = line.rstrip().split("\t")
             if line.startswith(("#", "track", "browser")) or len(cols) < 3:
                 kept.append(line)
                 continue
-            if _overlaps(index, cols[0], int(cols[1]), int(cols[2])):
+            try:
+                start = int(float(cols[1]))
+                end = int(float(cols[2]))
+            except ValueError:
+                kept.append(line)
+                continue
+            if _overlaps(index, cols[0], start, end):
                 removed += 1
             else:
                 kept.append(line)
     if removed:
-        Path(peaks_path).write_text("".join(kept))
+        Path(peaks_path).write_text("".join(kept), encoding="utf-8")
     return removed
 
 
@@ -904,13 +925,20 @@ def _compute_frip(bam_file: str, peaks_file: str,
         intervals = _read_peak_intervals(peaks_file)
         if not intervals:
             return None
+        raw_peak_chroms = {c for c, _, _ in intervals}
         index = _interval_index(intervals)
         bedtools = shutil.which("bedtools")
-        use_bedtools = bedtools and not str(bam_file).lower().endswith(".cram")
+        use_bedtools = bool(bedtools and not str(bam_file).lower().endswith(".cram"))
         total = overlaps = 0
         with tempfile.TemporaryDirectory(prefix="aria_frip_") as tmp:
             filtered = str(Path(tmp) / "primary_nondup.bam")
             with _open_alignment(bam_file, reference_fasta) as bam:
+                bam_refs = set(getattr(bam, "references", ()) or ())
+                if use_bedtools and bam_refs and not (bam_refs & raw_peak_chroms):
+                    # UCSC vs Ensembl contig mismatch: bedtools requires exact
+                    # contig strings, whereas the pysam pass below normalizes
+                    # contigs via _interval_index/_overlaps.
+                    use_bedtools = False
                 out = pysam.AlignmentFile(filtered, "wb", template=bam) if use_bedtools else None
                 try:
                     for read in bam.fetch(until_eof=True):

@@ -31,3 +31,33 @@ def estimate_ram_gb(resolution_bp: int) -> float:
     if r <= 0:
         return 1000.0
     return round(100.0 * ((10_000.0 / float(r)) ** 2), 4)
+
+
+def list_mcool_resolutions(path: str) -> dict[int, str]:
+    """Return ``{binsize_bp: internal_cooler_group}`` for a ``.mcool`` file.
+
+    Supports both modern ``/resolutions/<bp>`` layouts and legacy zoom-level
+    ``.mcool`` paths (``/0``, ``/1``, ...) by querying ``cooler.Cooler.binsize``.
+    """
+    import cooler
+
+    groups = cooler.fileops.list_coolers(str(path))
+    out: dict[int, str] = {}
+    fallback_groups: list[str] = []
+    for grp in groups:
+        grp_s = str(grp)
+        tail = grp_s.rstrip("/").split("/")[-1]
+        if "/resolutions/" in grp_s and tail.isdigit():
+            res = int(tail)
+            if res > 0:
+                out.setdefault(res, grp_s)
+                continue
+        fallback_groups.append(grp_s)
+    for grp_s in fallback_groups:
+        try:
+            clr = cooler.Cooler(f"{path}::{grp_s}")
+            if clr.binsize is not None and int(clr.binsize) > 0:
+                out.setdefault(int(clr.binsize), grp_s)
+        except Exception:
+            continue
+    return dict(sorted(out.items()))

@@ -73,11 +73,28 @@ def _open_alignment(path, reference_fasta=None):
     )
 
 
+def _norm_contig(chrom: str | None) -> str:
+    """Normalize UCSC/Ensembl contig aliases (chr1 <-> 1, chrM/chrMT <-> MT)."""
+    if not chrom:
+        return ""
+    c = str(chrom).strip()
+    low = c.lower()
+    if low in ("chrm", "chrmt", "mt", "m"):
+        return "MT"
+    if low.startswith("chr"):
+        return c[3:]
+    return c
+
+
 def _interval_index(rows):
-    """Merge intervals so a predecessor bisect handles nested/overlapping BEDs."""
+    """Merge intervals so a predecessor bisect handles nested/overlapping BEDs.
+
+    Contigs are normalized (``chr1`` == ``1``, ``chrM`` == ``MT``) so UCSC and
+    Ensembl coordinate sets match consistently.
+    """
     by_chrom = {}
     for chrom, start, end in rows:
-        by_chrom.setdefault(chrom, []).append((start, end))
+        by_chrom.setdefault(_norm_contig(chrom), []).append((start, end))
     index = {}
     for chrom, intervals in by_chrom.items():
         merged = []
@@ -91,7 +108,7 @@ def _interval_index(rows):
 
 
 def _overlaps(index, chrom, start, end):
-    starts, ends = index.get(chrom, ([], []))
+    starts, ends = index.get(_norm_contig(chrom), ([], []))
     i = bisect_left(starts, end) - 1
     return i >= 0 and ends[i] > start
 
@@ -372,10 +389,20 @@ _SUPPORTED_BULK_MODALITIES = frozenset({
 })
 
 
+def _parse_bool_flag(value: Any) -> bool:
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return False
+    if isinstance(value, (int, float)):
+        return bool(value) and value == value
+    return str(value).strip().lower() in {"1", "true", "yes", "y"}
+
+
 def _is_control_meta(meta: Any) -> bool:
     if not isinstance(meta, dict):
         return False
-    if bool(meta.get("is_control")):
+    if _parse_bool_flag(meta.get("is_control")):
         return True
     role = str(meta.get("role") or meta.get("sample_role") or "").strip().lower()
     return role in {"control", "input", "igg", "mock_igg"}

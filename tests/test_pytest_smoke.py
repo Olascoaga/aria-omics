@@ -1238,19 +1238,24 @@ def test_qc_cache_requires_matching_parameters():
     expected = _cache_params(params)
 
     assert _cache_matches(
-        {"cache_version": 7, "cache_params": expected},
+        {"cache_version": 8, "cache_params": expected},
         expected,
     )
     assert "user_question" not in expected
     stale = {**expected, "min_genes": 500}
     assert not _cache_matches(
-        {"cache_version": 7, "cache_params": stale},
+        {"cache_version": 8, "cache_params": stale},
         expected,
     )
     # Older cache schemas must not be reused after QC-threshold policy changes
     # (N-QC1 moved the count/gene MAD bounds to log space → bump 4→5; T6 added
     # the MAD=0 minimum-width fallback → bump 5→6; Wave 3B hardened mouse MT
-    # detection & non-finite MAD bounds → bump 6→7).
+    # detection & non-finite MAD bounds → bump 6→7; Wave 5B added data_path +
+    # input fingerprint to prevent multi-sample cache collision → bump 7→8).
+    assert not _cache_matches(
+        {"cache_version": 7, "cache_params": expected},
+        expected,
+    )
     assert not _cache_matches(
         {"cache_version": 6, "cache_params": expected},
         expected,
@@ -3543,12 +3548,14 @@ def test_collect_llm_usage_summarizes_deterministic_provenance(monkeypatch, tmp_
 
 def test_reproducible_mode_writes_memory_snapshot(tmp_path):
     from aria.agents.narrative_agent import NarrativeAgent
+    from aria.memory.memory import ARIAMemory
 
     agent = NarrativeAgent.__new__(NarrativeAgent)
     agent.reports_dir = tmp_path
     db = tmp_path / "memory.db"
-    db.write_bytes(b"sqlite")
-    agent.memory = type("M", (), {"db_path": str(db)})()
+    mem = ARIAMemory(db_path=str(db))
+    mem.create_wing(experiment_id="exp_test", name="test snapshot", organism="Homo sapiens")
+    agent.memory = mem
     report = agent._render_html_report(
         experiment_id="exp_test",
         exp_ctx={
@@ -3569,7 +3576,8 @@ def test_reproducible_mode_writes_memory_snapshot(tmp_path):
     )
     html = report.read_text()
     assert "&lt;timestamp redacted for byte-identity&gt;" in html
-    assert (report.parent / "memory_snapshot.sqlite").exists()
+    snap = report.parent / "memory_snapshot.sqlite"
+    assert snap.exists() and snap.stat().st_size > 0
 
 
 def test_reproducible_mode_byte_identity(tmp_path):

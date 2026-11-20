@@ -796,12 +796,20 @@ class ScrnaNarrator:
             _evidence("DPT computed", bool(pt.get("computed")), "trajectory"),
         ]
         if pt.get("pseudotime_by_group"):
-            ordered = sorted(pt["pseudotime_by_group"].items(), key=lambda kv: kv[1])
-            evidence.append(_evidence(
-                "DPT ordered groups",
-                " -> ".join(str(g) for g, _ in ordered),
-                "trajectory",
-            ))
+            finite_pt = [
+                (g, float(v))
+                for g, v in pt["pseudotime_by_group"].items()
+                if isinstance(v, (int, float))
+                and not isinstance(v, bool)
+                and math.isfinite(v)
+            ]
+            if finite_pt:
+                ordered = sorted(finite_pt, key=lambda kv: (kv[1], str(kv[0])))
+                evidence.append(_evidence(
+                    "DPT ordered groups",
+                    " -> ".join(str(g) for g, _ in ordered),
+                    "trajectory",
+                ))
         return [NarrativeBlock(
             id="scrna.trajectory",
             modality="scRNA-seq",

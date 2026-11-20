@@ -71,23 +71,146 @@ def _min_arm_replicates(exp_ctx: dict[str, Any], agent_results: dict[str, Any]) 
     return None, "biological_unit"
 
 
+def _stage_ran(stage: Any) -> bool:
+    if not isinstance(stage, dict) or not stage:
+        return False
+    if stage.get("ran") is False:
+        return False
+    st = str(stage.get("status") or "").lower().strip()
+    if st in {"not_run", "skipped", "blocked", "error", "failed"}:
+        return False
+    return stage.get("ran") is True or st in {"success", "ok", "done"}
+
+
+def _unwrap_integration_dict(agent_results: dict[str, Any]) -> dict[str, Any]:
+    integ = (agent_results or {}).get("integration_agent")
+    if not isinstance(integ, dict):
+        return {}
+    findings = integ.get("findings")
+    return findings if isinstance(findings, dict) else integ
+
+
+def _unwrap_chromatin_dict(agent_results: dict[str, Any]) -> dict[str, Any]:
+    chrom = (agent_results or {}).get("chromatin_agent")
+    if not isinstance(chrom, dict):
+        return {}
+    try:
+        from aria.agents.narrative.narrators.chromatin import unwrap_chromatin_findings
+        return unwrap_chromatin_findings(chrom) or {}
+    except Exception:
+        findings = chrom.get("findings")
+        return findings if isinstance(findings, dict) else chrom
+
+
 def _permutation_axis_for_claim(claim: dict[str, Any], agent_results: dict[str, Any]) -> dict[str, Any]:
-    modality = str(claim.get("modality") or "")
-    analysis = str(claim.get("analysis") or "")
+    modality = str(claim.get("modality") or "").lower()
+    analysis = str(claim.get("analysis") or "").lower()
+    results = agent_results or {}
+
     if analysis in {"peak_to_gene", "peak2gene"}:
+        integ = _unwrap_integration_dict(results)
+        chrom = _unwrap_chromatin_dict(results)
+        chrom_reg = chrom.get("regulatory") if isinstance(chrom.get("regulatory"), dict) else {}
+        candidates = (
+            [chrom_reg.get("peak_to_gene"), integ.get("peak_to_gene")]
+            if any(tok in modality for tok in ("chromatin", "atac", "chip"))
+            else [integ.get("peak_to_gene"), chrom_reg.get("peak_to_gene")]
+        )
+        p2g = next((c for c in candidates if isinstance(c, dict) and c), None)
+        bg = p2g.get("background_method") if isinstance(p2g, dict) else None
+        bg_ok = (
+            isinstance(bg, str)
+            and bg.strip().lower() not in {"", "none", "null", "false"}
+        )
+        if _stage_ran(p2g) and bg_ok:
+            return {
+                "status": "calibrated",
+                "null_family": "trans_chromosomal_gc_accessibility_matched",
+            }
         return {
-            "status": "calibrated",
-            "null_family": "trans_chromosomal_gc_accessibility_matched",
+            "status": "not_calibrated",
+            "null_family": "none",
         }
+
     if analysis == "eregulons":
+        integ = _unwrap_integration_dict(results)
+        ereg = integ.get("eregulons") if isinstance(integ.get("eregulons"), dict) else None
+        if _stage_ran(ereg):
+            raw_n_perm = ereg.get("n_null_permutations")
+            explicit_zero_perm = raw_n_perm is not None and _finite_count(raw_n_perm) <= 0
+            p2g_sum = ereg.get("p2g_summary") if isinstance(ereg.get("p2g_summary"), dict) else {}
+            bg_match = str(p2g_sum.get("background_match") or "").strip().lower()
+            has_null_cal = (
+                _finite_count(raw_n_perm) > 0
+                or bool(ereg.get("null_calibration"))
+                or bool(ereg.get("cistrome_calibration"))
+                or (
+                    isinstance(ereg.get("calibration"), dict)
+                    and bool(ereg["calibration"])
+                )
+                or bg_match not in {"", "none", "null", "false"}
+                or any(
+                    isinstance(row, dict)
+                    and any(
+                        row.get(k) is not None
+                        and not isinstance(row.get(k), bool)
+                        and isinstance(row.get(k), (int, float))
+                        and math.isfinite(float(row.get(k)))
+                        for k in ("cistrome_cmh_padj", "cistrome_cmh_z", "cistrome_log2_fe")
+                    )
+                    for row in (ereg.get("top_eregulons") or [])
+                )
+            )
+            if has_null_cal and not explicit_zero_perm:
+                return {
+                    "status": "calibrated",
+                    "null_family": "gc_quintile_cmh_and_5x5_expr_prevalence_null",
+                }
         return {
-            "status": "calibrated",
-            "null_family": "gc_quintile_cmh_and_5x5_expr_prevalence_null",
+            "status": "not_calibrated",
+            "null_family": "none",
         }
+
     if "footprint" in analysis or modality == "tobias":
+        chrom = _unwrap_chromatin_dict(results)
+        foot = chrom.get("footprinting") if isinstance(chrom.get("footprinting"), dict) else None
+        if _stage_ran(foot):
+            diff_sum = (
+                foot.get("differential_summary")
+                if isinstance(foot.get("differential_summary"), dict) else {}
+            )
+            inference = (
+                diff_sum.get("inference")
+                if isinstance(diff_sum.get("inference"), dict) else {}
+            )
+            inf_status = str(inference.get("status") or "").lower().strip()
+            fdr_controlled = (
+                (diff_sum.get("ranking_basis") or {}).get("fdr_controlled")
+                if isinstance(diff_sum.get("ranking_basis"), dict) else None
+            )
+            null_ctrl = (
+                inference.get("null_label_controls")
+                or diff_sum.get("null_label_controls")
+                or foot.get("null_label_controls")
+                or {}
+            )
+            n_perms = (
+                _finite_count(null_ctrl.get("n_permutations"))
+                if isinstance(null_ctrl, dict) else 0
+            )
+            if inf_status == "success" and fdr_controlled is not False:
+                if n_perms > 0:
+                    return {
+                        "status": "calibrated",
+                        "null_family": "stratified_within_batch_label_permutation",
+                    }
+                return {
+                    "status": "parametric_bh_only",
+                    "null_family": "replicate_welch_t_bh_without_label_permutation",
+                }
         return {
-            "status": "calibrated",
-            "null_family": "stratified_within_batch_label_permutation",
+            "status": "not_calibrated_descriptive_only",
+            "null_family": "none",
         }
     if modality == "cross_modal" or "cross_modal" in analysis:
         # The sample-label permutation null exists ONLY for sample-matched link

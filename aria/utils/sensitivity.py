@@ -26,12 +26,36 @@ _PHI_TOKENS = (
     "biopsy", "specimen", "consent", "accession", "ethnicity", "zipcode",
     "email", "phone",
 )
+# Common clinical plurals and unseparated identifier compounds mapped to their
+# canonical signal token without reviving substring collisions (e.g. mRNA,
+# pseudobulk, neutrophil).
+_PHI_TOKEN_ALIASES = {
+    "patients": "patient",
+    "patientid": "patient",
+    "patientids": "patient",
+    "subjects": "subject",
+    "subjectid": "subject",
+    "subjectids": "subject",
+    "donorid": "donorid",
+    "donorids": "donorid",
+    "biopsies": "biopsy",
+    "specimens": "specimen",
+    "diagnoses": "diagnosis",
+    "hospitals": "hospital",
+    "emails": "email",
+    "phones": "phone",
+    "zipcodes": "zipcode",
+    "icd9": "icd",
+    "icd10": "icd",
+    "mrnid": "mrn",
+}
 # Quasi-identifiers: meaningful only in combination (age alone is common and not
 # sensitive; age + sex/gender starts to re-identify).
 _QUASI_AGE = ("age", "ageyears", "ageatdiagnosis")
 _QUASI_SEX = ("sex", "gender")
 
 _HUMAN_TOKENS = ("human", "sapiens", "homosapiens", "hsapiens", "hg38", "hg19", "grch")
+_COMPOUND_TARGETS = frozenset(_PHI_TOKENS) | frozenset(_PHI_TOKEN_ALIASES) | frozenset(_QUASI_AGE) | frozenset(_QUASI_SEX)
 
 
 def _norm(text) -> str:
@@ -42,12 +66,19 @@ def _norm(text) -> str:
 def _tokens(text) -> set[str]:
     text = re.sub(r"([A-Z]+)([A-Z][a-z])", r"\1 \2", str(text))
     text = re.sub(r"([a-z0-9])([A-Z])", r"\1 \2", text)
+    # Split letter-digit boundaries so icd10 -> "icd 10" and patient01 -> "patient 01".
+    text = re.sub(r"([A-Za-z])([0-9])", r"\1 \2", text)
+    text = re.sub(r"([0-9])([A-Za-z])", r"\1 \2", text)
     words = [word for word in re.split(r"[^a-z0-9]+", text.lower()) if word]
     tokens = set(words)
-    # Preserve compound PHI names such as medical_record and dateOfBirth.
+    # Preserve compound PHI/quasi-identifier names (e.g. medical_record,
+    # dateOfBirth, donor_id, icd10, ageYears).
     for width in (2, 3):
-        tokens.update("".join(words[i:i + width]) for i in range(len(words) - width + 1)
-                      if "".join(words[i:i + width]) in _PHI_TOKENS)
+        tokens.update(
+            "".join(words[i:i + width])
+            for i in range(len(words) - width + 1)
+            if "".join(words[i:i + width]) in _COMPOUND_TARGETS
+        )
     return tokens
 
 
@@ -73,10 +104,11 @@ def classify_sensitivity(organism: str = "",
     is_human = any(tok in _norm(organism) for tok in _HUMAN_TOKENS) or \
         any(any(tok in n for tok in _HUMAN_TOKENS) for n in normed)
 
-    phi_signals = sorted({
-        tok for tok in _PHI_TOKENS
-        if tok in tokens
-    })
+    phi_found = {tok for tok in _PHI_TOKENS if tok in tokens}
+    for alias, canonical in _PHI_TOKEN_ALIASES.items():
+        if alias in tokens:
+            phi_found.add(canonical)
+    phi_signals = sorted(phi_found)
     has_age = any(tok in tokens for tok in _QUASI_AGE)
     has_sex = any(tok in tokens for tok in _QUASI_SEX)
     quasi = []

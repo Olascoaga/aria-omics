@@ -328,12 +328,28 @@ def _select_seacr_empirical_threshold(
     # relaxed maximizes total target signal fraction minus control signal fraction;
     # stringent weights signal excess by empirical block/signal precision so IgG
     # tail noise is rejected without collapsing onto a tiny extreme-tail subset.
-    excess = np.where(t_above >= 1.0, t_sig_frac - c_sig_frac, -np.inf)
-    stringent_obj = np.where(
-        t_above >= 1.0,
-        excess * (0.5 * sig_precision + 0.5 * block_precision) * (1.0 - c_above / n_c),
-        -np.inf,
+    valid = t_above >= 1.0
+    raw_excess = t_sig_frac - c_sig_frac
+    excess = np.where(valid, raw_excess, -np.inf)
+    raw_stringent = (
+        raw_excess
+        * (0.5 * sig_precision + 0.5 * block_precision)
+        * (1.0 - c_above / n_c)
     )
+    stringent_obj = np.where(valid, raw_stringent, -np.inf)
+
+    max_excess = float(np.max(excess)) if excess.size else -np.inf
+    if not math.isfinite(max_excess) or max_excess <= 0.0:
+        return float("inf"), {
+            "threshold_stringent": None,
+            "threshold_selected": None,
+            "empirical_fdr": 0.0,
+            "precision": 0.0,
+            "n_target_blocks_total": int(t_sorted.size),
+            "n_control_blocks_total": int(c_sorted.size),
+            "n_control_blocks_above_threshold": 0,
+            "no_signal_excess": True,
+        }
 
     rel_idx = int(np.argmax(excess))
     thr_relaxed = float(grid[rel_idx])
@@ -475,12 +491,29 @@ def call_seacr_peaks(
                 np.add.at(delta, np.searchsorted(coords, s_arr), v_arr)
                 np.add.at(delta, np.searchsorted(coords, e_arr), -v_arr)
                 cov = np.cumsum(delta)[:-1]
-                for idx in np.flatnonzero(cov > 1e-9):
+                for idx in np.flatnonzero(cov > 0.0):
                     out.write(f"{chrom}\t{int(coords[idx])}\t{int(coords[idx + 1])}\t{_fmt_bedgraph_value(float(cov[idx]))}\n")
         return str(merged_out)
 
-    used_spikein = bool(already_spikein_scaled or target_scale_factors or control_scale_factors)
-    effective_norm = "non" if used_spikein else str(norm or "norm").strip().lower()
+    warnings_out: list[str] = []
+    asymmetric_spikein = bool(
+        controls
+        and not already_spikein_scaled
+        and (bool(target_scale_factors) != bool(control_scale_factors))
+    )
+    if asymmetric_spikein:
+        used_spikein = False
+        effective_norm = "norm"
+        warnings_out.append(
+            "SEACR received spike-in scale factors for only one lane "
+            "(target or control) alongside control inputs; keeping "
+            "norm='norm' so target and control bedGraphs are compared on a "
+            "matched background scale. Provide both target_scale_factors and "
+            "control_scale_factors to use unnormalized ('non') spike-in comparison."
+        )
+    else:
+        used_spikein = bool(already_spikein_scaled or target_scale_factors or control_scale_factors)
+        effective_norm = "non" if used_spikein else str(norm or "norm").strip().lower()
 
     target_bgs = _to_bedgraphs(targets, target_scale_factors, "target")
     merged_target_bg = _merge_bedgraphs_mean(target_bgs, tmp_dir / "pooled_target.bedgraph")
@@ -495,11 +528,10 @@ def call_seacr_peaks(
             "n_peaks": 0,
             "peaks_path": str(out_path),
             "threshold": None,
-            "warnings": ["Target alignment/bedGraph contained zero positive signal blocks."],
+            "warnings": warnings_out + ["Target alignment/bedGraph contained zero positive signal blocks."],
         }
 
     target_auc = np.array([b["total_signal"] for b in target_blocks], dtype=float)
-    warnings_out: list[str] = []
     threshold_meta: dict[str, Any] = {}
 
     if controls:
@@ -536,7 +568,8 @@ def call_seacr_peaks(
         for b in kept:
             fh.write(
                 f"{b['chrom']}\t{b['start']}\t{b['end']}\t"
-                f"{b['total_signal']:.4f}\t{b['max_signal']:.4f}\t{b['max_region']}\n"
+                f"{_fmt_bedgraph_value(b['total_signal'])}\t"
+                f"{_fmt_bedgraph_value(b['max_signal'])}\t{b['max_region']}\n"
             )
 
     return {
@@ -547,7 +580,7 @@ def call_seacr_peaks(
         "already_spikein_scaled": used_spikein,
         "n_peaks": len(kept),
         "peaks_path": str(out_path),
-        "threshold": round(float(threshold), 6),
+        "threshold": (float(threshold) if math.isfinite(float(threshold)) else None),
         "diagnostics": threshold_meta,
         "warnings": warnings_out,
     }
@@ -718,7 +751,7 @@ def fit_copula_idr_pair(
 
         w_sum = float(np.sum(gamma))
         if w_sum <= 1e-6:
-            pi1_new, mu_new, sigma_new, rho_new = 0.01, mu, sigma, 0.0
+            pi1, mu, sigma, rho = 0.01, mu, sigma, 0.0
             converged = True
             break
 
@@ -973,9 +1006,23 @@ def call_broad_domains(
                     accum[ref] += arr * (scale / len(paths))
         return accum, chrom_sizes
 
-    ip_norm, chrom_sizes = _bin_cohort(ip_bams, ip_scale_factors)
+    warnings_out: list[str] = []
+    eff_ip_scales = ip_scale_factors
+    eff_ctrl_scales = control_scale_factors
+    if control_bams and (bool(ip_scale_factors) != bool(control_scale_factors)):
+        warnings_out.append(
+            "call_broad_domains received spike-in scale factors for only one "
+            "lane (IP or control) alongside control BAMs; falling back to "
+            "matched CPM normalization for both lanes. Provide both "
+            "ip_scale_factors and control_scale_factors to apply spike-in "
+            "scaling against controls."
+        )
+        eff_ip_scales = None
+        eff_ctrl_scales = None
+
+    ip_norm, chrom_sizes = _bin_cohort(ip_bams, eff_ip_scales)
     ctrl_norm = (
-        _bin_cohort(control_bams, control_scale_factors)[0]
+        _bin_cohort(control_bams, eff_ctrl_scales)[0]
         if control_bams
         else {}
     )
@@ -1030,9 +1077,15 @@ def call_broad_domains(
         "min_log2_enrichment": float(min_log2_enrichment),
         "max_gap_bp": int(max_gap_bp),
         "min_domain_bp": int(min_domain_bp),
+        "normalization": (
+            "spikein"
+            if (eff_ip_scales and (not control_bams or eff_ctrl_scales))
+            else "CPM"
+        ),
         "n_peaks": len(domains),
         "peaks_path": str(out_path),
         "total_domain_bp": int(sum(e - s for _, s, e, _ in domains)),
+        "warnings": warnings_out,
     }
 
 

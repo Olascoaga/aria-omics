@@ -1,6 +1,8 @@
 """scRNAAgent QC / integration / clustering mixin (A7 extraction from scrna_agent.py; bodies verbatim)."""
 from __future__ import annotations
 
+import math
+
 from aria.agents.scrna._base import *  # noqa: F401,F403
 
 
@@ -30,8 +32,18 @@ class QCClusteringMixin:
 
         per_sample = []
         manifest   = []
+        seen_sids: dict[str, int] = {}
         for f in files:
-            sid = self._sample_id_from_path(f)
+            base_sid = self._sample_id_from_path(f)
+            if base_sid in seen_sids:
+                seen_sids[base_sid] += 1
+                sid = f"{base_sid}_{seen_sids[base_sid]}"
+                while sid in seen_sids:
+                    seen_sids[base_sid] += 1
+                    sid = f"{base_sid}_{seen_sids[base_sid]}"
+            else:
+                sid = base_sid
+            seen_sids[sid] = 1
             sample_result = self.env.run_in_stack(
                 stack="rna",
                 script_path="aria/scripts/rna_qc.py",
@@ -184,16 +196,33 @@ class QCClusteringMixin:
         )
 
         if result.get("status") == "success":
-            delta = result.get("batch_correction_delta", 0)
-            conf  = Confidence.HIGH if delta > 0.05 else Confidence.MEDIUM
+            def _finite_float(val):
+                if isinstance(val, bool) or not isinstance(val, (int, float)):
+                    return None
+                fval = float(val)
+                return fval if math.isfinite(fval) else None
+
+            delta = _finite_float(result.get("batch_correction_delta"))
+            sil_before = _finite_float(result.get("silhouette_before"))
+            sil_after = _finite_float(result.get("silhouette_after"))
+            conf = (
+                Confidence.HIGH
+                if (delta is not None and delta > 0.05)
+                else Confidence.MEDIUM
+            )
+            if (sil_before is not None and sil_after is not None
+                    and delta is not None):
+                sil_txt = (
+                    f"batch silhouette {sil_before:.3f} → {sil_after:.3f} "
+                    f"(Δ={delta:+.3f}; lower = better)."
+                )
+            else:
+                sil_txt = "batch silhouette unavailable."
             self.publish_finding(
                 experiment_id,
                 {"summary": f"Harmony batch correction over '{batch_col}': "
                             f"{result.get('n_batches', '?')} batches, "
-                            f"batch silhouette "
-                            f"{result.get('silhouette_before', 0):.3f} → "
-                            f"{result.get('silhouette_after', 0):.3f} "
-                            f"(Δ={delta:+.3f}; lower = better)."},
+                            f"{sil_txt}"},
                 conf,
             )
         elif result.get("status") == "skipped":

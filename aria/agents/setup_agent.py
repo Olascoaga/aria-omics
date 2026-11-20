@@ -27,6 +27,7 @@ import json
 import logging
 import os
 import platform
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -497,22 +498,30 @@ class SetupAgent(BaseAgent):
             str((intent or {}).get("user_question", "")),
         ]).lower()
 
+        def _has_token(tok: str) -> bool:
+            return bool(
+                re.search(
+                    rf"(?<![a-z0-9]){re.escape(tok.lower())}(?![a-z0-9])",
+                    text,
+                )
+            )
+
         # Check explicit assembly tokens BEFORE generic species names so
         # e.g. "mouse mm10" resolves to mm10 rather than generic mouse -> mm39.
         for token, canonical in self._CANONICAL_ASSEMBLY_ALIASES.items():
-            if token in text:
+            if _has_token(token):
                 return canonical if canonical in GENOME_REGISTRY else None
 
         for key, info in GENOME_REGISTRY.items():
-            if any(alias in text for alias in info["aliases"]):
+            if any(_has_token(alias) for alias in info["aliases"]):
                 return key
 
         # Fallback heuristics
-        if any(k in text for k in ["human", "homo", "patient", "clinical"]):
+        if any(_has_token(k) for k in ["human", "homo", "patient", "clinical"]):
             return "hg38"
-        if any(k in text for k in ["mouse", "murine", "mus musculus"]):
+        if any(_has_token(k) for k in ["mouse", "murine", "mus musculus"]):
             return "mm39"
-        if any(k in text for k in ["rat", "rattus"]):
+        if any(_has_token(k) for k in ["rat", "rattus"]):
             return "rn7"
 
         return None

@@ -87,6 +87,47 @@ def find_causal_language(text: str,
     return match.group(0) if match else None
 
 
+_NEGATION_TAIL_RE = re.compile(
+    r"(?:\bnot|\bno|\bnever|\bcannot|n't)(?:\s+\w+)?$", flags=re.IGNORECASE
+)
+
+
+def _unnegated_causal_hit(
+    text: str, exclude: list[str] | None = None
+) -> str | None:
+    """First causal pattern in ``text`` that is not explicitly negated.
+
+    Named entities in ``exclude`` are redacted first (same rule as
+    ``find_causal_language``). A hit immediately preceded by a negation
+    ("not", "no", "never", "cannot", "...n't", optionally one word between) is
+    masked and the scan continues, so "is not responsible for" passes while an
+    unnegated causal verb elsewhere in the same sentence is still caught.
+    """
+    working = str(text or "")
+    for name in exclude or []:
+        token = str(name).strip()
+        if len(token) < 2:
+            continue
+        working = re.sub(rf"\b{re.escape(token)}\b", " ", working,
+                         flags=re.IGNORECASE)
+    for _ in range(64):
+        hit = find_causal_language(working)
+        if not hit:
+            return None
+        match = re.search(rf"\b{re.escape(hit)}\b", working,
+                          flags=re.IGNORECASE)
+        if match is None:
+            return hit
+        if not _NEGATION_TAIL_RE.search(working[:match.start()].rstrip()):
+            return hit
+        working = (working[:match.start()] + " " * len(match.group(0))
+                   + working[match.end():])
+    return None
+
+
+find_unnegated_causal_language = _unnegated_causal_hit
+
+
 # Evidence whose label/value carries an EXTERNAL named entity — a database
 # term/gene-set identifier or a gene symbol — rather than an assertion authored
 # by ARIA. The causal guard must read ARIA's claims, not the names of the
@@ -205,18 +246,30 @@ def _text_for_causal_scan(block: NarrativeBlock) -> str:
 
 
 def _apply_causal_guard(block: NarrativeBlock) -> None:
-    if block.metadata.get("causal_evidence") is True:
+    claim_meta = block.metadata.get("claim") or {}
+    licensed = claim_meta.get("licensed_language")
+    if licensed == "causal":
         return
-    pattern = find_causal_language(_text_for_causal_scan(block))
+    if not licensed and block.metadata.get("causal_evidence") is True:
+        return
+    pattern = _unnegated_causal_hit(
+        _text_for_causal_scan(block),
+        exclude=collect_named_entities(block),
+    )
     if not pattern:
         return
     caveat_text = (
         f"Causal language pattern '{pattern}' was detected without explicit "
         "causal evidence; interpret this block as associative."
     )
-    if not any(caveat_text == caveat.text for caveat in block.caveats):
+    already_flagged = any(
+        caveat.text == caveat_text
+        or caveat.text.startswith("Causal language pattern '")
+        for caveat in block.caveats
+    )
+    if not already_flagged:
         block.caveats.append(Caveat(caveat_text, "warning"))
-    block.confidence = _CONFIDENCE_DOWN.get(block.confidence, "insufficient")
+        block.confidence = _CONFIDENCE_DOWN.get(block.confidence, "insufficient")
 
 
 def _apply_trajectory_guard(block: NarrativeBlock) -> None:

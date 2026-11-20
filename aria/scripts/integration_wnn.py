@@ -87,6 +87,105 @@ def _resolve_batch_series(
     return None, None, "no_multi_batch_column"
 
 
+def _evaluate_harmony_qa(
+    *,
+    should_harmonize: bool,
+    n_joint_clusters: int,
+    rna_sil_before: float | None,
+    rna_sil_after: float | None,
+    atac_sil_before: float | None,
+    atac_sil_after: float | None,
+    wnn_cl_sil: float | None,
+) -> dict[str, Any] | None:
+    """Assess Harmony batch integration quality across RNA + ATAC and 1-cluster collapse."""
+    if not should_harmonize:
+        return None
+    if not (
+        n_joint_clusters < 2
+        or (rna_sil_before is not None and rna_sil_after is not None)
+        or (atac_sil_before is not None and atac_sil_after is not None)
+    ):
+        return None
+
+    qa: dict[str, Any] | None = None
+    qa_issues: list[dict[str, Any]] = []
+    if rna_sil_before is not None and rna_sil_after is not None:
+        qa = assess_integration_quality(
+            silhouette_before=rna_sil_before,
+            silhouette_after=rna_sil_after,
+            cluster_silhouette=wnn_cl_sil,
+        )
+        qa_issues.extend(qa.get("issues") or [])
+    if atac_sil_before is not None and atac_sil_after is not None:
+        qa_atac = assess_integration_quality(
+            silhouette_before=atac_sil_before,
+            silhouette_after=atac_sil_after,
+            cluster_silhouette=wnn_cl_sil,
+        )
+        atac_issues = qa_atac.get("issues") or []
+        if qa is None:
+            qa = qa_atac
+            qa_issues = list(atac_issues)
+        else:
+            qa["atac_assessment"] = qa_atac
+            seen_checks = {
+                (it.get("check") or it.get("code"), it.get("message"))
+                for it in qa_issues
+                if isinstance(it, dict)
+            }
+            for it in atac_issues:
+                if not isinstance(it, dict):
+                    continue
+                sig = (it.get("check") or it.get("code"), it.get("message"))
+                if sig not in seen_checks:
+                    tagged = dict(it)
+                    tagged.setdefault("modality", "atac")
+                    qa_issues.append(tagged)
+                    seen_checks.add(sig)
+    if qa is None:
+        qa = {
+            "status": "clean",
+            "issues": [],
+            "metrics": {
+                "silhouette_before": rna_sil_before,
+                "silhouette_after": rna_sil_after,
+                "cluster_silhouette": wnn_cl_sil,
+            },
+        }
+    if n_joint_clusters < 2:
+        qa_issues.append(
+            {
+                "severity": "blocking",
+                "check": "possible_overcorrection",
+                "message": (
+                    f"Joint WNN clustering collapsed to {n_joint_clusters} cluster "
+                    "after Harmony batch harmonization; biological structure may "
+                    "have been erased (overcorrection)."
+                ),
+                "recommendation": (
+                    "Verify Harmony did not erase biological states: compare "
+                    "pre- and post-harmonization embeddings, lower Harmony "
+                    "strength, or disable batch harmonization."
+                ),
+            }
+        )
+    qa["issues"] = qa_issues
+    if qa_issues:
+        qa["status"] = "warnings"
+    qa["possible_overcorrection"] = any(
+        isinstance(it, dict)
+        and (it.get("check") or it.get("code")) == "possible_overcorrection"
+        for it in qa_issues
+    )
+    if qa_issues and not qa.get("warning"):
+        qa["warning"] = "; ".join(
+            str(it.get("message"))
+            for it in qa_issues
+            if isinstance(it, dict) and it.get("message")
+        )
+    return qa
+
+
 def _compute_safe_silhouette(
     embedding,
     labels: list[str],
@@ -574,12 +673,22 @@ def integration_wnn(params: dict) -> dict:
             rna_counts_source = str(rna_check["source"])
             atac_counts_source = str(atac_check["source"])
 
-            atac_obs_set = {str(bc) for bc in atac_loaded.obs_names}
-            common_cells = [
-                str(bc) for bc in rna_loaded.obs_names if str(bc) in atac_obs_set
-            ]
-            rna_idx_map = {str(bc): i for i, bc in enumerate(rna_loaded.obs_names)}
-            atac_idx_map = {str(bc): i for i, bc in enumerate(atac_loaded.obs_names)}
+            rna_obs_list = [str(bc) for bc in rna_loaded.obs_names]
+            atac_obs_list = [str(bc) for bc in atac_loaded.obs_names]
+            if len(set(rna_obs_list)) != len(rna_obs_list) or len(set(atac_obs_list)) != len(atac_obs_list):
+                return {
+                    "status": "error",
+                    "error_type": "DuplicateBarcodes",
+                    "details": (
+                        "Duplicate cell barcodes detected in split RNA/ATAC inputs; "
+                        "same-cell WNN integration requires unique barcodes per modality."
+                    ),
+                }
+
+            atac_obs_set = set(atac_obs_list)
+            common_cells = [bc for bc in rna_obs_list if bc in atac_obs_set]
+            rna_idx_map = {bc: i for i, bc in enumerate(rna_obs_list)}
+            atac_idx_map = {bc: i for i, bc in enumerate(atac_obs_list)}
             r_take = [rna_idx_map[bc] for bc in common_cells]
             a_take = [atac_idx_map[bc] for bc in common_cells]
 
@@ -1067,58 +1176,16 @@ def integration_wnn(params: dict) -> dict:
                     "wnn_batch_ilisi_norm_median": wnn_ilisi_norm,
                 }
             )
-            if should_harmonize and wnn_cl_sil is not None and (
-                (rna_sil_before is not None and rna_sil_after is not None)
-                or (atac_sil_before is not None and atac_sil_after is not None)
-            ):
-                qa: dict[str, Any] | None = None
-                qa_issues: list[dict[str, Any]] = []
-                if rna_sil_before is not None and rna_sil_after is not None:
-                    qa = assess_integration_quality(
-                        silhouette_before=rna_sil_before,
-                        silhouette_after=rna_sil_after,
-                        cluster_silhouette=wnn_cl_sil,
-                    )
-                    qa_issues.extend(qa.get("issues") or [])
-                if atac_sil_before is not None and atac_sil_after is not None:
-                    qa_atac = assess_integration_quality(
-                        silhouette_before=atac_sil_before,
-                        silhouette_after=atac_sil_after,
-                        cluster_silhouette=wnn_cl_sil,
-                    )
-                    atac_issues = qa_atac.get("issues") or []
-                    if qa is None:
-                        qa = qa_atac
-                        qa_issues = list(atac_issues)
-                    else:
-                        qa["atac_assessment"] = qa_atac
-                        seen_checks = {
-                            (it.get("check") or it.get("code"), it.get("message"))
-                            for it in qa_issues
-                            if isinstance(it, dict)
-                        }
-                        for it in atac_issues:
-                            if not isinstance(it, dict):
-                                continue
-                            sig = (it.get("check") or it.get("code"), it.get("message"))
-                            if sig not in seen_checks:
-                                tagged = dict(it)
-                                tagged.setdefault("modality", "atac")
-                                qa_issues.append(tagged)
-                                seen_checks.add(sig)
-                        qa["issues"] = qa_issues
-                assert qa is not None
-                qa["possible_overcorrection"] = any(
-                    isinstance(it, dict)
-                    and (it.get("check") or it.get("code")) == "possible_overcorrection"
-                    for it in qa_issues
-                )
-                if qa_issues and not qa.get("warning"):
-                    qa["warning"] = "; ".join(
-                        str(it.get("message"))
-                        for it in qa_issues
-                        if isinstance(it, dict) and it.get("message")
-                    )
+            qa = _evaluate_harmony_qa(
+                should_harmonize=should_harmonize,
+                n_joint_clusters=n_joint_clusters,
+                rna_sil_before=rna_sil_before,
+                rna_sil_after=rna_sil_after,
+                atac_sil_before=atac_sil_before,
+                atac_sil_after=atac_sil_after,
+                wnn_cl_sil=wnn_cl_sil,
+            )
+            if qa is not None:
                 batch_integration["quality_assessment"] = qa
                 if qa.get("warning"):
                     warnings.append(str(qa["warning"]))

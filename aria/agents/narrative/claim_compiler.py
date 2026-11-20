@@ -39,6 +39,8 @@ from typing import Any
 from aria.agents.narrative.types import NarrativeBlock
 from aria.agents.narrative.evidence_verifier import verify_block_claim_support
 from aria.agents.narrative.validators import (
+    _NEGATION_TAIL_RE,
+    _unnegated_causal_hit,
     collect_named_entities,
     find_causal_language,
 )
@@ -473,8 +475,10 @@ def _finalize(block, tier, licensed, categories, rationale, limitations,
             "time-course data.")
 
     # Language check: does the claim/prose exceed the licensed tier?
+    # C4: causal language is licensed ONLY when resolve_causal_estimand_license
+    # authorized licensed == "causal" (never via an arbitrary metadata flag).
     violation = None
-    if licensed != "causal" and not block.metadata.get("causal_evidence"):
+    if licensed != "causal":
         # Audit the CLAIM only: caveats are guard text ARIA attaches (often
         # explicitly negated, e.g. "not causal proof"), and official DB term
         # names / gene symbols are reported data, not ARIA's assertions.
@@ -499,42 +503,6 @@ def _finalize(block, tier, licensed, categories, rationale, limitations,
         language_violation=violation,
         causal_license=causal_license,
     )
-
-
-_NEGATION_TAIL_RE = re.compile(
-    r"(?:\bnot|\bno|\bnever|\bcannot|n't)(?:\s+\w+)?$", flags=re.IGNORECASE
-)
-
-
-def _unnegated_causal_hit(text: str, exclude: list[str]) -> str | None:
-    """First causal pattern in ``text`` that is not explicitly negated.
-
-    Named entities in ``exclude`` are redacted first (same rule as
-    ``find_causal_language``). A hit immediately preceded by a negation
-    ("not", "no", "never", "cannot", "...n't", optionally one word between) is
-    masked and the scan continues, so "is not responsible for" passes while an
-    unnegated causal verb elsewhere in the same claim is still caught.
-    """
-    working = str(text or "")
-    for name in exclude or []:
-        token = str(name).strip()
-        if len(token) < 2:
-            continue
-        working = re.sub(rf"\b{re.escape(token)}\b", " ", working,
-                         flags=re.IGNORECASE)
-    for _ in range(64):
-        hit = find_causal_language(working)
-        if not hit:
-            return None
-        match = re.search(rf"\b{re.escape(hit)}\b", working,
-                          flags=re.IGNORECASE)
-        if match is None:
-            return hit
-        if not _NEGATION_TAIL_RE.search(working[:match.start()].rstrip()):
-            return hit
-        working = (working[:match.start()] + " " * len(match.group(0))
-                   + working[match.end():])
-    return None
 
 
 def annotate_claim_tiers(blocks: list[NarrativeBlock],

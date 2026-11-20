@@ -86,10 +86,14 @@ def _skip(reason, **extra):
 
 
 def _regions_from_csv(da_csv, max_per_group, warnings):
-    """Build ranked {cluster: [peak, ...]} from a DA CSV.
+    """Build ranked {group: [peak, ...]} from a DA CSV.
 
-    When adjusted p-values/effect sizes are available, oversized groups are
-    capped after ranking by padj ascending and then absolute LFC descending.
+    For per-cluster CSVs (``cluster`` column present), retain only positively
+    accessible/enriched peaks (``lfc is None or lfc > 0``) per cluster so
+    depleted/closed peaks are not mixed into a cluster's foreground.
+    For pseudobulk/contrast CSVs (``comparison`` column present without
+    ``cluster``), group directionally into ``f"{comp}::up"`` (``lfc > 0``) and
+    ``f"{comp}::down"`` (``lfc < 0``) instead of collapsing into ``"all"``.
     """
     import csv
     groups: dict = {}
@@ -98,13 +102,13 @@ def _regions_from_csv(da_csv, max_per_group, warnings):
         if not reader.fieldnames or "peak" not in reader.fieldnames:
             return {}
         cols = reader.fieldnames
-        gcol = "cluster" if "cluster" in cols else None
+        has_cluster = "cluster" in cols
+        has_comparison = "comparison" in cols
         lfc_col = _detect_col(cols, "log2fold", "log2fc", "logfold")
         padj_col = _detect_col(cols, "padj", "pvals_adj", "adjusted", "fdr",
                                "q-value", "qval")
         sig_col = "significant" if "significant" in cols else None
         for row in reader:
-            g = str(row.get(gcol, "all")) if gcol else "all"
             peak = str(row.get("peak", "")).strip()
             if not peak:
                 continue
@@ -112,6 +116,22 @@ def _regions_from_csv(da_csv, max_per_group, warnings):
                 continue
             padj = _as_float(row.get(padj_col)) if padj_col else None
             lfc = _as_float(row.get(lfc_col)) if lfc_col else None
+            if has_cluster:
+                if lfc is not None and lfc <= 0:
+                    continue
+                g = str(row.get("cluster", "all"))
+            elif has_comparison:
+                comp = str(row.get("comparison", "")).strip() or "all"
+                if lfc is None:
+                    g = comp
+                elif lfc > 0:
+                    g = f"{comp}::up"
+                elif lfc < 0:
+                    g = f"{comp}::down"
+                else:
+                    continue
+            else:
+                g = "all"
             groups.setdefault(g, []).append(
                 (peak, padj if padj is not None else float("inf"),
                  abs(lfc) if lfc is not None else 0.0))
@@ -119,6 +139,70 @@ def _regions_from_csv(da_csv, max_per_group, warnings):
         g: _rank_da_region_group(rows, max_per_group, g, warnings)
         for g, rows in groups.items()
     }
+
+
+def _count_meme_motifs(meme_path: str) -> int | None:
+    """Count MOTIF records in a local MEME file (lightweight header scan)."""
+    try:
+        n = 0
+        with open(meme_path, encoding="utf-8", errors="ignore") as fh:
+            for line in fh:
+                if line.startswith(("MOTIF ", "MOTIF\t")):
+                    n += 1
+        return n
+    except OSError:
+        return None
+
+
+def _resolve_contig_in_valid(chrom: str, valid_chroms: set[str]) -> str | None:
+    """Resolve ``chrom`` against reference FASTA contigs with UCSC/Ensembl aliasing."""
+    if chrom in valid_chroms:
+        return chrom
+    low = chrom.lower()
+    if low in ("chrm", "chrmt", "mt", "m"):
+        for cand in ("chrM", "MT", "chrMT", "M"):
+            if cand in valid_chroms:
+                return cand
+        return None
+    if low.startswith("chr"):
+        bare = chrom[3:]
+        if bare in valid_chroms:
+            return bare
+    else:
+        prefixed = f"chr{chrom}"
+        if prefixed in valid_chroms:
+            return prefixed
+    return None
+
+
+def _canonicalize_peak_for_genome(
+    peak: str, valid_chroms: set[str] | None,
+) -> str | None:
+    """Parse ``chr1:100-500`` or ``chr1-100-500`` via ``parse_peak_coord``,
+    resolve UCSC/Ensembl contig aliases against ``valid_chroms``, and emit the
+    ``chrom:start-end`` string SnapATAC2 expects (or ``None`` if off-contig)."""
+    from aria.utils.peak2gene_core import parse_peak_coord
+
+    parsed = parse_peak_coord(peak)
+    if parsed is None:
+        if valid_chroms is not None:
+            raw_chrom = peak.split(":", 1)[0]
+            resolved = _resolve_contig_in_valid(raw_chrom, valid_chroms)
+            if resolved is None:
+                return None
+            return peak if resolved == raw_chrom else (
+                f"{resolved}:{peak.split(':', 1)[1]}" if ":" in peak else peak
+            )
+        return peak
+    chrom, start, end = parsed
+    if end <= start:
+        return None
+    if valid_chroms is not None:
+        resolved = _resolve_contig_in_valid(chrom, valid_chroms)
+        if resolved is None:
+            return None
+        chrom = resolved
+    return f"{chrom}:{start}-{end}"
 
 
 def _rank_da_region_group(rows, max_per_group, group, warnings):
@@ -236,6 +320,7 @@ def chromatin_motifs(params: dict) -> dict:
         meme_path = str(motif_file)
         motif_version = {"collection": Path(motif_file).stem, "source": "explicit",
                          "release": "unknown",
+                         "n_motifs": _count_meme_motifs(meme_path),
                          "integrity": public_integrity_result(motif_integrity)}
     else:
         coll = motif_collection or DEFAULT_COLLECTION
@@ -359,16 +444,19 @@ def chromatin_motifs(params: dict) -> dict:
     background = [str(p) for p in background]
 
     # Bulk ATAC peaks (MACS3 on the raw BAM) may sit on scaffold/alt contigs
-    # absent from the reference FASTA; snapatac2 sequence fetching would crash
-    # on them. Drop out-of-reference peaks up front and disclose the count.
-    # Regions are intersected with this background below, so off-contig DA
-    # peaks are removed (and disclosed) transitively.
+    # absent from the reference FASTA, use dash-delimited IDs (chr1-100-500),
+    # or differ in UCSC/Ensembl contig naming (chr1 vs 1). Canonicalize both
+    # background and foreground peak strings against the FASTA contigs up front.
     valid_chroms = _genome_chroms(genome_fasta)
+    before_bg = len(background)
+    canonical_bg: list[str] = []
+    for p in background:
+        cp = _canonicalize_peak_for_genome(p, valid_chroms)
+        if cp is not None:
+            canonical_bg.append(cp)
+    background = list(dict.fromkeys(canonical_bg))
     if valid_chroms is not None:
-        before_bg = len(background)
-        background = [p for p in background
-                      if p.split(":", 1)[0] in valid_chroms]
-        dropped_bg = before_bg - len(background)
+        dropped_bg = before_bg - len(canonical_bg)
         if dropped_bg:
             warnings.append(
                 f"dropped {dropped_bg} background peak(s) on contigs absent "
@@ -384,7 +472,11 @@ def chromatin_motifs(params: dict) -> dict:
     clean_groups: dict = {}
     dropped_counts: dict = {}
     for g, peaks in groups.items():
-        in_bg = [p for p in peaks if p in bg_set]
+        canon_peaks = [
+            cp for p in peaks
+            if (cp := _canonicalize_peak_for_genome(p, valid_chroms)) is not None
+        ]
+        in_bg = list(dict.fromkeys(p for p in canon_peaks if p in bg_set))
         dropped = len(peaks) - len(in_bg)
         if len(in_bg) > max_per_group:
             warnings.append(
@@ -405,6 +497,11 @@ def chromatin_motifs(params: dict) -> dict:
     # ── Read motifs + run enrichment ─────────────────────────────────────────
     motifs = snap.datasets.read_motifs(meme_path)
     n_motifs_loaded = len(motifs)
+    if isinstance(motif_version, dict) and (
+        motif_version.get("source") == "explicit"
+        or motif_version.get("n_motifs") is None
+    ):
+        motif_version = {**motif_version, "n_motifs": int(n_motifs_loaded)}
     try:
         results = snap.tl.motif_enrichment(
             motifs=motifs,

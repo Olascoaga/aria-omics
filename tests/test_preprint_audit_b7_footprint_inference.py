@@ -380,8 +380,8 @@ def test_batch_adjusted_ols_matches_numpy_scipy_and_recovers_masked_signal():
         pvalue = 2 * t.sf(abs(beta[-1] / np.sqrt(variance * covariance[-1, -1])), df)
         expected_p.append(pvalue)
         assert row["pvalue"] == pytest.approx(pvalue, rel=1e-8)
-        assert row["change"] == round(beta[-1], 4)
-        assert row["raw_change"] == round(y[:6].mean() - y[6:].mean(), 4)
+        assert row["change"] == pytest.approx(beta[-1], rel=1e-8)
+        assert row["raw_change"] == pytest.approx(y[:6].mean() - y[6:].mean(), rel=1e-8)
         assert row["mean_score_a"] == pytest.approx(y[:6].mean())
         assert row["mean_score_b"] == pytest.approx(y[6:].mean())
     assert [r["padj"] for r in result["all_results"]] == pytest.approx(

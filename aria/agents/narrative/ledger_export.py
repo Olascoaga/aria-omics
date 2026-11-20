@@ -90,9 +90,33 @@ def _portable_path_ref(value: str, content_sha256: Any = None) -> str:
     return f"private-path://sha256/{path_digest}"
 
 
+_DECISION_MANIFEST_UNHASHED_KEYS = frozenset({
+    "manifest_sha256",
+    "experiment_id",
+    "committed_at_utc",
+    "realized_parameter_decisions",
+    "fork_ledger_summary",
+})
+
+
 def _portable_value(value: Any, *, content_sha256: Any = None) -> Any:
     """Recursively replace private absolute paths with stable opaque references."""
     if isinstance(value, dict):
+        # Preserve cryptographically signed DecisionManifest hashed fields while
+        # still sanitizing unhashed envelope fields (realized_parameter_decisions,
+        # fork_ledger_summary, etc.). build_decision_manifest already strips private
+        # paths before signing.
+        if value.get("schema_version") == "aria.decision_manifest.v1" and value.get("manifest_sha256"):
+            from aria.utils.decision_manifest import verify_decision_manifest
+            if verify_decision_manifest(value)[0]:
+                return {
+                    key: (
+                        _portable_value(item)
+                        if key in _DECISION_MANIFEST_UNHASHED_KEYS
+                        else item
+                    )
+                    for key, item in value.items()
+                }
         item_sha = value.get("sha256")
         return {
             key: _portable_value(
@@ -204,7 +228,11 @@ def build_ro_crate(methodology: dict, report_dir: Path | None = None) -> dict:
 
     has_part: list[dict] = []
     output_files = ["report.html", _METHODOLOGY_NAME, "ro-crate-metadata.json"]
-    if report_dir is not None and (Path(report_dir) / "memory_snapshot.sqlite").is_file():
+    mem_snap = (
+        Path(report_dir) / "memory_snapshot.sqlite"
+        if report_dir is not None else None
+    )
+    if mem_snap is not None and mem_snap.is_file() and mem_snap.stat().st_size > 0:
         output_files.append("memory_snapshot.sqlite")
     for name in output_files:
         has_part.append({"@id": name})
@@ -433,6 +461,18 @@ def _sanitize_staged_report(report_dir: Path, methodology: dict) -> None:
         if (not path.is_file() or path.name == _METHODOLOGY_NAME
                 or path.suffix.lower() not in text_suffixes):
             continue
+        if path.name == "decision_manifest.json":
+            try:
+                raw_dm = json.loads(path.read_text(encoding="utf-8"))
+                if isinstance(raw_dm, dict) and raw_dm.get("schema_version") == "aria.decision_manifest.v1":
+                    portable_dm = _portable_value(raw_dm)
+                    _atomic_write_text(
+                        path,
+                        json.dumps(portable_dm, indent=2, sort_keys=True, default=str),
+                    )
+                    continue
+            except (OSError, ValueError, json.JSONDecodeError):
+                pass
         try:
             text = path.read_text(encoding="utf-8")
         except UnicodeDecodeError:

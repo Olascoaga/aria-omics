@@ -267,9 +267,37 @@ def _pseudobulk_da(adata, condition_col, replicate_col, comparisons,
                 f"it is not modelled in the pseudobulk DA."
             )
 
-    obs = adata.obs[[condition_col, replicate_col, *confirmed_covariates]].copy()
-    obs[condition_col] = obs[condition_col].astype(str)
-    obs[replicate_col] = obs[replicate_col].astype(str)
+    raw_obs = adata.obs[[condition_col, replicate_col, *confirmed_covariates]].copy()
+
+    def _valid_meta_mask(series: pd.Series) -> np.ndarray:
+        not_na = ~pd.isna(series).to_numpy(dtype=bool)
+        text = series.astype(str).str.strip().str.lower()
+        not_missing_str = ~text.isin(
+            {"", "nan", "none", "null", "na", "n/a", "<na>"}
+        ).to_numpy(dtype=bool)
+        return not_na & not_missing_str
+
+    valid_mask = (
+        _valid_meta_mask(raw_obs[condition_col])
+        & _valid_meta_mask(raw_obs[replicate_col])
+    )
+    n_dropped_missing = int((~valid_mask).sum())
+    if n_dropped_missing > 0:
+        warnings.append(
+            f"Dropped {n_dropped_missing} cell(s) with missing/empty "
+            f"{condition_col!r} or {replicate_col!r} metadata before "
+            f"pseudobulk aggregation."
+        )
+    valid_pos = np.flatnonzero(valid_mask)
+    if valid_pos.size == 0:
+        return {"ran": False,
+                "reason": (f"no cells with non-missing {condition_col!r} and "
+                           f"{replicate_col!r} metadata for pseudobulk DA"),
+                "comparisons": [], "output_csv": None}
+
+    obs = raw_obs.iloc[valid_pos].copy()
+    obs[condition_col] = obs[condition_col].astype(str).str.strip()
+    obs[replicate_col] = obs[replicate_col].astype(str).str.strip()
     for cov in confirmed_covariates:
         obs[cov] = obs[cov].astype(str)
 
@@ -285,6 +313,8 @@ def _pseudobulk_da(adata, condition_col, replicate_col, comparisons,
     if not sparse.issparse(X):
         X = sparse.csr_matrix(X)
     X = X.tocsr()
+    if n_dropped_missing > 0:
+        X = X[valid_pos, :]
 
     # Aggregate raw peak counts per pseudosample, dropping pseudosamples with
     # too few cells (unstable aggregates).

@@ -93,33 +93,18 @@ def _inspect_file(fpath: str) -> dict:
 def _inspect_mcool(fpath: str) -> dict:
     try:
         import cooler
+        from aria.utils.hic_constants import list_mcool_resolutions
 
-        resolutions = cooler.fileops.list_coolers(fpath)
-        res_values: list[int] = []
-        for r in resolutions:
-            tail = r.split("/")[-1]
-            if "/resolutions/" in r and tail.isdigit():
-                res_values.append(int(tail))
+        res_map = list_mcool_resolutions(fpath)
+        res_values = sorted(res_map.keys())
         chroms: list[str] = []
         if res_values:
-            finest = f"{fpath}::resolutions/{min(res_values)}"
-            clr = cooler.Cooler(finest)
+            finest_grp = res_map[res_values[0]]
+            clr = cooler.Cooler(f"{fpath}::{finest_grp}")
             chroms = list(clr.chromnames)
-        elif resolutions:
-            # Legacy zoom-level mcool without /resolutions/<bp> paths: query binsize directly.
-            for r in resolutions:
-                try:
-                    clr = cooler.Cooler(f"{fpath}::{r}")
-                    if clr.binsize:
-                        res_values.append(int(clr.binsize))
-                    if not chroms:
-                        chroms = list(clr.chromnames)
-                except Exception:
-                    continue
-            res_values = sorted(set(res_values))
         return {
             "format": "mcool",
-            "resolutions": sorted(res_values),
+            "resolutions": res_values,
             "chromosomes": chroms,
             "needs_preprocessing": False,
         }
