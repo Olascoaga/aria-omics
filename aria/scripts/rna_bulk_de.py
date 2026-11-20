@@ -65,6 +65,7 @@ from pathlib import Path
 from aria.scripts.rna_bulk.gtf_io import (  # noqa: E402,F401
     _load_symbol_map, _locate_gtf, _gtf_to_symbol_map,
     _load_gene_annotation, _parse_gtf_biotype_and_length, _to_symbols,
+    _normalize_species,
 )
 from aria.scripts.rna_bulk.ora import (  # noqa: E402,F401
     _enrichr_enrichment, _run_pathway_enrichment, _get_gene_sets,
@@ -114,6 +115,16 @@ def _bounded_n_cpus(value) -> int | None:
     return max(1, min(requested, available))
 
 
+def _call_with_optional_keywords(func, *args, **kwargs):
+    """Keep legacy callable adapters compatible with additive helper keywords."""
+    import inspect
+
+    parameters = inspect.signature(func).parameters
+    if not any(p.kind == inspect.Parameter.VAR_KEYWORD for p in parameters.values()):
+        kwargs = {key: value for key, value in kwargs.items() if key in parameters}
+    return func(*args, **kwargs)
+
+
 def bulk_rna_de(params: dict) -> dict:
     from pathlib import Path
     import numpy as np
@@ -152,7 +163,8 @@ def bulk_rna_de(params: dict) -> dict:
                                f"{single_comp.get('denominator','?')}",
             }]
 
-    organism       = params.get("organism", "Homo sapiens")
+    organism       = (params.get("organism")
+                      or _normalize_species(params.get("genome")) or "Homo sapiens")
     output_dir     = params.get("output_dir", "/tmp/aria_bulk_de")
     run_pathways   = bool(params.get("run_pathways", True))
     padj_thr       = float(params.get("padj_threshold", 0.05))
@@ -284,13 +296,19 @@ def bulk_rna_de(params: dict) -> dict:
     # ── 2b. Load gene annotation maps (biotype, length) from GTF ────────
     # Used for DR filtering (protein_coding) and TPM computation.
     # Graceful fallback if GTF not locatable → warnings explain consequences.
-    gene_annotation = _load_gene_annotation(files, warnings)
+    annotation_kwargs = {
+        "gtf_hint": params.get("gtf") or params.get("gtf_file"),
+        "genome": params.get("genome"), "organism": organism,
+    }
+    gene_annotation = _call_with_optional_keywords(
+        _load_gene_annotation, files, warnings, **annotation_kwargs)
     biotype_map     = gene_annotation.get("biotype", {})
     gene_lengths    = gene_annotation.get("length", {})
 
     # ── 3. Sample QC (shared across contrasts) ───────────────────────────
-    sample_qc = _sample_qc(counts, metadata, output_dir, warnings,
-                           biotype_map=biotype_map)
+    sample_qc = _call_with_optional_keywords(
+        _sample_qc, counts, metadata, output_dir, warnings,
+        biotype_map=biotype_map, design_factor=design_factor)
     flagged_outliers = list(sample_qc.get("outliers", []) or [])
     outlier_samples = _prune_outliers_for_design(
         sample_qc.get("outliers", []), metadata, design_factor, warnings
@@ -405,6 +423,7 @@ def bulk_rna_de(params: dict) -> dict:
     contrast_results = []
     # P1-1c: per-contrast (gene -> pvalue, log2fc) for the pooled contrast-family BH.
     family_stats: dict = {}
+    contrast_fits = []
 
     for contrast in contrasts_in:
         num  = str(contrast.get("numerator",   "")).strip()
@@ -439,6 +458,22 @@ def bulk_rna_de(params: dict) -> dict:
             **parallel,
         )
 
+        contrast_fits.append((name, num, den, de_result, de_warn))
+        rdf = de_result.get("results")
+        if de_result.get("status") != "error" and rdf is not None and len(rdf):
+            family_stats[name] = {
+                str(g): {"pvalue": float(row["pvalue"]),
+                         "log2fc": float(row["log2FoldChange"])}
+                for g, row in rdf.dropna(subset=["pvalue"]).iterrows()
+            }
+
+    # Complete the pre-registered BH family before any plots, tables, enrichment,
+    # or robustness outputs consume significance. The per-contrast primary
+    # results remain exactly as returned by DESeq2.
+    n_tests_family = sum(len(v) for v in family_stats.values())
+    fam = contrast_family_significance(
+        family_stats, padj_max=padj_thr, lfc_min=None)
+    for name, num, den, de_result, de_warn in contrast_fits:
         if de_result.get("status") == "error":
             contrast_results.append({
                 "name":         name,
@@ -453,9 +488,28 @@ def bulk_rna_de(params: dict) -> dict:
 
         warnings.extend([f"[{name}] {w}" for w in de_warn])
 
+        if fdr_family["fdr_family"] == "global":
+            rdf = de_result.get("results")
+            if rdf is not None and len(rdf):
+                rdf = rdf.copy()
+                family_padj = fam.get(name, {}).get("padj_family", {})
+                rdf["padj"] = [family_padj.get(str(g), np.nan) for g in rdf.index]
+                de_result["results"] = rdf
+                finite = np.isfinite(rdf["log2FoldChange"]) & np.isfinite(rdf["padj"])
+                sig = rdf.loc[finite & (rdf["padj"] < padj_thr)].sort_values(
+                    "padj", kind="mergesort")
+                de_result.update(
+                    sig_genes=list(sig.index),
+                    up_genes=list(sig.index[sig["log2FoldChange"] > 0]),
+                    down_genes=list(sig.index[sig["log2FoldChange"] < 0]),
+                    n_sig=len(sig), n_up=int((sig["log2FoldChange"] > 0).sum()),
+                    n_down=int((sig["log2FoldChange"] < 0).sum()),
+                )
+
         # Load gene symbol map (used both for pathway enrichment and
         # for annotating top_genes with HGNC symbols)
-        symbol_map = _load_symbol_map(files, warnings)
+        symbol_map = _call_with_optional_keywords(
+            _load_symbol_map, files, warnings, **annotation_kwargs)
         background_symbols = _to_symbols(list(counts_filt.index), symbol_map) \
             if symbol_map else [str(g) for g in counts_filt.index]
         background_symbols = sorted({
@@ -556,7 +610,7 @@ def bulk_rna_de(params: dict) -> dict:
 
             # GSEA running sums (uses ranked log2FC, complementary to ORA)
             results_df = de_result.get("results")
-            if results_df is not None and len(results_df) > 0:
+            if run_pathways and results_df is not None and len(results_df) > 0:
                 gsea_out = make_gsea_running_sums(
                     de_results_df=results_df,
                     symbol_map=symbol_map,
@@ -670,16 +724,6 @@ def bulk_rna_de(params: dict) -> dict:
             "full_results_csv":  full_de_tsv,
         })
 
-        # P1-1c: stash this contrast's per-gene p-value + shrunken log2fc for the
-        # pooled contrast-family BH computed once all contrasts have run.
-        rdf = de_result.get("results")
-        if rdf is not None and len(rdf) > 0:
-            family_stats[name] = {
-                str(g): {"pvalue": float(row["pvalue"]),
-                         "log2fc": float(row["log2FoldChange"])}
-                for g, row in rdf.dropna(subset=["pvalue"]).iterrows()
-            }
-
     if not contrast_results:
         return {
             "status":     "error",
@@ -689,11 +733,7 @@ def bulk_rna_de(params: dict) -> dict:
         }
 
     # ── 6b. Contrast-family FDR (P1-1c) ──────────────────────────────────
-    # Always compute the pooled BH across the contrast family for audit; when the
-    # pre-registered family is "global", the primary significance call follows it.
-    n_tests_family = sum(len(v) for v in family_stats.values())
-    fam = contrast_family_significance(
-        family_stats, padj_max=padj_thr, lfc_min=None)
+    # Pooled BH was computed before artifact generation above.
     for cr in contrast_results:
         if cr.get("status") != "success":
             continue
@@ -702,16 +742,6 @@ def bulk_rna_de(params: dict) -> dict:
             continue
         cr["n_significant_contrast_family"] = f["n_sig"]
         cr["sig_genes_contrast_family"] = [str(g) for g in f["sig_genes"]]
-        if fdr_family["fdr_family"] == "global":
-            # Primary follows the pre-registered global contrast-family BH.
-            cr["n_significant"]   = f["n_sig"]
-            cr["n_upregulated"]   = f["n_up"]
-            cr["n_downregulated"] = f["n_down"]
-            cr["all_sig_genes"]   = (
-                _to_symbols(f["sig_genes"], symbol_map) if symbol_map
-                else [str(g) for g in f["sig_genes"]]
-            )
-            cr["all_sig_gene_ids"] = [str(g) for g in f["sig_genes"]]
 
     # ── 6c. Primary + outlier sensitivity (P1-5) ────────────────────────
     # Primary DE above deliberately used all samples. If QC flagged outliers and

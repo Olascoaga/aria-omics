@@ -58,37 +58,11 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from aria.scripts._base import run_script
 
 
-def _gseapy_organism(organism: str) -> str:
-    """gseapy 1.1.13+ requires lowercase organism strings."""
-    o = organism.lower()
-    if "sapiens" in o or o in ("human", "hsapiens", "h. sapiens", "hs"):
-        return "human"
-    if "musculus" in o or o in ("mouse", "mus musculus", "mm"):
-        return "mouse"
-    if "rerio" in o or "zebrafish" in o:
-        return "zebrafish"
-    if "norvegicus" in o or "rat" in o:
-        return "rat"
-    if "melanogaster" in o or "drosophila" in o:
-        return "fly"
-    return "human"  # safe default for Enrichr
-
-
-def _get_gene_sets(organism: str) -> dict:
-    o = organism.lower()
-    if "sapiens" in o:
-        return {
-            "GO_BP":    "GO_Biological_Process_2021",
-            "KEGG":     "KEGG_2021_Human",
-            "Reactome": "Reactome_2022",
-        }
-    if "musculus" in o:
-        return {
-            "GO_BP":    "GO_Biological_Process_2021",
-            "KEGG":     "KEGG_2019_Mouse",
-            "Reactome": "Reactome_2022",
-        }
-    return {"GO_BP": "GO_Biological_Process_2021"}
+# Keep database selection, API organisms, and external numeric sanitation in sync
+# with bulk RNA and peak ORA without importing the heavyweight DE facade.
+from aria.scripts.rna_bulk.ora import (
+    _enrichr_entries, _finite_float, _get_gene_sets, _gseapy_organism,
+)
 
 
 def rna_pathway_per_cluster(params: dict) -> dict:
@@ -175,6 +149,7 @@ def rna_pathway_per_cluster(params: dict) -> dict:
     )
     per_cluster: dict = {}
     csv_rows:    list = []
+    warnings: list = []
 
     # Enrichr (opt-in fallback) is rate-limited (~8s between calls); the local
     # path has no such limit. Track Enrichr calls only.
@@ -203,19 +178,7 @@ def rna_pathway_per_cluster(params: dict) -> dict:
             enr = gp.enrichr(**enrichr_kwargs)
         if enr.results is None or enr.results.empty:
             return []
-        sig = enr.results[enr.results["Adjusted P-value"] < padj_db_max]
-        sig = sig.sort_values("Adjusted P-value").head(20)
-        return [
-            {
-                "term":           str(row["Term"]),
-                "padj":           float(row["Adjusted P-value"]),
-                "overlap":        str(row.get("Overlap", "")),
-                "odds_ratio":     round(float(row.get("Odds Ratio", 1)), 2),
-                "combined_score": round(float(row.get("Combined Score", 0)), 1),
-                "genes":          str(row.get("Genes", "")).split(";")[:10],
-            }
-            for _, row in sig.iterrows()
-        ]
+        return _enrichr_entries(enr.results, padj_max=padj_db_max)
 
     for cluster_id, gene_records in de_by_cluster.items():
         # C2 (audit 2026-05-29): resolve THIS cluster's ORA universe. A
@@ -228,7 +191,7 @@ def rna_pathway_per_cluster(params: dict) -> dict:
         else:
             cl_background = background_genes
             cl_background_source = default_background_source
-        cl_background_set = set(cl_background)
+        cl_background_set = {g.upper() for g in cl_background}
 
         if not gene_records:
             per_cluster[cluster_id] = {
@@ -240,20 +203,31 @@ def rna_pathway_per_cluster(params: dict) -> dict:
             }
             continue
 
-        # Order genes by significance × magnitude so top_n captures the most
-        # informative signal (the ORA noise floor rises with marginal hits).
+        # Rank eligible genes by significance, then magnitude; invalid numeric
+        # fields sort after finite evidence rather than crashing the cluster.
+        eligible = [r for r in gene_records
+                    if isinstance(r.get("gene"), str)
+                    and r["gene"].strip() and r["gene"].strip().lower() != "nan"
+                    and (not cl_background_set
+                         or r["gene"].strip().upper() in cl_background_set)]
         sorted_records = sorted(
-            gene_records,
-            key=lambda r: (-abs(float(r.get("log2fc", 0))),
-                           float(r.get("padj", 1.0))),
+            eligible,
+            key=lambda r: (
+                _finite_float(r.get("padj"), float("inf")),
+                _finite_float(r.get("pvalue"), float("inf")),
+                -abs(_finite_float(r.get("log2fc"), 0.0)),
+                -_finite_float(r.get("combined_score"), 0.0),
+                r["gene"],
+            ),
         )
-        symbols = [
-            str(r["gene"])
-            for r in sorted_records[:top_n]
-            if r.get("gene") and str(r["gene"]) not in ("nan", "")
-        ]
-        if cl_background_set:
-            symbols = [g for g in symbols if g in cl_background_set]
+        # Deduplicate case-insensitively before the submission cap.
+        symbols, seen = [], set()
+        for record in sorted_records:
+            gene = record["gene"].strip()
+            if gene.upper() not in seen:
+                seen.add(gene.upper())
+                symbols.append(gene)
+        symbols = symbols[:top_n]
         if not symbols:
             per_cluster[cluster_id] = {
                 "n_input_genes": 0,
@@ -288,12 +262,9 @@ def rna_pathway_per_cluster(params: dict) -> dict:
                 cluster_n_sig += len(entries)
             except Exception as e:
                 cluster_results[db_label] = []
-                csv_rows.append({
-                    "cluster":  cluster_id, "database": db_label,
-                    "term":     f"ERROR: {type(e).__name__}: {str(e)[:120]}",
-                    "padj":     None, "overlap": None,
-                    "odds_ratio": None, "combined_score": None, "genes": None,
-                })
+                warnings.append(
+                    f"[{cluster_id}] {db_label}: {type(e).__name__}: {str(e)[:120]}"
+                )
 
         per_cluster[cluster_id] = {
             "n_input_genes": len(symbols),
@@ -336,6 +307,7 @@ def rna_pathway_per_cluster(params: dict) -> dict:
                               else default_background_source),
         "per_cluster":  per_cluster,
         "output_csv":   csv_path,
+        "warnings":     warnings,
     }
 
 

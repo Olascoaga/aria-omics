@@ -4,7 +4,47 @@ Behavior-preserving extraction; re-exported from `aria.scripts.rna_bulk_de`."""
 
 from __future__ import annotations
 
-from aria.scripts.rna_bulk.gtf_io import _to_symbols
+import math
+
+from aria.scripts.rna_bulk.gtf_io import _normalize_species, _to_symbols
+
+
+def _finite_float(value, default=None):
+    """Coerce external numeric fields without emitting JSON NaN/Infinity."""
+    try:
+        value = float(value)
+        return value if math.isfinite(value) else default
+    except (TypeError, ValueError):
+        return default
+
+
+def _enrichr_entries(results, padj_max=0.05, top=20):
+    """Normalize Enrichr rows; retain full precision for p-values and FDR."""
+    entries = []
+    for _, row in results.iterrows():
+        padj = _finite_float(row.get("Adjusted P-value"))
+        if padj is None or not 0 <= padj < padj_max:
+            continue
+        genes = row.get("Genes")
+        genes = genes.split(";") if isinstance(genes, str) else (
+            genes if isinstance(genes, (list, tuple)) else [])
+        odds = _finite_float(row.get("Odds Ratio"))
+        score = _finite_float(row.get("Combined Score"))
+        entries.append({
+            "term": str(row["Term"]),
+            "padj": padj,
+            "adjusted_p": padj,
+            "pvalue": _finite_float(row.get("P-value")),
+            "overlap": row.get("Overlap") if isinstance(row.get("Overlap"), str) else "",
+            "odds_ratio": round(odds, 2) if odds is not None else None,
+            "combined_score": round(score, 1) if score is not None else None,
+            "genes": [g.strip() for g in genes if isinstance(g, str)
+                      and g.strip() and g.strip().lower() != "nan"][:10],
+        })
+    entries.sort(key=lambda r: (
+        r["padj"], _finite_float(r["pvalue"], math.inf),
+        -_finite_float(r["combined_score"], -math.inf), r["term"]))
+    return entries[:top]
 
 
 def _enrichr_enrichment(sig_symbols: list, db_labels: list, gene_sets: dict,
@@ -47,19 +87,7 @@ def _enrichr_enrichment(sig_symbols: list, db_labels: list, gene_sets: dict,
                 results = enr.results
 
                 if results is not None and not results.empty:
-                    sig_pw = results[results["Adjusted P-value"] < 0.05]
-                    sig_pw = sig_pw.sort_values("Adjusted P-value")
-                    pathways[db] = [
-                        {
-                            "term":    row["Term"],
-                            "padj":    float(row["Adjusted P-value"]),
-                            "overlap": row.get("Overlap", ""),
-                            "odds_ratio": round(float(row.get("Odds Ratio", 1)), 2),
-                            "combined_score": round(float(row.get("Combined Score", 0)), 1),
-                            "genes":   row.get("Genes", "").split(";")[:10],
-                        }
-                        for _, row in sig_pw.head(20).iterrows()
-                    ]
+                    pathways[db] = _enrichr_entries(results)
                     if not pathways[db]:
                         warnings.append(
                             f"No significant {db} pathways at padj < 0.05 "
@@ -134,11 +162,11 @@ def _run_pathway_enrichment(sig_genes: list, up_genes: list,
         str(g) for g in (background_genes or [])
         if g and str(g).lower() != "nan"
     })
-    background_set = set(background_symbols)
+    background_set = {g.upper() for g in background_symbols}
     if background_set:
-        sig_symbols = [g for g in sig_symbols if g in background_set]
-        up_symbols = [g for g in up_symbols if g in background_set]
-        down_symbols = [g for g in down_symbols if g in background_set]
+        sig_symbols = [g for g in sig_symbols if g.upper() in background_set]
+        up_symbols = [g for g in up_symbols if g.upper() in background_set]
+        down_symbols = [g for g in down_symbols if g.upper() in background_set]
 
     if symbol_map and len(sig_symbols) < len(sig_genes) * 0.3:
         warnings.append(
@@ -197,11 +225,13 @@ def _run_pathway_enrichment(sig_genes: list, up_genes: list,
 
     # 3) Directional KEGG (up vs down) — local-only, complementary to combined.
     kegg_lib = gene_sets.get("KEGG")
-    if kegg_lib and up_symbols and down_symbols:
+    if kegg_lib and (up_symbols or down_symbols):
         loaded = _ora.load_local_library(kegg_lib)
         if loaded:
             kegg_sets, _ = loaded
             for direction, genes in [("up", up_symbols), ("down", down_symbols)]:
+                if not genes:
+                    continue
                 terms = _ora.run_ora(
                     genes, kegg_sets, background_symbols, padj_max=0.1, top=10,
                 )
@@ -212,13 +242,14 @@ def _run_pathway_enrichment(sig_genes: list, up_genes: list,
 
 def _get_gene_sets(organism: str) -> dict:
     """Return gene set databases appropriate for organism."""
-    if "sapiens" in organism.lower():
+    species = _normalize_species(organism)
+    if species == "Homo sapiens":
         return {
             "GO_BP":    "GO_Biological_Process_2021",
             "KEGG":     "KEGG_2021_Human",
             "Reactome": "Reactome_2022",
         }
-    elif "musculus" in organism.lower():
+    elif species == "Mus musculus":
         return {
             "GO_BP":    "GO_Biological_Process_2021",
             "KEGG":     "KEGG_2019_Mouse",
@@ -236,7 +267,7 @@ def _gseapy_organism(organism: str) -> str:
     Capitalized strings like "Human" or "Homo sapiens" are REJECTED with:
         "Invalid organism 'Human'. Valid options are: ..."
     """
-    s = organism.lower()
+    s = _normalize_species(organism).lower()
     if "sapiens" in s or s in ("human", "hs", "hsapiens", "h. sapiens"):
         return "human"
     if "musculus" in s or s in ("mouse", "mm"):
@@ -245,6 +276,8 @@ def _gseapy_organism(organism: str) -> str:
         return "fish"
     if "melanogaster" in s or s in ("fly", "drosophila"):
         return "fly"
+    if "norvegicus" in s or s == "rat":
+        return "rat"
     if "elegans" in s:
         return "worm"
     if "cerevisiae" in s or s == "yeast":

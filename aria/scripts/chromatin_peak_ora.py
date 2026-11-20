@@ -29,9 +29,15 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspa
 from aria.scripts.chromatin_peak_annotation import (
     _modality_stamp, _resolve_gtf, _select_comparison_rows, annotate_peaks,
     parse_gtf_gene_models)
+from aria.scripts.rna_bulk.gtf_io import _normalize_species
 
 
 def _organism_from_genome(genome) -> str:
+    species = _normalize_species(genome)
+    if species in {"Homo sapiens", "Mus musculus", "Rattus norvegicus",
+                   "Danio rerio", "Drosophila melanogaster",
+                   "Caenorhabditis elegans", "Saccharomyces cerevisiae"}:
+        return species
     g = str(genome or "").lower()
     if g.startswith(("hg", "grch")) or "sapiens" in g or "human" in g:
         return "Homo sapiens"
@@ -81,8 +87,8 @@ def chromatin_peak_ora(params: dict) -> dict:
                 "reason": "gtf_parsed_zero_gene_models",
                 "gtf": Path(gtf_path).name}
 
-    organism = (params.get("organism")
-                or _organism_from_genome(params.get("genome")))
+    organism = (_normalize_species(params["organism"]) if params.get("organism")
+                else _organism_from_genome(params.get("genome")))
     from aria.scripts.rna_bulk.ora import _run_pathway_enrichment
     try:
         from aria.scripts.rna_pathway_viz import make_ora_dotplot
@@ -92,6 +98,7 @@ def chromatin_peak_ora(params: dict) -> dict:
     warnings: list = []
     comp_results: list = []
     figures: dict = {}
+    figures_svg: dict = {}
     for comp in params.get("comparisons") or []:
         csv_path = (comp or {}).get("full_results_csv")
         if not csv_path or not Path(csv_path).exists():
@@ -133,6 +140,7 @@ def chromatin_peak_ora(params: dict) -> dict:
         warnings.extend(f"[{comp_key}] {w}" for w in pw_warn)
 
         comp_figs: dict = {}
+        comp_figs_svg: dict = {}
         if make_ora_dotplot is not None:
             for db, terms in pathways.items():
                 if not terms:
@@ -144,6 +152,10 @@ def chromatin_peak_ora(params: dict) -> dict:
                 if path:
                     comp_figs[key] = path
                     figures[key] = path
+                    svg_path = Path(path).with_suffix(".svg")
+                    if svg_path.is_file():
+                        comp_figs_svg[key] = str(svg_path)
+                        figures_svg[key] = str(svg_path)
 
         comp_results.append({
             "test": comp.get("test"), "reference": comp.get("reference"),
@@ -156,6 +168,7 @@ def chromatin_peak_ora(params: dict) -> dict:
                                  for db, terms in pathways.items()},
             "pathways": pathways,
             "figures": comp_figs,
+            "figures_svg": comp_figs_svg,
         })
 
     if not comp_results:
@@ -173,6 +186,7 @@ def chromatin_peak_ora(params: dict) -> dict:
         "gtf": Path(gtf_path).name,
         "comparisons": comp_results,
         "figures": figures,
+        "figures_svg": figures_svg,
         "warnings": warnings,
     }
 

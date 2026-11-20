@@ -487,6 +487,13 @@ def _drop_arc_raw_siblings(records: list[dict[str, Any]]) -> list[dict[str, Any]
     ]
 
 
+def _norm_container_path(path: str) -> str:
+    try:
+        return str(Path(str(path)).expanduser().resolve(strict=False))
+    except Exception:
+        return str(path).rstrip("/")
+
+
 def _unpaired_container_files(
     exp_context: dict[str, Any],
     paired_paths: list[str],
@@ -496,23 +503,25 @@ def _unpaired_container_files(
     Files inside a paired container directory (Cell Ranger ARC MEX) and ATAC
     sidecars (fragments, peaks, indexes, metrics) are not counted.
     """
-    paired = {str(p) for p in paired_paths}
-    paired_dirs = tuple(p.rstrip("/") + "/" for p in paired)
+    paired_norm = {_norm_container_path(p) for p in paired_paths}
+    paired_dirs = tuple(p.rstrip("/") + "/" for p in paired_norm)
+    paired_arc_parents = {_arc_parent(p) for p in paired_norm}
     out: list[str] = []
+    seen_norm: set[str] = set()
     mods = exp_context.get("modalities") or {}
     for mod_key in ("scRNA", "scATAC"):
         for path in mods.get(mod_key, []) or []:
             p_str = str(path)
+            p_norm = _norm_container_path(p_str)
             low = p_str.lower()
-            if p_str in paired or p_str.startswith(paired_dirs):
+            if p_norm in paired_norm or p_norm.startswith(paired_dirs):
                 continue
-            if _is_arc_matrix(p_str, "raw") and any(
-                _arc_parent(p_str) == _arc_parent(pp) for pp in paired
-            ):
+            if _is_arc_matrix(p_norm, "raw") and _arc_parent(p_norm) in paired_arc_parents:
                 # Unfiltered sibling of a Cell Ranger ARC run (same library).
                 continue
             if any(low.endswith(sfx) for sfx in _COUNT_CONTAINER_SUFFIXES):
-                if p_str not in out:
+                if p_norm not in seen_norm:
+                    seen_norm.add(p_norm)
                     out.append(p_str)
     return sorted(out)
 

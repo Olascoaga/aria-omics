@@ -1238,18 +1238,23 @@ def test_qc_cache_requires_matching_parameters():
     expected = _cache_params(params)
 
     assert _cache_matches(
-        {"cache_version": 6, "cache_params": expected},
+        {"cache_version": 7, "cache_params": expected},
         expected,
     )
     assert "user_question" not in expected
     stale = {**expected, "min_genes": 500}
     assert not _cache_matches(
-        {"cache_version": 6, "cache_params": stale},
+        {"cache_version": 7, "cache_params": stale},
         expected,
     )
     # Older cache schemas must not be reused after QC-threshold policy changes
     # (N-QC1 moved the count/gene MAD bounds to log space → bump 4→5; T6 added
-    # the MAD=0 minimum-width fallback → bump 5→6).
+    # the MAD=0 minimum-width fallback → bump 5→6; Wave 3B hardened mouse MT
+    # detection & non-finite MAD bounds → bump 6→7).
+    assert not _cache_matches(
+        {"cache_version": 6, "cache_params": expected},
+        expected,
+    )
     assert not _cache_matches(
         {"cache_version": 5, "cache_params": expected},
         expected,
@@ -2039,7 +2044,26 @@ def test_cellcomm_table_labels_rank_metric_not_generic_score():
     assert "#1" in rows
     assert "specificity_rank" in rows
     assert "<td><code>0.0</code></td>" not in rows
-    assert "<td>—</td>" in rows
+    # Exact p == 0.0 is a valid ultra-significant CellPhoneDB p-value, not missing ("—").
+    assert "<td><code>0</code></td>" in rows
+
+    findings_missing_p = {
+        "cell_communication": {
+            "status": "done",
+            "method": "liana_rank_aggregate (specificity_rank)",
+            "top_interactions": [{
+                "source": "Microglia",
+                "target": "CA1",
+                "ligand": "APOE",
+                "receptor": "TREM2",
+                "score": 0.0,
+                "rank": 1,
+                "rank_metric": "specificity_rank",
+                "cellphone_pval": None,
+            }],
+        }
+    }
+    assert "<td>—</td>" in _narrative_scrna.extract_cellcomm_table(findings_missing_p)
 
 
 def test_integrated_interpretation_sanitizes_long_prompt():

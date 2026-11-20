@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import csv
 import html
+import math
 from pathlib import Path
 from typing import Optional
 
@@ -58,15 +59,28 @@ def extract_pseudobulk_de_table(findings: dict,
                 continue
             if comp.get("status") != "success":
                 continue
-            n_sig = comp.get("n_significant_global", comp.get("n_significant", 0))
-            n_sig_local = comp.get("n_significant_local", n_sig)
-            n_up   = comp.get("n_up_global", comp.get("n_up", 0))
-            n_down = comp.get("n_down_global", comp.get("n_down", 0))
-            top_genes = comp.get("top_genes", []) or []
-            up_tops = [g["gene"] for g in top_genes
-                       if g.get("log2fc", 0) > 0][:top_genes_per_row]
-            dn_tops = [g["gene"] for g in top_genes
-                       if g.get("log2fc", 0) < 0][:top_genes_per_row]
+            # Wave 4A: counts follow the PRIMARY FDR family (fdr_strategy) —
+            # the same family that populated top_genes — so the row can never
+            # read "0 ↑ GeneA" when per-cluster BH found the up genes.
+            counts = _primary_de_counts(comp, pb)
+            n_sig = counts["n_significant"]
+            n_up = counts["n_up"]
+            n_down = counts["n_down"]
+            primary_tag = ("per-cluster" if counts["strategy"] == "per_cluster"
+                           else "global")
+            secondary = counts["n_secondary"]
+            secondary_html = (
+                f" / {secondary} {counts['secondary_label']}"
+                if secondary is not None else ""
+            )
+            top_genes = [g for g in (comp.get("top_genes", []) or [])
+                         if isinstance(g, dict)]
+            up_tops = [str(g.get("gene", "?")) for g in top_genes
+                       if (_finite_number(g.get("log2fc")) or 0) > 0
+                       ][:top_genes_per_row]
+            dn_tops = [str(g.get("gene", "?")) for g in top_genes
+                       if (_finite_number(g.get("log2fc")) or 0) < 0
+                       ][:top_genes_per_row]
             rows.append(
                 f"<tr>"
                 f"<td><strong>{html.escape(str(group))}</strong></td>"
@@ -74,7 +88,7 @@ def extract_pseudobulk_de_table(findings: dict,
                 f"<td>{html.escape(str(comp_key))}</td>"
                 f"<td><strong>{n_sig}</strong> "
                 f"<span style='color:var(--muted);font-size:0.85em'>"
-                f"global / {n_sig_local} local</span></td>"
+                f"{primary_tag}{html.escape(secondary_html)}</span></td>"
                 f"<td style='color:var(--red)'>{n_up} ↑ "
                 f"<span style='color:var(--muted);font-size:0.85em'>"
                 f"{html.escape(', '.join(up_tops))}</span></td>"
@@ -107,8 +121,11 @@ def extract_cellcomm_table(findings: dict, top_n: int = 20) -> str:
             if ccc.get("method") else ""
         )
         pval = ia.get("cellphone_pval")
-        pval_str = (f"<code>{_fmt_stat(pval)}</code>"
-                    if isinstance(pval, (int, float)) and pval > 0 else "—")
+        # Wave 4A: p == 0.0 is a valid finite permutation p (no permutation
+        # exceeded the observed statistic) — render it; NaN/inf/negative -> "—".
+        pval_f = _finite_number(pval)
+        pval_str = (f"<code>{_fmt_stat(pval_f)}</code>"
+                    if pval_f is not None and pval_f >= 0 else "—")
         rank_str = f"#{int(rank)}" if isinstance(rank, (int, float)) else "—"
         score_str = _fmt_stat(score)
         metric_str = html.escape(str(metric or "score"))
@@ -134,14 +151,19 @@ def extract_trajectory_tables(findings: dict) -> dict:
     paga_rows = ""
     top_conn = paga.get("top_connections", {}) or {}
     if top_conn:
-        max_c = paga.get("max_connectivity") or max(
-            (v for v in top_conn.values() if isinstance(v, (int, float))),
-            default=0,
+        finite_conn = [
+            _finite_number(v) for v in top_conn.values()
+            if _finite_number(v) is not None
+        ]
+        max_c = _finite_number(paga.get("max_connectivity")) or max(
+            finite_conn, default=0,
         )
-        thr = paga.get("strong_threshold", 0.05)
+        thr = paga.get("strong_threshold")
+        thr = 0.05 if _finite_number(thr) is None else float(thr)
         rows = []
         for edge, val in top_conn.items():
-            strong = isinstance(val, (int, float)) and val >= thr
+            val_f = _finite_number(val)
+            strong = val_f is not None and val_f >= thr
             badge = (
                 '<span style="background:#dcfce7;color:var(--green);'
                 'padding:2px 6px;border-radius:3px;font-size:0.75em;'
@@ -149,8 +171,8 @@ def extract_trajectory_tables(findings: dict) -> dict:
                 if strong else
                 '<span style="color:var(--muted);font-size:0.85em">weak</span>'
             )
-            rel = (val / max_c) if max_c else 0
-            bar_w = max(2, int(rel * 100))
+            rel = (val_f / max_c) if (max_c and val_f is not None) else 0
+            bar_w = max(2, int(rel * 100)) if math.isfinite(rel) else 2
             rows.append(
                 f"<tr><td>{html.escape(str(edge))}</td>"
                 f"<td><code>{val}</code></td>"
@@ -165,12 +187,19 @@ def extract_trajectory_tables(findings: dict) -> dict:
     pseudotime_rows = ""
     pt_by = pt.get("pseudotime_by_group", {}) or {}
     if pt_by:
-        ordered = sorted(pt_by.items(), key=lambda kv: kv[1])
-        max_pt = max(pt_by.values()) if pt_by else 1
+        # Wave 4A: disconnected DPT components give inf/NaN group means; rank
+        # and scale bars on finite values only and list non-finite groups last
+        # (never int(nan * 140) -> ValueError).
+        finite_items = [(g, _finite_number(v)) for g, v in pt_by.items()
+                        if _finite_number(v) is not None]
+        nonfinite_items = [(g, v) for g, v in pt_by.items()
+                           if _finite_number(v) is None]
+        ordered = sorted(finite_items, key=lambda kv: kv[1])
+        max_pt = max((v for _, v in finite_items), default=0)
         rows = []
         for rank, (group, val) in enumerate(ordered, 1):
             rel = (val / max_pt) if max_pt else 0
-            bar_w = max(2, int(rel * 140))
+            bar_w = max(2, int(rel * 140)) if math.isfinite(rel) else 2
             rows.append(
                 f"<tr><td>{rank}</td>"
                 f"<td><strong>{html.escape(str(group))}</strong></td>"
@@ -179,6 +208,14 @@ def extract_trajectory_tables(findings: dict) -> dict:
                 f"height:8px;border-radius:3px;overflow:hidden'>"
                 f"<div style='background:var(--blue);width:{bar_w}px;"
                 f"height:100%'></div></div></td></tr>"
+            )
+        for group, val in nonfinite_items:
+            rows.append(
+                f"<tr><td>—</td>"
+                f"<td><strong>{html.escape(str(group))}</strong></td>"
+                f"<td><code>{html.escape(str(val))}</code></td>"
+                f"<td><em style='color:var(--muted)'>not reached from root "
+                f"(disconnected)</em></td></tr>"
             )
         pseudotime_rows = "\n".join(rows)
 
@@ -329,10 +366,12 @@ def export_supplementary_tables(findings: dict, output_dir: Path) -> dict:
                         "database": db_name,
                         "term": _term_value(term, "term", "Term"),
                         "adjusted_p": _term_value(
-                            term, "adjusted_p", "Adjusted P-value",
-                            "adj_p", "padj",
+                            term, "padj", "adjusted_p", "Adjusted P-value",
+                            "adj_p",
                         ),
-                        "p_value": _term_value(term, "p_value", "P-value"),
+                        "p_value": _term_value(
+                            term, "pvalue", "p_value", "P-value",
+                        ),
                         "overlap": _term_value(term, "overlap", "Overlap"),
                         "odds_ratio": _term_value(
                             term, "odds_ratio", "Odds Ratio"
@@ -382,8 +421,11 @@ def export_supplementary_tables(findings: dict, output_dir: Path) -> dict:
             "connectivity": val,
             "strong_threshold": paga.get("strong_threshold"),
             "is_strong": (
-                isinstance(val, (int, float))
-                and val >= (paga.get("strong_threshold", 0.05) or 0.05)
+                _finite_number(val) is not None
+                and val >= (
+                    0.05 if _finite_number(paga.get("strong_threshold")) is None
+                    else float(paga.get("strong_threshold"))
+                )
             ),
         })
     p = _write_tsv(output_dir / "scrna_paga_connections.tsv", paga_rows)
@@ -395,7 +437,10 @@ def export_supplementary_tables(findings: dict, output_dir: Path) -> dict:
         {"group": group, "mean_dpt": val}
         for group, val in (pt.get("pseudotime_by_group", {}) or {}).items()
     ]
-    pt_rows.sort(key=lambda r: r["mean_dpt"])
+    pt_rows.sort(key=lambda r: (
+        _finite_number(r["mean_dpt"]) is None,
+        _finite_number(r["mean_dpt"]) or 0.0,
+    ))
     for i, row in enumerate(pt_rows, 1):
         row["rank"] = i
     p = _write_tsv(output_dir / "scrna_pseudotime_by_group.tsv", pt_rows)

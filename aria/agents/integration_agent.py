@@ -49,6 +49,7 @@ from __future__ import annotations
 
 import json
 import logging
+import math
 import uuid
 from pathlib import Path
 from typing import Optional
@@ -536,6 +537,7 @@ class IntegrationAgent(BaseAgent):
                     "output_dir": str(base_out / f"assembled_{sid}"),
                 }
                 for key in (
+                    "barcode_namespace",
                     "gex_whitelist_path",
                     "atac_whitelist_path",
                     "barcode_map_path",
@@ -554,6 +556,26 @@ class IntegrationAgent(BaseAgent):
                     )
                     if val:
                         asm_params[key] = val
+                if not asm_params.get("barcode_map_path"):
+                    bmap = (
+                        row.get("barcode_map")
+                        or (manifest.get("barcode_map") if isinstance(manifest, dict) else None)
+                        or contract.get("barcode_map")
+                    )
+                    if bmap:
+                        asm_params["barcode_map_path"] = bmap
+                if not asm_params.get("barcode_namespace"):
+                    raw_ns = (
+                        row.get("cell_namespace")
+                        or (manifest.get("cell_namespace") if isinstance(manifest, dict) else None)
+                        or contract.get("cell_namespace")
+                    )
+                    if raw_ns:
+                        asm_params["barcode_namespace"] = raw_ns
+                    elif asm_params.get("barcode_map_path"):
+                        asm_params["barcode_namespace"] = "barcode_map_tsv"
+                    elif asm_params.get("gex_whitelist_path") and asm_params.get("atac_whitelist_path"):
+                        asm_params["barcode_namespace"] = "10x_arc_whitelist_pair"
                 if not asm_params.get("genome_fasta") and genome_cfg.get("fasta"):
                     asm_params["genome_fasta"] = genome_cfg["fasta"]
                 if not asm_params.get("kb_index") and genome_cfg.get("kb_index"):
@@ -756,16 +778,19 @@ class IntegrationAgent(BaseAgent):
                 else:
                     asm_params["atac_path"] = atac_files[0]
 
+                bmap = contract.get("barcode_map_path") or contract.get("barcode_map")
                 if ns == "10x_arc_whitelist_pair" or contract.get("gex_whitelist_path"):
-                    asm_params["barcode_translation"] = "10x_arc_whitelist_pair"
+                    asm_params["barcode_namespace"] = "10x_arc_whitelist_pair"
                     if contract.get("gex_whitelist_path"):
                         asm_params["gex_whitelist_path"] = contract["gex_whitelist_path"]
                     if contract.get("atac_whitelist_path"):
                         asm_params["atac_whitelist_path"] = contract["atac_whitelist_path"]
-                elif ns == "barcode_map_tsv" or contract.get("barcode_map"):
-                    asm_params["barcode_translation"] = "barcode_map_tsv"
-                    if contract.get("barcode_map"):
-                        asm_params["barcode_map_path"] = contract["barcode_map"]
+                elif ns == "barcode_map_tsv" or bmap:
+                    asm_params["barcode_namespace"] = "barcode_map_tsv"
+                    if bmap:
+                        asm_params["barcode_map_path"] = bmap
+                elif ns:
+                    asm_params["barcode_namespace"] = ns
 
                 asm_params.update(assemble_overrides)
                 asm_res = self.env.run_in_stack(
@@ -1382,8 +1407,15 @@ class IntegrationAgent(BaseAgent):
         for reg in top_regs:
             if reg.get("depth_confounded"):
                 continue
-            padj = float(reg.get("regulon_padj", 1.0) or 1.0)
-            if padj > 0.05:
+            raw_padj = reg.get("regulon_padj")
+            if raw_padj in (None, ""):
+                padj = 1.0
+            else:
+                try:
+                    padj = float(raw_padj)
+                except (TypeError, ValueError):
+                    padj = 1.0
+            if not math.isfinite(padj) or padj < 0.0 or padj > 0.05:
                 continue
             amb_flag = bool(reg.get("motif_family_ambiguity"))
             try:

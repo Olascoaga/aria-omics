@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import re
 from pathlib import Path
 
@@ -68,6 +69,10 @@ def _annotation_confidence_by_label(per_cluster: dict) -> dict:
                 conf = float(conf)
             except (TypeError, ValueError):
                 conf = None
+        # Wave 4A: a NaN/inf confidence must not poison the label mean (and
+        # silently flip ``uncertain`` to False because ``nan < 0.5`` is False).
+        if conf is not None and not math.isfinite(conf):
+            conf = None
         if conf is not None:
             w = float(n) if n > 0 else 1.0
             entry["weight_sum"] += w
@@ -91,6 +96,14 @@ def _annotation_confidence_by_label(per_cluster: dict) -> dict:
                               and mean_conf < _ANNOTATION_CONF_LOW),
         }
     return out
+
+
+def _first_present(row: dict, keys: tuple[str, ...]):
+    for key in keys:
+        value = row.get(key)
+        if value is not None and value != "":
+            return value
+    return None
 
 
 def _design_issues(comp: dict, severities: set[str] | None = None) -> list[dict]:
@@ -484,8 +497,11 @@ class ScrnaNarrator:
                 fdr_label = ("per-cluster FDR" if strategy == "per_cluster"
                              else "global-FDR")
                 n_sig = comp.get("n_significant", comp.get("n_significant_global", 0))
-                if not n_sig:
-                    continue
+                # Wave 4A: a successful block with zero significant genes is a
+                # valid NEGATIVE result — keep it (with its power estimate and
+                # caveats) instead of silently dropping it (reporting bias).
+                null_result = not n_sig
+                n_sig = n_sig or 0
                 evidence = [
                     _evidence("global-FDR DE genes",
                               comp.get("n_significant_global", n_sig), "pseudobulk_de"),
@@ -586,6 +602,19 @@ class ScrnaNarrator:
                     ))
                 if integration_block:
                     caveats.append(Caveat(integration_block, "blocking"))
+                if null_result:
+                    power = comp.get("power_estimate_at_lfc_min")
+                    power_txt = (
+                        f" (approximate power {power:.0%} at the LFC threshold)"
+                        if isinstance(power, (int, float))
+                        and math.isfinite(power) else ""
+                    )
+                    caveats.append(Caveat(
+                        f"No gene passed the {fdr_label} threshold for this "
+                        f"block{power_txt}; absence of significance is not "
+                        f"evidence of absence of an effect.",
+                        "info",
+                    ))
                 blocks.append(NarrativeBlock(
                     id=block_id,
                     modality="scRNA-seq",
@@ -630,6 +659,7 @@ class ScrnaNarrator:
                             if annotation_conf else None
                         ),
                         "confidence_extraction_failed": annotation_conf_degraded,
+                        "null_result": null_result,
                     },
                     metadata={
                         "estimand": {
@@ -671,10 +701,13 @@ class ScrnaNarrator:
                     term,
                     "pseudobulk_pathways",
                 ))
-                if row.get("adjusted_p") is not None:
+                padj = _first_present(
+                    row, ("padj", "adjusted_p", "Adjusted P-value", "adj_p")
+                )
+                if padj is not None:
                     evidence.append(_evidence(
                         f"{term} FDR",
-                        row.get("adjusted_p"),
+                        padj,
                         "pseudobulk_pathways",
                     ))
             blocks.append(NarrativeBlock(
@@ -811,7 +844,9 @@ class ScrnaNarrator:
                     })
             elif block.id.startswith("scrna.pathway"):
                 for block_key, paths in (figs.get("pathway_dotplots") or {}).items():
-                    if _safe_id(block_key) in block.id:
+                    # Wave 4A: exact id match — cluster "1" must not collide
+                    # with "10".."19" via substring containment.
+                    if block.id == f"scrna.pathway.{_safe_id(block_key)}":
                         for path in paths or []:
                             block.figures.append({
                                 "id": f"pathway.{block_key}",

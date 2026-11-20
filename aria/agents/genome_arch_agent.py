@@ -31,7 +31,7 @@ from aria.bus.message_bus import Confidence
 from aria.llm.parameter_advisor import ParameterAdvisor
 from aria.llm.provider import LLMProvider
 from aria.memory.memory import ARIAMemory
-from aria.utils.hic_constants import RAM_ESTIMATES_GB
+from aria.utils.hic_constants import RAM_ESTIMATES_GB, estimate_ram_gb
 
 log = logging.getLogger("aria.hic")
 
@@ -368,13 +368,15 @@ class GenomeArchAgent(BaseAgent):
 
         # Phase 4: Dual PNG + SVG publication figures
         self.publish_status(experiment_id, "Rendering 3D genome figures...", 0.90)
+        comp_block = topology_result.get("compartments") or {}
         fig_params: dict = {
             "output_dir": str(work_root / "figures"),
             "cooler_path": topology_files[0] if topology_files else None,
             "resolution": resolution_decision["recommended_resolution"],
             "ps_curve_tsv": qc_result.get("ps_curve_tsv") if isinstance(qc_result, dict) else None,
             "per_file": qc_result.get("per_file") if isinstance(qc_result, dict) else None,
-            "compartments_tsv": (topology_result.get("compartments") or {}).get("compartments_tsv"),
+            "compartments_tsv": comp_block.get("compartments_tsv"),
+            "pc1_validated": comp_block.get("pc1_validated"),
             "insulation_tsv": (topology_result.get("tads") or {}).get("insulation_tsv"),
             "tads_bed": (topology_result.get("tads") or {}).get("tads_bed"),
             "differential_compartments_csv": (
@@ -389,6 +391,11 @@ class GenomeArchAgent(BaseAgent):
         if isinstance(fig_res, dict) and fig_res.get("status") == "success":
             findings["figures"] = dict(fig_res.get("figures") or {})
             findings["figure_bundles"] = dict(fig_res.get("figure_bundles") or {})
+            fig_svg = dict(fig_res.get("figures_svg") or {})
+            for k, b in findings["figure_bundles"].items():
+                if isinstance(b, dict) and b.get("svg") and k not in fig_svg:
+                    fig_svg[k] = b["svg"]
+            findings["figures_svg"] = fig_svg
 
         self.publish_status(experiment_id, "GenomeArchAgent complete.", 1.0)
         return {"status": "done", "findings": findings}
@@ -481,7 +488,7 @@ class GenomeArchAgent(BaseAgent):
             coarser = [r for r in sorted(available) if r >= target_res]
             target_res = coarser[0] if coarser else sorted(available)[0]
 
-        base_ram = RAM_ESTIMATES_GB.get(target_res, 1.0)
+        base_ram = estimate_ram_gb(target_res)
         req_ram = base_ram * scale
 
         sorted_avail = sorted(available)
@@ -494,7 +501,7 @@ class GenomeArchAgent(BaseAgent):
                 continue
             seen_idx.add(i)
             res = sorted_avail[i]
-            ram_need = RAM_ESTIMATES_GB.get(res, 1.0) * scale
+            ram_need = estimate_ram_gb(res) * scale
             candidates.append({
                 "resolution": res,
                 "ram_required_gb": round(ram_need, 1),
@@ -616,13 +623,18 @@ class GenomeArchAgent(BaseAgent):
             if tads.get("status") == "success":
                 self._publish_tads_finding(experiment_id, tads)
 
-        # 3. Loop calling (whenever resolution <= 25kb and not explicitly disabled)
+        # 3. Loop calling (whenever a [4kb, 25kb] resolution is available and not disabled)
         loops: dict = {}
-        finest_avail = min(int(r) for r in avail_res) if avail_res else resolution
-        loop_res = resolution if resolution <= 25_000 else finest_avail
+        loop_eligible = [int(r) for r in avail_res if 4_000 <= int(r) <= 25_000]
+        if 4_000 <= resolution <= 25_000:
+            loop_res = resolution
+        elif loop_eligible:
+            loop_res = min(loop_eligible)
+        else:
+            loop_res = min((int(r) for r in avail_res), default=resolution)
         run_loops = (
             exp_ctx.get("enable_loops") is not False
-            and (loop_res <= 25_000 or analysis == "loop_calling")
+            and ((4_000 <= loop_res <= 25_000) or analysis == "loop_calling")
         )
         if run_loops:
             loop_params: dict = {
@@ -810,10 +822,16 @@ class GenomeArchAgent(BaseAgent):
     def _publish_compartments_finding(self, experiment_id: str,
                                       result: dict, intent: dict):
         n_switches = result.get("n_ab_switches", 0)
-        summary = (
-            f"Compartment A/B: {result.get('pct_A', 0):.1f}% A-compartment, "
-            f"{result.get('pct_B', 0):.1f}% B-compartment"
-        )
+        if result.get("pc1_validated"):
+            summary = (
+                f"Compartment A/B: {result.get('pct_A', 0):.1f}% A-compartment, "
+                f"{result.get('pct_B', 0):.1f}% B-compartment"
+            )
+        else:
+            summary = (
+                f"Unphased cis eigenvector E1: {result.get('pct_A', 0):.1f}% positive-E1, "
+                f"{result.get('pct_B', 0):.1f}% negative-E1 (arbitrary sign)"
+            )
         if n_switches > 0:
             summary += f", {n_switches} A/B switches detected"
             try:

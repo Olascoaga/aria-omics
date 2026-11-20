@@ -173,32 +173,74 @@ class BulkRnaNarrator:
             if sqc.get(key):
                 out.append({"id": key, "path": sqc[key], "caption": key})
         for contrast in findings.get("contrasts", []) or []:
-            for key, value in (contrast.get("plots", {}) or {}).items():
-                if isinstance(value, str):
+            cname = contrast.get("name", "contrast")
+            plots = contrast.get("plots", {}) or {}
+            # Wave 4A: only image artifacts are figures. ``tables`` (TSVs),
+            # ``gsea_table`` (CSV) and ``error`` (message string) must never
+            # leak here; ``heatmap`` is a backward-compat alias of
+            # ``heatmap_padj`` (same path) and is emitted only when the
+            # canonical key is absent.
+            for key in _BULK_IMAGE_PLOT_KEYS:
+                value = plots.get(key)
+                if key == "heatmap" and plots.get("heatmap_padj"):
+                    continue
+                if _is_image_path(value):
                     out.append({
-                        "id": f"{contrast.get('name', 'contrast')}.{key}",
+                        "id": f"{cname}.{key}",
                         "path": value,
-                        "caption": f"{contrast.get('name')} {key}",
+                        "caption": f"{cname} {key}",
                     })
-                elif isinstance(value, dict):
-                    for sub_key, path in value.items():
-                        out.append({
-                            "id": f"{contrast.get('name', 'contrast')}.{key}.{sub_key}",
-                            "path": path,
-                            "caption": f"{contrast.get('name')} {sub_key}",
-                        })
-        return out
+            for sub_key, path in (plots.get("ora_dotplots") or {}).items():
+                if _is_image_path(path):
+                    out.append({
+                        "id": f"{cname}.ora_dotplots.{sub_key}",
+                        "path": path,
+                        "caption": f"{cname} {sub_key}",
+                    })
+            for idx, path in enumerate(plots.get("gsea_running_sums") or [], 1):
+                if _is_image_path(path):
+                    out.append({
+                        "id": f"{cname}.gsea_running_sums.{idx}",
+                        "path": path,
+                        "caption": f"{cname} GSEA running sum {idx}",
+                    })
+        # Same artifact can be referenced twice (e.g. contrast ``pca`` mirrors
+        # ``sample_qc.pca_plot``); keep the first occurrence per path.
+        seen: set[str] = set()
+        deduped = []
+        for fig in out:
+            if fig["path"] in seen:
+                continue
+            seen.add(fig["path"])
+            deduped.append(fig)
+        return deduped
 
     def tables(self, agent_name: str, agent_result: dict,
                report_dir: Path | None = None) -> list[dict]:
         findings = agent_result.get("findings", {}) or {}
         tables = []
         for contrast in findings.get("contrasts", []) or []:
-            for key, path in ((contrast.get("plots", {}) or {}).get("tables", {}) or {}).items():
+            cname = contrast.get("name", "contrast")
+            plots = contrast.get("plots", {}) or {}
+            for key, path in (plots.get("tables", {}) or {}).items():
                 tables.append({
-                    "id": f"{contrast.get('name', 'contrast')}.{key}",
+                    "id": f"{cname}.{key}",
                     "path": path,
-                    "label": f"{contrast.get('name')} {key}",
+                    "label": f"{cname} {key}",
+                })
+            # Wave 4A: surface the GSEA results CSV and the full DE table.
+            if isinstance(plots.get("gsea_table"), str) and plots["gsea_table"]:
+                tables.append({
+                    "id": f"{cname}.gsea_table",
+                    "path": plots["gsea_table"],
+                    "label": f"{cname} GSEA results",
+                })
+            full = contrast.get("full_results_csv")
+            if isinstance(full, str) and full:
+                tables.append({
+                    "id": f"{cname}.full_results",
+                    "path": full,
+                    "label": f"{cname} full DE results",
                 })
         return tables
 
@@ -396,7 +438,11 @@ class BulkRnaNarrator:
                     status=status,
                     confidence="insufficient",
                     claim="",
-                    error=contrast.get("reason", "contrast did not complete"),
+                    error=(
+                        contrast.get("error")
+                        or contrast.get("reason")
+                        or "contrast did not complete"
+                    ),
                     caveats=[Caveat("No DE conclusion is drawn for this contrast.")],
                 ))
                 continue
@@ -489,8 +535,11 @@ class BulkRnaNarrator:
         evidence = [_evidence("enriched terms", len(terms), "bulk_pathways")]
         for db_name, term, row in terms[:5]:
             evidence.append(_evidence(f"{db_name} term", term, "bulk_pathways"))
-            if row.get("adjusted_p") is not None:
-                evidence.append(_evidence(f"{term} FDR", row.get("adjusted_p"),
+            padj = _first_present(
+                row, ("padj", "adjusted_p", "Adjusted P-value", "adj_p")
+            )
+            if padj is not None:
+                evidence.append(_evidence(f"{term} FDR", padj,
                                           "bulk_pathways"))
 
         # P1-7/W-PRIV: surface the ORA engine + exact versioned gene-set release
@@ -683,6 +732,9 @@ class BulkRnaNarrator:
             plots = contrast.get("plots", {}) or {}
             if block:
                 for key in ("volcano", "heatmap_padj", "heatmap_lfc", "heatmap"):
+                    # ``heatmap`` aliases ``heatmap_padj`` (identical path).
+                    if key == "heatmap" and plots.get("heatmap_padj"):
+                        continue
                     if plots.get(key):
                         block.figures.append({
                             "id": key,
@@ -765,8 +817,11 @@ def _parse_gsea_row(row: dict) -> dict:
                 term = value
                 break
     nes, nes_unstable = _to_float_checked(
-        lower.get("nes") or lower.get("normalized enrichment score")
+        lower.get("nes") or lower.get("normalized enrichment score"),
+        digits=4,
     )
+    # Wave 4A: FDR keeps full float precision (rounding to 4 dp turned
+    # 1e-5 into 0.0 and broke the FDR sort order).
     fdr, fdr_unstable = _to_float_checked(
         lower.get("fdr") or lower.get("fdr q-val") or lower.get("fdr_q_val")
     )
@@ -783,13 +838,43 @@ def _to_float(value):
     return None if unstable else parsed
 
 
-def _to_float_checked(value):
+def _to_float_checked(value, digits: int | None = None):
+    """Parse ``value`` to a finite float.
+
+    Full precision is preserved unless ``digits`` is given (used only for
+    effect sizes such as NES — never for p-values / FDRs).
+    """
     try:
         if value in (None, ""):
             return None, False
         parsed = float(value)
         if not math.isfinite(parsed):
             return None, True
-        return round(parsed, 4), False
+        if digits is not None:
+            parsed = round(parsed, digits)
+        return parsed, False
     except (TypeError, ValueError):
         return None, False
+
+
+_BULK_IMAGE_PLOT_KEYS = (
+    "volcano", "heatmap_padj", "heatmap_lfc", "heatmap", "gsea_top_table",
+    "pca", "mds",
+)
+_IMAGE_SUFFIXES = (".png", ".svg", ".pdf", ".jpg", ".jpeg", ".tif", ".tiff")
+
+
+def _is_image_path(value) -> bool:
+    return (
+        isinstance(value, str)
+        and bool(value)
+        and value.lower().endswith(_IMAGE_SUFFIXES)
+    )
+
+
+def _first_present(row: dict, keys: tuple[str, ...]):
+    for key in keys:
+        value = row.get(key)
+        if value is not None and value != "":
+            return value
+    return None

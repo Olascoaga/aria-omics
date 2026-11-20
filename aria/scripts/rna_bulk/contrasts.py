@@ -4,6 +4,7 @@ and overlap (A7 split of rna_bulk_de.py; bodies verbatim, behavior-preserving).
 Re-exported from aria.scripts.rna_bulk_de."""
 from __future__ import annotations
 import re
+import math
 
 
 def _slugify(s: str) -> str:
@@ -24,14 +25,17 @@ def _format_top_genes(de_result: dict, symbol_map: dict = None) -> list:
             continue
         row = results.loc[g]
         try:
+            lfc, padj = float(row["log2FoldChange"]), float(row["padj"])
+            if not math.isfinite(lfc) or not math.isfinite(padj):
+                continue
             clean_id = str(g).split(".")[0]
             symbol   = sm.get(clean_id, "")
             top.append({
                 "gene":      g,                    # Ensembl ID (or whatever)
                 "symbol":    symbol or g,          # HGNC symbol if known, else fallback to ID
-                "log2fc":    round(float(row["log2FoldChange"]), 3),
-                "padj":      float(row["padj"]),
-                "direction": "up" if row["log2FoldChange"] > 0 else "down",
+                "log2fc":    round(lfc, 3),
+                "padj":      padj,
+                "direction": "up" if lfc > 0 else "down",
             })
         except Exception:
             continue
@@ -118,11 +122,15 @@ def _contrast_overlap(contrast_results: list) -> dict:
     if len(successful) < 2:
         return {}
 
-    # Prefer all_sig_genes (full DE list) over top_genes (display top 30)
+    # Use full IDs when every contrast supplies them, keeping unmapped genes
+    # and a consistent namespace. Legacy records fall back to full symbols.
     gene_sets = {}
+    use_ids = all("all_sig_gene_ids" in c for c in successful)
     for c in successful:
-        if c.get("all_sig_genes"):
-            gene_sets[c["name"]] = set(c["all_sig_genes"])
+        if use_ids:
+            gene_sets[c["name"]] = set(c["all_sig_gene_ids"] or [])
+        elif "all_sig_genes" in c:
+            gene_sets[c["name"]] = set(c["all_sig_genes"] or [])
         else:
             # Fallback if all_sig_genes not present
             gene_sets[c["name"]] = set(g["gene"] for g in c.get("top_genes", []))

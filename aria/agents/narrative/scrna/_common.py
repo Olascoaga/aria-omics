@@ -11,8 +11,11 @@ __all__ = [
     "_lfc_shrinkage_clause", "_fmt_stat", "_group_label", "_label_cell_type",
     "_annotation_state", "_top_de_blocks", "_top_pathway_blocks", "_gene_name",
     "_gene_brief", "_top_directional_genes", "_find_pathway_block",
-    "_top_pathway_terms", "_term_value",
+    "_top_pathway_terms", "_term_value", "_comp_fdr_strategy",
+    "_primary_de_counts", "_record_padj", "_finite_number",
 ]
+
+import math
 
 
 def _term_value(term: dict, *keys, default=""):
@@ -22,6 +25,92 @@ def _term_value(term: dict, *keys, default=""):
         if key in term:
             return term.get(key)
     return default
+
+
+def _finite_number(value) -> float | None:
+    """Return ``value`` as a finite float, else ``None`` (bools excluded)."""
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    value = float(value)
+    return value if math.isfinite(value) else None
+
+
+def _comp_fdr_strategy(comp: dict, pb: dict | None = None) -> str | None:
+    """Primary FDR family of a pseudobulk comparison.
+
+    Returns ``"per_cluster"`` / ``"global"`` when the script declared it (on the
+    comparison or in ``pb["multiple_testing"]``), else ``None`` (legacy results,
+    which used global pooled BH).
+    """
+    strategy = (comp or {}).get("fdr_strategy")
+    if not strategy and pb:
+        strategy = ((pb.get("multiple_testing") or {}).get("fdr_strategy"))
+    return str(strategy) if strategy else None
+
+
+def _primary_de_counts(comp: dict, pb: dict | None = None) -> dict:
+    """Significance counts under the PRIMARY FDR family (Wave 4A).
+
+    ``top_genes`` / ``all_sig`` and the per-group bar chart follow the primary
+    family declared by ``fdr_strategy`` (``n_significant``/``n_up``/``n_down``
+    in rna_pseudobulk_de). Tables and prose must report the same family so they
+    never print e.g. ``0 up`` next to a list of up-regulated top genes. Legacy
+    results without a strategy keep the historical global-first lookup.
+    """
+    comp = comp or {}
+    strategy = _comp_fdr_strategy(comp, pb)
+
+    def _pick(*keys):
+        for key in keys:
+            if comp.get(key) is not None:
+                return comp.get(key)
+        return 0
+
+    if strategy == "per_cluster":
+        n_sig = _pick("n_significant", "n_significant_local")
+        n_up = _pick("n_up", "n_up_local")
+        n_down = _pick("n_down", "n_down_local")
+        secondary = comp.get("n_significant_global")
+        label, secondary_label = "per-cluster FDR", "global"
+    elif strategy == "global":
+        n_sig = _pick("n_significant", "n_significant_global")
+        n_up = _pick("n_up", "n_up_global")
+        n_down = _pick("n_down", "n_down_global")
+        secondary = comp.get("n_significant_local")
+        label, secondary_label = "global-FDR", "local"
+    else:
+        n_sig = _pick("n_significant_global", "n_significant")
+        n_up = _pick("n_up_global", "n_up")
+        n_down = _pick("n_down_global", "n_down")
+        secondary = comp.get("n_significant_local", n_sig)
+        label, secondary_label = "global-FDR", "local"
+    return {
+        "strategy": strategy or "global",
+        "n_significant": n_sig,
+        "n_up": n_up,
+        "n_down": n_down,
+        "n_secondary": secondary,
+        "label": label,
+        "secondary_label": secondary_label,
+    }
+
+
+def _record_padj(rec: dict, strategy: str | None = None):
+    """Adjusted p of a gene record under the primary FDR family.
+
+    ``rec["padj"]`` is the primary column in rna_pseudobulk_de; legacy records
+    without a declared strategy keep the global-first lookup.
+    """
+    if strategy == "per_cluster":
+        keys = ("padj", "padj_local", "padj_global")
+    elif strategy == "global":
+        keys = ("padj_global", "padj", "padj_local")
+    else:
+        keys = ("padj_global", "padj", "padj_local")
+    for key in keys:
+        if rec.get(key) is not None:
+            return rec.get(key)
+    return None
 
 
 def unwrap_scrna_findings(agent_result: dict) -> dict:
@@ -158,20 +247,21 @@ def _gene_name(rec: dict) -> str:
     return str(rec.get("symbol") or rec.get("gene") or rec.get("name") or "?")
 
 
-def _gene_brief(rec: dict) -> str:
+def _gene_brief(rec: dict, strategy: str | None = None) -> str:
     gene = _gene_name(rec)
     lfc = rec.get("log2fc", rec.get("log2FoldChange"))
-    padj = rec.get("padj_global", rec.get("padj", rec.get("padj_local")))
+    padj = _record_padj(rec, strategy)
     details = []
-    if isinstance(lfc, (int, float)):
+    if _finite_number(lfc) is not None:
         details.append(f"log2FC={lfc:+.2f}")
-    if isinstance(padj, (int, float)):
+    if _finite_number(padj) is not None:
         details.append(f"FDR={_fmt_stat(padj)}")
     return f"{gene} ({', '.join(details)})" if details else gene
 
 
 def _top_directional_genes(comp: dict, direction: str,
                            limit: int = 3) -> list[str]:
+    strategy = _comp_fdr_strategy(comp)
     records = comp.get("top_genes") or comp.get("all_sig") or []
     if direction == "up":
         rows = [r for r in records if isinstance(r, dict)
@@ -181,7 +271,7 @@ def _top_directional_genes(comp: dict, direction: str,
         rows = [r for r in records if isinstance(r, dict)
                 and r.get("log2fc", 0) < 0]
         rows.sort(key=lambda r: r.get("log2fc", 0))
-    return [_gene_brief(r) for r in rows[:limit]]
+    return [_gene_brief(r, strategy) for r in rows[:limit]]
 
 
 def _find_pathway_block(pwp: dict, group: str, comp_key: str) -> tuple[str, dict]:
@@ -199,10 +289,16 @@ def _find_pathway_block(pwp: dict, group: str, comp_key: str) -> tuple[str, dict
     for key in candidates:
         if key in per_cluster:
             return key, per_cluster[key]
+    # Wave 4A: no unanchored substring fallback — "T" must not match
+    # "CD8_T::..." and cluster "1" must not match "10::...". Only accept keys
+    # whose delimiter-split tokens equal the group and comparison exactly.
     for key, block in per_cluster.items():
         key_s = str(key)
-        if group_s in key_s and comp_s in key_s:
-            return key_s, block
+        for sep in ("::", "__", " "):
+            if sep in key_s:
+                head, _, tail = key_s.partition(sep)
+                if head == group_s and tail == comp_s:
+                    return key_s, block
     return "", {}
 
 
@@ -216,11 +312,11 @@ def _top_pathway_terms(block: dict, limit: int = 3) -> list[str]:
             if not term:
                 continue
             padj = _term_value(
-                row, "adjusted_p", "Adjusted P-value", "adj_p", "padj",
+                row, "padj", "adjusted_p", "Adjusted P-value", "adj_p",
                 default=None,
             )
             label = f"{db_name}: {term}"
-            if isinstance(padj, (int, float)):
+            if _finite_number(padj) is not None:
                 label += f" (FDR={_fmt_stat(padj)})"
             terms.append(label)
             if len(terms) >= limit:

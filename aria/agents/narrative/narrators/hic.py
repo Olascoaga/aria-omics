@@ -73,9 +73,78 @@ def _as_int(val: Any) -> int | None:
     if val is None or isinstance(val, bool):
         return None
     try:
+        if isinstance(val, float) and not math.isfinite(val):
+            return None
         return int(val)
-    except (TypeError, ValueError):
+    except (TypeError, ValueError, OverflowError):
+        # Wave 4A: int(inf) raises OverflowError; int("nan") ValueError.
         return None
+
+
+def _first_key(d: dict[str, Any], *keys: str) -> Any:
+    """First non-None value among canonical script keys and legacy aliases."""
+    if not isinstance(d, dict):
+        return None
+    for key in keys:
+        if d.get(key) is not None:
+            return d.get(key)
+    return None
+
+
+def _svg_map(findings: dict[str, Any]) -> dict[str, str]:
+    """SVG paths from ``figures_svg`` and ``figure_bundles[k]["svg"]``."""
+    out: dict[str, str] = {}
+    figs_svg = findings.get("figures_svg")
+    if isinstance(figs_svg, dict):
+        for k, v in figs_svg.items():
+            if isinstance(v, str) and v:
+                out[str(k)] = v
+    bundles = findings.get("figure_bundles")
+    if isinstance(bundles, dict):
+        for k, b in bundles.items():
+            if isinstance(b, dict) and isinstance(b.get("svg"), str) and b["svg"]:
+                out.setdefault(str(k), b["svg"])
+    return out
+
+
+def _png_map(findings: dict[str, Any]) -> dict[str, str]:
+    """PNG paths from ``figures`` and ``figure_bundles[k]["png"]``."""
+    out: dict[str, str] = {}
+    figs = findings.get("figures")
+    if isinstance(figs, dict):
+        for k, v in figs.items():
+            if isinstance(v, str) and v:
+                out[str(k)] = v
+    bundles = findings.get("figure_bundles")
+    if isinstance(bundles, dict):
+        for k, b in bundles.items():
+            if isinstance(b, dict) and isinstance(b.get("png"), str) and b["png"]:
+                out.setdefault(str(k), b["png"])
+    return out
+
+
+def _base_resolution(pre: dict[str, Any]) -> int | None:
+    base = _as_int(_first_key(pre, "base_resolution", "base_res", "resolution"))
+    if base is not None:
+        return base
+    res_vals: list[int] = []
+    for rec in pre.get("samples") or []:
+        if isinstance(rec, dict):
+            for r in rec.get("resolutions") or []:
+                ri = _as_int(r)
+                if ri is not None:
+                    res_vals.append(ri)
+    return min(res_vals) if res_vals else None
+
+
+def _loop_pe_count(loops: dict[str, Any]) -> int | None:
+    n = _as_int(loops.get("n_promoter_enhancer_candidates"))
+    if n is not None:
+        return n
+    counts = loops.get("loop_class_counts")
+    if isinstance(counts, dict) and counts:
+        return _as_int(counts.get("promoter_enhancer"))
+    return None
 
 
 def _stage_state(stage: Any) -> str:
@@ -96,13 +165,11 @@ def _ev(label: str, value: Any, source: str = "genome_arch_agent", path: str | N
 
 
 def _figure_entries(findings: dict[str, Any], key: str, caption: str) -> list[dict[str, str]]:
-    figs = findings.get("figures") or {}
-    figs_svg = findings.get("figures_svg") or {}
-    raw = figs.get(key) if isinstance(figs, dict) else None
+    raw = _png_map(findings).get(key)
     if not raw or not isinstance(raw, str):
         return []
     rec: dict[str, str] = {"id": f"hic.{key}", "path": raw, "caption": caption}
-    svg_p = figs_svg.get(key) if isinstance(figs_svg, dict) else None
+    svg_p = _svg_map(findings).get(key)
     if isinstance(svg_p, str) and svg_p:
         rec["svg_path"] = svg_p
     return [rec]
@@ -257,8 +324,10 @@ class HiCNarrator:
 
     def _preprocessing_block(self, pre: dict[str, Any]) -> NarrativeBlock:
         coolers = [str(c) for c in (pre.get("cooler_files") or []) if c]
-        n_samples = _as_int(pre.get("n_samples")) or len(coolers)
-        base_res = _as_int(pre.get("base_resolution"))
+        n_samples = _as_int(pre.get("n_samples"))
+        if n_samples is None:
+            n_samples = len(coolers)
+        base_res = _base_resolution(pre)
         evidence = [
             _ev("Assay", "Hi-C", "hic_preprocess"),
             _ev("Samples preprocessed", n_samples, "hic_preprocess"),
@@ -296,7 +365,16 @@ class HiCNarrator:
         )
 
     def _qc_block(self, bal: dict[str, Any], findings: dict[str, Any]) -> NarrativeBlock:
-        n_samples = _as_int(bal.get("n_samples")) or max(1, len(bal.get("per_sample") or []))
+        # Wave 4A: an explicit 0 must stay 0 (no falsy ``or``); the script
+        # emits ``per_file`` (``per_sample`` is a legacy alias).
+        n_samples = _as_int(bal.get("n_samples"))
+        if n_samples is None:
+            per = bal.get("per_file") or bal.get("per_sample") or []
+            n_ok = sum(
+                1 for r in per
+                if not isinstance(r, dict) or r.get("status") in (None, "success")
+            )
+            n_samples = max(1, n_ok)
         n_valid = _as_int(bal.get("n_valid_pairs"))
         cis_trans = _finite_round(bal.get("cis_trans_ratio"), 3)
         long_cis = _finite_round(bal.get("long_range_cis_fraction", bal.get("long_range_cis")), 3)
@@ -379,7 +457,7 @@ class HiCNarrator:
         pct_a = _finite_round(comp.get("pct_A"), 2)
         pct_b = _finite_round(comp.get("pct_B"), 2)
         res_bp = _as_int(comp.get("resolution_bp") or comp.get("resolution"))
-        phased = bool(comp.get("pc1_validated"))
+        phased = comp.get("pc1_validated") is True
         phasing_track = _clean_token(
             comp.get("phasing_method") or comp.get("phasing_track"), "unphased"
         )
@@ -395,18 +473,32 @@ class HiCNarrator:
             evidence.append(_ev("Compartment bin resolution (bp)", res_bp, "hic_topology"))
         if n_bins is not None:
             evidence.append(_ev("Valid genomic bins", n_bins, "hic_topology"))
+        # Wave 4A: "active"/"inactive" only when the E1 sign was phased
+        # (pc1_validated is True); otherwise report raw E1 polarity.
+        if phased:
+            a_label, b_label = "Active compartment fraction", "Inactive compartment fraction"
+        else:
+            a_label = "Positive-E1 bin fraction (unphased sign)"
+            b_label = "Negative-E1 bin fraction (unphased sign)"
         if pct_a is not None:
-            evidence.append(_ev("Active compartment fraction", f"{pct_a}%", "hic_topology"))
+            evidence.append(_ev(a_label, f"{pct_a}%", "hic_topology"))
         if pct_b is not None:
-            evidence.append(_ev("Inactive compartment fraction", f"{pct_b}%", "hic_topology"))
+            evidence.append(_ev(b_label, f"{pct_b}%", "hic_topology"))
         if comp.get("compartments_tsv"):
             evidence.append(_ev("Compartment eigenvector table", "tsv", "hic_topology", path=str(comp["compartments_tsv"])))
 
-        if pct_a is not None and pct_b is not None and res_bp is not None:
+        if pct_a is not None and pct_b is not None and res_bp is not None and phased:
             claim = (
                 f"Hi-C cis eigenvector compartment decomposition at {res_bp} bp "
                 f"resolution classified {pct_a}% active and {pct_b}% "
                 f"inactive compartment bins."
+            )
+        elif pct_a is not None and pct_b is not None and res_bp is not None:
+            claim = (
+                f"Hi-C cis eigenvector compartment decomposition at {res_bp} bp "
+                f"resolution found {pct_a}% positive-E1 and {pct_b}% negative-E1 "
+                f"bins; the eigenvector sign is unphased, so these are not "
+                f"active/inactive compartment assignments."
             )
         else:
             claim = "Hi-C cis eigenvector compartment decomposition completed."
@@ -462,7 +554,7 @@ class HiCNarrator:
         n_tads = _as_int(tads.get("n_tads"))
         n_bounds = _as_int(tads.get("n_boundaries"))
         med_kb = _finite_round(tads.get("median_size_kb"), 1)
-        win_bp = _as_int(tads.get("window_bp"))
+        win_bp = _as_int(_first_key(tads, "window_size", "window_bp"))
 
         evidence: list[EvidenceItem] = [
             _ev("Assay", "Hi-C", "hic_topology"),
@@ -525,7 +617,9 @@ class HiCNarrator:
     def _loops_block(self, loops: dict[str, Any], findings: dict[str, Any]) -> NarrativeBlock:
         n_loops = _as_int(loops.get("n_loops"))
         res_bp = _as_int(loops.get("resolution_bp") or loops.get("resolution"))
-        n_pe = _as_int(loops.get("n_promoter_enhancer_candidates"))
+        n_pe = _loop_pe_count(loops)
+        loops_path = _first_key(loops, "loops_path", "loops_bedpe")
+        ann_path = _first_key(loops, "annotated_loops_path", "annotated_loops_tsv")
 
         evidence: list[EvidenceItem] = [
             _ev("Assay", "Hi-C", "hic_topology"),
@@ -537,10 +631,10 @@ class HiCNarrator:
             evidence.append(_ev("Loop calling resolution (bp)", res_bp, "hic_topology"))
         if n_pe is not None:
             evidence.append(_ev("Promoter-anchored loop candidates", n_pe, "hic_topology"))
-        if loops.get("loops_bedpe"):
-            evidence.append(_ev("Called chromatin loops", "bedpe", "hic_topology", path=str(loops["loops_bedpe"])))
-        if loops.get("annotated_loops_tsv"):
-            evidence.append(_ev("Anchor-annotated loops", "tsv", "hic_topology", path=str(loops["annotated_loops_tsv"])))
+        if loops_path:
+            evidence.append(_ev("Called chromatin loops", "bedpe", "hic_topology", path=str(loops_path)))
+        if ann_path:
+            evidence.append(_ev("Anchor-annotated loops", "tsv", "hic_topology", path=str(ann_path)))
 
         if n_loops is not None and res_bp is not None:
             claim = (
@@ -585,7 +679,9 @@ class HiCNarrator:
 
     def _differential_3d_block(self, diff3d: dict[str, Any], findings: dict[str, Any]) -> NarrativeBlock:
         comps = [c for c in (diff3d.get("comparisons") or []) if isinstance(c, dict)]
-        n_comps = _as_int(diff3d.get("n_comparisons")) or len(comps)
+        n_comps = _as_int(diff3d.get("n_comparisons"))
+        if n_comps is None:
+            n_comps = len(comps)
         n_sig_comp = _as_int(
             diff3d.get("n_significant_compartment_bins")
             if diff3d.get("n_significant_compartment_bins") is not None
@@ -593,20 +689,19 @@ class HiCNarrator:
         )
         if n_sig_comp is None:
             n_sig_comp = sum(
-                int(
-                    c.get("n_differential_compartment_bins")
-                    or c.get("n_sig_compartments")
-                    or c.get("n_significant_e1")
-                    or 0
-                )
+                _as_int(
+                    _first_key(c, "n_differential_compartment_bins",
+                               "n_sig_compartments", "n_significant_e1")
+                ) or 0
                 for c in comps
             )
         n_switches = _as_int(diff3d.get("n_ab_switches"))
         if n_switches is None:
             n_switches = sum(
-                int(
-                    c.get("n_ab_switches")
-                    or ((c.get("n_a_to_b") or 0) + (c.get("n_b_to_a") or 0))
+                (
+                    _as_int(c.get("n_ab_switches"))
+                    if _as_int(c.get("n_ab_switches")) is not None
+                    else (_as_int(c.get("n_a_to_b")) or 0) + (_as_int(c.get("n_b_to_a")) or 0)
                 )
                 for c in comps
             )
@@ -617,12 +712,10 @@ class HiCNarrator:
         )
         if n_sig_ins is None:
             n_sig_ins = sum(
-                int(
-                    c.get("n_differential_insulation_bins")
-                    or c.get("n_differential_boundaries")
-                    or c.get("n_sig_insulation")
-                    or 0
-                )
+                _as_int(
+                    _first_key(c, "n_differential_insulation_bins",
+                               "n_differential_boundaries", "n_sig_insulation")
+                ) or 0
                 for c in comps
             )
 
@@ -698,17 +791,19 @@ class HiCNarrator:
             out.append(
                 f"3D contact preprocessing: contact inputs across "
                 f"{_clean_token(pre.get('n_samples'), '?')} sample(s) were "
-                f"standardized into multi-resolution cooler matrices (base bin "
-                f"{_clean_token(pre.get('base_resolution'), '?')} bp) via "
-                "pairtools/cooler/hicstraw in aria-hic-env."
+                f"standardized into multi-resolution cooler matrices"
+                + (f" (base bin {_base_resolution(pre)} bp)"
+                   if _base_resolution(pre) is not None else "")
+                + " via pairtools/cooler/hicstraw in aria-hic-env."
             )
         bal = findings.get("balancing") or findings.get("qc") or {}
         if _stage_state(bal) == "ok":
+            mean_scc = _finite_round(bal.get("mean_replicate_scc"), 3)
             scc_clause = (
                 f"; multi-sample reproducibility was quantified by distance-"
                 f"stratified HiCRep stratum-adjusted correlation (mean SCC "
-                f"{_clean_token(bal.get('mean_replicate_scc'))})"
-                if bal.get("mean_replicate_scc") is not None
+                f"{mean_scc})"
+                if mean_scc is not None
                 else ""
             )
             out.append(
@@ -721,11 +816,14 @@ class HiCNarrator:
         topo = findings.get("topology") if isinstance(findings.get("topology"), dict) else findings
         comp = (topo or {}).get("compartments") or {}
         if _stage_state(comp) == "ok":
-            phase_txt = (
-                f"phased against {_clean_token(comp.get('phasing_track'))}"
-                if comp.get("pc1_validated")
-                else "reported unphased with explicit sign-arbitrariness disclosure"
-            )
+            phase_ref = _first_key(comp, "phasing_method", "phasing_track")
+            if comp.get("pc1_validated") is True:
+                phase_txt = (
+                    f"phased against {_clean_token(phase_ref)}"
+                    if phase_ref else "sign-phased against a reference track"
+                )
+            else:
+                phase_txt = "reported unphased with explicit sign-arbitrariness disclosure"
             out.append(
                 f"A/B compartments: cis eigenvector decomposition (cooltools "
                 f"eigs_cis, E1) was computed at {_clean_token(comp.get('resolution_bp') or comp.get('resolution'), '?')} "
@@ -735,7 +833,10 @@ class HiCNarrator:
         if _stage_state(tads) == "ok":
             out.append(
                 f"Topologically associating domains: diamond log2 insulation "
-                f"scores (Crane et al., 2015; window {_clean_token(tads.get('window_bp'), '?')} bp) "
+                f"scores (Crane et al., 2015"
+                + (f"; window {_as_int(_first_key(tads, 'window_size', 'window_bp'))} bp"
+                   if _as_int(_first_key(tads, 'window_size', 'window_bp')) is not None else "")
+                + ") "
                 "and prominence-filtered boundary minima were called with cooltools insulation."
             )
         loops = (topo or {}).get("loops") or {}
@@ -763,20 +864,17 @@ class HiCNarrator:
         report_dir: Path | None = None,
     ) -> list[dict]:
         findings = unwrap_hic_findings(agent_result)
-        figs = findings.get("figures") or {}
-        figs_svg = findings.get("figures_svg") or {}
+        figs_svg = _svg_map(findings)
         out: list[dict] = []
-        if isinstance(figs, dict):
-            for key, path in figs.items():
-                if isinstance(path, str) and path:
-                    rec = {
-                        "id": f"hic.{key}",
-                        "path": path,
-                        "caption": str(key).replace("_", " "),
-                    }
-                    if isinstance(figs_svg, dict) and isinstance(figs_svg.get(key), str):
-                        rec["svg_path"] = figs_svg[key]
-                    out.append(rec)
+        for key, path in _png_map(findings).items():
+            rec = {
+                "id": f"hic.{key}",
+                "path": path,
+                "caption": str(key).replace("_", " "),
+            }
+            if figs_svg.get(key):
+                rec["svg_path"] = figs_svg[key]
+            out.append(rec)
         return out
 
     def tables(
@@ -806,18 +904,22 @@ class HiCNarrator:
                     tables.append({"id": "hic.insulation", "path": str(tads["insulation_tsv"]), "label": "Hi-C diamond insulation track"})
             loops = topo.get("loops") or {}
             if isinstance(loops, dict):
-                if loops.get("loops_bedpe"):
-                    tables.append({"id": "hic.loops", "path": str(loops["loops_bedpe"]), "label": "Hi-C chromatin loops (BEDPE)"})
-                if loops.get("annotated_loops_tsv"):
-                    tables.append({"id": "hic.annotated_loops", "path": str(loops["annotated_loops_tsv"]), "label": "Hi-C anchor-annotated loops"})
+                loops_path = _first_key(loops, "loops_path", "loops_bedpe")
+                ann_path = _first_key(loops, "annotated_loops_path", "annotated_loops_tsv")
+                if loops_path:
+                    tables.append({"id": "hic.loops", "path": str(loops_path), "label": "Hi-C chromatin loops (BEDPE)"})
+                if ann_path:
+                    tables.append({"id": "hic.annotated_loops", "path": str(ann_path), "label": "Hi-C anchor-annotated loops"})
             diff3d = topo.get("differential_3d") or {}
             if isinstance(diff3d, dict):
                 for c in diff3d.get("comparisons") or []:
                     if not isinstance(c, dict):
                         continue
-                    label = _clean_token(c.get("contrast") or f"{c.get('test')}_vs_{c.get('reference')}")
-                    if c.get("compartments_csv"):
-                        tables.append({"id": f"hic.diff_compartments.{label}", "path": str(c["compartments_csv"]), "label": f"Differential compartments ({label})"})
-                    if c.get("insulation_csv"):
-                        tables.append({"id": f"hic.diff_insulation.{label}", "path": str(c["insulation_csv"]), "label": f"Differential insulation ({label})"})
+                    label = _clean_token(c.get("contrast") or c.get("comparison") or f"{c.get('test')}_vs_{c.get('reference')}")
+                    comp_csv = _first_key(c, "differential_compartments_csv", "compartments_csv")
+                    ins_csv = _first_key(c, "differential_insulation_csv", "insulation_csv")
+                    if comp_csv:
+                        tables.append({"id": f"hic.diff_compartments.{label}", "path": str(comp_csv), "label": f"Differential compartments ({label})"})
+                    if ins_csv:
+                        tables.append({"id": f"hic.diff_insulation.{label}", "path": str(ins_csv), "label": f"Differential insulation ({label})"})
         return tables

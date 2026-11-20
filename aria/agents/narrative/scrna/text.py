@@ -10,6 +10,24 @@ from typing import Optional
 from aria.agents.narrative.scrna._common import *  # noqa: F401,F403
 
 
+def _ora_engine_label(pwp: dict, methods: bool = False) -> str:
+    """ORA engine wording that matches what actually ran (Wave 4A).
+
+    ``ora_method`` is emitted by rna_pathway_per_cluster: local hypergeometric
+    (offline, gene list never leaves the machine), Enrichr, or mixed. Legacy
+    results without the key keep the historical Enrichr wording.
+    """
+    method = str((pwp or {}).get("ora_method") or "").lower()
+    if method == "local_hypergeometric":
+        return ("local hypergeometric test against versioned gene sets, "
+                "offline" if methods else "local hypergeometric, offline")
+    if method == "mixed_local_enrichr":
+        return ("local hypergeometric test for some databases and the gseapy / "
+                "Enrichr endpoint for others" if methods
+                else "local hypergeometric + Enrichr")
+    return "gseapy / Enrichr endpoint" if methods else "Enrichr"
+
+
 def _describe_top_de_blocks(findings: dict, limit: int = 3) -> list[str]:
     """Detailed, grounded interpretation for the highest-priority DE blocks."""
     pb = findings.get("pseudobulk_de") or {}
@@ -18,10 +36,13 @@ def _describe_top_de_blocks(findings: dict, limit: int = 3) -> list[str]:
     for rank, (group, comp_key, comp) in enumerate(
         _top_de_blocks(pb, limit=limit), 1
     ):
-        n_global = comp.get("n_significant_global", comp.get("n_significant", 0))
-        n_local = comp.get("n_significant_local", comp.get("n_significant", 0))
-        n_up = comp.get("n_up_global", comp.get("n_up", 0))
-        n_down = comp.get("n_down_global", comp.get("n_down", 0))
+        # Wave 4A: report the PRIMARY FDR family (fdr_strategy) — the family
+        # that selected top_genes — and the other family as secondary context.
+        counts = _primary_de_counts(comp, pb)
+        n_primary = counts["n_significant"]
+        n_secondary = counts["n_secondary"]
+        n_up = counts["n_up"]
+        n_down = counts["n_down"]
         power = comp.get("power_estimate_at_lfc_min")
         power_txt = (
             f"; approximate power={power:.0%}"
@@ -33,11 +54,19 @@ def _describe_top_de_blocks(findings: dict, limit: int = 3) -> list[str]:
             " not composition-corrected"
         )
         fdr_txt = ""
-        if n_local != n_global:
+        if (counts["strategy"] != "per_cluster" and n_secondary is not None
+                and n_secondary != n_primary):
             fdr_txt = (
-                f" Local FDR found {_fmt_int(n_local)} genes, but global FDR "
-                f"retained {_fmt_int(n_global)}; prioritize the global-FDR "
+                f" Local FDR found {_fmt_int(n_secondary)} genes, but global FDR "
+                f"retained {_fmt_int(n_primary)}; prioritize the global-FDR "
                 f"set for cross-cell-type claims."
+            )
+        elif (counts["strategy"] == "per_cluster" and n_secondary is not None
+                and n_secondary != n_primary):
+            fdr_txt = (
+                f" Pooled global FDR (secondary family) retained "
+                f"{_fmt_int(n_secondary)} genes; the per-cluster set is the "
+                f"pre-registered primary family for this block."
             )
         up = _top_directional_genes(comp, "up")
         down = _top_directional_genes(comp, "down")
@@ -81,11 +110,15 @@ def _describe_top_de_blocks(findings: dict, limit: int = 3) -> list[str]:
             " Caveat: " + ", ".join(caveats) + "."
             if caveats else ""
         )
+        secondary_txt = (
+            f"{_fmt_int(n_secondary)} {counts['secondary_label']};"
+            if n_secondary is not None else ""
+        )
         lines.append(
             f"DE block {rank}: {group} {comp_key} had "
-            f"{_fmt_int(n_global)} global-FDR DE genes "
+            f"{_fmt_int(n_primary)} {counts['label']} DE genes "
             f"({_fmt_int(n_up)} up, {_fmt_int(n_down)} down; "
-            f"{_fmt_int(n_local)} local;{correction_txt}{power_txt})."
+            f"{secondary_txt}{correction_txt}{power_txt})."
             f"{gene_clause}{pathway_clause}{fdr_txt}{caveat_txt}"
         )
     return lines
@@ -417,16 +450,32 @@ def summarize_scrna_text(findings: dict) -> str:
         cond_col = pb.get("condition_col") or "condition"
         cond_label = cond_col.replace("_", " ").strip()
         cond_label = cond_label[:1].upper() + cond_label[1:] if cond_label else "Condition"
-        composition_clause = (
-            f" {n_corrected}/{n_success} blocks were composition-corrected "
-            f"(a continuous log-proportion covariate was added to the "
-            f"DESeq2 design because rna_diff_abundance flagged significant "
-            f"shifts)."
-            if n_corrected else
-            (" No block used a composition covariate "
-             "(rna_diff_abundance found no significant shifts).")
-            if da else ""
-        )
+        # Wave 4A: only claim "no significant shifts" when DA actually said
+        # so; covariates can also be dropped (e.g. collinear with condition)
+        # while DA did find shifts.
+        if n_corrected:
+            composition_clause = (
+                f" {n_corrected}/{n_success} blocks were composition-corrected "
+                f"(a continuous log-proportion covariate was added to the "
+                f"DESeq2 design because rna_diff_abundance flagged significant "
+                f"shifts)."
+            )
+        elif da and da.get("any_significant") is True:
+            composition_clause = (
+                " No block used a composition covariate even though "
+                "rna_diff_abundance flagged significant abundance shifts "
+                "(the covariate was not applied, e.g. collinear with the "
+                "condition); abundance shifts are reported separately."
+            )
+        elif da and da.get("any_significant") is False:
+            composition_clause = (
+                " No block used a composition covariate "
+                "(rna_diff_abundance found no significant shifts)."
+            )
+        elif da:
+            composition_clause = " No block used a composition covariate."
+        else:
+            composition_clause = ""
         lines.append(
             f"{cond_label}-associated expression programs: pseudobulk DE "
             f"(DESeq2 on pseudosamples) ran across {n_groups} "
@@ -460,13 +509,18 @@ def summarize_scrna_text(findings: dict) -> str:
             desc = []
             for group, comp_key, comp in top:
                 tag = " [low power]" if comp.get("low_power_warning") else ""
+                counts = _primary_de_counts(comp, pb)
+                secondary = counts["n_secondary"]
+                secondary_txt = (
+                    f"; {_fmt_int(secondary)} {counts['secondary_label']}"
+                    if secondary is not None else ""
+                )
                 desc.append(
                     f"{group} {comp_key}{tag}: "
-                    f"{_fmt_int(comp.get('n_significant_global', comp.get('n_significant', 0)))} "
-                    f"global-FDR DE genes "
-                    f"({_fmt_int(comp.get('n_up_global', comp.get('n_up', 0)))} up, "
-                    f"{_fmt_int(comp.get('n_down_global', comp.get('n_down', 0)))} down; "
-                    f"{_fmt_int(comp.get('n_significant_local', comp.get('n_significant', 0)))} local)"
+                    f"{_fmt_int(counts['n_significant'])} "
+                    f"{counts['label']} DE genes "
+                    f"({_fmt_int(counts['n_up'])} up, "
+                    f"{_fmt_int(counts['n_down'])} down{secondary_txt})"
                 )
             lines.append("Largest DE blocks: " + "; ".join(desc) + ".")
         lines.extend(_describe_abundance_de_relationship(findings))
@@ -488,7 +542,8 @@ def summarize_scrna_text(findings: dict) -> str:
         else:
             bg_summary = ""
         lines.append(
-            f"Pathway over-representation (Enrichr) on top-200 DE genes per "
+            f"Pathway over-representation ({_ora_engine_label(pwp)}) on "
+            f"top-200 DE genes per "
             f"(group × comparison): {n_sig_blocks}/{n_blocks} blocks "
             f"with significant enrichment"
             f"{bg_summary}."
@@ -709,8 +764,10 @@ def build_scrna_methods(findings: dict) -> str:
 
     qc = findings.get("qc") or {}
     if qc:
-        mt = qc.get("mt_threshold")
-        mt_str = f" with mt-fraction cap at {mt}%" if mt else ""
+        mt = qc.get("mt_threshold_used")
+        if mt is None:
+            mt = qc.get("mt_threshold")
+        mt_str = f" with mt-fraction cap at {mt}%" if mt is not None else ""
         lines.append(
             f"Raw count matrices were processed using scanpy. "
             f"Cells were filtered by adaptive MAD-based thresholds on "
@@ -846,8 +903,8 @@ def build_scrna_methods(findings: dict) -> str:
             f"across all gene × block tests"
             f"{n_tests_clause}. "
             f"Significance for narrative summaries and ORA input used "
-            f"{_fdr_primary_clause(pb)} &lt; {thr.get('padj_max', 0.05)} and "
-            f"|log2FC| &gt; {thr.get('lfc_min', 0.5)}. "
+            f"{_fdr_primary_clause(pb)} < {thr.get('padj_max', 0.05)} and "
+            f"|log2FC| > {thr.get('lfc_min', 0.5)}. "
             f"{_lfc_shrinkage_clause(pb)}"
             f"For Seurat-derived h5ads with log-normalised raw.X, counts were "
             f"recovered as expm1(x) × nCount_RNA / 10000 prior to aggregation."
@@ -871,15 +928,20 @@ def build_scrna_methods(findings: dict) -> str:
                 f" The ORA background was {pwp.get('background_size')} genes "
                 f"detected in the analyzed dataset."
             )
+        elif pwp.get("ora_method") == "local_hypergeometric":
+            bg_clause = (
+                " The ORA background was the gene-set library universe because "
+                "no dataset-expressed background was available."
+            )
         else:
             bg_clause = (
                 " The ORA background was Enrichr's default universe because no "
                 "dataset-expressed background was available."
             )
         lines.append(
-            f"Over-representation analysis (gseapy / Enrichr endpoint) was "
-            f"run on the top-200 DE genes per (group × comparison) against "
-            f"{', '.join(dbs)}. Significance: adjusted p &lt; 0.05."
+            f"Over-representation analysis ({_ora_engine_label(pwp, methods=True)}) "
+            f"was run on the top-200 DE genes per (group × comparison) against "
+            f"{', '.join(dbs)}. Significance: adjusted p < 0.05."
             f"{bg_clause}"
         )
 

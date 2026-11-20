@@ -493,6 +493,20 @@ def _mofa_excluded_ids(mofa: dict[str, Any]) -> set[str]:
     for cc_id in mofa.get("cell_cycle_factor_ids") or []:
         if cc_id is not None:
             excluded.add(str(cc_id).strip())
+    # Wave 4A: batch-confounded factors are technical confounders too. With
+    # ``exclude_batch_factors=False`` they are absent from ``excluded_factors``
+    # yet must never be emitted as biological hypotheses.
+    for key in ("batch_factor_ids", "batch_confounded_factors"):
+        for item in mofa.get(key) or []:
+            raw = item
+            if isinstance(item, dict):
+                raw = (
+                    item.get("factor_id")
+                    if item.get("factor_id") is not None
+                    else item.get("factor")
+                )
+            if raw is not None:
+                excluded.add(str(raw).strip())
     return excluded
 
 
@@ -540,6 +554,7 @@ def _mofa_signals(
             or bool(fac.get("excluded_from_biological_interpretation"))
             or bool(fac.get("technical_depth_flag"))
             or bool(fac.get("cell_cycle_flag"))
+            or bool(fac.get("batch_flag"))
             or bool(fac.get("exclusion_reasons"))
         ):
             continue

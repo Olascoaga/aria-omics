@@ -272,7 +272,11 @@ def _batch_integration(wnn: dict[str, Any]) -> dict[str, Any] | None:
     if isinstance(qc, dict):
         for key in ("warnings", "flags", "issues"):
             for item in qc.get(key) or []:
-                code = item.get("code") if isinstance(item, dict) else item
+                # Wave 4A: QCIssue.as_dict() emits ``check`` (not ``code``).
+                code = (
+                    (item.get("check") or item.get("code"))
+                    if isinstance(item, dict) else item
+                )
                 if code:
                     warnings.append(_clean_token(code))
         if qc.get("possible_overcorrection") is True:
@@ -320,6 +324,92 @@ def _mofa_batch_factor_ids(mofa: dict[str, Any]) -> list[int]:
     return ids
 
 
+_P2G_ATAC_NORMALIZATION = {
+    "signac_tfidf": "log-TF-IDF peak accessibility",
+    "tfidf": "log-TF-IDF peak accessibility",
+    "raw_counts": "raw peak counts",
+    "pre_normalized_input": "pre-normalized peak accessibility (as provided)",
+    "as_is": "peak accessibility as provided",
+}
+_P2G_BACKGROUND_MATCH = {
+    "gc_and_accessibility": (
+        "reference-FASTA GC-fraction and log10-accessibility matched"
+    ),
+    "accessibility_and_length": (
+        "log10-accessibility and peak-length matched (no reference FASTA)"
+    ),
+    "none": "unmatched",
+}
+
+_RNA_VIEW_HINTS = ("rna", "gex", "expr")
+_ATAC_VIEW_HINTS = ("atac", "peak", "chrom", "acc")
+
+
+def _mofa_view_key(mofa: dict[str, Any], values: dict[str, Any], kind: str) -> str | None:
+    """Resolve the actual view key for ``kind`` ("rna"/"atac") in ``values``.
+
+    MOFA+ preserves original modality keys ("scRNA", "GEX", "Peaks", "RNA"...);
+    resolve via ``mofa["views"][k]["kind"]`` first, then case-insensitive
+    modality hints (Wave 4A).
+    """
+    if not isinstance(values, dict) or not values:
+        return None
+    views_meta = mofa.get("views")
+    if isinstance(views_meta, dict):
+        for v_name, v_info in views_meta.items():
+            if (
+                isinstance(v_info, dict)
+                and str(v_info.get("kind") or "").strip().lower() == kind
+                and v_name in values
+            ):
+                return v_name
+    for v_name in values:
+        if str(v_name).strip().lower() == kind:
+            return v_name
+    hints = _RNA_VIEW_HINTS if kind == "rna" else _ATAC_VIEW_HINTS
+    other = _ATAC_VIEW_HINTS if kind == "rna" else _RNA_VIEW_HINTS
+    for v_name in values:
+        low = str(v_name).strip().lower()
+        if any(h in low for h in hints) and not any(o in low for o in other):
+            return v_name
+    return None
+
+
+def _pct_or_none(val: Any) -> float | None:
+    f = _finite_round(val, 6)
+    if f is None:
+        return None
+    return _finite_round(f * 100.0, 2)
+
+
+def _mofa_n_bio_active(mofa: dict[str, Any], fallback: int) -> int:
+    """Active factors that are NOT quarantined (depth/cell-cycle/batch)."""
+    factors = mofa.get("top_factors")
+    if not isinstance(factors, list) or not factors:
+        return int(fallback)
+    excluded_ids = {
+        str(ex.get("factor_id") if ex.get("factor_id") is not None else ex.get("factor"))
+        for ex in (mofa.get("excluded_factors") or [])
+        if isinstance(ex, dict)
+    }
+    excluded_ids.update(str(i) for i in _mofa_batch_factor_ids(mofa))
+    n = 0
+    for fac in factors:
+        if not isinstance(fac, dict) or fac.get("active") is not True:
+            continue
+        fid = fac.get("factor_id") if fac.get("factor_id") is not None else fac.get("factor")
+        if (
+            str(fid) in excluded_ids
+            or fac.get("excluded_from_biological_interpretation")
+            or fac.get("technical_depth_flag")
+            or fac.get("cell_cycle_flag")
+            or fac.get("batch_flag")
+        ):
+            continue
+        n += 1
+    return n
+
+
 class IntegrationNarrator:
     """Modality narrator for paired same-cell multiome integration (I1-I7)."""
 
@@ -351,7 +441,13 @@ class IntegrationNarrator:
 
         # 0. Same-cell multiome hard gate diagnostic when blocked/failed.
         gate = findings.get("multiome_gate")
-        if isinstance(gate, dict) and gate.get("passed") is False:
+        # Wave 4A: multiome_contracts emits {"allowed": bool, "status":
+        # "allowed"|"blocked"}; ``passed`` is a legacy alias.
+        if isinstance(gate, dict) and (
+            gate.get("allowed") is False
+            or gate.get("passed") is False
+            or str(gate.get("status") or "").strip().lower() == "blocked"
+        ):
             reason = _clean_token(
                 gate.get("reason") or gate.get("details"),
                 default="same-cell barcode pairing gate did not pass",
@@ -812,27 +908,41 @@ class IntegrationNarrator:
         n_spec = _count_factor_collection(mofa.get("modality_specific_factors"))
         excluded = list(mofa.get("excluded_factors") or [])
         n_excl = len(excluded)
+        # Wave 4A: ``n_active_factors`` includes quarantined confounders while
+        # shared/specific counts exclude them; the biological count must too.
+        n_bio_active = _mofa_n_bio_active(mofa, n_shared + n_spec)
 
         ve = mofa.get("variance_explained") or {}
         ve_add = mofa.get("variance_explained_additive") or {}
-        rna_r2_pct = _finite_round(float(ve.get("rna") or 0.0) * 100.0, 2) or 0.0
-        atac_r2_pct = _finite_round(float(ve.get("atac") or 0.0) * 100.0, 2) or 0.0
-        rna_add_pct = _finite_round(float(ve_add.get("rna") or 0.0) * 100.0, 2) or 0.0
-        atac_add_pct = _finite_round(float(ve_add.get("atac") or 0.0) * 100.0, 2) or 0.0
+        rna_key = _mofa_view_key(mofa, ve, "rna")
+        atac_key = _mofa_view_key(mofa, ve, "atac")
+        rna_add_key = _mofa_view_key(mofa, ve_add, "rna")
+        atac_add_key = _mofa_view_key(mofa, ve_add, "atac")
+        rna_r2_pct = _pct_or_none(ve.get(rna_key) if rna_key else None)
+        atac_r2_pct = _pct_or_none(ve.get(atac_key) if atac_key else None)
+        rna_add_pct = _pct_or_none(ve_add.get(rna_add_key) if rna_add_key else None)
+        atac_add_pct = _pct_or_none(
+            ve_add.get(atac_add_key) if atac_add_key else None
+        )
 
         evidence: list[EvidenceItem] = [
             EvidenceItem("MOFA cells evaluated", n_cells, source="mofa"),
             EvidenceItem("MOFA cells trained", n_trained, source="mofa"),
             EvidenceItem("fitted factors", n_factors, source="mofa"),
             EvidenceItem("active factors", n_active, source="mofa"),
+            EvidenceItem("active biological factors", n_bio_active, source="mofa"),
             EvidenceItem("shared factors", n_shared, source="mofa"),
             EvidenceItem("modality-specific factors", n_spec, source="mofa"),
             EvidenceItem("excluded confounder factors", n_excl, source="mofa"),
-            EvidenceItem("RNA non-additive R2 pct", f"{rna_r2_pct}%", source="mofa"),
-            EvidenceItem("ATAC non-additive R2 pct", f"{atac_r2_pct}%", source="mofa"),
-            EvidenceItem("RNA additive R2 sum pct", f"{rna_add_pct}%", source="mofa"),
-            EvidenceItem("ATAC additive R2 sum pct", f"{atac_add_pct}%", source="mofa"),
         ]
+        for label, val in (
+            ("RNA non-additive R2 pct", rna_r2_pct),
+            ("ATAC non-additive R2 pct", atac_r2_pct),
+            ("RNA additive R2 sum pct", rna_add_pct),
+            ("ATAC additive R2 sum pct", atac_add_pct),
+        ):
+            if val is not None:
+                evidence.append(EvidenceItem(label, f"{val}%", source="mofa"))
 
         excluded_ids: list[int] = []
         for ex in excluded:
@@ -916,13 +1026,23 @@ class IntegrationNarrator:
                 )
             )
 
-        confidence = "high" if (n_active > 0 and n_cells >= 500) else "medium"
+        confidence = "high" if (n_bio_active > 0 and n_cells >= 500) else "medium"
+        if rna_r2_pct is not None and atac_r2_pct is not None:
+            r2_clause = (
+                f", and explained non-additive R2 of {rna_r2_pct}% in RNA and "
+                f"{atac_r2_pct}% in ATAC"
+            )
+        else:
+            r2_clause = (
+                "; per-view non-additive R2 could not be resolved for both "
+                "RNA and ATAC views"
+            )
         claim = (
             f"MOFA+ decomposition across {n_cells} cells ({n_factors} fitted "
-            f"factors) retained {n_active} active factors ({n_shared} shared and "
-            f"{n_spec} modality-specific), quarantined {n_excl} technical or "
-            f"cell-cycle confounder factor(s), and explained non-additive R2 of "
-            f"{rna_r2_pct}% in RNA and {atac_r2_pct}% in ATAC."
+            f"factors) retained {n_bio_active} active biological factors "
+            f"({n_shared} shared and {n_spec} modality-specific; {n_active} "
+            f"active in total), quarantined {n_excl} technical or "
+            f"cell-cycle confounder factor(s){r2_clause}."
         )
         return NarrativeBlock(
             id="multiome.mofa",
@@ -951,6 +1071,7 @@ class IntegrationNarrator:
                 "n_cells_trained": n_trained,
                 "n_factors": n_factors,
                 "n_active_factors": n_active,
+                "n_active_biological_factors": n_bio_active,
                 "n_shared_factors": n_shared,
                 "n_modality_specific_factors": n_spec,
                 "n_excluded_factors": n_excl,
@@ -1296,11 +1417,31 @@ class IntegrationNarrator:
 
         pqc = findings.get("paired_qc")
         if _stage_state(pqc) == "ok" and isinstance(pqc, dict):
+            # Wave 4A: thresholds live in ``thresholds_used`` (summary dicts
+            # are legacy fallbacks); a null ``max_pct_mt`` means MT filtering
+            # was skipped and must not be claimed.
             rna_s = pqc.get("rna_qc_summary") or {}
             atac_s = pqc.get("atac_qc_summary") or {}
-            min_genes = rna_s.get("min_genes", 200)
-            max_mt = rna_s.get("max_pct_mt", 20.0)
-            min_peaks = atac_s.get("min_peaks", 200)
+            thr = pqc.get("thresholds_used") or {}
+
+            def _thr(key: str, legacy: dict) -> Any:
+                if key in thr:
+                    return thr.get(key)
+                return legacy.get(key)
+
+            min_genes = _thr("min_genes", rna_s)
+            max_mt = _thr("max_pct_mt", rna_s)
+            min_peaks = _thr("min_peaks", atac_s)
+            thr_parts = []
+            if min_genes is not None:
+                thr_parts.append(f"min_genes >= {min_genes}")
+            if max_mt is not None:
+                thr_parts.append(f"mitochondrial fraction <= {max_mt}%")
+            if min_peaks is not None:
+                thr_parts.append(f"min_peaks >= {min_peaks}")
+            if max_mt is None:
+                thr_parts.append("no mitochondrial-fraction filter applied")
+            thr_txt = f" ({', '.join(thr_parts)})" if thr_parts else ""
             uncomp = [
                 _clean_token(x) for x in (pqc.get("metrics_not_computed") or []) if x
             ]
@@ -1313,9 +1454,8 @@ class IntegrationNarrator:
             paragraphs.append(
                 f"Paired multiome quality control: Same-cell barcode pairing was "
                 f"verified prior to integration, retaining {pqc.get('n_cells_after', '?')} "
-                f"of {pqc.get('n_cells_before', '?')} shared barcodes "
-                f"(min_genes >= {min_genes}, mitochondrial fraction <= {max_mt}%, "
-                f"min_peaks >= {min_peaks}) across {pqc.get('n_genes', '?')} RNA genes "
+                f"of {pqc.get('n_cells_before', '?')} shared barcodes"
+                f"{thr_txt} across {pqc.get('n_genes', '?')} RNA genes "
                 f"and {pqc.get('n_peaks', '?')} ATAC peaks.{uncomp_txt}"
             )
 
@@ -1365,8 +1505,12 @@ class IntegrationNarrator:
         mofa = findings.get("mofa")
         if _stage_state(mofa) == "ok" and isinstance(mofa, dict):
             n_fac = mofa.get("n_factors", "?")
-            n_act = mofa.get("n_active_factors", "?")
             n_excl = len(mofa.get("excluded_factors") or [])
+            n_act = _mofa_n_bio_active(
+                mofa,
+                _count_factor_collection(mofa.get("shared_factors"))
+                + _count_factor_collection(mofa.get("modality_specific_factors")),
+            )
             batch_ids = _mofa_batch_factor_ids(mofa)
             batch_clause = (
                 f" Factors associated with the sample/batch covariate "
@@ -1399,14 +1543,25 @@ class IntegrationNarrator:
             min_r = p2g.get("min_corr", 0.10)
             max_q = p2g.get("max_padj", 0.05)
             bg_m = _clean_token(p2g.get("background_method"), "trans_chromosome_gc_accessibility")
+            # Wave 4A: describe what actually ran (ATAC transform, two-sided
+            # p-values used for BH, background matching covariates).
+            atac_desc = _P2G_ATAC_NORMALIZATION.get(
+                str(p2g.get("atac_normalization") or p2g.get("atac_transform") or "")
+                .strip().lower(),
+                "peak accessibility",
+            )
+            bg_match = str(p2g.get("background_match") or "").strip().lower()
+            match_desc = _P2G_BACKGROUND_MATCH.get(
+                bg_match, "accessibility-matched"
+            )
             paragraphs.append(
                 f"Cis peak-to-gene linkage: Pearson correlations between log1p-CP10k "
-                f"gene expression and log-TF-IDF peak accessibility were evaluated "
+                f"gene expression and {atac_desc} were evaluated "
                 f"across shared cells for peaks within +-{dkb} kb of canonical "
-                f"transcription start sites. Empirical Z-scores and one-sided "
-                f"normal tail p-values were calibrated against reference-FASTA "
-                f"GC-fraction and log10-accessibility matched trans-chromosome "
-                f"background peaks ({bg_m}), with Benjamini-Hochberg FDR <= {max_q} "
+                f"transcription start sites. Empirical Z-scores and two-sided "
+                f"normal tail p-values were calibrated against {match_desc} "
+                f"trans-chromosome background peaks ({bg_m}), with "
+                f"Benjamini-Hochberg FDR <= {max_q} "
                 f"and |r| >= {min_r} defining associative candidate cis links."
             )
 

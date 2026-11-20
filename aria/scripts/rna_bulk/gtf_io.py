@@ -6,10 +6,43 @@ Behavior-preserving extraction: these functions are re-exported from
 from __future__ import annotations
 
 from pathlib import Path
+import re
+
+
+def _normalize_species(organism: str) -> str:
+    """Canonical scientific species name shared by RNA and peak ORA callers."""
+    value = str(organism or "").strip().lower()
+    aliases = {
+        "Homo sapiens": {"human", "hs", "hsapiens", "hg19", "hg38", "grch37", "grch38",
+                         "sapiens", "homo sapiens", "h. sapiens"},
+        "Mus musculus": {"mouse", "mm", "mm9", "mm10", "mm39", "grcm38", "grcm39",
+                         "musculus", "mus musculus", "m. musculus"},
+        "Rattus norvegicus": {"rat", "rn", "rn6", "rn7", "rattus norvegicus"},
+        "Danio rerio": {"fish", "zebrafish", "danio rerio", "danrer10", "danrer11"},
+        "Drosophila melanogaster": {"fly", "drosophila", "drosophila melanogaster", "dm6"},
+        "Caenorhabditis elegans": {"worm", "caenorhabditis elegans", "ce11"},
+        "Saccharomyces cerevisiae": {"yeast", "saccharomyces cerevisiae", "saccer3"},
+    }
+    for species, names in aliases.items():
+        if value in names or species.split()[-1] in value:
+            return species
+    return str(organism or "").strip()
+
+
+def _strip_gene_version(gene: str) -> str:
+    """Strip numeric Ensembl versions without truncating dotted gene symbols."""
+    return re.sub(r"^(ENS[^.]+)\.\d+$", r"\1", gene.strip())
+
+
+def _gtf_attributes(text: str) -> dict:
+    """Read quoted or unquoted GTF attributes, including variable whitespace."""
+    return {m.group(1): (m.group(2) if m.group(2) is not None else m.group(3)).strip()
+            for m in re.finditer(r'(?:^|;)\s*([\w]+)\s*(?:=|\s)\s*(?:"([^"]*)"|([^;]+))', text)}
 
 
 def _load_symbol_map(files: list, warnings: list,
-                       gtf_hint: str = None) -> dict:
+                       gtf_hint: str = None, genome: str = None,
+                       organism: str = None) -> dict:
     """
     Load Ensembl-ID → HGNC-symbol mapping.
 
@@ -44,11 +77,12 @@ def _load_symbol_map(files: list, warnings: list,
                 clean = {}
                 for k, v in df["gene_symbol"].items():
                     if isinstance(k, str) and isinstance(v, str):
-                        clean[k.split(".")[0]] = v
+                        if v.strip() and v.strip().lower() != "nan":
+                            clean[_strip_gene_version(k)] = v.strip()
                 return clean
 
         # ── Path B: regenerate from GTF ──────────────────────────────
-        gtf_path = _locate_gtf(counts_path, gtf_hint)
+        gtf_path = _locate_gtf(counts_path, gtf_hint, genome, organism)
         if not gtf_path:
             warnings.append(
                 "counts_with_symbols.tsv missing AND no GTF found in "
@@ -70,11 +104,12 @@ def _load_symbol_map(files: list, warnings: list,
 
         # Persist the regenerated symbols file for next time
         try:
-            counts_df = pd.read_csv(counts_path, sep="\t", index_col=0)
+            sep = "," if counts_path.suffix.lower() == ".csv" else "\t"
+            counts_df = pd.read_csv(counts_path, sep=sep, index_col=0)
             counts_with_sym = counts_df.copy()
             counts_with_sym.insert(
                 0, "gene_symbol",
-                [mapping.get(str(g).split(".")[0], str(g))
+                [mapping.get(_strip_gene_version(str(g)), str(g))
                  for g in counts_with_sym.index]
             )
             counts_with_sym.to_csv(str(sym_path), sep="\t")
@@ -91,31 +126,48 @@ def _load_symbol_map(files: list, warnings: list,
         warnings.append(f"Symbol map load failed: {e}")
         return {}
 
-def _locate_gtf(counts_path: Path, hint: str = None) -> Path | None:
+def _locate_gtf(counts_path: Path, hint: str = None,
+                genome: str = None, organism: str = None) -> Path | None:
     """
     Find a GTF file in standard locations.
 
     Search order:
       1. Explicit hint from the caller
       2. Sibling of the counts file (~/.../counts/annotation.gtf)
-      3. ~/.aria/genomes/*/annotation.gtf{,.gz}
-      4. ~/.aria/genomes/hg38/annotation.gtf etc.
+      3. ~/.aria/genomes/<genome>/annotation.gtf{,.gz}, exact assembly first
+      4. Other cached assemblies of the requested species, in sorted order.
+
+    Explicit and sibling references are authoritative. Without a genome or
+    organism constraint, cached directories retain deterministic legacy lookup.
     """
     candidates = []
     if hint:
-        candidates.append(Path(hint))
+        candidates.append(Path(hint).expanduser())
 
     # Sibling of counts file
     candidates.extend([
         counts_path.parent / "annotation.gtf",
         counts_path.parent / "annotation.gtf.gz",
         counts_path.parent.parent / "annotation.gtf",
+        counts_path.parent.parent / "annotation.gtf.gz",
     ])
 
     # ~/.aria/genomes/*/annotation.gtf
     aria_genomes = Path.home() / ".aria" / "genomes"
     if aria_genomes.exists():
-        for genome_dir in aria_genomes.iterdir():
+        species = _normalize_species(genome or organism)
+        assembly_aliases = {"grch37": "hg19", "grch38": "hg38",
+                            "grcm38": "mm10", "grcm39": "mm39"}
+        requested = str(genome or "").strip().lower()
+        assembly = assembly_aliases.get(requested, requested)
+        genome_dirs = sorted(aria_genomes.iterdir(), key=lambda p: (
+            p.name.lower() != requested,
+            assembly_aliases.get(p.name.lower(), p.name.lower()) != assembly,
+            p.name.lower()))
+        for genome_dir in genome_dirs:
+            # Never fall back to a different species' cached annotation.
+            if species and _normalize_species(genome_dir.name) != species:
+                continue
             if genome_dir.is_dir():
                 candidates.extend([
                     genome_dir / "annotation.gtf",
@@ -123,17 +175,16 @@ def _locate_gtf(counts_path: Path, hint: str = None) -> Path | None:
                 ])
 
     for c in candidates:
-        if c.exists() and c.stat().st_size > 100_000:
+        if c.is_file() and c.stat().st_size > 0:
             return c
     return None
 
 def _gtf_to_symbol_map(gtf_file: str) -> dict:
     """
     Parse a GTF for {ensembl_id (no version): gene_symbol}.
-    Streaming, low memory. Same logic as rna_quantify._build_ensembl_to_symbol_map.
+    Streaming, low memory; also handles annotations lacking gene feature rows.
     """
     import gzip as _gzip
-    import re as _re
 
     mapping = {}
     opener = _gzip.open if str(gtf_file).endswith(".gz") else open
@@ -143,20 +194,22 @@ def _gtf_to_symbol_map(gtf_file: str) -> dict:
                 if line.startswith("#"):
                     continue
                 fields = line.rstrip("\n").split("\t")
-                if len(fields) < 9 or fields[2] != "gene":
+                if len(fields) < 9 or fields[2] not in ("gene", "transcript", "exon"):
                     continue
-                attrs = fields[8]
-                gid_match = _re.search(r'gene_id "([^"]+)"', attrs)
-                sym_match = _re.search(r'gene_name "([^"]+)"', attrs)
-                if gid_match and sym_match:
-                    gid = gid_match.group(1).split(".")[0]
-                    mapping[gid] = sym_match.group(1)
+                attrs = _gtf_attributes(fields[8])
+                gid, symbol = attrs.get("gene_id"), attrs.get("gene_name") or attrs.get("gene_symbol")
+                if gid and symbol:
+                    gid = _strip_gene_version(gid)
+                    if fields[2] == "gene" or gid not in mapping:
+                        mapping[gid] = symbol
     except Exception:
         return {}
 
     return mapping
 
-def _load_gene_annotation(files: list, warnings: list) -> dict:
+def _load_gene_annotation(files: list, warnings: list,
+                          gtf_hint: str = None, genome: str = None,
+                          organism: str = None) -> dict:
     """
     Load {biotype_map, length_map} from the GTF — used for DR filtering
     (protein_coding only) and TPM computation.
@@ -174,7 +227,7 @@ def _load_gene_annotation(files: list, warnings: list) -> dict:
         return {"biotype": {}, "length": {}}
     try:
         counts_path = Path(files[0])
-        gtf_path    = _locate_gtf(counts_path)
+        gtf_path    = _locate_gtf(counts_path, gtf_hint, genome, organism)
         if not gtf_path:
             warnings.append(
                 "GTF not found for biotype/length annotation — "
@@ -200,11 +253,11 @@ def _parse_gtf_biotype_and_length(gtf_file: str) -> tuple:
     Returns (biotype_map, length_map).
     """
     import gzip as _gzip
-    import re as _re
     from collections import defaultdict
 
     biotype_map = {}
     exons_by_gene = defaultdict(list)  # gid -> list of (start, end)
+    gene_lengths = {}
 
     opener = _gzip.open if str(gtf_file).endswith(".gz") else open
     try:
@@ -217,33 +270,34 @@ def _parse_gtf_biotype_and_length(gtf_file: str) -> tuple:
                     continue
 
                 feature = fields[2]
-                if feature not in ("gene", "exon"):
+                if feature not in ("gene", "transcript", "exon"):
                     continue
 
-                attrs = fields[8]
-                gid_match = _re.search(r'gene_id "([^"]+)"', attrs)
-                if not gid_match:
+                attrs = _gtf_attributes(fields[8])
+                if not attrs.get("gene_id"):
                     continue
-                gid = gid_match.group(1).split(".")[0]
+                gid = _strip_gene_version(attrs["gene_id"])
+                biotype = attrs.get("gene_biotype") or attrs.get("gene_type")
+                if biotype and (feature == "gene" or gid not in biotype_map):
+                    biotype_map[gid] = biotype
 
-                if feature == "gene":
-                    bio_match = (_re.search(r'gene_biotype "([^"]+)"', attrs)
-                                  or _re.search(r'gene_type "([^"]+)"', attrs))
-                    if bio_match:
-                        biotype_map[gid] = bio_match.group(1)
-
-                elif feature == "exon":
+                if feature in ("gene", "exon"):
                     try:
                         start = int(fields[3])
                         end   = int(fields[4])
-                        exons_by_gene[gid].append((start, end))
+                        if start < 1 or end < start:
+                            continue
+                        if feature == "gene":
+                            gene_lengths[gid] = end - start + 1
+                        else:
+                            exons_by_gene[gid].append((start, end))
                     except ValueError:
                         continue
     except Exception:
         return biotype_map, {}
 
     # Compute union-exon length per gene (merge overlapping intervals)
-    length_map = {}
+    length_map = dict(gene_lengths)
     for gid, intervals in exons_by_gene.items():
         if not intervals:
             continue
@@ -264,21 +318,26 @@ def _to_symbols(gene_ids: list, symbol_map: dict) -> list:
     Convert Ensembl IDs to HGNC symbols. Genes without a symbol are
     dropped (Enrichr won't match them anyway). Returns deduplicated list.
     """
-    if not symbol_map:
-        return list(gene_ids)
     seen = set()
     out  = []
     for gid in gene_ids:
         if not isinstance(gid, str):
             continue
-        clean = gid.split(".")[0]   # strip version
-        sym = symbol_map.get(clean)
+        clean = _strip_gene_version(gid)
+        if not clean or clean.lower() == "nan":
+            continue
+        if not symbol_map:
+            sym = gid.strip()
+        else:
+            sym = symbol_map.get(clean)
         # If not in map, check if input might already be a symbol
         if not sym:
             if not clean.startswith(("ENSG", "ENSMUSG", "ENS")):
                 sym = clean   # already a symbol
             else:
                 continue       # unmapped Ensembl ID — skip
+        if not isinstance(sym, str) or not sym.strip() or sym.lower() == "nan":
+            continue
         if sym not in seen:
             seen.add(sym)
             out.append(sym)

@@ -41,6 +41,43 @@ def _safe_id(value) -> str:
     return text.strip("_") or "chromatin"
 
 
+def _first_not_none(*values):
+    for value in values:
+        if value is not None:
+            return value
+    return None
+
+
+def _safe_fig_token(value) -> str:
+    """Mirror of ``_narrative_chromatin._safe`` (figure-id sanitiser)."""
+    return (str(value).replace("/", "_").replace(" ", "_")
+            .replace(":", "_").replace("|", "_"))
+
+
+def _scatac_qc_methods_sentence(qc: dict) -> str:
+    """Methods QC sentence that only claims TSSe/FRiP were uncomputed when
+    they actually were (Wave 4A)."""
+    qc = qc or {}
+    not_computed = " ".join(str(m) for m in (qc.get("metrics_not_computed") or []))
+    tss_missing = (qc.get("tss_enrichment") is None
+                   or "tss_enrichment" in not_computed)
+    frip_missing = qc.get("frip") is None or "frip" in not_computed
+    base = "Chromatin QC reports only measured fragment/barcode/peak metrics"
+    if tss_missing and frip_missing:
+        return (base + "; TSS enrichment and FRiP remain uncomputed until "
+                "called peaks and a reference TSS annotation are available.")
+    if tss_missing:
+        return (base + "; FRiP was computed against the called peaks, while "
+                "TSS enrichment remains uncomputed until a reference TSS "
+                "annotation is available.")
+    if frip_missing:
+        return (base + "; TSS enrichment was computed against the reference "
+                "TSS annotation, while FRiP remains uncomputed until called "
+                "peaks are available.")
+    return (base + ", including TSS enrichment (reference TSS annotation) and "
+            "FRiP (fraction of fragments in called peaks).")
+
+
 def _ev(label, value, source="chromatin"):
     return EvidenceItem(label=label, value=value, source=source)
 
@@ -431,11 +468,26 @@ class ChromatinNarrator:
             ("PBC2", "pbc2"),
             ("Cross-correlation NSC", "nsc"),
             ("Cross-correlation RSC", "rsc"),
-            ("IP vs control JSD", "ip_control_jsd"),
-            ("Subnucleosomal fraction (<120 bp)", "subnucleosomal_fraction"),
-            ("Mononucleosomal fraction (140-250 bp)", "mononucleosomal_fraction"),
         ):
             val = modality_label if key is None else qc.get(key)
+            if val is not None:
+                evidence.append(_ev(ev_label, val, "chromatin_qc"))
+        # Wave 4A: chromatin_qc emits ``jsd_vs_control`` (legacy alias
+        # ``ip_control_jsd``) and nests the fragment-size fractions under
+        # ``qc["fragment_sizes"]``; labels carry the bp windows the script
+        # actually used (ATAC mono = 180-247 bp; CUT&RUN mono = 140-250 bp).
+        jsd = _first_not_none(qc.get("jsd_vs_control"), qc.get("ip_control_jsd"))
+        if jsd is not None:
+            evidence.append(_ev("IP vs control JSD", jsd, "chromatin_qc"))
+        fs = qc.get("fragment_sizes") if isinstance(
+            qc.get("fragment_sizes"), dict) else {}
+        for ev_label, key in (
+            ("Subnucleosomal fraction (<120 bp)", "subnucleosomal_fraction"),
+            ("Mononucleosomal fraction (180-247 bp)", "mononucleosomal_fraction"),
+            ("CUT&RUN mononucleosomal fraction (140-250 bp)",
+             "cutrun_mononucleosomal_fraction"),
+        ):
+            val = _first_not_none(fs.get(key), qc.get(key))
             if val is not None:
                 evidence.append(_ev(ev_label, val, "chromatin_qc"))
 
@@ -453,18 +505,33 @@ class ChromatinNarrator:
                 severity="info"))
 
         status = "success" if evidence else "limitation"
+        mito = qc.get("mito_fraction")
+        mito_txt = (f"with mean mitochondrial fraction {mito}" if mito is not None
+                    else "(mitochondrial fraction not computed)")
         if data_type == "bulk_ATAC" and evidence:
             claim = (
                 f"Bulk ATAC QC measured {qc.get('n_samples', '?')} sample(s) "
-                f"with mean mitochondrial fraction {qc.get('mito_fraction', '?')}.")
+                f"{mito_txt}.")
         elif data_type in _BULK_CHROMATIN_MODALITIES and evidence:
             claim = (
                 f"{modality_label} QC measured {qc.get('n_samples', '?')} sample(s) "
-                f"with mean mitochondrial fraction {qc.get('mito_fraction', '?')}.")
+                f"{mito_txt}.")
         elif evidence:
-            claim = (
-                f"{modality_label} QC measured {qc.get('n_cells', '?')} cells and "
-                f"{qc.get('n_peaks', '?')} peaks.")
+            # Wave 4A: scATAC fragment QC reports fragments, not peaks — never
+            # print "? peaks" when the count lives under ``n_fragments``.
+            n_cells = qc.get("n_cells")
+            cells_txt = (f"{n_cells} cells" if n_cells is not None
+                         else "an unknown number of cells")
+            if qc.get("n_peaks") is not None:
+                claim = (f"{modality_label} QC measured {cells_txt} and "
+                         f"{qc.get('n_peaks')} peaks.")
+            elif qc.get("n_fragments") is not None:
+                bound = ("at least " if qc.get("n_fragments_is_lower_bound")
+                         else "")
+                claim = (f"{modality_label} QC measured {cells_txt} and "
+                         f"{bound}{qc.get('n_fragments')} fragments.")
+            else:
+                claim = f"{modality_label} QC measured {cells_txt}."
         else:
             claim = ""
         return NarrativeBlock(
@@ -530,10 +597,12 @@ class ChromatinNarrator:
                 "not run" if not idr.get("ran") else "run",
                 "chromatin_peaks",
             ))
-            if idr.get("ran") and idr.get("n_reproducible") is not None:
+            n_idr = _first_not_none(idr.get("n_reproducible_peaks"),
+                                    idr.get("n_reproducible"))
+            if idr.get("ran") and n_idr is not None:
                 evidence.append(_ev(
                     "IDR reproducible peaks",
-                    idr.get("n_reproducible"),
+                    n_idr,
                     "chromatin_peaks",
                 ))
         if frip is not None:
@@ -882,6 +951,9 @@ class ChromatinNarrator:
         is_atac = data_type == "bulk_ATAC"
         mod_title = "Bulk ATAC" if is_atac else _modality_label(data_type)
         norm_mode = da.get("normalization_mode")
+        if norm_mode is None and isinstance(da.get("spikein_normalization"), dict) \
+                and da["spikein_normalization"].get("applied") is True:
+            norm_mode = "heterologous_spikein"
         n_comps = da.get("n_comparisons_success")
         n_sig = da.get("n_sig_total")
         n_reps = da.get("n_replicate_samples")
@@ -923,7 +995,9 @@ class ChromatinNarrator:
             f"{mod_title} differential testing uses biological replicate-level "
             "peak counts and negative-binomial DESeq2 dispersion modeling"
             + (" with heterologous spike-in sizeFactors"
-               if norm_mode == "heterologous_spikein" else "")
+               if norm_mode == "heterologous_spikein" else
+               " with DESeq2 median-of-ratios sizeFactors"
+               if norm_mode == "deseq2_median_of_ratios" else "")
             + ". It requires explicit condition, replicate, and comparison "
               "metadata; ARIA does not infer contrasts from filenames.",
             severity="info",
@@ -1319,7 +1393,10 @@ class ChromatinNarrator:
         for tf, paths in (footprinting.get("aggregate_plots") or {}).items():
             png = (paths or {}).get("png")
             if png:
-                figures.append({"id": f"footprint_{tf}", "path": png,
+                # Wave 4A: same sanitised id as the inline renderer
+                # (FOS::JUN -> footprint_FOS__JUN), never a raw "::" id.
+                figures.append({"id": f"footprint_{_safe_fig_token(tf)}",
+                                "path": png,
                                 "caption": f"{tf} aggregate footprint ({ga} vs {gb}); "
                                            "central dip = protected TF binding site."})
         return NarrativeBlock(
@@ -1473,10 +1550,13 @@ class ChromatinNarrator:
             overlap = repro.get("overlap") or {}
             idr = repro.get("idr") or {}
             if idr.get("ran"):
+                n_idr = _first_not_none(idr.get("n_reproducible_peaks"),
+                                        idr.get("n_reproducible"))
                 line += (
-                    f". Replicate peak reproducibility was evaluated with "
-                    f"Gaussian-copula IDR (Li et al., 2011), retaining "
-                    f"{idr.get('n_reproducible', '?')} reproducible peaks"
+                    ". Replicate peak reproducibility was evaluated with "
+                    "Gaussian-copula IDR (Li et al., 2011)"
+                    + (f", retaining {n_idr} reproducible peaks"
+                       if n_idr is not None else "")
                 )
             elif overlap.get("ran"):
                 line += (
@@ -1587,10 +1667,7 @@ class ChromatinNarrator:
             return self._bulk_atac_methods(findings)
         out: list[str] = []
         if _ok(findings.get("qc")):
-            out.append(
-                "Chromatin QC reports only measured fragment/barcode/peak "
-                "metrics; TSS enrichment and FRiP remain uncomputed until "
-                "called peaks and a reference TSS annotation are available.")
+            out.append(_scatac_qc_methods_sentence(findings.get("qc")))
         lsi = findings.get("lsi") or findings.get("lsi_clustering")
         if _ok(lsi):
             out.append(

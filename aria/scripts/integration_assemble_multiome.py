@@ -158,7 +158,14 @@ def _check_bijection(rna, atac):
 def _translate_barcodes(rna, atac, params):
     import csv
 
-    namespace = params.get("barcode_namespace", "shared_barcodes")
+    namespace = params.get("barcode_namespace") or params.get("barcode_translation")
+    if not namespace:
+        if params.get("barcode_map_path"):
+            namespace = "barcode_map_tsv"
+        elif params.get("gex_whitelist_path") and params.get("atac_whitelist_path"):
+            namespace = "10x_arc_whitelist_pair"
+        else:
+            namespace = "shared_barcodes"
     rnames, anames = list(map(str, rna.obs_names)), list(map(str, atac.obs_names))
     if len(set(rnames)) != len(rnames) or len(set(anames)) != len(anames):
         _fail("DuplicateBarcodes", "Input cell barcodes must be unique")
@@ -291,6 +298,8 @@ def _raw_fastqs(params, output_dir):
     import subprocess
 
     platform = params.get("platform")
+    if platform == "10x_multiome":
+        platform = "10x_multiome_arc_v1"
     allowed = {
         "10x_multiome_arc_v1",
         "share_seq",
@@ -484,7 +493,7 @@ def _raw_fastqs(params, output_dir):
                 called.get("details", "Peak calling failed"),
             )
         peaks = called.get("consensus_peaks_path") or called["peaks_path"]
-    return rna_adata, _quantify_fragments(fragments, peaks)
+    return rna_adata, _quantify_fragments(fragments, peaks), fragments
 
 
 def integration_assemble_multiome(params: dict[str, Any]) -> dict[str, Any]:
@@ -545,6 +554,8 @@ def integration_assemble_multiome(params: dict[str, Any]) -> dict[str, Any]:
             "orientation": "direct",
             "n_translated": 0,
         }
+        raw_to_translated: dict[str, str] = {}
+        raw_fragments_path: str | None = None
         if mode == "cellranger_arc":
             if not params.get("arc_path"):
                 _fail("MissingInput", "cellranger_arc requires arc_path")
@@ -554,7 +565,7 @@ def integration_assemble_multiome(params: dict[str, Any]) -> dict[str, Any]:
             rna, atac = paired["rna_adata"], paired["atac_adata"]
         elif mode in {"paired_matrices", "raw_multiome_fastq"}:
             if mode == "raw_multiome_fastq":
-                rna, atac = _raw_fastqs(params, output_dir)
+                rna, atac, raw_fragments_path = _raw_fastqs(params, output_dir)
             else:
                 if not params.get("rna_path") or not (
                     params.get("atac_path")
@@ -573,13 +584,22 @@ def integration_assemble_multiome(params: dict[str, Any]) -> dict[str, Any]:
                     )
                 )
             n_atac_original = atac.n_obs
+            orig_atac_barcodes = list(map(str, atac.obs_names))
             translated = _translate_barcodes(rna, atac, params)
             if isinstance(translated, tuple):
                 translation, rows, names = translated
+                raw_to_translated = {
+                    orig_atac_barcodes[idx]: str(name)
+                    for idx, name in zip(rows, names)
+                }
                 atac = atac[rows].copy()
                 atac.obs_names = names
             else:
                 translation = translated
+                raw_to_translated = {
+                    orig: str(new)
+                    for orig, new in zip(orig_atac_barcodes, atac.obs_names)
+                }
             paired = validate_paired_multiome(mudata.MuData({"rna": rna, "atac": atac}))
             if paired["status"] != "success":
                 return paired
@@ -611,15 +631,17 @@ def integration_assemble_multiome(params: dict[str, Any]) -> dict[str, Any]:
         atac.var_names = [f"{c}:{s}-{e}" for c, s, e in _peak_intervals(atac)]
         if not rna.var_names.is_unique or not atac.var_names.is_unique:
             _fail("DuplicateFeatureNames", "Feature names must be unique")
-        if params.get("fragments_path"):
+        frag_path = params.get("fragments_path") or raw_fragments_path
+        if frag_path and Path(frag_path).is_file():
             totals, mito = {}, {}
-            for chrom, _, _, barcode, count in _fragment_rows(params["fragments_path"]):
-                totals[barcode] = totals.get(barcode, 0) + count
+            for chrom, _, _, barcode, count in _fragment_rows(frag_path):
+                t_bc = raw_to_translated.get(barcode, barcode)
+                totals[t_bc] = totals.get(t_bc, 0) + count
                 if chrom.lower() in {"chrm", "chrmt", "mt", "m"}:
-                    mito[barcode] = mito.get(barcode, 0) + count
+                    mito[t_bc] = mito.get(t_bc, 0) + count
             atac.obs["atac_fragments"] = [totals.get(b, float("nan")) for b in shared]
             atac.obs["atac_mito_frac"] = [
-                mito.get(b, 0) / totals[b] if b in totals else float("nan")
+                mito.get(b, 0) / totals[b] if b in totals and totals[b] > 0 else float("nan")
                 for b in shared
             ]
         mdata = mudata.MuData({"rna": rna, "atac": atac})
