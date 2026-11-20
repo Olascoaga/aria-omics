@@ -1,10 +1,10 @@
 <p align="center">
-  <img src="docs/assets/aria_hero_banner.svg" alt="ARIA v4.9.1 — Agentic Research Intelligence for Supervised Omics Analysis" width="100%"/>
+  <img src="docs/assets/aria_hero_banner.svg" alt="ARIA v4.9.2 — Agentic Research Intelligence for Supervised Omics Analysis" width="100%"/>
 </p>
 
 <div align="center">
 
-![Version](https://img.shields.io/badge/version-4.9.1-blue)
+![Version](https://img.shields.io/badge/version-4.9.2-blue)
 [![ARIA CI](https://github.com/Olascoaga/aria-omics/actions/workflows/ci.yml/badge.svg)](https://github.com/Olascoaga/aria-omics/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/python-3.11-blue)
 ![Platform](https://img.shields.io/badge/platform-linux--64%20%7C%20WSL2-informational)
@@ -23,7 +23,7 @@
   <a href="#interactive-control-center--audited-reports">Control Center &amp; Reports</a> &nbsp;&middot;&nbsp;
   <a href="#multi-omics-output-gallery">Multi-Omics Gallery</a> &nbsp;&middot;&nbsp;
   <a href="#system-architecture">Architecture</a> &nbsp;&middot;&nbsp;
-  <a href="#capability--readiness-matrix-v491">Modalities</a> &nbsp;&middot;&nbsp;
+  <a href="#capability--readiness-matrix-v492">Modalities</a> &nbsp;&middot;&nbsp;
   <a href="#quick-start">Quick Start</a> &nbsp;&middot;&nbsp;
   <a href="#documentation-map">Docs</a>
 </p>
@@ -36,14 +36,14 @@
 
 General-purpose coding agents (`CodeAct`) routinely improvise statistical tests on the fly, ignore batch confounding or technical-replicate pseudoreplication, guess answers on out-of-scope data, and blend real statistics with unsupported prose. ARIA replaces free-form script improvisation with a strict four-layer separation:
 
-| Dimension | Unconstrained CodeAct Agent | ARIA `v4.9.1` Governed Control Plane |
+| Dimension | Unconstrained CodeAct Agent | ARIA `v4.9.2` Governed Control Plane |
 | :--- | :--- | :--- |
 | **Experimental Design** | Infers groups/covariates silently from filenames or ad-hoc prompts | **Design before compute (`CP1–CP3.5`)**: validates contrasts, biological units, batch confounding, and rank deficiency before dispatch |
 | **Statistical Compute** | Writes fragile one-off Python scripts in a shared environment | **9 lock-pinned Conda stacks** over JSON IPC; calibrated to `r = 1.000` vs R `DESeq2`, `TOBIAS`, and `cooltools` |
 | **Epistemic Safety** | Mixes real numbers with hallucinated caveats or causal overclaims | **Claim Compiler (`C1–C4`)**: every public number, entity, direction, and associative tier is compiled from `EvidenceCard` + `RunLedger` |
 | **Reproducibility** | Non-deterministic multi-turn loops; expensive to audit | **Zero-LLM `DecisionManifest` replay**, `W3C RO-Crate 1.1`, and atomic SHA-256 `capsule.zip` verification |
 
-Every report bundle stamps the package version (**`4.9.1`**), exact Git commit, dirty state, workflow hash, input SHA-256 digests, Conda/PyPI lockfile hashes, and LLM determinism provenance — so package version alone is never treated as a complete reproducibility pin.
+Every report bundle stamps the package version (**`4.9.2`**), exact Git commit, dirty state, workflow hash, input SHA-256 digests, Conda/PyPI lockfile hashes, and LLM determinism provenance — so package version alone is never treated as a complete reproducibility pin.
 
 ---
 
@@ -129,7 +129,7 @@ flowchart LR
 
 ---
 
-## Capability & Readiness Matrix (`v4.9.1`)
+## Capability & Readiness Matrix (`v4.9.2`)
 
 `aria/agents/orchestrator_agent.py` (`MODALITY_VALIDATION`, `INTEGRATION_VALIDATION`, and `CROSS_MODAL_CONCORDANCE_VALIDATION`) is the single runtime source of truth, guarded against documentation drift in CI ([Validation Status](docs/validation_status.md)):
 
@@ -171,7 +171,7 @@ All **19 / 19** automated machine lanes in [`docs/benchmark_results/preprint_v1/
 | **V48 / ADR-079 Multiome Tier 1 (`WNN` & Multi-Donor Harmony)** | R `Seurat 5.3.0` (`FindMultiModalNeighbors`, `hc11`) & 4-donor `GSE278576` cohort | Cluster **`ARI = 0.9582`** (`NMI = 0.9660`), modality weight **Spearman $\rho = 0.9277$** (`MAE = 0.0275`), `6/6` rare subclasses retained, and multi-donor Harmony WNN batch mixing + `A4` resume |
 | **V48 / ADR-079 Multiome Tier 2a (`MOFA+`)** | `muon.tl.mofa` (`hc11`, `2,517` paired cells) & 4-donor `GSE278576` ANOVA $\eta^2$ audit | Hungarian $R^2$-weighted factor **`\|r\| = 0.9730`**, subspace correlation **`0.9895`**, automatic technical depth & donor/batch ANOVA $\eta^2$ factor screening |
 | **V48 / ADR-079 Multiome Tier 2b (`peak2gene` & `eRegulons`)** | R `Signac::LinkPeaks`, `SCENIC+ 1.0.0` (`hc11`) & 4-donor barcode-permuted null | `LinkPeaks` **`Jaccard = 0.8670`** (`score_pearson = 1.0000`), **`0` false discoveries** on barcode-shuffled null control (`ADR-079`), and **`17.99x` edge fold-enrichment** ($p = 2.93 \times 10^{-15}$) vs `SCENIC+` (`5.4x` faster) |
-| **ADR-080 Cross-Modal Contrast & Donor Concordance** | 10-donor `GSE278576` disjoint-donor split (`5` brains RNA-only $\times$ `5` disjoint brains ATAC-only), same-cell `Signac` `peak2gene` & deranged-donor nulls | **`93.49%` directional agreement** (`3,144` concordant cis pairs, **Fisher OR = `222.20`**, $\rho = 0.5477$), **`10` concordant TFs** (`SOX10`, `SOX8`, `NFIA`, `NFIB`), **`24` shared pathways**, **`100%` (`10/10`)** same-cell linked-gene recall, and **`0` false discoveries** across both 10-donor (`143,266` pairs) and 20-unit (`140,506` pairs) deranged-label nulls |
+| **ADR-080 Cross-Modal Contrast & Donor Concordance** | 10-donor `GSE278576` disjoint-donor split (`5` brains RNA-only $\times$ `5` disjoint brains ATAC-only), same-cell `Signac` `peak2gene` & deranged-donor nulls | **`93.19%` gene-level directional agreement** (`3,215` concordant cis pairs across `2,007` genes, **gene-level Fisher OR = `218.71`**, $\rho = 0.5686$), **`15` concordant TFs** (`SOX10`, `SOX8`, `OLIG2`, `NFIA`, `NFIB`), **`30` shared pathways** (`Jaccard = 0.3333`), **`100%` (`10/10`)** same-cell linked-gene recall, and **`0` false discoveries** across both 10-donor (`143,266` pairs) and 20-unit (`140,506` pairs) deranged-label nulls |
 | **ADR-081 Epigenomic Protein–DNA (`ChIP`, `CUT&RUN`, `CUT&TAG`)** | `mm39` + `sacCer3` spike-in `CUT&RUN`, R Bioconductor `DESeq2` (`sizeFactors`), `mm10` `ChIP-seq` vs `EDD` megadomains & 15 null cohorts | Spike-in `pyDESeq2` vs R `DESeq2` LFC **Pearson $r = 1.0000$** (**Jaccard = `1.000`**), **`100%` (`240/240`)** unidirectional global-loss recall (`0` false gains vs `60` naive median-of-ratios false gains), **`95.92%` `EDD` megadomain bp recall** (`Jaccard = 0.6130`), and **`0 / 3,000` null false positives** |
 | **ADR-082 3D Genome Architecture (`Hi-C` / `Micro-C`)** | Standalone `cooltools 0.7.1` (`eigs_cis`, `insulation`, `dots`), `4v4` compartment-switching cohort & balanced null permutations | GC-phased `E1` & Crane insulation **Pearson $r = 1.0000$** vs `cooltools`, **`100%` (`6/6`)** TAD boundary recall, **`100%` loop + GTF gene recall** (`MYC`, `CCND1`, `SOX2`, `KLF4`), **`100%` `A_to_B` / `B_to_A` switch recall** (`0` unplanted false switches), and **`0` false switches / boundaries** across balanced `4v4` null permutations |
 | **B1 / B2 / B4 / C4 Governance** | Adversarial design, 4-arm claim ablation, 600-case metamorphic falsification & RNA+ATAC null permutations | **`0.0` unsafe execution rate** (`23/23` B1); **`1.0 -> 0.0` causal-overreach reduction** (B2); **`600/600` metamorphic falsification** (C4); **`0.0` fabricated narrative rate** on null controls (B4/C5) |
@@ -287,7 +287,7 @@ aria_<timestamp>_<slug>_<id>/
 | **Public Atlas Vignettes** | [13 Reproducible Public Vignettes](docs/vignettes/README.md) (`Bulk RNA`, `scRNA`, `scATAC`, `Bulk ATAC + TOBIAS`, `ChIP`, `CUT&RUN`, `CUT&TAG`, `Hi-C`, `Paired Multiome`, `Cross-Modal`, `Cross-Model`, `Benchmarks`) |
 | **Architecture & Governance** | [Architecture Overview](docs/architecture/overview.md) · [Code Dependency Graph](docs/architecture/code_graph.md) · [Reporting & Claim Governance](docs/architecture/reporting_and_outputs.md) · [Biological Synthesis](docs/architecture/biological_synthesis.md) · [HypothesisAgent Quarantine](docs/architecture/hypothesis_agent.md) |
 | **Validation & Benchmarks** | [Validation Status](docs/validation_status.md) · [Preprint-v1 Evidence Freeze](docs/architecture/preprint_freeze_v1.md) · [Benchmark Hub](docs/benchmark_results/README.md) · [External Benchmarks (`v4.9.0`)](docs/benchmark_results/external_benchmarks_v49/README.md) |
-| **Workflow Guides & Releases** | [Bulk RNA](docs/workflows/bulk_rna.md) · [scRNA](docs/workflows/scrna.md) · [Pseudobulk](docs/workflows/pseudobulk_scrna.md) · [Chromatin](docs/workflows/chromatin_roadmap.md) · [Paired Multiome](docs/workflows/integration_roadmap.md) · [Changelog](CHANGELOG.md) · [v4.9.1 Release Notes](docs/release_notes_v4.9.1.md) |
+| **Workflow Guides & Releases** | [Bulk RNA](docs/workflows/bulk_rna.md) · [scRNA](docs/workflows/scrna.md) · [Pseudobulk](docs/workflows/pseudobulk_scrna.md) · [Chromatin](docs/workflows/chromatin_roadmap.md) · [Paired Multiome](docs/workflows/integration_roadmap.md) · [Changelog](CHANGELOG.md) · [v4.9.2 Release Notes](docs/release_notes_v4.9.2.md) |
 
 ---
 
@@ -303,7 +303,7 @@ python -m pytest -q \
   tests/test_registry_integrity.py
 ```
 
-Consult [`docs/architecture/code_graph.md`](docs/architecture/code_graph.md) before modifying shared paths. Note that [`docs/benchmark_results/preprint_v1/`](docs/benchmark_results/preprint_v1/inventory.json) binds receipts to the clean indexed Git tree (`v4.9.1` is the current package release), so any tracked code or documentation edit requires refreshing machine freeze receipts before cutting a frozen preprint snapshot.
+Consult [`docs/architecture/code_graph.md`](docs/architecture/code_graph.md) before modifying shared paths. Note that [`docs/benchmark_results/preprint_v1/`](docs/benchmark_results/preprint_v1/inventory.json) binds receipts to the clean indexed Git tree (`v4.9.2` is the current package release), so any tracked code or documentation edit requires refreshing machine freeze receipts before cutting a frozen preprint snapshot.
 
 ---
 
@@ -312,10 +312,10 @@ Consult [`docs/architecture/code_graph.md`](docs/architecture/code_graph.md) bef
 If you use ARIA in academic work, please cite:
 
 ```bibtex
-@software{olascoaga_aria_v491,
+@software{olascoaga_aria_v492,
   title   = {ARIA: Agentic Research Intelligence for Supervised Multi-Omics Analysis},
   author  = {Olascoaga and ARIA Contributors},
-  version = {4.9.1},
+  version = {4.9.2},
   year    = {2026},
   url     = {https://github.com/Olascoaga/aria-omics},
   license = {MIT}

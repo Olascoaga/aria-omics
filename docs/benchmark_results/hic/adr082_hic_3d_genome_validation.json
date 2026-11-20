@@ -4,11 +4,11 @@
   "benchmark": "adr082_hic_3d_genome_validation",
   "description": "Empirical certification of ARIA's production 3D Genome Architecture Engine (HiC / Micro-C): .pairs->.mcool preprocessing + A4 resume, ICE matrix balancing & HiCRep SCC, standalone cooltools numerical concordance (GC-phased E1 compartments, Crane TAD insulation, donut chromatin loops + GTF gene annotation), 4v4 differential 3D switching with balanced null calibration, dual PNG+SVG figures, and C1-C4 governance.",
   "environment": {
-    "aria_version": "4.8.0",
-    "git_commit_base": "2601a2f",
+    "aria_version": "4.9.2",
+    "git_commit_base": "4899f8c",
     "hic_env": "aria-hic-env"
   },
-  "generated_utc": "2026-11-13T19:31:08Z",
+  "generated_utc": "2026-11-20T23:51:35Z",
   "modalities_promoted": [
     "HiC"
   ],
@@ -104,10 +104,10 @@
       "metrics": {
         "a4_resumed_second_call": true,
         "cis_trans_ratio": 0.9434,
-        "mean_between_condition_scc": 0.7273,
-        "mean_within_condition_scc": 0.8213,
+        "mean_between_condition_scc": 0.5937,
+        "mean_within_condition_scc": 0.9845,
         "n_samples": 8,
-        "ps_decay_slope": -1.0754,
+        "ps_decay_slope": -1.0687,
         "resolutions_built": [
           20000,
           40000

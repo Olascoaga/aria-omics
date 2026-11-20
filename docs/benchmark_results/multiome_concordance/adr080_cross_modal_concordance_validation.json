@@ -3,31 +3,31 @@
   "arm_a_disjoint_donor_glial_lineage": {
     "a4_stage_manifest": {
       "cache_hit_verified": true,
-      "primary_elapsed_sec": 15.771,
-      "resume_elapsed_sec": 0.612
+      "primary_elapsed_sec": 16.961,
+      "resume_elapsed_sec": 0.652
     },
     "de_da_summary": {
       "atac_scope": null,
-      "concordance_fraction": 0.9348795718108831,
-      "enrichment_odds_ratio": 5.103932564504894,
-      "enrichment_pvalue": 4.835461388062558e-299,
-      "fisher_odds_ratio": 222.20278776978418,
+      "concordance_fraction": 0.9318826868495743,
+      "enrichment_odds_ratio": 5.239703318752775,
+      "enrichment_pvalue": 2.6576e-320,
+      "fisher_odds_ratio": 218.70545454545456,
       "fisher_pvalue": 0.0,
-      "n_atac_da_rna_unchanged": 1341,
-      "n_both_significant": 3363,
-      "n_concordant_down": 1555,
-      "n_concordant_total": 3144,
-      "n_concordant_up": 1589,
-      "n_discordant_total": 219,
-      "n_gene_peak_pairs_tested": 22950,
-      "n_genes_tested": 10955,
-      "n_promoter_pairs_tested": 10281,
-      "n_rna_de_atac_unchanged": 7339,
-      "pearson_r": 0.5749932220132661,
-      "promoter_spearman_r": 0.5594322220940412,
+      "n_atac_da_rna_unchanged": 1356,
+      "n_both_significant": 3436,
+      "n_concordant_down": 1594,
+      "n_concordant_total": 3215,
+      "n_concordant_up": 1621,
+      "n_discordant_total": 221,
+      "n_gene_peak_pairs_tested": 23688,
+      "n_genes_tested": 11613,
+      "n_promoter_pairs_tested": 10814,
+      "n_rna_de_atac_unchanged": 7500,
+      "pearson_r": 0.6056413993296826,
+      "promoter_spearman_r": 0.5637361748399916,
       "rna_scope": null,
       "spearman_pvalue": 0.0,
-      "spearman_r": 0.5477402078650347,
+      "spearman_r": 0.5685760488233659,
       "top_concordant_genes": [
         {
           "atac_log2fc": -2.470590912397663,
@@ -79,6 +79,13 @@
           "rna_log2fc": -9.390871622871057
         },
         {
+          "atac_log2fc": -2.627668191909092,
+          "best_cell_group": null,
+          "classification": "concordant_down",
+          "gene": "AQP4",
+          "rna_log2fc": -7.790841944087959
+        },
+        {
           "atac_log2fc": -1.5952662091120806,
           "best_cell_group": null,
           "classification": "concordant_down",
@@ -105,13 +112,6 @@
           "classification": "concordant_down",
           "gene": "CARMIL1",
           "rna_log2fc": -9.361456277586328
-        },
-        {
-          "atac_log2fc": -3.8653144878191936,
-          "best_cell_group": null,
-          "classification": "concordant_down",
-          "gene": "MAP3K5",
-          "rna_log2fc": -8.225337700289327
         }
       ]
     },
@@ -273,203 +273,251 @@
       ]
     },
     "pathway_concordance": {
-      "jaccard_index": 0.2608695652173913,
-      "n_atac_terms": 58,
+      "jaccard_index": 0.3333333333333333,
+      "n_atac_terms": 62,
       "n_rna_terms": 58,
-      "n_shared_terms": 24,
+      "n_shared_terms": 30,
       "ran": true,
       "shared_terms": [
         {
-          "atac_padj": 0.0,
+          "atac_padj": 5.627519865340469e-21,
           "contrast_id": "Oligo_vs_Astro",
-          "geometric_mean_padj": 0.0,
-          "rna_padj": 0.0,
-          "safe_label": "axon guidance",
-          "term": "axon guidance"
-        },
-        {
-          "atac_padj": 0.0,
-          "contrast_id": "Oligo_vs_Astro",
-          "geometric_mean_padj": 0.0,
-          "rna_padj": 0.0,
-          "safe_label": "axonogenesis",
-          "term": "axonogenesis"
-        },
-        {
-          "atac_padj": 5e-05,
-          "contrast_id": "Oligo_vs_Astro",
-          "geometric_mean_padj": 0.0,
-          "rna_padj": 0.0,
-          "safe_label": "Calcium signaling pathway",
-          "term": "Calcium signaling pathway"
-        },
-        {
-          "atac_padj": 0.00114,
-          "contrast_id": "Oligo_vs_Astro",
-          "geometric_mean_padj": 0.0,
-          "rna_padj": 0.0,
-          "safe_label": "CDC42 GTPase Cycle",
-          "term": "CDC42 GTPase Cycle"
-        },
-        {
-          "atac_padj": 0.001,
-          "contrast_id": "Oligo_vs_Astro",
-          "geometric_mean_padj": 0.0,
-          "rna_padj": 0.0,
-          "safe_label": "external encapsulating structure organization",
-          "term": "external encapsulating structure organization"
-        },
-        {
-          "atac_padj": 0.0,
-          "contrast_id": "Oligo_vs_Astro",
-          "geometric_mean_padj": 0.0,
-          "rna_padj": 0.0,
-          "safe_label": "extracellular matrix organization",
-          "term": "extracellular matrix organization"
-        },
-        {
-          "atac_padj": 0.0016,
-          "contrast_id": "Oligo_vs_Astro",
-          "geometric_mean_padj": 0.0,
-          "rna_padj": 0.0,
-          "safe_label": "extracellular structure organization",
-          "term": "extracellular structure organization"
-        },
-        {
-          "atac_padj": 2e-05,
-          "contrast_id": "Oligo_vs_Astro",
-          "geometric_mean_padj": 0.0,
-          "rna_padj": 0.0,
-          "safe_label": "GPCR Downstream Signaling",
-          "term": "GPCR Downstream Signaling"
-        },
-        {
-          "atac_padj": 4e-05,
-          "contrast_id": "Oligo_vs_Astro",
-          "geometric_mean_padj": 0.0,
-          "rna_padj": 0.0,
-          "safe_label": "Hemostasis",
-          "term": "Hemostasis"
-        },
-        {
-          "atac_padj": 0.0,
-          "contrast_id": "Oligo_vs_Astro",
-          "geometric_mean_padj": 0.0,
-          "rna_padj": 0.0,
+          "geometric_mean_padj": 1.5654011356054492e-14,
+          "rna_padj": 4.354459467033039e-08,
           "safe_label": "nervous system development",
           "term": "nervous system development"
         },
         {
-          "atac_padj": 1e-05,
+          "atac_padj": 7.660593146547486e-14,
           "contrast_id": "Oligo_vs_Astro",
-          "geometric_mean_padj": 0.0,
-          "rna_padj": 0.0,
-          "safe_label": "Neuronal System",
-          "term": "Neuronal System"
+          "geometric_mean_padj": 1.1689489853265242e-12,
+          "rna_padj": 1.7837283669238396e-11,
+          "safe_label": "extracellular matrix organization",
+          "term": "extracellular matrix organization"
         },
         {
-          "atac_padj": 0.00025,
+          "atac_padj": 1.0485486490415237e-12,
           "contrast_id": "Oligo_vs_Astro",
-          "geometric_mean_padj": 0.0,
-          "rna_padj": 0.0,
-          "safe_label": "Pathways in cancer",
-          "term": "Pathways in cancer"
-        },
-        {
-          "atac_padj": 0.0015,
-          "contrast_id": "Oligo_vs_Astro",
-          "geometric_mean_padj": 0.0,
-          "rna_padj": 0.0,
-          "safe_label": "RAC1 GTPase Cycle",
-          "term": "RAC1 GTPase Cycle"
-        },
-        {
-          "atac_padj": 0.00017,
-          "contrast_id": "Oligo_vs_Astro",
-          "geometric_mean_padj": 0.0,
-          "rna_padj": 0.0,
-          "safe_label": "regulation of neuron projection development",
-          "term": "regulation of neuron projection development"
-        },
-        {
-          "atac_padj": 0.00046,
-          "contrast_id": "Oligo_vs_Astro",
-          "geometric_mean_padj": 0.0,
-          "rna_padj": 0.0,
-          "safe_label": "RHO GTPase Cycle",
-          "term": "RHO GTPase Cycle"
-        },
-        {
-          "atac_padj": 1e-05,
-          "contrast_id": "Oligo_vs_Astro",
-          "geometric_mean_padj": 0.0,
-          "rna_padj": 0.0,
+          "geometric_mean_padj": 1.6380834807187301e-12,
+          "rna_padj": 2.559077723533768e-12,
           "safe_label": "Signaling By GPCR",
           "term": "Signaling By GPCR"
         },
         {
-          "atac_padj": 0.00231,
+          "atac_padj": 2.703648739919317e-13,
           "contrast_id": "Oligo_vs_Astro",
-          "geometric_mean_padj": 0.0,
-          "rna_padj": 0.0,
-          "safe_label": "vascular transport",
-          "term": "vascular transport"
+          "geometric_mean_padj": 1.0693717328396302e-11,
+          "rna_padj": 4.2296763115409726e-10,
+          "safe_label": "axon guidance",
+          "term": "axon guidance"
         },
         {
-          "atac_padj": 0.00028,
+          "atac_padj": 5.3863094399358576e-14,
           "contrast_id": "Oligo_vs_Astro",
-          "geometric_mean_padj": 0.00010583005244258362,
-          "rna_padj": 4e-05,
-          "safe_label": "Wnt signaling pathway",
-          "term": "Wnt signaling pathway"
+          "geometric_mean_padj": 1.598286770452374e-11,
+          "rna_padj": 4.742617610609278e-09,
+          "safe_label": "Neuronal System",
+          "term": "Neuronal System"
         },
         {
-          "atac_padj": 0.00499,
+          "atac_padj": 2.703648739919317e-13,
           "contrast_id": "Oligo_vs_Astro",
-          "geometric_mean_padj": 0.00022338307903688678,
-          "rna_padj": 1e-05,
-          "safe_label": "Hippo signaling pathway",
-          "term": "Hippo signaling pathway"
+          "geometric_mean_padj": 1.726266886561435e-10,
+          "rna_padj": 1.1022132126999014e-07,
+          "safe_label": "axonogenesis",
+          "term": "axonogenesis"
         },
         {
-          "atac_padj": 0.00197,
+          "atac_padj": 1.8583120346437632e-11,
           "contrast_id": "Oligo_vs_Astro",
-          "geometric_mean_padj": 0.0003138470965295043,
-          "rna_padj": 5e-05,
-          "safe_label": "Glutamatergic synapse",
-          "term": "Glutamatergic synapse"
+          "geometric_mean_padj": 1.8484696106926098e-10,
+          "rna_padj": 1.8386793164739385e-09,
+          "safe_label": "Pathways in cancer",
+          "term": "Pathways in cancer"
         },
         {
-          "atac_padj": 0.00077,
+          "atac_padj": 3.146652188745666e-11,
           "contrast_id": "Oligo_vs_Astro",
-          "geometric_mean_padj": 0.0003163858403911275,
-          "rna_padj": 0.00013,
-          "safe_label": "regulation of small GTPase mediated signal transduction",
-          "term": "regulation of small GTPase mediated signal transduction"
+          "geometric_mean_padj": 2.2297984422753304e-10,
+          "rna_padj": 1.5800923632285697e-09,
+          "safe_label": "GPCR Downstream Signaling",
+          "term": "GPCR Downstream Signaling"
         },
         {
-          "atac_padj": 0.00077,
+          "atac_padj": 1.8415840655770743e-09,
           "contrast_id": "Oligo_vs_Astro",
-          "geometric_mean_padj": 0.0003163858403911275,
-          "rna_padj": 0.00013,
+          "geometric_mean_padj": 3.993583390106415e-10,
+          "rna_padj": 8.660320531572474e-11,
+          "safe_label": "Calcium signaling pathway",
+          "term": "Calcium signaling pathway"
+        },
+        {
+          "atac_padj": 2.1348979322201183e-09,
+          "contrast_id": "Oligo_vs_Astro",
+          "geometric_mean_padj": 3.1819812271917108e-09,
+          "rna_padj": 4.742617610609278e-09,
+          "safe_label": "CDC42 GTPase Cycle",
+          "term": "CDC42 GTPase Cycle"
+        },
+        {
+          "atac_padj": 1.0665753039747933e-10,
+          "contrast_id": "Oligo_vs_Astro",
+          "geometric_mean_padj": 6.2167423758908095e-09,
+          "rna_padj": 3.623549656941043e-07,
+          "safe_label": "RHO GTPase Cycle",
+          "term": "RHO GTPase Cycle"
+        },
+        {
+          "atac_padj": 1.5675394121063254e-10,
+          "contrast_id": "Oligo_vs_Astro",
+          "geometric_mean_padj": 1.0651147760592525e-08,
+          "rna_padj": 7.237262919312175e-07,
+          "safe_label": "Hemostasis",
+          "term": "Hemostasis"
+        },
+        {
+          "atac_padj": 5.312392727679035e-07,
+          "contrast_id": "Oligo_vs_Astro",
+          "geometric_mean_padj": 1.4989897157040988e-08,
+          "rna_padj": 4.2296763115409726e-10,
+          "safe_label": "external encapsulating structure organization",
+          "term": "external encapsulating structure organization"
+        },
+        {
+          "atac_padj": 3.378683934055932e-10,
+          "contrast_id": "Oligo_vs_Astro",
+          "geometric_mean_padj": 1.769646296720448e-08,
+          "rna_padj": 9.268839810467319e-07,
+          "safe_label": "regulation of neuron projection development",
+          "term": "regulation of neuron projection development"
+        },
+        {
+          "atac_padj": 9.070078039276543e-07,
+          "contrast_id": "Oligo_vs_Astro",
+          "geometric_mean_padj": 3.2568563645322104e-08,
+          "rna_padj": 1.1694621957232933e-09,
+          "safe_label": "extracellular structure organization",
+          "term": "extracellular structure organization"
+        },
+        {
+          "atac_padj": 4.001555721636673e-09,
+          "contrast_id": "Oligo_vs_Astro",
+          "geometric_mean_padj": 3.270843530903845e-08,
+          "rna_padj": 2.673564520371038e-07,
+          "safe_label": "RAC1 GTPase Cycle",
+          "term": "RAC1 GTPase Cycle"
+        },
+        {
+          "atac_padj": 5.630586895557069e-08,
+          "contrast_id": "Oligo_vs_Astro",
+          "geometric_mean_padj": 6.372526022184395e-08,
+          "rna_padj": 7.212230031555095e-08,
+          "safe_label": "regulation of cell migration",
+          "term": "regulation of cell migration"
+        },
+        {
+          "atac_padj": 3.290700890012541e-11,
+          "contrast_id": "Oligo_vs_Astro",
+          "geometric_mean_padj": 1.0168562120344014e-07,
+          "rna_padj": 0.0003142177276248924,
+          "safe_label": "Signaling By Receptor Tyrosine Kinases",
+          "term": "Signaling By Receptor Tyrosine Kinases"
+        },
+        {
+          "atac_padj": 5.630586895557069e-08,
+          "contrast_id": "Oligo_vs_Astro",
+          "geometric_mean_padj": 2.276745701745144e-07,
+          "rna_padj": 9.206093585919421e-07,
+          "safe_label": "supramolecular fiber organization",
+          "term": "supramolecular fiber organization"
+        },
+        {
+          "atac_padj": 3.8590828597123155e-09,
+          "contrast_id": "Oligo_vs_Astro",
+          "geometric_mean_padj": 5.313676794400524e-07,
+          "rna_padj": 7.316546988435352e-05,
           "safe_label": "synapse organization",
           "term": "synapse organization"
         },
         {
-          "atac_padj": 0.006,
+          "atac_padj": 5.312392727679035e-07,
           "contrast_id": "Oligo_vs_Astro",
-          "geometric_mean_padj": 0.002694438717061496,
-          "rna_padj": 0.00121,
+          "geometric_mean_padj": 1.6367884147511614e-06,
+          "rna_padj": 5.043069012396037e-06,
+          "safe_label": "generation of neurons",
+          "term": "generation of neurons"
+        },
+        {
+          "atac_padj": 5.630586895557069e-08,
+          "contrast_id": "Oligo_vs_Astro",
+          "geometric_mean_padj": 1.934282076611978e-06,
+          "rna_padj": 6.644861754739301e-05,
+          "safe_label": "regulation of small GTPase mediated signal transduction",
+          "term": "regulation of small GTPase mediated signal transduction"
+        },
+        {
+          "atac_padj": 1.5417883526618121e-06,
+          "contrast_id": "Oligo_vs_Astro",
+          "geometric_mean_padj": 2.209039983876e-06,
+          "rna_padj": 3.1650632474542144e-06,
+          "safe_label": "Hippo signaling pathway",
+          "term": "Hippo signaling pathway"
+        },
+        {
+          "atac_padj": 3.6879958710616934e-07,
+          "contrast_id": "Oligo_vs_Astro",
+          "geometric_mean_padj": 2.837396703751732e-06,
+          "rna_padj": 2.1829796821718078e-05,
+          "safe_label": "Wnt signaling pathway",
+          "term": "Wnt signaling pathway"
+        },
+        {
+          "atac_padj": 2.491613088506765e-06,
+          "contrast_id": "Oligo_vs_Astro",
+          "geometric_mean_padj": 8.741083708169058e-06,
+          "rna_padj": 3.0665493268463014e-05,
+          "safe_label": "Glutamatergic synapse",
+          "term": "Glutamatergic synapse"
+        },
+        {
+          "atac_padj": 8.339539947956969e-06,
+          "contrast_id": "Oligo_vs_Astro",
+          "geometric_mean_padj": 4.075673360075213e-05,
+          "rna_padj": 0.00019918500830607788,
+          "safe_label": "Focal adhesion",
+          "term": "Focal adhesion"
+        },
+        {
+          "atac_padj": 6.309847507879386e-06,
+          "contrast_id": "Oligo_vs_Astro",
+          "geometric_mean_padj": 6.613528936169008e-05,
+          "rna_padj": 0.0006931825996575391,
           "safe_label": "Proteoglycans in cancer",
           "term": "Proteoglycans in cancer"
         },
         {
-          "atac_padj": 0.006,
+          "atac_padj": 2.6362557599078902e-05,
           "contrast_id": "Oligo_vs_Astro",
-          "geometric_mean_padj": 0.002694438717061496,
-          "rna_padj": 0.00121,
+          "geometric_mean_padj": 0.00014500127262289327,
+          "rna_padj": 0.0007975466334492992,
           "safe_label": "Salivary secretion",
           "term": "Salivary secretion"
+        },
+        {
+          "atac_padj": 6.549695304602964e-05,
+          "contrast_id": "Oligo_vs_Astro",
+          "geometric_mean_padj": 0.0001761243067788891,
+          "rna_padj": 0.00047360632816833946,
+          "safe_label": "MAPK signaling pathway",
+          "term": "MAPK signaling pathway"
+        },
+        {
+          "atac_padj": 0.008195326047551094,
+          "contrast_id": "Oligo_vs_Astro",
+          "geometric_mean_padj": 0.0007508160338784229,
+          "rna_padj": 6.87861243662631e-05,
+          "safe_label": "PI3K-Akt signaling pathway",
+          "term": "PI3K-Akt signaling pathway"
         }
       ]
     },
@@ -477,14 +525,14 @@
       "atac_input_contrast": "Astro_vs_Oligo",
       "atac_sign_flipped": true,
       "exact_concordance_match": true,
-      "forward_concordant_total": 3144,
-      "forward_spearman_r": 0.5477402078650347,
-      "reversed_concordant_total": 3144,
-      "reversed_spearman_r": 0.5477402078650347
+      "forward_concordant_total": 3215,
+      "forward_spearman_r": 0.5685760488233659,
+      "reversed_concordant_total": 3215,
+      "reversed_spearman_r": 0.5685760488233659
     },
     "single_modality_inputs": {
       "bulk_atac_da": {
-        "elapsed_sec": 139.854,
+        "elapsed_sec": 148.867,
         "motif_enrichment_ran": true,
         "n_peaks_tested": 44958,
         "n_significant_peaks": 10363,
@@ -492,7 +540,7 @@
         "peak_ora_ran": true
       },
       "bulk_rna_de": {
-        "elapsed_sec": 30.543,
+        "elapsed_sec": 56.453,
         "n_downregulated": 3767,
         "n_genes_tested": 17857,
         "n_significant_genes": 6413,
@@ -500,11 +548,11 @@
       }
     },
     "tf_triangulation": {
-      "n_chromatin_shift_rna_unchanged": 30,
-      "n_concordant_tfs": 10,
-      "n_discordant_tfs": 6,
-      "n_paralog_ambiguous": 49,
-      "n_tfs_evaluated": 49,
+      "n_chromatin_shift_rna_unchanged": 14,
+      "n_concordant_tfs": 15,
+      "n_discordant_tfs": 5,
+      "n_paralog_ambiguous": 50,
+      "n_tfs_evaluated": 50,
       "ran": true,
       "top_concordant_tfs": [
         {
@@ -522,38 +570,6 @@
           "rna_padj": 4.475770491061943e-25,
           "source": "motif",
           "tf": "SOX8"
-        },
-        {
-          "chromatin_direction": "up",
-          "chromatin_padj": 8.891622926505876e-112,
-          "chromatin_score": 0.7886776146512934,
-          "classification": "concordant",
-          "contrast_id": "Oligo_vs_Astro",
-          "family": null,
-          "motif_id": "MA0685.2",
-          "motif_name": "SP4",
-          "paralog_motif_ambiguity": true,
-          "rna_log2fc": 1.11375784754999,
-          "rna_mean_cpm": 60.19770401521182,
-          "rna_padj": 0.0022942217828773,
-          "source": "motif",
-          "tf": "SP4"
-        },
-        {
-          "chromatin_direction": "up",
-          "chromatin_padj": 4.492238256391858e-101,
-          "chromatin_score": 0.338104655546155,
-          "classification": "concordant",
-          "contrast_id": "Oligo_vs_Astro",
-          "family": null,
-          "motif_id": "MA0006.2",
-          "motif_name": "Ahr::Arnt",
-          "paralog_motif_ambiguity": true,
-          "rna_log2fc": 3.918049638975281,
-          "rna_mean_cpm": 36.36410830720986,
-          "rna_padj": 6.126454936237538e-12,
-          "source": "motif",
-          "tf": "Ahr"
         },
         {
           "chromatin_direction": "up",
@@ -586,6 +602,54 @@
           "rna_padj": 0.0017724944235319,
           "source": "motif",
           "tf": "NFIA"
+        },
+        {
+          "chromatin_direction": "up",
+          "chromatin_padj": 2.8688297449522963e-68,
+          "chromatin_score": 0.1609120407377779,
+          "classification": "concordant",
+          "contrast_id": "Oligo_vs_Astro",
+          "family": null,
+          "motif_id": "MA0498.3",
+          "motif_name": "MEIS1",
+          "paralog_motif_ambiguity": true,
+          "rna_log2fc": 1.82293894109498,
+          "rna_mean_cpm": 112.40557996358935,
+          "rna_padj": 4.329714977026047e-08,
+          "source": "motif",
+          "tf": "MEIS1"
+        },
+        {
+          "chromatin_direction": "up",
+          "chromatin_padj": 4.1866872213469804e-39,
+          "chromatin_score": 0.228558261977065,
+          "classification": "concordant",
+          "contrast_id": "Oligo_vs_Astro",
+          "family": null,
+          "motif_id": "MA1997.2",
+          "motif_name": "Olig2",
+          "paralog_motif_ambiguity": true,
+          "rna_log2fc": 3.7214712497864526,
+          "rna_mean_cpm": 30.637005932275503,
+          "rna_padj": 2.8496465421882818e-11,
+          "source": "motif",
+          "tf": "Olig2"
+        },
+        {
+          "chromatin_direction": "up",
+          "chromatin_padj": 4.1866872213469804e-39,
+          "chromatin_score": 0.228558261977065,
+          "classification": "concordant",
+          "contrast_id": "Oligo_vs_Astro",
+          "family": null,
+          "motif_id": "MA0521.3",
+          "motif_name": "Tcf12",
+          "paralog_motif_ambiguity": true,
+          "rna_log2fc": 2.685696553500712,
+          "rna_mean_cpm": 1307.8219604854007,
+          "rna_padj": 4.5532952845125046e-49,
+          "source": "motif",
+          "tf": "Tcf12"
         },
         {
           "chromatin_direction": "down",
@@ -637,22 +701,6 @@
         },
         {
           "chromatin_direction": "down",
-          "chromatin_padj": 7.561590075115376e-24,
-          "chromatin_score": -1.589815938527947,
-          "classification": "concordant",
-          "contrast_id": "Oligo_vs_Astro",
-          "family": null,
-          "motif_id": "MA0645.2",
-          "motif_name": "ETV6",
-          "paralog_motif_ambiguity": true,
-          "rna_log2fc": -1.1820599261250286,
-          "rna_mean_cpm": 91.77397028491393,
-          "rna_padj": 0.0396041085725652,
-          "source": "motif",
-          "tf": "ETV6"
-        },
-        {
-          "chromatin_direction": "down",
           "chromatin_padj": 4.892108652367261e-19,
           "chromatin_score": -0.2277901306982145,
           "classification": "concordant",
@@ -666,6 +714,86 @@
           "rna_padj": 8.240420356508889e-21,
           "source": "motif",
           "tf": "Zic2"
+        },
+        {
+          "chromatin_direction": "down",
+          "chromatin_padj": 1.9097237654424092e-17,
+          "chromatin_score": -0.374156975947236,
+          "classification": "concordant",
+          "contrast_id": "Oligo_vs_Astro",
+          "family": null,
+          "motif_id": "MA1928.2",
+          "motif_name": "BNC2",
+          "paralog_motif_ambiguity": true,
+          "rna_log2fc": -5.067393927998099,
+          "rna_mean_cpm": 34.8197135029243,
+          "rna_padj": 2.699447822201962e-13,
+          "source": "motif",
+          "tf": "BNC2"
+        },
+        {
+          "chromatin_direction": "down",
+          "chromatin_padj": 1.9097237654424092e-17,
+          "chromatin_score": -0.374156975947236,
+          "classification": "concordant",
+          "contrast_id": "Oligo_vs_Astro",
+          "family": null,
+          "motif_id": "MA0462.3",
+          "motif_name": "BATF::JUN",
+          "paralog_motif_ambiguity": true,
+          "rna_log2fc": -2.90689197505112,
+          "rna_mean_cpm": 46.86852230077584,
+          "rna_padj": 2.820550764091457e-15,
+          "source": "motif",
+          "tf": "JUN"
+        },
+        {
+          "chromatin_direction": "down",
+          "chromatin_padj": 3.1797830536030143e-17,
+          "chromatin_score": -0.1438384648541598,
+          "classification": "concordant",
+          "contrast_id": "Oligo_vs_Astro",
+          "family": null,
+          "motif_id": "MA0624.3",
+          "motif_name": "Nfatc1",
+          "paralog_motif_ambiguity": true,
+          "rna_log2fc": -3.0430297372722785,
+          "rna_mean_cpm": 16.337621040437117,
+          "rna_padj": 1.548379873341108e-09,
+          "source": "motif",
+          "tf": "Nfatc1"
+        },
+        {
+          "chromatin_direction": "down",
+          "chromatin_padj": 3.0721076524147444e-15,
+          "chromatin_score": -0.3122475980853518,
+          "classification": "concordant",
+          "contrast_id": "Oligo_vs_Astro",
+          "family": null,
+          "motif_id": "MA2341.1",
+          "motif_name": "FEZF2",
+          "paralog_motif_ambiguity": true,
+          "rna_log2fc": -4.896017435292546,
+          "rna_mean_cpm": 3.1614819912460073,
+          "rna_padj": 6.588311014335824e-11,
+          "source": "motif",
+          "tf": "FEZF2"
+        },
+        {
+          "chromatin_direction": "down",
+          "chromatin_padj": 9.681999577236217e-13,
+          "chromatin_score": -0.8655906545490497,
+          "classification": "concordant",
+          "contrast_id": "Oligo_vs_Astro",
+          "family": null,
+          "motif_id": "MA0072.2",
+          "motif_name": "RORA",
+          "paralog_motif_ambiguity": true,
+          "rna_log2fc": -4.897325879794874,
+          "rna_mean_cpm": 1785.4689299881625,
+          "rna_padj": 1.785923042899188e-49,
+          "source": "motif",
+          "tf": "RORA"
         }
       ]
     }
@@ -674,17 +802,17 @@
     "contrast": "80-100_vs_20-39",
     "de_da_summary": {
       "atac_scope": null,
-      "n_atac_da_rna_unchanged": 27,
+      "n_atac_da_rna_unchanged": 28,
       "n_both_significant": 0,
       "n_concordant_total": 0,
       "n_discordant_total": 0,
-      "n_gene_peak_pairs_tested": 24593,
-      "n_genes_tested": 12316,
-      "n_promoter_pairs_tested": 11142,
-      "n_rna_de_atac_unchanged": 36,
+      "n_gene_peak_pairs_tested": 25376,
+      "n_genes_tested": 13010,
+      "n_promoter_pairs_tested": 11677,
+      "n_rna_de_atac_unchanged": 37,
       "rna_scope": null,
-      "spearman_pvalue": 3.3309027849319133e-108,
-      "spearman_r": 0.14021988263646537
+      "spearman_pvalue": 7.603559750932858e-42,
+      "spearman_r": 0.11841528485677415
     },
     "donor_matched_10donor_cpm_links": {
       "donor_deranged_null_control": {
@@ -769,16 +897,16 @@
         }
       ]
     },
-    "elapsed_sec": 10.893,
+    "elapsed_sec": 11.921,
     "formula": "~ sex + age_group",
     "single_modality_inputs": {
       "bulk_atac_da": {
-        "elapsed_sec": 27.056,
+        "elapsed_sec": 28.161,
         "n_peaks_tested": 45000,
         "n_significant_peaks": 44
       },
       "bulk_rna_de": {
-        "elapsed_sec": 31.604,
+        "elapsed_sec": 45.381,
         "n_downregulated": 48,
         "n_genes_tested": 25265,
         "n_significant_genes": 71,
@@ -786,7 +914,7 @@
       }
     }
   },
-  "cohort_merge_elapsed_sec": 34.889,
+  "cohort_merge_elapsed_sec": 54.734,
   "dataset": {
     "accession": "GSE278576",
     "design": "10 balanced human brains (5 young 20-39 [3M/2F], 5 aged 80-100 [3M/2F]); Arm A = disjoint-donor split cohort (5 brains RNA-only x 5 disjoint brains ATAC-only, Oligo_vs_Astro); Arm B = 10-donor matched aging (~ sex + age_group, 80-100_vs_20-39) + donor-deranged null",
@@ -947,8 +1075,8 @@
       "chr17",
       "chr19"
     ],
-    "elapsed_sec": 13.31,
-    "n_disjoint_donor_de_da_concordant_genes": 1944,
+    "elapsed_sec": 13.846,
+    "n_disjoint_donor_de_da_concordant_genes": 2007,
     "n_recovered_by_any_non_same_cell_layer": 10,
     "n_recovered_by_disjoint_donor_de_da": 8,
     "n_same_cell_linked_genes": 10,
@@ -970,5 +1098,5 @@
     ]
   },
   "schema": "aria.adr080_cross_modal_concordance_validation.v1",
-  "total_elapsed_sec": 361.083
+  "total_elapsed_sec": 439.094
 }

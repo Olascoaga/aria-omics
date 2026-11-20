@@ -8,9 +8,22 @@ current `main`.
 
 ---
 
-## [v4.9.1] — 2026-11-20 (Current Release)
+## [v4.9.2] — 2026-11-20 (Current Release)
 
-Full release notes: [`docs/release_notes_v4.9.1.md`](docs/release_notes_v4.9.1.md)
+Full release notes: [`docs/release_notes_v4.9.2.md`](docs/release_notes_v4.9.2.md)
+
+### Highlights
+- **Tripartite Blind Post-Wave-4 Re-Audit Remediation (`f215667`, `4899f8c`, 8 new regression suites):**
+  - **Wave 5 (`f215667`, 76 files):** Closed all consensus (`3/3`, `2/2`, `2/3`), `CRITICAL`, and Wave 1–4 regression findings across all five domains — including explicit `pydeseq2 >= 0.5.4` `C(factor, Treatment(reference=...))` anchoring + exact `_shrink_coeff` + sign-flip guard (`BI-01` in `deseq2.py` & `rna_pseudobulk_de.py`), full-universe BH-FDR in local ORA (`CDX-01`), gene-level `primary` DE $\times$ DA inference in `cross_modal_concordance.py` (`CLD-01`), honest `empirical_fdr_at_padj` vs per-pair FPR labeling (`TRI-01`), symmetric sparse banded Yang et al. (2017) HiCRep SCC (`k_op @ m_sym @ k_op.T`), `rna_qc` cache schema `7 -> 8`, and `conda-forge::python-annoy` in `docker/Dockerfile.rna` (`CI-01`) fixing tag-triggered `release-repro` Docker builds.
+  - **Wave 6 (`4899f8c`, 96 files):** Closed all remaining verified `HIGH` and `MEDIUM` items — HTML XSS escaping & relative bulk table staging, universal `allow_nan=False` JSON serialization, canonical `_canon` / q-value ranking & case-insensitive quarantine in `HypothesisAgent`, full scRNA PNG + SVG parity, numeric contrast levels, dual-UMI `per_read` collapse, per-chrom strand exon caps, cohort-aware LSI doublets, long-gene peak annotation, depth-normalized motif deviation, SHA-256 + PID/UUID-safe Multiome/Hi-C caches, and Hi-C $P(s)$ / sorted loops / `chromosomes` / `switch_regions` hardening.
+- **Refreshed `ADR-080` & `ADR-082` Empirical Certifications:** Re-ran `ADR-080` on the 10-donor `GSE278576` cohort (`93.19%` gene-level directional agreement across `11,613` tested genes, `3,215` concordant cis pairs spanning `2,007` genes, gene-level Fisher `OR = 218.71`, Spearman $\rho = 0.5686$, `15` concordant `JASPAR2024` TFs including `SOX10`/`SOX8`/`OLIG2`/`NFIA`/`NFIB`, `30` shared full-precision ORA pathways `Jaccard = 0.3333`, `100%` same-cell recall, `0` deranged-null FPs) and `ADR-082` in `aria-hic-env` (symmetric sparse HiCRep SCC `0.9845` within-condition vs `0.5937` between-condition, `r = 1.0000` vs `cooltools`, `0` null FPs).
+- **Fresh `19 / 19` Preprint `v1` Freeze & Invariants:** Regenerated all `19 / 19` `automated_v1_gate` machine receipts bound to `v4.9.2`, verified `2,931+` `aria-env` and `254` `aria-rna-env` tests + green `ARIA CI` + `release-repro`, preserved **`0` diff against `v4.9.0`** on `aria/utils/stage_manifest.py` and `docs/benchmark_results/preprint_v1/human/*.csv`, and kept external Tier 1 blind benchmarks explicitly attributed to immutable tag `v4.9.0`.
+
+---
+
+## [v4.9.1] — 2026-11-20
+
+Full release notes: [`docs/releases/release_notes_v4.9.1.md`](docs/releases/release_notes_v4.9.1.md)
 
 ### Highlights
 - **ORA Precision Fix & Native Publication GSEA Upgrade (`fb70a27`, `ef06804`, `2f4eaf4`):** Preserved full float precision for `padj`/`pvalue`/`qval` across ORA, DE/DA, Hi-C, and LOBO scripts (eliminating `-log10(FDR) = 300` rounding-to-zero artifacts), fixed ORA dotplot overlap counts (`k/n`) and colorbar `hue_norm`, resolved `NES=inf` on large GO sets (`min_size=15, max_size=500, seed=0`) with air-gap local GMT + mouse/human case-insensitive support, and shipped native 300-DPI PNG + SVG GSEA running-sum and multi-pathway top-table renderers with full red/blue hit barcodes.

@@ -3,7 +3,7 @@
 This documentation is organized around concrete analytical workflows, explicit
 validation boundaries, and auditable governance contracts. Historical release
 notes under [`releases/`](releases/) describe past tags; [`validation_status.md`](validation_status.md)
-and the runtime registry are the source of truth for current `main` (`v4.9.1`).
+and the runtime registry are the source of truth for current `main` (`v4.9.2`).
 
 “Production”, “beta”, and “scaffold” are ARIA validation tiers — none of them
 replace domain-expert review of experimental design, fitted models, statistical
@@ -81,5 +81,5 @@ Unpaired, diagonal, or bulk cross-modal integration combinations fail closed at
 ## Releases & changelog
 
 - [Master Changelog (`CHANGELOG.md`)](../CHANGELOG.md)
-- [v4.9.1 Release Notes](release_notes_v4.9.1.md) — **current release**
-- [Historical Release Archive (`v4.3.12` – `v4.9.0`)](releases/)
+- [v4.9.2 Release Notes](release_notes_v4.9.2.md) — **current release**
+- [Historical Release Archive (`v4.3.12` – `v4.9.1`)](releases/)
