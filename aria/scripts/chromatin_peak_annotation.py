@@ -139,9 +139,71 @@ def _in_exon(center: int, exons: list) -> bool:
     return False
 
 
+def _exon_overlaps_interval(start: int, end: int, exons: list) -> bool:
+    if end <= start:
+        return False
+    for s, e in exons:
+        if start < e and end > s:
+            return True
+        if s >= end:
+            break
+    return False
+
+
+def _build_body_index(models_by_chrom: dict) -> dict:
+    """Build per-chromosome start-sorted gene lists with prefix max end so
+    finding every gene overlapping a peak interval/midpoint is exact even for
+    multi-Mb genes spanning hundreds of nested shorter genes."""
+    index: dict = {}
+    for chrom, glist in models_by_chrom.items():
+        by_start = sorted(glist, key=lambda g: (g["start"], g["end"]))
+        starts = [g["start"] for g in by_start]
+        prefix_max_end: list[int] = []
+        running_max = -1
+        for g in by_start:
+            if g["end"] > running_max:
+                running_max = g["end"]
+            prefix_max_end.append(running_max)
+        index[chrom] = (by_start, starts, prefix_max_end)
+    return index
+
+
+def _overlapping_genes(
+    chrom: str,
+    start: int,
+    end: int,
+    center: int,
+    models_by_chrom: dict,
+    body_index: Optional[dict] = None,
+) -> list[dict]:
+    """Return every gene on ``chrom`` whose body contains ``center`` or
+    physically overlaps ``[start, end)``."""
+    hi_coord = max(center, end)
+    lo_coord = min(center, start)
+    out: list[dict] = []
+    if body_index is not None and chrom in body_index:
+        by_start, starts, prefix_max_end = body_index[chrom]
+        idx = bisect.bisect_right(starts, hi_coord) - 1
+        while idx >= 0 and prefix_max_end[idx] >= lo_coord:
+            g = by_start[idx]
+            if (g["start"] <= center <= g["end"]) or (
+                end > start and start < g["end"] and end > g["start"]
+            ):
+                out.append(g)
+            idx -= 1
+        return out
+    for g in models_by_chrom.get(chrom) or []:
+        if (g["start"] <= center <= g["end"]) or (
+            end > start and start < g["end"] and end > g["start"]
+        ):
+            out.append(g)
+    return out
+
+
 def annotate_one_peak(chrom: str, start: int, end: int, models_by_chrom: dict,
                       tss_index: dict, promoter_upstream: int,
-                      promoter_downstream: int) -> dict:
+                      promoter_downstream: int,
+                      body_index: Optional[dict] = None) -> dict:
     """Annotate a single peak against the gene models. Pure + deterministic.
 
     Returns ``{nearest_gene, distance_to_tss, feature}``. ``nearest_gene`` / distance
@@ -155,32 +217,60 @@ def annotate_one_peak(chrom: str, start: int, end: int, models_by_chrom: dict,
     pos = bisect.bisect_left(tss_index[chrom], center)
     lo = max(0, pos - _NEIGHBORS)
     hi = min(len(glist), pos + _NEIGHBORS)
-    cands = glist[lo:hi] or glist
+    tss_cands = glist[lo:hi] or glist
+
+    def _tss_key(g: dict):
+        return (abs(center - g["tss"]), g["tss"], str(g["gene"]))
 
     # Candidates ordered by |center - TSS| (closest first; ties broken by TSS then
     # gene name for determinism), NOT by genomic TSS order -- otherwise a
     # bidirectional/overlapping promoter resolves to the leftmost TSS.
-    cands = sorted(cands, key=lambda g: (abs(center - g["tss"]), g["tss"],
-                                         str(g["gene"])))
-    nearest = cands[0]
+    tss_cands = sorted(tss_cands, key=_tss_key)
+    nearest = tss_cands[0]
+
+    # Physically overlapping genes across the whole chromosome (catches long
+    # genes whose TSS is > _NEIGHBORS away as well as interval-overlapping exons).
+    body_all = _overlapping_genes(
+        chrom, start, end, center, models_by_chrom, body_index=body_index
+    )
+    body_all.sort(key=_tss_key)
+
+    prom_cands = list(tss_cands)
+    if body_all:
+        seen_ids = {id(g) for g in prom_cands}
+        for g in body_all:
+            if id(g) not in seen_ids:
+                prom_cands.append(g)
+                seen_ids.add(id(g))
+        prom_cands.sort(key=_tss_key)
 
     # Strict priority across ALL candidates: Promoter > Exonic > Intronic >
-    # Distal Intergenic (an exon of any overlapping gene beats an intron of
-    # another, regardless of which gene's TSS comes first).
-    for g in cands:
+    # Distal Intergenic (an exon or gene body physically overlapping the peak
+    # always beats a closer non-overlapping gene's Distal Intergenic call).
+    for g in prom_cands:
         sdist = _signed_tss_distance(center, g)
         if -promoter_upstream <= sdist <= promoter_downstream:
             return {"nearest_gene": g["gene"],
                     "distance_to_tss": sdist,
                     "feature": FEATURE_PROMOTER}
-    body = [g for g in cands if g["start"] <= center <= g["end"]]
-    for g in body:
+    for g in body_all:
         if _in_exon(center, g["exons"]):
             return {"nearest_gene": g["gene"],
                     "distance_to_tss": _signed_tss_distance(center, g),
                     "feature": FEATURE_EXONIC}
-    if body:
-        g = body[0]
+    for g in body_all:
+        if _exon_overlaps_interval(start, end, g["exons"]):
+            return {"nearest_gene": g["gene"],
+                    "distance_to_tss": _signed_tss_distance(center, g),
+                    "feature": FEATURE_EXONIC}
+    body_center = [g for g in body_all if g["start"] <= center <= g["end"]]
+    if body_center:
+        g = body_center[0]
+        return {"nearest_gene": g["gene"],
+                "distance_to_tss": _signed_tss_distance(center, g),
+                "feature": FEATURE_INTRONIC}
+    if body_all:
+        g = body_all[0]
         return {"nearest_gene": g["gene"],
                 "distance_to_tss": _signed_tss_distance(center, g),
                 "feature": FEATURE_INTRONIC}
@@ -198,6 +288,7 @@ def annotate_peaks(peaks, models_by_chrom: dict,
     fabricated)."""
     tss_index = {c: [g["tss"] for g in glist]
                  for c, glist in models_by_chrom.items()}
+    body_index = _build_body_index(models_by_chrom)
     rows: list = []
     dist: dict = defaultdict(int)
     n_unparsed = 0
@@ -208,7 +299,8 @@ def annotate_peaks(peaks, models_by_chrom: dict,
             continue
         chrom, start, end = parsed
         ann = annotate_one_peak(chrom, start, end, models_by_chrom, tss_index,
-                                promoter_upstream, promoter_downstream)
+                                promoter_upstream, promoter_downstream,
+                                body_index=body_index)
         rows.append({"peak": peak, **ann})
         dist[ann["feature"]] += 1
     return {"rows": rows, "feature_distribution": dict(dist),
@@ -277,15 +369,25 @@ def _assembly_gtf(genome: str) -> Optional[Path]:
     return None
 
 
+_PRODUCTION_MODALITIES = {
+    "scATAC": "scatac",
+    "bulk_ATAC": "bulk_atac",
+    "ChIP": "chip",
+    "CUT_AND_RUN": "cut_and_run",
+    "CUT_AND_TAG": "cut_and_tag",
+}
+
+
 def _modality_stamp(params: dict) -> tuple:
     """(data_type, validation_level, filename_prefix) for this dispatch.
 
     Defaults to the bulk ATAC stamp so every pre-existing bulk call (which never
     passes ``data_type``) keeps byte-identical output names and stamps."""
     data_type = str(params.get("data_type") or "bulk_ATAC")
-    validation_level = "production" if data_type in {"scATAC", "bulk_ATAC"} else "beta"
-    prefix = "scatac" if data_type == "scATAC" else "bulk_atac"
-    return data_type, validation_level, prefix
+    if data_type in _PRODUCTION_MODALITIES:
+        return data_type, "production", _PRODUCTION_MODALITIES[data_type]
+    safe = re.sub(r"[^A-Za-z0-9]+", "_", data_type).strip("_").lower() or "bulk_atac"
+    return data_type, "beta", safe
 
 
 def _select_comparison_rows(df, comp: Optional[dict]):

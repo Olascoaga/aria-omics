@@ -44,6 +44,7 @@ from aria.utils.mudata_io import (
     MultiomeInputError,
 )
 from aria.scripts._base import run_script
+from aria.scripts.integration_peak2gene import _maybe_map_peaks_from_bed
 from aria.utils.eregulon_core import (
     ContigMismatchError,
     compute_candidate_eregulons,
@@ -485,13 +486,25 @@ def integration_eregulons(params: dict) -> dict[str, Any]:
         genome=genome,
         organism=organism,
     )
+    peaks_path = str(params.get("peaks_path") or "")
+    update_in_place = bool(params.get("update_h5mu", False))
+    write_h5mu_flag = (
+        update_in_place
+        or bool(params.get("write_h5mu", False))
+        or bool(params.get("output_h5mu"))
+    )
+    required_cache_outputs = (
+        ("output_path", "triplets_path", "h5mu_output_path")
+        if (write_h5mu_flag and resolved_h5mu)
+        else ("output_path", "triplets_path")
+    )
     cached, stage_state = _stage_cache(
         "integration_eregulons",
         output_dir,
         stage_inputs,
         stage_params,
         params.get("resume", True),
-        required=("output_path", "triplets_path"),
+        required=required_cache_outputs,
     )
     if cached:
         return cached
@@ -529,7 +542,9 @@ def integration_eregulons(params: dict) -> dict[str, Any]:
         rna_mat = paired["rna_counts_matrix"][r_order, :]
         atac_mat = paired["atac_counts_matrix"][a_order, :]
         rna_gene_names = [str(g) for g in rna_adata.var_names]
-        atac_peak_names = [str(p) for p in atac_adata.var_names]
+        atac_peak_names = _maybe_map_peaks_from_bed(
+            [str(p) for p in atac_adata.var_names], peaks_path
+        )
         input_mode = "paired_h5mu"
     else:
         rna_adata = _load_rna_adata(valid_rna[0])
@@ -599,7 +614,9 @@ def integration_eregulons(params: dict) -> dict[str, Any]:
         rna_mat = rna_chk["matrix"]
         atac_mat = atac_chk["matrix"]
         rna_gene_names = [str(g) for g in rna_sub.var_names]
-        atac_peak_names = [str(p) for p in atac_sub.var_names]
+        atac_peak_names = _maybe_map_peaks_from_bed(
+            [str(p) for p in atac_sub.var_names], peaks_path
+        )
         input_mode = "paired_matrices"
 
     gene_tss_records, gtf_stats = parse_gtf_tss_detailed(
@@ -692,12 +709,6 @@ def integration_eregulons(params: dict) -> dict[str, Any]:
 
     # Optional atomic persistence to `.h5mu` (`update_h5mu`, `write_h5mu`, or `output_h5mu`)
     h5mu_output_path: str | None = None
-    update_in_place = bool(params.get("update_h5mu", False))
-    write_h5mu_flag = (
-        update_in_place
-        or bool(params.get("write_h5mu", False))
-        or bool(params.get("output_h5mu"))
-    )
     if write_h5mu_flag and mdata is not None:
         default_target = (
             Path(str(resolved_h5mu))
@@ -771,6 +782,7 @@ def integration_eregulons(params: dict) -> dict[str, Any]:
         "distance_kb": distance_kb,
         "scan_window_bp": core_res["scan_window_bp"],
         "motif_pvalue": motif_pvalue,
+        "max_regulon_padj": max_regulon_padj,
         "scanner_backend": core_res["scanner_backend"],
         "motif_source": {
             "collection": motif_source_meta.get("collection"),

@@ -19,6 +19,8 @@ import logging
 from pathlib import Path
 from typing import Optional
 
+from aria.scripts.rna_bulk.gtf_io import _strip_gene_version
+
 log = logging.getLogger("aria.pathway_viz")
 
 
@@ -43,7 +45,7 @@ def _ranked_signature_frame(de_results_df, symbol_map: Optional[dict] = None):
     df = de_results_df.copy()
     df["log2FoldChange"] = pd.to_numeric(df["log2FoldChange"], errors="coerce")
     df = df.loc[np.isfinite(df["log2FoldChange"])].copy()
-    df["clean_id"] = df.index.astype(str).str.split(".").str[0]
+    df["clean_id"] = df.index.astype(str).map(_strip_gene_version)
 
     def resolve_symbol(gene_id: str):
         symbol = symbol_map.get(gene_id)
@@ -893,11 +895,11 @@ def export_de_table(de_results_df,
             return None
 
         df["gene_id"] = df.index.astype(str)
-        df["clean_id"] = df["gene_id"].str.split(".").str[0]
+        df["clean_id"] = df["gene_id"].map(_strip_gene_version)
         df["gene_symbol"] = df["clean_id"].map(symbol_map or {}).fillna("")
 
         cols = ["gene_id", "gene_symbol"]
-        for c in ["baseMean", "log2FoldChange", "lfcSE",
+        for c in ["baseMean", "log2FoldChange", "log2FoldChange_raw", "lfcSE",
                    "stat", "pvalue", "padj"]:
             if c in df.columns:
                 cols.append(c)

@@ -77,8 +77,18 @@ def _load_symbol_map(files: list, warnings: list,
                 clean = {}
                 for k, v in df["gene_symbol"].items():
                     if isinstance(k, str) and isinstance(v, str):
-                        if v.strip() and v.strip().lower() != "nan":
-                            clean[_strip_gene_version(k)] = v.strip()
+                        val = v.strip()
+                        if not val or val.lower() == "nan":
+                            continue
+                        key_clean = _strip_gene_version(k)
+                        val_clean = _strip_gene_version(val)
+                        # Skip self-mapped / unresolved Ensembl fallback entries
+                        if (
+                            val.startswith(("ENSG", "ENSMUSG", "ENS"))
+                            or val_clean == key_clean
+                        ):
+                            continue
+                        clean[key_clean] = val
                 return clean
 
         # ── Path B: regenerate from GTF ──────────────────────────────
@@ -327,7 +337,7 @@ def _to_symbols(gene_ids: list, symbol_map: dict) -> list:
         if not clean or clean.lower() == "nan":
             continue
         if not symbol_map:
-            sym = gid.strip()
+            sym = clean
         else:
             sym = symbol_map.get(clean)
         # If not in map, check if input might already be a symbol
@@ -336,7 +346,12 @@ def _to_symbols(gene_ids: list, symbol_map: dict) -> list:
                 sym = clean   # already a symbol
             else:
                 continue       # unmapped Ensembl ID — skip
-        if not isinstance(sym, str) or not sym.strip() or sym.lower() == "nan":
+        if not isinstance(sym, str):
+            continue
+        sym = sym.strip()
+        if not sym or sym.lower() == "nan":
+            continue
+        if sym.startswith(("ENSG", "ENSMUSG", "ENS")):
             continue
         if sym not in seen:
             seen.add(sym)

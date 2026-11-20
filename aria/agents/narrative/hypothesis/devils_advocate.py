@@ -23,6 +23,7 @@ from typing import Mapping
 
 from .caveats import CAVEAT_CODES, is_caveat_code
 from .gates import GateResult
+from .grounding import _canon
 from .types import EvidenceSignal, Hypothesis
 
 # Recognition tokens per caveat CODE (H16). The inherited caveats on the evidence
@@ -182,39 +183,107 @@ def _categories(text: str) -> set[str]:
     return cats
 
 
+def _extract_caveat_codes(sig: Any) -> set[str]:
+    cats: set[str] = set()
+    for caveat in getattr(sig, "caveats_inherited", None) or []:
+        if is_caveat_code(caveat):
+            cats.add(caveat)
+        else:
+            cats |= _categories(caveat)
+    return cats
+
+
 def visible_confounds(
     hyp: Hypothesis,
     evidence_index: Mapping[str, EvidenceSignal | list[EvidenceSignal]],
+    signals_by_id: Mapping[str, EvidenceSignal] | None = None,
 ) -> set[str]:
     """Caveat codes the audited evidence the hypothesis cites already flags.
 
     Accepts either an entity->signal index or an entity->[signals] index (H4): a
     caveat flagged on the entity in ANY context it was measured in must be owned,
-    so all of an entity's context-distinct signals are unioned. H16: the inherited
-    caveats are structured CODES, read directly; a legacy free-text caveat is
-    still mapped through ``_categories`` so external callers do not break.
+    so all of an entity's context-distinct signals are unioned. Keys and queried
+    entities are canonicalised via ``_canon`` so formatting/Greek variants
+    (``NKX2_1`` <-> ``NKX2-1``, ``REV-ERBa`` <-> ``REV-ERBα``) cannot bypass the
+    gate. Caveats from signals cited in ``hyp.observed_claims`` (by ``signal_id``)
+    and node-wide caveats on ``hyp.observation_refs`` are also unioned. H16: the
+    inherited caveats are structured CODES, read directly; a legacy free-text
+    caveat is still mapped through ``_categories`` so external callers do not
+    break.
     """
-    cats: set[str] = set()
-    for ent in hyp.entities or []:
-        value = evidence_index.get(str(ent).strip().lower())
+    canon_index: dict[str, list[EvidenceSignal]] = {}
+    id_index: dict[str, EvidenceSignal] = {}
+    node_signals: dict[str, list[EvidenceSignal]] = {}
+
+    def _register(sig: Any, key_hint: str | None = None) -> None:
+        if sig is None:
+            return
+        if key_hint:
+            ckey = _canon(key_hint) or str(key_hint).strip().lower()
+            if ckey:
+                canon_index.setdefault(ckey, []).append(sig)
+        ent = getattr(sig, "entity", None)
+        if ent:
+            ec = _canon(ent) or str(ent).strip().lower()
+            if ec and ec != (_canon(key_hint) if key_hint else ""):
+                canon_index.setdefault(ec, []).append(sig)
+        sid = getattr(sig, "signal_id", None)
+        if sid:
+            id_index.setdefault(str(sid), sig)
+        nref = getattr(sig, "audited_node_ref", None)
+        if nref:
+            node_signals.setdefault(str(nref), []).append(sig)
+
+    for key, value in (evidence_index or {}).items():
         if value is None:
             continue
         sigs = value if isinstance(value, list) else [value]
         for sig in sigs:
-            for caveat in getattr(sig, "caveats_inherited", None) or []:
-                if is_caveat_code(caveat):
-                    cats.add(caveat)
-                else:
-                    cats |= _categories(caveat)
+            _register(sig, key_hint=str(key))
+
+    for sid, sig in (signals_by_id or {}).items():
+        if sig is not None:
+            if sid:
+                id_index.setdefault(str(sid), sig)
+            _register(sig)
+
+    cats: set[str] = set()
+    for ent in hyp.entities or []:
+        ckey = _canon(ent) or str(ent).strip().lower()
+        for sig in canon_index.get(ckey) or []:
+            cats |= _extract_caveat_codes(sig)
+
+    for claim in hyp.observed_claims or []:
+        if not isinstance(claim, dict):
+            continue
+        sid = str(claim.get("signal_id") or "").strip()
+        if sid and sid in id_index:
+            cats |= _extract_caveat_codes(id_index[sid])
+
+    for ref in hyp.observation_refs or []:
+        sigs = node_signals.get(str(ref))
+        if not sigs:
+            continue
+        # Union node-wide caveats shared by every audited signal from this node
+        # so citing a node via an alias entity still inherits its mandatory
+        # modality/node caveats without leaking unrelated entity-specific flags.
+        common = set.intersection(*(_extract_caveat_codes(s) for s in sigs))
+        cats |= common
+
     return cats
 
 
 def inherited_caveat_codes(
     hyp: Hypothesis,
     evidence_index: Mapping[str, EvidenceSignal | list[EvidenceSignal]],
+    signals_by_id: Mapping[str, EvidenceSignal] | None = None,
 ) -> list[str]:
     """Sorted list of the caveat codes inherited by a hypothesis (for rendering)."""
-    return sorted(c for c in visible_confounds(hyp, evidence_index) if c in CAVEAT_CODES)
+    return sorted(
+        c
+        for c in visible_confounds(hyp, evidence_index, signals_by_id=signals_by_id)
+        if c in CAVEAT_CODES
+    )
 
 
 def declared_confounds(hyp: Hypothesis) -> set[str]:
@@ -227,7 +296,9 @@ def declared_confounds(hyp: Hypothesis) -> set[str]:
 
 
 def check_devils_advocate(
-    hyp: Hypothesis, evidence_index: Mapping[str, EvidenceSignal]
+    hyp: Hypothesis,
+    evidence_index: Mapping[str, EvidenceSignal | list[EvidenceSignal]],
+    signals_by_id: Mapping[str, EvidenceSignal] | None = None,
 ) -> GateResult:
     """Reject a hypothesis that offers no alternative or hides a known confound."""
     da = hyp.devils_advocate or {}
@@ -240,7 +311,8 @@ def check_devils_advocate(
             "narrative is not publishable in this tier",
         )
     unacknowledged = sorted(
-        visible_confounds(hyp, evidence_index) - declared_confounds(hyp)
+        visible_confounds(hyp, evidence_index, signals_by_id=signals_by_id)
+        - declared_confounds(hyp)
     )
     if unacknowledged:
         return GateResult(

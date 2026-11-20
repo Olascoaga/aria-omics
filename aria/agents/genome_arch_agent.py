@@ -373,6 +373,8 @@ class GenomeArchAgent(BaseAgent):
             "output_dir": str(work_root / "figures"),
             "cooler_path": topology_files[0] if topology_files else None,
             "resolution": resolution_decision["recommended_resolution"],
+            "chrom": exp_ctx.get("chrom"),
+            "chromosomes": exp_ctx.get("chromosomes"),
             "ps_curve_tsv": qc_result.get("ps_curve_tsv") if isinstance(qc_result, dict) else None,
             "per_file": qc_result.get("per_file") if isinstance(qc_result, dict) else None,
             "compartments_tsv": comp_block.get("compartments_tsv"),
@@ -603,6 +605,7 @@ class GenomeArchAgent(BaseAgent):
                     experiment_id, intent, files,
                     resolution, exp_ctx.get("genome", "hg38"),
                     out_dir=topo_root / "calibration",
+                    chromosomes=exp_ctx.get("chromosomes", "all"),
                 )
                 window_size = window_decision["recommended_window"]
             tads = self.env.run_in_stack(
@@ -723,6 +726,37 @@ class GenomeArchAgent(BaseAgent):
                 compartments["n_ab_switches"] = int(
                     differential_3d.get("n_ab_switches", 0)
                 )
+                switch_regions: list[dict] = []
+                for comp_row in differential_3d.get("comparisons") or []:
+                    if not isinstance(comp_row, dict) or not comp_row.get("ran"):
+                        continue
+                    c_tag = comp_row.get("contrast") or (
+                        f"{comp_row.get('test')}_vs_{comp_row.get('reference')}"
+                        if comp_row.get("test") and comp_row.get("reference")
+                        else None
+                    )
+                    for sw in comp_row.get("top_switches") or []:
+                        if isinstance(sw, dict):
+                            rec = dict(sw)
+                            if c_tag and "contrast" not in rec:
+                                rec["contrast"] = c_tag
+                            switch_regions.append(rec)
+                if not switch_regions and isinstance(differential_3d.get("top_switches"), list):
+                    switch_regions = [
+                        dict(sw)
+                        for sw in differential_3d["top_switches"]
+                        if isinstance(sw, dict)
+                    ]
+                switch_regions.sort(
+                    key=lambda r: (
+                        float(r["padj"])
+                        if isinstance(r.get("padj"), (int, float))
+                        and r["padj"] == r["padj"]
+                        else 1.0,
+                        -abs(float(r.get("delta_E1") or 0.0)),
+                    )
+                )
+                compartments["switch_regions"] = switch_regions
 
         if isinstance(compartments, dict) and compartments.get("status") == "success":
             self._publish_compartments_finding(experiment_id, compartments, intent)
@@ -742,7 +776,8 @@ class GenomeArchAgent(BaseAgent):
                                   intent: dict, files: list,
                                   resolution: int,
                                   genome: str,
-                                  out_dir: Optional[Path] = None) -> dict:
+                                  out_dir: Optional[Path] = None,
+                                  chromosomes: object = "all") -> dict:
         from aria.utils.text_matching import has_keyword_boundary
 
         question = str(
@@ -763,13 +798,22 @@ class GenomeArchAgent(BaseAgent):
         else:
             windows = [resolution * 3, resolution * 5, resolution * 10]
 
+        if chromosomes is None or chromosomes == "all":
+            cal_chroms = ["chr1"]
+        elif isinstance(chromosomes, str):
+            cal_chroms = [chromosomes] if chromosomes.strip() else ["chr1"]
+        elif isinstance(chromosomes, (list, tuple, set)):
+            cal_chroms = [str(c) for c in chromosomes if str(c).strip()] or ["chr1"]
+        else:
+            cal_chroms = ["chr1"]
+
         cal_params: dict = {
             "files": files,
             "genome": genome,
             "analysis": "insulation_calibration",
             "resolution": resolution,
             "windows": windows,
-            "chromosomes": ["chr1"],
+            "chromosomes": cal_chroms,
             "out_of_core": True,
         }
         if out_dir is not None:
@@ -790,14 +834,16 @@ class GenomeArchAgent(BaseAgent):
                     best_strength = float(strength)
                     best_window = int(w)
 
+        cal_chrom_used = str(calibration.get("calibration_chrom") or cal_chroms[0])
         decision = {
             "recommended_window": best_window,
             "calibration_results": calibration.get("boundary_strengths", {}),
+            "calibration_chrom": cal_chrom_used,
             "windows_tested": windows,
             "rationale": (
                 f"window_size={best_window:,}bp selected based on highest "
                 f"mean boundary strength ({best_strength:.3f}) across "
-                f"{calibration.get('calibration_chrom', 'chr1')}."
+                f"{cal_chrom_used}."
             ),
         }
 
@@ -972,7 +1018,8 @@ class GenomeArchAgent(BaseAgent):
         lines = [
             f"Insulation Score Window Size (resolution: {resolution:,}bp)\n"
         ]
-        lines.append("Calibration results (chr1 boundary strength):")
+        cal_chrom = decision.get("calibration_chrom", "chr1")
+        lines.append(f"Calibration results ({cal_chrom} boundary strength):")
         for w, strength in decision.get("calibration_results", {}).items():
             marker = " [RECOMMENDED]" if int(w) == decision["recommended_window"] else ""
             lines.append(

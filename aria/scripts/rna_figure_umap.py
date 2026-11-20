@@ -72,16 +72,34 @@ def _embedding_label(key: str) -> str:
 
 
 def _compute_umap(adata) -> str:
+    import numpy as np
     import scanpy as sc
+    from scipy import sparse
+    from aria.utils.count_classifier import classify_matrix
+
     if "X_pca" not in adata.obsm:
-        sc.pp.normalize_total(adata, target_sum=1e4)
-        sc.pp.log1p(adata)
         n_comps = min(50, min(adata.shape) - 1)
         if n_comps < 1:
             raise ValueError("UMAP fallback PCA requires at least two cells and two genes")
+        x_min = (
+            float(adata.X.data.min()) if sparse.issparse(adata.X) and adata.X.nnz
+            else (0.0 if sparse.issparse(adata.X) else float(np.nanmin(adata.X)))
+        )
+        mat_info = classify_matrix(adata.X)
+        is_scaled = x_min < 0 or mat_info.get("kind") == "scaled"
+        is_lognorm = (not is_scaled) and mat_info.get("kind") == "lognorm"
+        if not is_scaled and not is_lognorm:
+            sc.pp.normalize_total(adata, target_sum=1e4)
+            sc.pp.log1p(adata)
         sc.pp.pca(adata, n_comps=n_comps)
     if "neighbors" not in adata.uns:
-        sc.pp.neighbors(adata, n_neighbors=15, use_rep="X_pca")
+        if ("X_pca" in adata.obsm and hasattr(adata.obsm["X_pca"], "shape")
+                and len(adata.obsm["X_pca"].shape) > 1):
+            n_pcs_use = max(1, min(30, int(adata.obsm["X_pca"].shape[1])))
+            n_neighbors_use = max(2, min(15, adata.n_obs - 1)) if adata.n_obs > 2 else 2
+            sc.pp.neighbors(adata, n_neighbors=n_neighbors_use, n_pcs=n_pcs_use, use_rep="X_pca")
+        else:
+            sc.pp.neighbors(adata)
     sc.tl.umap(adata, random_state=0)
     return "X_umap"
 
@@ -179,6 +197,10 @@ def _plot_one(coords, values, key: str, out_path: Path,
     out_path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out_path, dpi=160, bbox_inches="tight",
                 facecolor="white")
+    if out_path.suffix.lower() == ".png":
+        fig.savefig(out_path.with_suffix(".svg"), format="svg",
+                    bbox_inches="tight", facecolor="white",
+                    metadata={"Date": None})
     plt.close(fig)
     return str(out_path)
 

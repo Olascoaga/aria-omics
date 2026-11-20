@@ -5,6 +5,8 @@ Re-exported from aria.scripts.rna_bulk_de."""
 from __future__ import annotations
 import warnings
 
+from aria.scripts.rna_bulk.gtf_io import _strip_gene_version
+
 
 def _run_vst(counts_raw, metadata, warnings: list):
     """
@@ -100,7 +102,7 @@ def _select_variable_genes(matrix, n_top: int = 2000,
     # Strip Ensembl version suffix from matrix index (for biotype lookup)
     if biotype_map:
         def _lookup_biotype(gid):
-            return biotype_map.get(str(gid).split(".")[0], "unknown")
+            return biotype_map.get(_strip_gene_version(str(gid)), "unknown")
         biotypes = matrix.index.map(_lookup_biotype)
         n_pc     = int((biotypes == "protein_coding").sum())
         n_total  = len(matrix)
@@ -161,7 +163,7 @@ def _compute_tpm(counts_raw, gene_lengths: dict, warnings: list):
 
         # Map matrix rows (possibly versioned IDs) to lengths
         def _get_length(gid):
-            clean = str(gid).split(".")[0]
+            clean = _strip_gene_version(str(gid))
             return gene_lengths.get(clean)
 
         lengths = pd.to_numeric(counts_raw.index.map(_get_length), errors="coerce")

@@ -284,8 +284,13 @@ def _read_wnn_h5mu(h5mu_path: str | Path) -> dict[str, Any] | None:
                     return None
                 return aligned
 
-            rna_umap = _aligned_mod_umap("rna")
-            atac_umap = _aligned_mod_umap("atac")
+            from aria.utils.mudata_io import _ATAC_KEYS, _RNA_KEYS, _match_modality
+
+            mod_names = list(f["mod"].keys()) if "mod" in f else []
+            rna_mod_key = _match_modality(mod_names, _RNA_KEYS) or "rna"
+            atac_mod_key = _match_modality(mod_names, _ATAC_KEYS) or "atac"
+            rna_umap = _aligned_mod_umap(rna_mod_key)
+            atac_umap = _aligned_mod_umap(atac_mod_key)
 
             obs_cols: dict[str, Any] = {}
             for col_name in obs_grp.keys():
@@ -530,7 +535,7 @@ def render_wnn_modality_weights(
                     mask = (cl_arr == _label_str(cl_key)) & np.isfinite(rw_vals)
                     if np.any(mask):
                         q25, q50, q75 = np.percentile(rw_vals[mask], [25, 50, 75])
-                        iqr_by_cluster[str(cl_key)] = (float(q25), float(q50), float(q75))
+                        iqr_by_cluster[_label_str(cl_key)] = (float(q25), float(q50), float(q75))
 
     rows = []
     for cl_id, meta in per_cl.items():
@@ -662,33 +667,89 @@ def render_mofa_variance_explained(
     active = mofa_findings.get("top_factors") or []
     excluded = mofa_findings.get("excluded_factors") or []
     factor_map: dict[int, dict[str, Any]] = {}
-    # Wave 2A: resolve view keys by recorded kind / case-insensitive hints, so
-    # split-file "scRNA"/"scATAC" or .h5mu "GEX"/"Peaks" views no longer render 0%.
+    # Wave 2A/6D: resolve all recorded MOFA+ views dynamically (2 views or 3+ views,
+    # e.g. RNA + ATAC + ADT/Protein) preserving original modality names.
     views_meta = mofa_findings.get("views") if isinstance(mofa_findings.get("views"), dict) else None
-    rna_key = _view_key(mofa_findings, "rna") or "rna"
-    atac_key = _view_key(mofa_findings, "atac") or "atac"
+    ve_non_add = mofa_findings.get("variance_explained") or {}
+    ve_add = mofa_findings.get("variance_explained_additive") or {}
 
-    def _view_r2(row: dict[str, Any], kind: str) -> float:
-        direct = row.get(f"{kind}_r2")
+    view_keys: list[str] = []
+
+    def _add_view_key(k: Any) -> None:
+        ks = str(k).strip()
+        if ks and ks not in view_keys:
+            view_keys.append(ks)
+
+    if isinstance(views_meta, dict):
+        for k in views_meta:
+            _add_view_key(k)
+    for src in (ve_non_add, ve_add):
+        if isinstance(src, dict):
+            for k in src:
+                _add_view_key(k)
+    for row in [*active, *excluded]:
+        if not isinstance(row, dict):
+            continue
+        r2_map = row.get("r2_by_view")
+        if isinstance(r2_map, dict):
+            for k in r2_map:
+                _add_view_key(k)
+        for k in row:
+            if (
+                isinstance(k, str)
+                and k.startswith("r2_")
+                and k not in {"r2_by_view", "r2_raw_by_view"}
+            ):
+                _add_view_key(k[3:])
+    existing_kinds = {_classify_view_kind(k, views_meta) for k in view_keys}
+    for row in [*active, *excluded]:
+        if not isinstance(row, dict):
+            continue
+        if "rna_r2" in row and "rna" not in existing_kinds:
+            _add_view_key("rna")
+            existing_kinds.add("rna")
+        if "atac_r2" in row and "atac" not in existing_kinds:
+            _add_view_key("atac")
+            existing_kinds.add("atac")
+    if not view_keys:
+        view_keys = ["rna", "atac"]
+
+    view_kinds = [_classify_view_kind(k, views_meta) for k in view_keys]
+    kind_counts = {
+        kind: sum(1 for vk in view_kinds if vk == kind)
+        for kind in set(view_kinds)
+    }
+
+    def _view_r2_for_key(row: dict[str, Any], v_key: str, v_kind: str) -> float:
+        r2_map = row.get("r2_by_view")
+        direct = r2_map.get(v_key) if isinstance(r2_map, dict) else None
         if direct is None:
-            direct = _view_value(row.get("r2_by_view"), kind, views_meta)
-        if direct is None:
-            flat = {k[3:]: v for k, v in row.items()
-                    if isinstance(k, str) and k.startswith("r2_") and k != "r2_by_view"
-                    and k != "r2_raw_by_view"}
-            direct = _view_value(flat, kind, views_meta)
+            direct = row.get(f"r2_{v_key}")
+        if direct is None and v_kind in {"rna", "atac"} and kind_counts.get(v_kind, 0) == 1:
+            direct = row.get(f"{v_kind}_r2")
+            if direct is None:
+                direct = _view_value(r2_map, v_kind, views_meta)
+            if direct is None:
+                flat = {
+                    k[3:]: v
+                    for k, v in row.items()
+                    if isinstance(k, str)
+                    and k.startswith("r2_")
+                    and k not in {"r2_by_view", "r2_raw_by_view"}
+                }
+                direct = _view_value(flat, v_kind, views_meta)
         val = _finite_float(direct)
         return (val if val is not None else 0.0) * 100.0
 
-    def _extract_fac_r2(row: dict[str, Any]) -> tuple[int | None, float, float]:
+    def _extract_fac_r2(row: dict[str, Any]) -> tuple[int | None, list[float]]:
         raw_id = row.get("factor_id") if row.get("factor_id") is not None else row.get("factor")
         if raw_id is None:
-            return None, 0.0, 0.0
+            return None, []
         try:
             fid = int(raw_id)
         except (TypeError, ValueError):
-            return None, 0.0, 0.0
-        return fid, _view_r2(row, "rna"), _view_r2(row, "atac")
+            return None, []
+        return fid, [_view_r2_for_key(row, vk, vkind) for vk, vkind in zip(view_keys, view_kinds)]
 
     batch_ids_top: set[int] = set()
     for bkey in ("batch_factor_ids", "batch_confounded_factors"):
@@ -722,7 +783,7 @@ def render_mofa_variance_explained(
     for row in active:
         if not isinstance(row, dict):
             continue
-        fid, r_pct, a_pct = _extract_fac_r2(row)
+        fid, v_pcts = _extract_fac_r2(row)
         if fid is None:
             continue
         is_ex_row = bool(
@@ -734,8 +795,7 @@ def render_mofa_variance_explained(
         )
         factor_map[fid] = {
             "factor": fid,
-            "rna_pct": r_pct,
-            "atac_pct": a_pct,
+            "view_pcts": v_pcts,
             "classification": (
                 "excluded_confounder"
                 if is_ex_row
@@ -747,13 +807,12 @@ def render_mofa_variance_explained(
     for row in excluded:
         if not isinstance(row, dict):
             continue
-        fid, r_pct, a_pct = _extract_fac_r2(row)
+        fid, v_pcts = _extract_fac_r2(row)
         if fid is None:
             continue
         factor_map[fid] = {
             "factor": fid,
-            "rna_pct": r_pct,
-            "atac_pct": a_pct,
+            "view_pcts": v_pcts,
             "classification": "excluded_confounder",
             "excluded": True,
             "reasons": _flag_reasons(row, fid),
@@ -763,26 +822,53 @@ def render_mofa_variance_explained(
 
     ordered = [factor_map[k] for k in sorted(factor_map.keys())]
     n_fac = len(ordered)
-    mat = np.array([[r["rna_pct"], r["atac_pct"]] for r in ordered], dtype=np.float64)
+    n_views = len(view_keys)
+    mat = np.array([r["view_pcts"] for r in ordered], dtype=np.float64)
     mat = np.nan_to_num(mat, nan=0.0, posinf=0.0, neginf=0.0)
     finite_max = float(np.max(mat)) if mat.size else 0.0
     # Guard degenerate Normalize(0, 0) when every R² is zero.
     vmax = max(finite_max, 1e-6)
 
-    fig_h = max(4.6, 0.42 * n_fac + 1.9)
+    view_labels: list[str] = []
+    view_short_labels: list[str] = []
+    view_colors: list[str] = []
+    extra_palette = ["#7c3aed", "#d97706", "#db2777", "#059669", "#ea580c", "#0284c7"]
+    muted_palette = ["#94a3b8", "#cbd5e1", "#a8a29e", "#d4d4d8"]
+    extra_idx = 0
+    for vk, vkind in zip(view_keys, view_kinds):
+        if vkind == "rna" and kind_counts.get("rna", 0) == 1:
+            lab = "RNA" if vk.lower() == "rna" else f"RNA [{vk}]"
+            short_lab = "RNA"
+            col = "#2563eb"
+        elif vkind == "atac" and kind_counts.get("atac", 0) == 1:
+            lab = "ATAC" if vk.lower() == "atac" else f"ATAC [{vk}]"
+            short_lab = "ATAC"
+            col = "#0d9488"
+        else:
+            lab = vk
+            short_lab = vk
+            col = extra_palette[extra_idx % len(extra_palette)]
+            extra_idx += 1
+        view_labels.append(lab)
+        view_short_labels.append(short_lab)
+        view_colors.append(col)
+
+    fig_h = max(4.6, max(0.42, 0.18 * n_views) * n_fac + 1.9)
+    fig_w = max(11.8, 9.6 + 1.1 * n_views)
     fig, (ax_hm, ax_bar) = plt.subplots(
         1, 2,
-        figsize=(11.8, fig_h),
-        gridspec_kw={"width_ratios": [1.0, 1.85]},
+        figsize=(fig_w, fig_h),
+        gridspec_kw={"width_ratios": [max(1.0, 0.5 * n_views), 1.85]},
         constrained_layout=True,
     )
 
     im = ax_hm.imshow(mat, aspect="auto", cmap="YlGnBu", vmin=0.0, vmax=vmax)
-    ax_hm.set_xticks([0, 1])
-    rna_lab = "RNA" if rna_key.lower() == "rna" else f"RNA [{rna_key}]"
-    atac_lab = "ATAC" if atac_key.lower() == "atac" else f"ATAC [{atac_key}]"
-    ax_hm.set_xticklabels([f"{rna_lab} R² (%)", f"{atac_lab} R² (%)"],
-                          fontsize=9, fontweight="bold")
+    ax_hm.set_xticks(np.arange(n_views))
+    ax_hm.set_xticklabels(
+        [f"{lab} R² (%)" for lab in view_labels],
+        fontsize=9,
+        fontweight="bold",
+    )
     y_labels = []
     for r in ordered:
         tag = " [EXCLUDED]" if r["excluded"] else f" [{r['classification']}]"
@@ -790,7 +876,7 @@ def render_mofa_variance_explained(
     ax_hm.set_yticks(np.arange(n_fac))
     ax_hm.set_yticklabels(y_labels, fontsize=8.4)
     for i in range(n_fac):
-        for j in range(2):
+        for j in range(n_views):
             val = mat[i, j]
             txt_color = "white" if val > 0.55 * max(vmax, 1e-6) else "#0f172a"
             ax_hm.text(
@@ -802,34 +888,27 @@ def render_mofa_variance_explained(
     fig.colorbar(im, ax=ax_hm, fraction=0.046, pad=0.04, label="Variance explained (%)")
 
     y_pos = np.arange(n_fac)
-    height = 0.36
+    group_h = 0.72
+    height = group_h / max(n_views, 1)
     for idx, r in enumerate(ordered):
         is_ex = r["excluded"]
-        rna_color = "#94a3b8" if is_ex else "#2563eb"
-        atac_color = "#cbd5e1" if is_ex else "#0d9488"
         hatch = "///" if is_ex else None
         edge = "#b91c1c" if is_ex else "none"
-        ax_bar.barh(
-            idx - height / 2,
-            r["rna_pct"],
-            height=height,
-            color=rna_color,
-            edgecolor=edge,
-            hatch=hatch,
-            linewidth=0.9 if is_ex else 0.0,
-        )
-        ax_bar.barh(
-            idx + height / 2,
-            r["atac_pct"],
-            height=height,
-            color=atac_color,
-            edgecolor=edge,
-            hatch=hatch,
-            linewidth=0.9 if is_ex else 0.0,
-        )
+        for j in range(n_views):
+            y_off = idx - group_h / 2.0 + (j + 0.5) * height
+            bar_color = muted_palette[j % len(muted_palette)] if is_ex else view_colors[j]
+            ax_bar.barh(
+                y_off,
+                r["view_pcts"][j],
+                height=height,
+                color=bar_color,
+                edgecolor=edge,
+                hatch=hatch,
+                linewidth=0.9 if is_ex else 0.0,
+            )
         if is_ex:
             reason_short = _exclusion_label(r["reasons"])
-            x_end = max(r["rna_pct"], r["atac_pct"])
+            x_end = max(r["view_pcts"]) if r["view_pcts"] else 0.0
             ax_bar.text(
                 x_end + max(vmax * 0.02, 0.08),
                 idx,
@@ -853,8 +932,9 @@ def render_mofa_variance_explained(
         fontweight="bold",
     )
     legend_handles = [
-        Patch(facecolor="#2563eb", label="Active factor: RNA R² (%)"),
-        Patch(facecolor="#0d9488", label="Active factor: ATAC R² (%)"),
+        Patch(facecolor=col, label=f"Active factor: {lab} R² (%)")
+        for col, lab in zip(view_colors, view_short_labels)
+    ] + [
         Patch(
             facecolor="#cbd5e1",
             edgecolor="#b91c1c",
@@ -866,21 +946,25 @@ def render_mofa_variance_explained(
     for spine in ("top", "right"):
         ax_bar.spines[spine].set_visible(False)
 
-    ve_non_add = mofa_findings.get("variance_explained") or {}
-    ve_add = mofa_findings.get("variance_explained_additive") or {}
-
-    def _pct(mapping: Any, kind: str) -> float:
-        val = _finite_float(_view_value(mapping, kind, views_meta))
+    def _tot_pct(mapping: Any, v_key: str, v_kind: str) -> float:
+        raw = mapping.get(v_key) if isinstance(mapping, dict) else None
+        if raw is None and v_kind in {"rna", "atac"} and kind_counts.get(v_kind, 0) == 1:
+            raw = _view_value(mapping, v_kind, views_meta)
+        val = _finite_float(raw)
         return (val if val is not None else 0.0) * 100.0
 
-    rna_tot = _pct(ve_non_add, "rna")
-    atac_tot = _pct(ve_non_add, "atac")
-    rna_add = _pct(ve_add, "rna")
-    atac_add = _pct(ve_add, "atac")
+    non_add_str = ", ".join(
+        f"{sl}={_tot_pct(ve_non_add, vk, vkind):.2f}%"
+        for sl, vk, vkind in zip(view_short_labels, view_keys, view_kinds)
+    )
+    add_str = ", ".join(
+        f"{sl}={_tot_pct(ve_add, vk, vkind):.2f}%"
+        for sl, vk, vkind in zip(view_short_labels, view_keys, view_kinds)
+    )
     fig.suptitle(
         "MOFA+ Joint Variance Decomposition "
-        f"(non-additive total R²: RNA={rna_tot:.2f}%, ATAC={atac_tot:.2f}% | "
-        f"additive sum: RNA={rna_add:.2f}%, ATAC={atac_add:.2f}%)",
+        f"(non-additive total R²: {non_add_str} | "
+        f"additive sum: {add_str})",
         fontsize=10.5,
         fontweight="bold",
         color="#0f172a",
@@ -1090,9 +1174,11 @@ def render_regulatory_triangulation(
         total = max(n_links, p2g_total)
         shown = len(p2g_pts)
         trunc = f"; top {shown} of {total} shown" if shown < total else ""
+        bg_none = str(p2g_findings.get("background_method") or "").strip().lower() == "none"
+        no_fdr = bg_none or ("max_padj" in p2g_findings and p2g_findings.get("max_padj") is None)
+        total_tag = f"total={n_links or total}" if no_fdr else f"total BH-FDR={n_links or total}"
         ax_p2g.set_title(
-            f"Candidate Cis Peak-to-Gene Links "
-            f"(total BH-FDR={n_links or total}{trunc})",
+            f"Candidate Cis Peak-to-Gene Links ({total_tag}{trunc})",
             fontsize=10,
             fontweight="bold",
         )

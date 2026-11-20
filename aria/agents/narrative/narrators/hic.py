@@ -182,9 +182,19 @@ def _diagnostic_block(
     stage: dict[str, Any],
     state: str,
 ) -> NarrativeBlock:
+    raw_details = stage.get("details")
+    if isinstance(raw_details, dict):
+        raw_details = (
+            raw_details.get("details")
+            or raw_details.get("reason")
+            or raw_details.get("error_type")
+            or raw_details.get("message")
+            or stage.get("stage")
+        )
     reason = _clean_token(
         stage.get("reason")
-        or stage.get("details")
+        or stage.get("message")
+        or raw_details
         or stage.get("error_type")
         or f"stage reported status={stage.get('status')}",
         default="stage did not execute",
@@ -231,11 +241,24 @@ class HiCNarrator:
         findings = unwrap_hic_findings(agent_result)
         blocks: list[NarrativeBlock] = []
 
+        fq_align = findings.get("fastq_alignment")
+        fq_state = _stage_state(fq_align)
+        if fq_state in {"skipped", "error"} and isinstance(fq_align, dict):
+            blocks.append(
+                _diagnostic_block(
+                    "hic.fastq_alignment",
+                    "fastq_alignment",
+                    "Hi-C FASTQ chimeric alignment",
+                    fq_align,
+                    fq_state,
+                )
+            )
+
         pre = findings.get("preprocessing")
         pre_state = _stage_state(pre)
         if pre_state == "ok" and isinstance(pre, dict) and (pre.get("cooler_files") or pre.get("n_samples")):
             blocks.append(self._preprocessing_block(pre))
-        elif pre_state == "error" and isinstance(pre, dict):
+        elif pre_state in {"skipped", "error"} and isinstance(pre, dict):
             blocks.append(
                 _diagnostic_block(
                     "hic.preprocessing",
@@ -277,7 +300,9 @@ class HiCNarrator:
         tads = topo.get("tads") if isinstance(topo, dict) else None
         tads_state = _stage_state(tads)
         if tads_state == "ok" and isinstance(tads, dict):
-            blocks.append(self._tads_block(tads, findings))
+            blocks.append(
+                self._tads_block(tads, findings, attach_track_fig=(comp_state != "ok"))
+            )
         elif tads_state in {"skipped", "error"} and isinstance(tads, dict):
             blocks.append(
                 _diagnostic_block(
@@ -411,6 +436,11 @@ class HiCNarrator:
                 f"Hi-C contact QC and ICE balancing completed across {n_samples} sample(s)."
             )
 
+        contact_map_caption = (
+            "ICE-balanced Hi-C cis contact frequency matrix."
+            if bool(bal.get("balanced_files"))
+            else "Raw Hi-C cis contact frequency matrix (unbalanced fallback)."
+        )
         figs = _figure_entries(
             findings,
             "hic_contact_decay_ps",
@@ -418,7 +448,7 @@ class HiCNarrator:
         ) + _figure_entries(
             findings,
             "hic_contact_map",
-            "ICE-balanced Hi-C cis contact frequency matrix.",
+            contact_map_caption,
         )
         caveats = [
             Caveat(
@@ -550,7 +580,13 @@ class HiCNarrator:
             metadata={"validation_level": comp.get("validation_level") or "production"},
         )
 
-    def _tads_block(self, tads: dict[str, Any], findings: dict[str, Any]) -> NarrativeBlock:
+    def _tads_block(
+        self,
+        tads: dict[str, Any],
+        findings: dict[str, Any],
+        *,
+        attach_track_fig: bool = False,
+    ) -> NarrativeBlock:
         n_tads = _as_int(tads.get("n_tads"))
         n_bounds = _as_int(tads.get("n_boundaries"))
         med_kb = _finite_round(tads.get("median_size_kb"), 1)
@@ -594,6 +630,15 @@ class HiCNarrator:
         for w in tads.get("warnings") or []:
             caveats.append(Caveat(_clean_token(w), severity="warning"))
 
+        figs = (
+            _figure_entries(
+                findings,
+                "hic_compartment_insulation_track",
+                "Crane log2 insulation score profile and prominent TAD boundaries.",
+            )
+            if attach_track_fig
+            else []
+        )
         return NarrativeBlock(
             id="hic.tads",
             modality="hic",
@@ -604,6 +649,7 @@ class HiCNarrator:
             confidence="medium",
             claim=claim,
             evidence=evidence,
+            figures=figs,
             caveats=caveats,
             metrics={
                 "n_tads": n_tads,
@@ -630,7 +676,7 @@ class HiCNarrator:
         if res_bp is not None:
             evidence.append(_ev("Loop calling resolution (bp)", res_bp, "hic_topology"))
         if n_pe is not None:
-            evidence.append(_ev("Promoter-anchored loop candidates", n_pe, "hic_topology"))
+            evidence.append(_ev("Promoter-enhancer loop candidates", n_pe, "hic_topology"))
         if loops_path:
             evidence.append(_ev("Called chromatin loops", "bedpe", "hic_topology", path=str(loops_path)))
         if ann_path:
@@ -963,31 +1009,51 @@ class HiCNarrator:
     ) -> list[dict]:
         findings = unwrap_hic_findings(agent_result)
         tables: list[dict] = []
+        seen_paths: set[str] = set()
+
+        def _add_table(tid: str, path: Any, label: str) -> None:
+            if not path:
+                return
+            p_str = str(path)
+            if p_str in seen_paths:
+                return
+            seen_paths.add(p_str)
+            tables.append({"id": tid, "path": p_str, "label": label})
+
         bal = findings.get("balancing") or findings.get("qc") or {}
         if isinstance(bal, dict):
-            if bal.get("ps_curve_tsv"):
-                tables.append({"id": "hic.ps_curve", "path": str(bal["ps_curve_tsv"]), "label": "Hi-C P(s) contact decay curve"})
-            if bal.get("scc_tsv"):
-                tables.append({"id": "hic.scc_matrix", "path": str(bal["scc_tsv"]), "label": "HiCRep replicate SCC matrix"})
+            _add_table("hic.ps_curve", bal.get("ps_curve_tsv"), "Hi-C P(s) contact decay curve")
+            per_file = bal.get("per_file") or bal.get("per_sample") or []
+            for idx, rec in enumerate(per_file, start=1):
+                if not isinstance(rec, dict) or not rec.get("ps_curve_tsv"):
+                    continue
+                sid = _clean_token(rec.get("sample_id"), f"sample_{idx}")
+                _add_table(
+                    f"hic.ps_curve.{sid}",
+                    rec.get("ps_curve_tsv"),
+                    f"Hi-C P(s) contact decay curve ({sid})",
+                )
+            _add_table("hic.scc_matrix", bal.get("scc_tsv"), "HiCRep replicate SCC matrix")
         topo = findings.get("topology") if isinstance(findings.get("topology"), dict) else findings
         if isinstance(topo, dict):
             comp = topo.get("compartments") or {}
-            if isinstance(comp, dict) and comp.get("compartments_tsv"):
-                tables.append({"id": "hic.compartments", "path": str(comp["compartments_tsv"]), "label": "Hi-C E1 compartment track"})
+            if isinstance(comp, dict):
+                _add_table("hic.compartments", comp.get("compartments_tsv"), "Hi-C E1 compartment track")
+                _add_table(
+                    "hic.compartments_bedgraph",
+                    comp.get("compartments_bedgraph"),
+                    "Hi-C E1 compartment track (bedGraph)",
+                )
             tads = topo.get("tads") or {}
             if isinstance(tads, dict):
-                if tads.get("tads_bed"):
-                    tables.append({"id": "hic.tads", "path": str(tads["tads_bed"]), "label": "Hi-C TAD intervals (BED)"})
-                if tads.get("insulation_tsv"):
-                    tables.append({"id": "hic.insulation", "path": str(tads["insulation_tsv"]), "label": "Hi-C diamond insulation track"})
+                _add_table("hic.tads", tads.get("tads_bed"), "Hi-C TAD intervals (BED)")
+                _add_table("hic.insulation", tads.get("insulation_tsv"), "Hi-C diamond insulation track")
             loops = topo.get("loops") or {}
             if isinstance(loops, dict):
                 loops_path = _first_key(loops, "loops_path", "loops_bedpe")
                 ann_path = _first_key(loops, "annotated_loops_path", "annotated_loops_tsv")
-                if loops_path:
-                    tables.append({"id": "hic.loops", "path": str(loops_path), "label": "Hi-C chromatin loops (BEDPE)"})
-                if ann_path:
-                    tables.append({"id": "hic.annotated_loops", "path": str(ann_path), "label": "Hi-C anchor-annotated loops"})
+                _add_table("hic.loops", loops_path, "Hi-C chromatin loops (BEDPE)")
+                _add_table("hic.annotated_loops", ann_path, "Hi-C anchor-annotated loops")
             diff3d = topo.get("differential_3d") or {}
             if isinstance(diff3d, dict):
                 for c in diff3d.get("comparisons") or []:
@@ -996,8 +1062,35 @@ class HiCNarrator:
                     label = _clean_token(c.get("contrast") or c.get("comparison") or f"{c.get('test')}_vs_{c.get('reference')}")
                     comp_csv = _first_key(c, "differential_compartments_csv", "compartments_csv")
                     ins_csv = _first_key(c, "differential_insulation_csv", "insulation_csv")
-                    if comp_csv:
-                        tables.append({"id": f"hic.diff_compartments.{label}", "path": str(comp_csv), "label": f"Differential compartments ({label})"})
-                    if ins_csv:
-                        tables.append({"id": f"hic.diff_insulation.{label}", "path": str(ins_csv), "label": f"Differential insulation ({label})"})
+                    desc_csv = c.get("descriptive_csv")
+                    _add_table(
+                        f"hic.diff_compartments.{label}",
+                        comp_csv,
+                        f"Differential compartments ({label})",
+                    )
+                    _add_table(
+                        f"hic.diff_insulation.{label}",
+                        ins_csv,
+                        f"Differential insulation ({label})",
+                    )
+                    _add_table(
+                        f"hic.descriptive_compartments.{label}",
+                        desc_csv,
+                        f"Descriptive compartment deltas ({label})",
+                    )
+                _add_table(
+                    "hic.diff_compartments",
+                    diff3d.get("differential_compartments_csv"),
+                    "Differential compartments",
+                )
+                _add_table(
+                    "hic.diff_insulation",
+                    diff3d.get("differential_insulation_csv"),
+                    "Differential insulation",
+                )
+                _add_table(
+                    "hic.descriptive_compartments",
+                    diff3d.get("descriptive_csv"),
+                    "Descriptive compartment deltas",
+                )
         return tables

@@ -263,15 +263,19 @@ def _top_directional_genes(comp: dict, direction: str,
                            limit: int = 3) -> list[str]:
     strategy = _comp_fdr_strategy(comp)
     records = comp.get("top_genes") or comp.get("all_sig") or []
-    if direction == "up":
-        rows = [r for r in records if isinstance(r, dict)
-                and r.get("log2fc", 0) > 0]
-        rows.sort(key=lambda r: r.get("log2fc", 0), reverse=True)
-    else:
-        rows = [r for r in records if isinstance(r, dict)
-                and r.get("log2fc", 0) < 0]
-        rows.sort(key=lambda r: r.get("log2fc", 0))
-    return [_gene_brief(r, strategy) for r in rows[:limit]]
+    pairs = []
+    for r in records:
+        if not isinstance(r, dict):
+            continue
+        lfc = _finite_number(r.get("log2fc", r.get("log2FoldChange")))
+        if lfc is None:
+            continue
+        if direction == "up" and lfc > 0:
+            pairs.append((lfc, r))
+        elif direction != "up" and lfc < 0:
+            pairs.append((lfc, r))
+    pairs.sort(key=lambda item: item[0], reverse=(direction == "up"))
+    return [_gene_brief(r, strategy) for _, r in pairs[:limit]]
 
 
 def _find_pathway_block(pwp: dict, group: str, comp_key: str) -> tuple[str, dict]:

@@ -19,6 +19,7 @@ excluded (double-dipping / descriptive, not inferential).
 
 from __future__ import annotations
 
+import math
 from typing import Any
 
 from aria.agents.narrative.devils_advocate import _run_signals
@@ -45,10 +46,13 @@ def _node_ran(run_ledger: dict | None, node_id: str) -> bool:
 
 
 def _num(value: Any) -> float | None:
+    if value is None or isinstance(value, bool):
+        return None
     try:
-        return float(value)
+        val = float(value)
     except (TypeError, ValueError):
         return None
+    return val if math.isfinite(val) else None
 
 
 def _num_direction(value: Any) -> str:
@@ -143,11 +147,11 @@ def scrna_evidence(
                     if not isinstance(gene, dict):
                         continue
                     symbol = gene.get("gene") or gene.get("symbol")
-                    lfc = gene.get("log2fc")
+                    lfc = _num(gene.get("log2fc"))
                     if not symbol or lfc is None:
                         continue
                     _add(symbol, "gene", "log2fc", _DE_NODE,
-                         value=_num(lfc), direction=_num_direction(lfc),
+                         value=lfc, direction=_num_direction(lfc),
                          context=ctx)
                     n += 1
                     if n >= _MAX_GENES_PER_COMPARISON:

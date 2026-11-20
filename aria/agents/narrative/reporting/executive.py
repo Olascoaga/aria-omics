@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from aria.agents.narrative.reporting._base import *
+from aria.agents.narrative.validators import _unnegated_causal_hit
 
 
 class ExecutiveSummaryMixin:
@@ -31,7 +32,7 @@ class ExecutiveSummaryMixin:
         violations: list[str] = []
         if not text.strip():
             violations.append("empty LLM summary")
-        causal_hit = find_causal_language(text, exclude=named_entities)
+        causal_hit = _unnegated_causal_hit(text, exclude=named_entities)
         if causal_hit:
             violations.append("unlicensed causal language")
 

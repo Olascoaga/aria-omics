@@ -320,16 +320,41 @@ def chromatin_peaks(params: dict) -> dict:
 
     n_blacklist_filtered += peak_repro.get("n_blacklist_filtered", 0)
     if consensus_path and Path(consensus_path).is_file():
-        n_blacklist_filtered += _filter_blacklist(consensus_path, blacklist)
+        bl_removed_cons = _filter_blacklist(consensus_path, blacklist)
+        n_blacklist_filtered += bl_removed_cons
         _refresh_consensus_counts(peak_repro, consensus_path)
         if _count_peaks(consensus_path) == 0:
             peak_repro["status"] = "unverified"
-            peak_repro["reason"] = "no_reproducible_regions_after_blacklist"
-    frip_per_sample = {}
+            if bl_removed_cons > 0 or not peak_repro.get("reason"):
+                peak_repro["reason"] = "no_reproducible_regions_after_blacklist"
+            peak_repro["consensus_peaks_path"] = None
+            consensus_path = None
+            warnings.append(
+                "Consensus peak set had 0 regions remaining after filtering; "
+                "clearing consensus_peaks_path so downstream peak counting "
+                "does not read an empty BED."
+            )
+
+    seen_sids: dict[str, int] = {}
+    sample_ids_for_files: list[str] = []
     for path in valid_files:
+        sid = Path(path).stem
+        if sid in seen_sids:
+            # Replicate BAMs in different dirs can share a basename; never let
+            # a later sample overwrite an earlier FRiP or BigWig track.
+            seen_sids[sid] += 1
+            sid = f"{sid}_{seen_sids[sid]}"
+            while sid in seen_sids:
+                seen_sids[sid] += 1
+                sid = f"{sid}_{seen_sids[sid]}"
+        seen_sids.setdefault(sid, 1)
+        sample_ids_for_files.append(sid)
+
+    frip_per_sample = {}
+    for path, sid in zip(valid_files, sample_ids_for_files):
         value = _compute_frip(path, str(peaks_file), reference_fasta=reference)
         if value is not None:
-            frip_per_sample[Path(path).stem] = value
+            frip_per_sample[sid] = value
     frip = sum(frip_per_sample.values()) / len(frip_per_sample) if frip_per_sample else None
     if frip is None and any(str(p).lower().endswith((".bam", ".cram")) for p in valid_files):
         warnings.append("FRiP unavailable: no mapped nonduplicate primary reads or unreadable alignments.")
@@ -341,10 +366,9 @@ def chromatin_peaks(params: dict) -> dict:
         bw_dir = out_dir / "bigwig"
         effective_genome_size = _effective_genome_size_bp(
             genome, params.get("effective_genome_size"))
-        for idx, path in enumerate(valid_files):
+        for idx, (path, sid) in enumerate(zip(valid_files, sample_ids_for_files)):
             if not str(path).lower().endswith((".bam", ".cram")):
                 continue
-            sid = Path(path).stem
             sf = (
                 float(target_scale_factors[idx])
                 if (target_scale_factors and idx < len(target_scale_factors))

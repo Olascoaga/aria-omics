@@ -822,10 +822,13 @@ def build_cross_modal_evidence_graph(
             elif guardrail_status == "warn":
                 reasons.append("wnn_guardrail_warn")
 
-            if sign_class == "neg_tf_pos_p2g" or discordant_contrast:
+            has_neg_sign = "neg_" in sign_class.lower()
+            if has_neg_sign or discordant_contrast:
                 axis_cls = "discordant_signal"
                 if sign_class == "neg_tf_pos_p2g":
                     reasons.insert(0, "inverse_tf_expression_vs_accessible_peak2gene")
+                elif has_neg_sign:
+                    reasons.insert(0, f"inverse_eregulon_sign_class:{sign_class}")
             elif paralog_ambig or depth_conf or guardrail_status == "degraded":
                 axis_cls = "caveated_ambiguous"
             elif cross_contrast:
@@ -862,7 +865,9 @@ def build_cross_modal_evidence_graph(
                 "depth_confounded": depth_conf,
                 "shared_cell_universe": True,
                 "shared_upstream": ["peak_to_gene"],
-                "independent_contrast_support": cross_contrast,
+                "independent_contrast_support": bool(
+                    cross_contrast and not has_neg_sign and not discordant_contrast
+                ),
                 "reasons": reasons,
                 "non_causal": True,
             })

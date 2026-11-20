@@ -433,6 +433,51 @@ class ReportRenderMixin:
         )
         narrative_blocks = public_compilation.blocks
         public_claims = public_compilation.claims
+        findings_html = self._build_findings_section(
+            findings_sections,
+            agent_results,
+            narrative_blocks=narrative_blocks,
+            report_dir=report_dir,
+        )
+        # Reconcile any block withheld during HTML Findings rendering with the
+        # compiled claims and methodology manifest so HTML and JSON never drift.
+        render_withheld_ids = {
+            _html.unescape(match)
+            for match in re.findall(
+                r'data-block-id="([^"]+)"\s+data-withheld="true"',
+                findings_html or "",
+            )
+        }
+        if render_withheld_ids:
+            narrative_blocks = [
+                b for b in narrative_blocks
+                if str(getattr(b, "id", "")) not in render_withheld_ids
+            ]
+            public_claims = [
+                c for c in public_claims
+                if str(c.get("claim_id") or "") not in render_withheld_ids
+            ]
+            already_withheld = {
+                str(w.get("claim_id") or "") for w in public_compilation.withheld
+            }
+            for bid in sorted(render_withheld_ids - already_withheld):
+                public_compilation.withheld.append({
+                    "claim_id": bid,
+                    "status": "withheld",
+                    "reason": "withheld during HTML narrative rendering",
+                })
+        # Filter devil's advocate entries to surviving compiled claims so
+        # withheld claim_ids never leak into methodology.json["devils_advocate"].
+        surviving_claim_ids = {
+            str(c.get("claim_id"))
+            for c in public_claims
+            if isinstance(c, dict) and c.get("claim_id")
+        }
+        devils_advocate = [
+            entry for entry in (devils_advocate or [])
+            if isinstance(entry, dict)
+            and str(entry.get("claim_id") or "") in surviving_claim_ids
+        ]
         executive_summary_block = next(
             (
                 block for block in narrative_blocks
@@ -520,12 +565,6 @@ class ReportRenderMixin:
             fork_ledger=exp_ctx.get("analytical_fork_ledger"),
             falsification_certificates=_prov_fc,
             raw_ingestion=exp_ctx.get("raw_ingestion", []),
-        )
-        findings_html = self._build_findings_section(
-            findings_sections,
-            agent_results,
-            narrative_blocks=narrative_blocks,
-            report_dir=report_dir,
         )
         # ADR-057 S9: opt-in SPECULATIVE hypotheses section. Off by default, so
         # existing reports are unchanged. Only built downstream of a non-aborted

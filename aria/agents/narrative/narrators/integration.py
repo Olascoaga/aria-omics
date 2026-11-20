@@ -338,6 +338,11 @@ def _mofa_batch_factor_ids(mofa: dict[str, Any]) -> list[int]:
     return ids
 
 
+_P2G_RNA_NORMALIZATION = {
+    "log1p_cp10k": "log1p-CP10k gene expression",
+    "pre_normalized_input": "pre-normalized gene expression (as provided)",
+    "as_is": "gene expression as provided",
+}
 _P2G_ATAC_NORMALIZATION = {
     "signac_tfidf": "log-TF-IDF peak accessibility",
     "tfidf": "log-TF-IDF peak accessibility",
@@ -345,6 +350,13 @@ _P2G_ATAC_NORMALIZATION = {
     "pre_normalized_input": "pre-normalized peak accessibility (as provided)",
     "as_is": "peak accessibility as provided",
 }
+
+
+def _format_distance_kb(raw: Any, default: int | float = 150) -> int | float:
+    val = _finite_round(raw, 3)
+    if val is None or val <= 0:
+        return default
+    return int(val) if float(val).is_integer() else val
 _P2G_BACKGROUND_MATCH = {
     "gc_and_accessibility": (
         "reference-FASTA GC-fraction and log10-accessibility matched"
@@ -1207,19 +1219,24 @@ class IntegrationNarrator:
         attach_triangulation_fig: bool = False,
     ) -> NarrativeBlock:
         n_cells = int(p2g.get("n_cells") or 0)
-        dist_kb = int(p2g.get("distance_kb") or 150)
+        dist_kb = _format_distance_kb(p2g.get("distance_kb"), 150)
         n_tested = int(p2g.get("n_tested") or 0)
         n_links = int(p2g.get("n_links") or 0)
         n_pos = int(p2g.get("n_positive_correlations") or 0)
         n_neg = int(p2g.get("n_negative_correlations") or 0)
         n_prom = int(p2g.get("n_promoter_proximal") or 0)
         n_dist = int(p2g.get("n_distal_cis") or 0)
+        bg_raw = str(p2g.get("background_method") or "").strip().lower()
+        fdr_active = (bg_raw != "none") and not (
+            "max_padj" in p2g and p2g.get("max_padj") is None
+        )
+        links_ev_label = "BH-FDR cis links" if fdr_active else "candidate cis links"
 
         evidence: list[EvidenceItem] = [
             EvidenceItem("shared cells", n_cells, source="peak_to_gene"),
             EvidenceItem("cis window kb", dist_kb, source="peak_to_gene"),
             EvidenceItem("tested peak-gene pairs", n_tested, source="peak_to_gene"),
-            EvidenceItem("BH-FDR cis links", n_links, source="peak_to_gene"),
+            EvidenceItem(links_ev_label, n_links, source="peak_to_gene"),
             EvidenceItem("positive cis links", n_pos, source="peak_to_gene"),
             EvidenceItem("negative cis links", n_neg, source="peak_to_gene"),
             EvidenceItem("promoter-proximal links", n_prom, source="peak_to_gene"),
@@ -1293,10 +1310,11 @@ class IntegrationNarrator:
             if attach_triangulation_fig
             else []
         )
+        assoc_phrase = "BH-FDR cis associations" if fdr_active else "candidate cis associations"
         claim = (
             f"Cis peak-to-gene linkage within {dist_kb} kb tested {n_tested} "
             f"candidate pairs across {n_cells} shared cells and identified "
-            f"{n_links} BH-FDR cis associations ({n_pos} positive and {n_neg} "
+            f"{n_links} {assoc_phrase} ({n_pos} positive and {n_neg} "
             f"negative; {n_prom} promoter-proximal and {n_dist} distal cis)."
         )
         return NarrativeBlock(
@@ -1315,7 +1333,11 @@ class IntegrationNarrator:
                 findings,
                 "peak_gene_links",
                 p2g.get("output_path"),
-                "Signac-faithful BH-FDR cis peak-to-gene links",
+                (
+                    "Signac-faithful BH-FDR cis peak-to-gene links"
+                    if fdr_active
+                    else "Candidate cis peak-to-gene links"
+                ),
             ),
             metrics={
                 "n_cells": n_cells,
@@ -1342,6 +1364,7 @@ class IntegrationNarrator:
         n_tfs = int(ereg.get("n_unique_tfs") or 0)
         n_pos = int(ereg.get("n_pos_tf_pos_p2g") or 0)
         n_neg = int(ereg.get("n_neg_tf_pos_p2g") or 0)
+        n_other_sign = int(ereg.get("n_other_sign_classes") or 0)
         n_paralog = int(ereg.get("n_paralog_ambiguous") or 0)
         n_depth = int(ereg.get("n_depth_confounded") or 0)
         motif_src = _format_motif_source(ereg.get("motif_source"))
@@ -1354,6 +1377,11 @@ class IntegrationNarrator:
             EvidenceItem("unique TFs", n_tfs, source="eregulons"),
             EvidenceItem("concordant pos_tf_pos_p2g modules", n_pos, source="eregulons"),
             EvidenceItem("inverse neg_tf_pos_p2g modules", n_neg, source="eregulons"),
+            *(
+                [EvidenceItem("other sign-class modules", n_other_sign, source="eregulons")]
+                if n_other_sign > 0
+                else []
+            ),
             EvidenceItem("paralog-ambiguous modules", n_paralog, source="eregulons"),
             EvidenceItem("depth-confounded modules", n_depth, source="eregulons"),
             EvidenceItem("motif collection", motif_src, source="eregulons"),
@@ -1454,11 +1482,16 @@ class IntegrationNarrator:
                 "Pruned TF-enhancer-gene regulatory triplets",
             )
         )
+        sign_breakdown = (
+            f"{n_pos} pos_tf_pos_p2g, {n_neg} neg_tf_pos_p2g, and "
+            f"{n_other_sign} other sign-class"
+            if n_other_sign > 0
+            else f"{n_pos} pos_tf_pos_p2g and {n_neg} neg_tf_pos_p2g"
+        )
         claim = (
             f"Candidate eRegulon inference across {n_cells} shared cells tested "
             f"{n_tested} motif-linked modules and retained {n_ereg} BH-FDR "
-            f"candidate eRegulons ({n_pos} pos_tf_pos_p2g and {n_neg} "
-            f"neg_tf_pos_p2g) spanning {n_tfs} unique TFs and {n_trip} "
+            f"candidate eRegulons ({sign_breakdown}) spanning {n_tfs} unique TFs and {n_trip} "
             f"TF-enhancer-gene triplets ({n_paralog} paralog-ambiguous, "
             f"{n_depth} depth-confounded)."
         )
@@ -1487,6 +1520,7 @@ class IntegrationNarrator:
                 "n_unique_tfs": n_tfs,
                 "n_pos_tf_pos_p2g": n_pos,
                 "n_neg_tf_pos_p2g": n_neg,
+                "n_other_sign_classes": n_other_sign,
                 "n_paralog_ambiguous": n_paralog,
                 "n_depth_confounded": n_depth,
                 "top_tfs": top_tfs_listed[:4],
@@ -1669,12 +1703,18 @@ class IntegrationNarrator:
 
         p2g = findings.get("peak_to_gene")
         if _stage_state(p2g) == "ok" and isinstance(p2g, dict):
-            dkb = p2g.get("distance_kb", 150)
+            dkb = _format_distance_kb(p2g.get("distance_kb"), 150)
             min_r = p2g.get("min_corr", 0.10)
-            max_q = p2g.get("max_padj", 0.05)
+            max_q = p2g.get("max_padj") if "max_padj" in p2g else 0.05
+            bg_raw = str(p2g.get("background_method") or "").strip().lower()
             bg_m = _clean_token(p2g.get("background_method"), "trans_chromosome_gc_accessibility")
-            # Wave 4A: describe what actually ran (ATAC transform, two-sided
-            # p-values used for BH, background matching covariates).
+            # Wave 4A/6D: describe what actually ran (RNA/ATAC normalization,
+            # two-sided p-values used for BH, background matching covariates,
+            # and never emit "FDR <= None" when background null or FDR was off).
+            rna_desc = _P2G_RNA_NORMALIZATION.get(
+                str(p2g.get("rna_normalization") or "").strip().lower(),
+                "log1p-CP10k gene expression",
+            )
             atac_desc = _P2G_ATAC_NORMALIZATION.get(
                 str(p2g.get("atac_normalization") or p2g.get("atac_transform") or "")
                 .strip().lower(),
@@ -1684,15 +1724,29 @@ class IntegrationNarrator:
             match_desc = _P2G_BACKGROUND_MATCH.get(
                 bg_match, "accessibility-matched"
             )
+            if bg_raw == "none":
+                stat_clause = (
+                    f"No trans-chromosome background null was run (background_method=none); "
+                    f"|r| >= {min_r} without BH-FDR filtering defined associative candidate cis links."
+                )
+            elif max_q is None:
+                stat_clause = (
+                    f"Empirical Z-scores and two-sided normal tail p-values were calibrated "
+                    f"against {match_desc} trans-chromosome background peaks ({bg_m}), with "
+                    f"|r| >= {min_r} and no BH-FDR cutoff applied defining associative candidate cis links."
+                )
+            else:
+                stat_clause = (
+                    f"Empirical Z-scores and two-sided normal tail p-values were calibrated "
+                    f"against {match_desc} trans-chromosome background peaks ({bg_m}), with "
+                    f"Benjamini-Hochberg FDR <= {max_q} "
+                    f"and |r| >= {min_r} defining associative candidate cis links."
+                )
             paragraphs.append(
-                f"Cis peak-to-gene linkage: Pearson correlations between log1p-CP10k "
-                f"gene expression and {atac_desc} were evaluated "
+                f"Cis peak-to-gene linkage: Pearson correlations between {rna_desc} "
+                f"and {atac_desc} were evaluated "
                 f"across shared cells for peaks within +-{dkb} kb of canonical "
-                f"transcription start sites. Empirical Z-scores and two-sided "
-                f"normal tail p-values were calibrated against {match_desc} "
-                f"trans-chromosome background peaks ({bg_m}), with "
-                f"Benjamini-Hochberg FDR <= {max_q} "
-                f"and |r| >= {min_r} defining associative candidate cis links."
+                f"transcription start sites. {stat_clause}"
             )
 
         ereg = findings.get("eregulons")

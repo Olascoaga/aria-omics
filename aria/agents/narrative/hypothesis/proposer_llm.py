@@ -93,7 +93,10 @@ def build_proposer_prompt(
     instruction and the JSON schema hint stay OUTSIDE the block (trusted, code
     authored).
     """
-    question = str((exp_ctx or {}).get("biological_question") or "").strip()
+    ctx = exp_ctx or {}
+    question = str(
+        ctx.get("biological_question") or ctx.get("user_question") or ""
+    ).strip()
     lines: list[str] = []
     lines.append(
         f"Propose up to {n_hypotheses} competing, falsifiable hypotheses from "

@@ -51,7 +51,40 @@ def _portable_path_ref(value: str, content_sha256: Any = None) -> str:
     return f"private-path://sha256/{path_digest}"
 
 
+def _sanitize_json_value(value: Any) -> Any:
+    """Recursively replace non-finite floats with None for strict RFC-8259 JSON."""
+    if isinstance(value, bool) or value is None:
+        return value
+    if isinstance(value, float):
+        return value if math.isfinite(value) else None
+    if isinstance(value, dict):
+        return {k: _sanitize_json_value(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_sanitize_json_value(v) for v in value]
+    if isinstance(value, tuple):
+        return [_sanitize_json_value(v) for v in value]
+    if isinstance(value, set):
+        return [_sanitize_json_value(v) for v in sorted(value, key=str)]
+    item = getattr(value, "item", None)
+    if callable(item) and type(value).__module__.startswith("numpy"):
+        try:
+            return _sanitize_json_value(item())
+        except Exception:
+            pass
+    return value
+
+
 def _sanitize_portable_value(value: Any, *, content_sha256: Any = None) -> Any:
+    if isinstance(value, bool) or value is None:
+        return value
+    if isinstance(value, float):
+        return value if math.isfinite(value) else None
+    item = getattr(value, "item", None)
+    if callable(item) and type(value).__module__.startswith("numpy"):
+        try:
+            return _sanitize_portable_value(item(), content_sha256=content_sha256)
+        except Exception:
+            pass
     if isinstance(value, dict):
         item_sha = value.get("sha256")
         return {
@@ -141,7 +174,14 @@ def _atomic_write_json(path: Path, payload: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_name(f".{path.name}.tmp.{os.getpid()}")
     with open(tmp, "w", encoding="utf-8") as fh:
-        json.dump(payload, fh, indent=2, sort_keys=True, default=str)
+        json.dump(
+            _sanitize_json_value(payload),
+            fh,
+            indent=2,
+            sort_keys=True,
+            default=str,
+            allow_nan=False,
+        )
         fh.flush()
         os.fsync(fh.fileno())
     os.replace(tmp, path)
@@ -555,6 +595,7 @@ def commit_decision_manifest(
         elif fork_index > 0 and effective_status == "locked_before_execution":
             effective_status = "post_hoc_fork"
 
+        runs_observed = len(prior_study_entries) + 1
         ledger_record = {
             "schema_version": FORK_LEDGER_SCHEMA,
             "recorded_at_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
@@ -568,14 +609,26 @@ def commit_decision_manifest(
             "is_exact_spec_replay": is_exact_spec_replay,
             "parent_manifest_sha256": parent_manifest_sha,
             "fork_changes": fork_changes,
+            "ledger_runs_observed": runs_observed,
             "core_specification": cur_core,
         }
         lpath.parent.mkdir(parents=True, exist_ok=True)
         with open(lpath, "a", encoding="utf-8") as fh:
-            fh.write(json.dumps(ledger_record, sort_keys=True, default=str) + "\n")
+            fh.write(
+                json.dumps(
+                    _sanitize_json_value(ledger_record),
+                    sort_keys=True,
+                    default=str,
+                    allow_nan=False,
+                )
+                + "\n"
+            )
             fh.flush()
             os.fsync(fh.fileno())
 
+    reproducible = bool(
+        (manifest.get("analysis_plan") or {}).get("reproducible_mode", False)
+    )
     fork_summary = {
         "schema_version": FORK_LEDGER_SCHEMA,
         "study_input_fingerprint": study_fp,
@@ -587,11 +640,19 @@ def commit_decision_manifest(
         "is_exact_spec_replay": is_exact_spec_replay,
         "parent_manifest_sha256": parent_manifest_sha,
         "fork_changes": fork_changes,
-        "ledger_runs_observed": len(prior_study_entries) + 1,
+        "ledger_runs_observed": runs_observed,
     }
+    manifest_fork_summary = dict(fork_summary)
+    if reproducible:
+        # Keep sequential replay telemetry in the external append-only fork
+        # ledger and returned fork_summary, but omit run-count / replay-order
+        # fields inside decision_manifest.json so Run 1 and exact Replay Run 2
+        # remain byte-identical under reproducible_mode=True.
+        manifest_fork_summary.pop("ledger_runs_observed", None)
+        manifest_fork_summary.pop("is_exact_spec_replay", None)
     enriched_manifest = {
         **manifest,
-        "fork_ledger_summary": fork_summary,
+        "fork_ledger_summary": manifest_fork_summary,
     }
 
     if workspace_dir is not None:

@@ -130,12 +130,30 @@ def rna_integration(params: dict) -> dict:
     # Ensure PCA is present. Preserve raw before HVG subsetting so downstream
     # DE / pathway / cell-comm can still address non-HVG genes.
     if "X_pca" not in adata.obsm:
-        sc.pp.normalize_total(adata, target_sum=1e4)
-        sc.pp.log1p(adata)
-        if adata.raw is None:
-            adata.raw = adata.copy()
-        sc.pp.highly_variable_genes(adata, n_top_genes=3000, subset=True)
-        sc.pp.scale(adata, max_value=10)
+        from scipy import sparse
+        from aria.utils.count_classifier import classify_matrix
+
+        if adata.n_obs < 2 or adata.n_vars < 2:
+            return {"status": "skipped", "reason": "PCA requires at least two cells and two genes"}
+
+        x_min = (
+            float(adata.X.data.min()) if sparse.issparse(adata.X) and adata.X.nnz
+            else (0.0 if sparse.issparse(adata.X) else float(np.nanmin(adata.X)))
+        )
+        mat_info = classify_matrix(adata.X)
+        is_scaled = x_min < 0 or mat_info.get("kind") == "scaled"
+        is_lognorm = (not is_scaled) and mat_info.get("kind") == "lognorm"
+
+        if not is_scaled:
+            if not is_lognorm:
+                sc.pp.normalize_total(adata, target_sum=1e4)
+                sc.pp.log1p(adata)
+            if adata.raw is None:
+                adata.raw = adata.copy()
+            if adata.n_vars > 3000:
+                sc.pp.highly_variable_genes(adata, n_top_genes=3000, subset=True)
+            sc.pp.scale(adata, max_value=10)
+
         n_comps = min(50, min(adata.shape) - 1)
         if n_comps < 1:
             return {"status": "skipped", "reason": "PCA requires at least two cells and two genes"}
@@ -192,10 +210,12 @@ def rna_integration(params: dict) -> dict:
 
     # Recompute graph + UMAP on corrected embedding.
     n_pcs = max(1, min(30, min(adata.shape) - 1, adata.obsm[rep].shape[1]))
-    sc.pp.neighbors(adata, use_rep=rep, n_neighbors=15, n_pcs=n_pcs,
+    n_neighbors_use = max(2, min(15, adata.n_obs - 1))
+    sc.pp.neighbors(adata, use_rep=rep, n_neighbors=n_neighbors_use, n_pcs=n_pcs,
                     random_state=seed)
     sc.tl.umap(adata, random_state=seed)
 
+    output_path.parent.mkdir(parents=True, exist_ok=True)
     adata.write_h5ad(str(output_path))
 
     result = {

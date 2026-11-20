@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import csv
+import math
 from pathlib import Path
 from typing import Optional
 
@@ -54,9 +55,13 @@ def bulk_da_motif_regions(comparisons, *, max_per_group: int = 5000):
                         lfc = float(row.get("log2FoldChange"))
                     except (TypeError, ValueError):
                         continue
+                    if not math.isfinite(lfc):
+                        continue
                     try:
                         padj = float(row.get("padj"))
                     except (TypeError, ValueError):
+                        padj = float("inf")
+                    if not math.isfinite(padj):
                         padj = float("inf")
                     ranked = (peak, padj, abs(lfc))
                     if lfc > 0:

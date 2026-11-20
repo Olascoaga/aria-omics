@@ -215,6 +215,181 @@ def _tfidf(counts):
     return tfidf, cell_totals
 
 
+def _normalize_peak_provenance(raw, adata=None) -> dict | None:
+    """Normalize dict or string peak provenance into a structured metadata dict."""
+    if isinstance(raw, dict):
+        return raw
+    if isinstance(raw, str) and raw.strip():
+        text = raw.strip()
+        meta: dict = {"source": text}
+        low = text.lower()
+        if "union" in low or "overlap" in low:
+            meta["method"] = "overlap_unified"
+        elif "idr" in low:
+            meta["method"] = "idr"
+        elif "consensus" in low:
+            meta["method"] = "consensus"
+        if adata is not None:
+            for col in ("sample_id", "library_id"):
+                if col in adata.obs.columns:
+                    vals = {
+                        str(v).strip()
+                        for v in adata.obs[col].dropna().tolist()
+                        if str(v).strip() and str(v).strip().lower() not in {"nan", "none"}
+                    }
+                    if vals:
+                        meta["n_samples"] = len(vals)
+                        break
+        return meta
+    return None
+
+
+def _detect_doublets_cohort_aware(
+    adata,
+    *,
+    min_cells: int,
+    depth_z: float,
+    feature_z: float,
+    max_rate: float,
+) -> dict:
+    """Run scATAC doublet detection per library on multi-library cohorts so a
+    deeper library is not over-trimmed against shallower libraries (CLD-05).
+    Tiny libraries (< ``min_cells``) fall back to the global model."""
+    import math
+    from aria.utils.chromatin_robustness import detect_atac_doublets
+
+    n = int(adata.n_obs)
+    group_col = None
+    groups: dict[str, list[int]] = {}
+    unlabeled: list[int] = []
+    for col in ("library_id", "sample_id"):
+        if col not in adata.obs.columns:
+            continue
+        col_groups: dict[str, list[int]] = {}
+        col_unlabeled: list[int] = []
+        raw_vals = adata.obs[col].tolist()
+        for idx, val in enumerate(raw_vals):
+            if val is None or (isinstance(val, float) and math.isnan(val)):
+                col_unlabeled.append(idx)
+                continue
+            text = str(val).strip()
+            if not text or text.lower() in {"nan", "none"}:
+                col_unlabeled.append(idx)
+                continue
+            col_groups.setdefault(text, []).append(idx)
+        if len(col_groups) >= 2:
+            group_col = col
+            groups = col_groups
+            unlabeled = col_unlabeled
+            break
+
+    if group_col is None:
+        res = detect_atac_doublets(
+            adata.X,
+            min_cells=min_cells,
+            depth_z=depth_z,
+            feature_z=feature_z,
+            max_rate=max_rate,
+        )
+        res["scope"] = "global"
+        return res
+
+    qualifying = [lib for lib, idxs in groups.items() if len(idxs) >= int(min_cells)]
+    if not qualifying:
+        res = detect_atac_doublets(
+            adata.X,
+            min_cells=min_cells,
+            depth_z=depth_z,
+            feature_z=feature_z,
+            max_rate=max_rate,
+        )
+        res["scope"] = "global_fallback_tiny_libraries"
+        res["groupby"] = group_col
+        res["n_libraries"] = len(groups)
+        return res
+
+    mask = [False] * n
+    scores = [0.0] * n
+    per_library: dict[str, dict] = {}
+    tiny_libs = [lib for lib, idxs in groups.items() if len(idxs) < int(min_cells)]
+
+    for lib in qualifying:
+        idxs = groups[lib]
+        sub_res = detect_atac_doublets(
+            adata.X[idxs],
+            min_cells=min_cells,
+            depth_z=depth_z,
+            feature_z=feature_z,
+            max_rate=max_rate,
+        )
+        sub_mask = sub_res.get("_doublet_mask") or [False] * len(idxs)
+        sub_scores = sub_res.get("_doublet_score") or [0.0] * len(idxs)
+        for pos, cell_idx in enumerate(idxs):
+            mask[cell_idx] = bool(sub_mask[pos])
+            scores[cell_idx] = float(sub_scores[pos])
+        per_library[lib] = {
+            "n_cells": len(idxs),
+            "n_doublets": int(sub_res.get("n_doublets") or 0),
+            "doublet_rate": float(sub_res.get("doublet_rate") or 0.0),
+            "scope": "per_library",
+        }
+
+    if tiny_libs or unlabeled:
+        global_res = detect_atac_doublets(
+            adata.X,
+            min_cells=min_cells,
+            depth_z=depth_z,
+            feature_z=feature_z,
+            max_rate=max_rate,
+        )
+        g_mask = global_res.get("_doublet_mask") or [False] * n
+        g_scores = global_res.get("_doublet_score") or [0.0] * n
+        for lib in tiny_libs:
+            idxs = groups[lib]
+            n_lib_d = 0
+            for cell_idx in idxs:
+                flag = bool(g_mask[cell_idx])
+                mask[cell_idx] = flag
+                scores[cell_idx] = float(g_scores[cell_idx])
+                n_lib_d += int(flag)
+            per_library[lib] = {
+                "n_cells": len(idxs),
+                "n_doublets": n_lib_d,
+                "doublet_rate": round(n_lib_d / len(idxs), 4) if idxs else 0.0,
+                "scope": "global_fallback",
+            }
+        for cell_idx in unlabeled:
+            mask[cell_idx] = bool(g_mask[cell_idx])
+            scores[cell_idx] = float(g_scores[cell_idx])
+
+    n_doublets = int(sum(mask))
+    finite_scores = [s for s in scores if math.isfinite(s)]
+    score_max = max(finite_scores) if finite_scores else 0.0
+    return {
+        "ran": True,
+        "reason": None,
+        "method": "robust_depth_feature_outlier",
+        "scope": "per_library",
+        "groupby": group_col,
+        "n_libraries": len(groups),
+        "n_cells": n,
+        "n_doublets": n_doublets,
+        "doublet_rate": round(n_doublets / n, 4) if n else 0.0,
+        "removed": n_doublets,
+        "thresholds": {
+            "depth_z": float(depth_z),
+            "feature_z": float(feature_z),
+            "max_rate": float(max_rate),
+        },
+        "metrics": {
+            "max_doublet_score": round(float(score_max), 4),
+        },
+        "per_library": per_library,
+        "_doublet_mask": mask,
+        "_doublet_score": [round(float(s), 6) for s in scores],
+    }
+
+
 def chromatin_lsi_clustering(params: dict) -> dict:
     import json
     from pathlib import Path
@@ -312,8 +487,8 @@ def chromatin_lsi_clustering(params: dict) -> dict:
     )
 
     if doublet_detection:
-        doublet_raw = detect_atac_doublets(
-            adata.X,
+        doublet_raw = _detect_doublets_cohort_aware(
+            adata,
             min_cells=cache_params["doublet_min_cells"],
             depth_z=cache_params["doublet_depth_z"],
             feature_z=cache_params["doublet_feature_z"],
@@ -461,7 +636,7 @@ def chromatin_lsi_clustering(params: dict) -> dict:
         checks = ", ".join(str(i.get("check")) for i in batch_qc["issues"])
         warnings.append(f"scATAC batch QC warning(s): {checks}.")
 
-    peak_provenance = peak_provenance_param
+    peak_provenance = _normalize_peak_provenance(peak_provenance_param, adata)
     if not peak_provenance:
         for key in (
             "peak_provenance",
@@ -469,8 +644,9 @@ def chromatin_lsi_clustering(params: dict) -> dict:
             "consensus_peak_provenance",
         ):
             val = adata.uns.get(key)
-            if isinstance(val, dict):
-                peak_provenance = val
+            norm = _normalize_peak_provenance(val, adata)
+            if norm:
+                peak_provenance = norm
                 break
     consensus_peaks = assess_consensus_peak_provenance(
         adata.var_names,

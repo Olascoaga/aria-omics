@@ -135,24 +135,39 @@ def _input_fingerprint(data_path) -> dict | None:
 
 
 def _cache_params(params: dict) -> dict:
+    import math
     from pathlib import Path
     raw_data_path = params.get("data_path")
     resolved_data_path = (
         str(Path(raw_data_path).resolve()) if raw_data_path else None
     )
+
+    def _opt_finite_float(val):
+        if val is None:
+            return None
+        f = float(val)
+        return f if math.isfinite(f) else None
+
+    min_genes_param = params.get("min_genes")
+    default_initial_min_genes = (
+        min(200, int(min_genes_param))
+        if min_genes_param is not None
+        else 200
+    )
     return {
         "data_path": resolved_data_path,
         "input_fingerprint": _input_fingerprint(raw_data_path),
         "organism": str(params.get("organism", "Homo sapiens")),
-        "mt_threshold": (
-            None if params.get("mt_threshold") is None
-            else float(params.get("mt_threshold"))
-        ),
-        "min_genes": int(params.get("min_genes") if params.get("min_genes") is not None else 200),
+        "mt_threshold": _opt_finite_float(params.get("mt_threshold")),
+        "min_genes": int(min_genes_param if min_genes_param is not None else 200),
         "min_cells": int(params.get("min_cells") if params.get("min_cells") is not None else 3),
-        "initial_min_genes": int(params.get("initial_min_genes") if params.get("initial_min_genes") is not None else 200),
+        "initial_min_genes": int(
+            params.get("initial_min_genes")
+            if params.get("initial_min_genes") is not None
+            else default_initial_min_genes
+        ),
         "initial_min_cells": int(params.get("initial_min_cells") if params.get("initial_min_cells") is not None else 3),
-        **{key: None if params.get(key) is None else float(params[key])
+        **{key: _opt_finite_float(params.get(key))
            for key in ("min_counts", "max_counts", "max_genes")},
         "run_scrublet": bool(params.get("run_scrublet", True)),
         "run_ambient": bool(params.get("run_ambient", False)),
@@ -373,7 +388,17 @@ def rna_qc(params: dict) -> dict:
         # count distribution collapses median→0 and MAD→0, producing
         # mt_high=NaN and nuking every real cell. Apply a coarse initial filter
         # so adaptive MAD thresholds are estimated on plausible cells only.
-        initial_min_genes = int(params.get("initial_min_genes") if params.get("initial_min_genes") is not None else 200)
+        min_genes_param = params.get("min_genes")
+        default_initial_min_genes = (
+            min(200, int(min_genes_param))
+            if min_genes_param is not None
+            else 200
+        )
+        initial_min_genes = int(
+            params.get("initial_min_genes")
+            if params.get("initial_min_genes") is not None
+            else default_initial_min_genes
+        )
         initial_min_cells = int(params.get("initial_min_cells") if params.get("initial_min_cells") is not None else 3)
         sc.pp.filter_cells(adata, min_genes=initial_min_genes)
         sc.pp.filter_genes(adata, min_cells=initial_min_cells)
@@ -399,9 +424,10 @@ def rna_qc(params: dict) -> dict:
 
     # ── Mitochondrial gene prefix ─────────────────────────────────────────
     # Human and mouse use MT- / mt- respectively
-    is_human = "sapiens" in organism.lower()
-    org = str(organism).strip().lower()
-    is_mouse = "musculus" in org or org in {"mouse", "mm", "mm10", "mm39"}
+    from aria.scripts.rna_bulk.gtf_io import _normalize_species
+    norm_species = _normalize_species(organism)
+    is_human = norm_species == "Homo sapiens"
+    is_mouse = norm_species == "Mus musculus"
     mt_prefix = "MT-" if is_human else "mt-" if is_mouse else "MT-"
 
     if not use_existing_h5ad_qc:
@@ -428,6 +454,9 @@ def rna_qc(params: dict) -> dict:
 
     def _finite_or(value: float, fallback: float) -> float:
         return float(value) if np.isfinite(value) else float(fallback)
+
+    def _json_finite(value: float) -> float | None:
+        return float(value) if np.isfinite(value) else None
 
     mt_ceiling = 25.0
     mt_default = min(_finite_or(mt_high, mt_ceiling), mt_ceiling)
@@ -492,10 +521,10 @@ def rna_qc(params: dict) -> dict:
             "n_cells_before": int(n_cells_before),
             "n_cells_after":  0,
             "min_genes_used": int(min_genes),
-            "min_counts_used": float(min_counts),
-            "max_counts_used": float(max_counts),
-            "max_genes_used": float(max_genes),
-            "mt_threshold_used": float(mt_threshold),
+            "min_counts_used": _json_finite(min_counts),
+            "max_counts_used": _json_finite(max_counts),
+            "max_genes_used": _json_finite(max_genes),
+            "mt_threshold_used": _json_finite(mt_threshold),
             "warnings": warnings_list,
         }
 
@@ -584,10 +613,10 @@ def rna_qc(params: dict) -> dict:
             "n_cells_before": int(n_cells_before),
             "n_cells_after":  0,
             "min_genes_used": int(min_genes),
-            "min_counts_used": float(min_counts),
-            "max_counts_used": float(max_counts),
-            "max_genes_used": float(max_genes),
-            "mt_threshold_used": float(mt_threshold),
+            "min_counts_used": _json_finite(min_counts),
+            "max_counts_used": _json_finite(max_counts),
+            "max_genes_used": _json_finite(max_genes),
+            "mt_threshold_used": _json_finite(mt_threshold),
             "warnings": warnings_list,
         }
     pct_removed   = round(
@@ -628,11 +657,11 @@ def rna_qc(params: dict) -> dict:
         "n_genes_before":    int(n_genes_before),
         "n_genes_after":     int(n_genes_after),
         "pct_removed":       float(pct_removed),
-        "mt_threshold_used": float(mt_threshold),
+        "mt_threshold_used": _json_finite(mt_threshold),
         "min_genes_used":    int(min_genes),
-        "min_counts_used":   float(min_counts),
-        "max_counts_used":   float(max_counts),
-        "max_genes_used":    float(max_genes),
+        "min_counts_used":   _json_finite(min_counts),
+        "max_counts_used":   _json_finite(max_counts),
+        "max_genes_used":    _json_finite(max_genes),
         "stress_context":    False,
         "qc_threshold_policy": "dataset_logspace_mad_no_user_question",
         "ambient_correction": ambient_report,

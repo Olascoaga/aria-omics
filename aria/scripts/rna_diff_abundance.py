@@ -234,7 +234,7 @@ def rna_diff_abundance(params: dict) -> dict:
     any_significant = False
 
     for comp in comparisons:
-        test_lvl, ref_lvl = comp[0], comp[1]
+        test_lvl, ref_lvl = str(comp[0]), str(comp[1])
         comp_key = f"{test_lvl}_vs_{ref_lvl}"
 
         # Restrict to replicates in this contrast
@@ -443,9 +443,15 @@ def rna_diff_abundance(params: dict) -> dict:
                 return (float("inf"), str(row.get("name", "")))
             return (padj_float, str(row.get("name", "")))
 
+        comp_method = (
+            "fisher_exact_fallback"
+            if (n_clr == 0 and n_fisher > 0)
+            else method
+        )
         per_comparison[comp_key] = {
             "status":         "success",
-            "model":          method,
+            "method":         comp_method,
+            "model":          comp_method,
             "transform":      "centered_log_ratio",
             "covariance":     "HC3",
             "fdr_family":     "donor_level_clr_only",
@@ -480,11 +486,27 @@ def rna_diff_abundance(params: dict) -> dict:
                           .nunique()
                           .to_dict())
 
+    total_clr = sum(
+        int(info.get("n_fdr_tests", 0))
+        for info in per_comparison.values()
+        if info.get("status") == "success"
+    )
+    total_fisher = sum(
+        int(info.get("n_fisher_diagnostic", 0))
+        for info in per_comparison.values()
+        if info.get("status") == "success"
+    )
+    effective_method = (
+        "fisher_exact_fallback"
+        if (total_clr == 0 and total_fisher > 0)
+        else method
+    )
+
     return {
         "status":                 "success",
-        "method":                 method,
+        "method":                 effective_method,
         "model": {
-            "primary": method,
+            "primary": effective_method,
             "transform": "centered_log_ratio",
             "covariance": "HC3",
             "paired_donor_fixed_effects": paired_design,

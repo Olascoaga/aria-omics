@@ -119,6 +119,16 @@ def resolve_replicate_spikein_size_factors(
                 sample_exposures = {str(k): 1.0 / float(v) for k, v in vals.items()}
 
     if not sample_exposures:
+        if source_kind in {"explicit_spikein_counts", "explicit_spikein_scale_factors"}:
+            return None, {
+                "used": False,
+                "source": source_kind,
+                "explicit_requested": True,
+                "invalid_reason": (
+                    f"{source_kind} was explicitly supplied but all values were "
+                    "None/missing; refusing silent fallback to conventional normalization."
+                ),
+            }
         return None, {"used": False, "source": None}
 
     missing = [str(s) for s in meta.index if str(s) not in sample_exposures]

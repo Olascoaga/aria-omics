@@ -94,8 +94,14 @@ def chromatin_qc(params: dict) -> dict:
         if any(str(f).lower().endswith((".bam", ".cram")) for f in valid_files):
             return _bulk_chromatin_qc(valid_files, data_type, genome, assay_class,
                                       warnings, allow_mocks, params=params)
+        extra_kw = (
+            {"frip_scan_limit": int(params["frip_scan_limit"])}
+            if "frip_scan_limit" in params and params["frip_scan_limit"] is not None
+            else {}
+        )
         return {**_scatac_qc(valid_files, genome, organism, warnings, allow_mocks,
-                            peaks_bed=peaks_bed), "validation_level": "production"}
+                            peaks_bed=peaks_bed, **extra_kw),
+                "validation_level": "production"}
     elif data_type in ("bulk_ATAC", "ChIP", "CUT_AND_RUN", "CUT_AND_TAG"):
         return _bulk_chromatin_qc(
             valid_files, data_type, genome, assay_class, warnings, allow_mocks, params=params
@@ -110,8 +116,11 @@ def chromatin_qc(params: dict) -> dict:
 
 def _scatac_qc(files: list, genome: str,
                organism: str, warnings: list,
-               allow_mocks: bool = False, peaks_bed: str | None = None) -> dict:
+               allow_mocks: bool = False, peaks_bed: str | None = None,
+               frip_scan_limit: int | None = None) -> dict:
     """QC for single-cell ATAC-seq from a fragments file (muon + snapatac2)."""
+    if frip_scan_limit is None:
+        frip_scan_limit = _FRAG_SCAN_LIMIT
     try:
         import muon as mu
         import anndata as ad
@@ -157,10 +166,17 @@ def _scatac_qc(files: list, genome: str,
         n_cells    = frag_sizes.get("n_barcodes", 0)
         n_fragments = frag_sizes.get("n_fragments", 0)
         # FRiP is real when a called-peak BED is supplied (W0.5 wire); else None.
-        frip = _estimate_frip(frag_file, peaks_bed=peaks_bed)
+        frip_stats = _estimate_frip_stats(
+            frag_file, peaks_bed=peaks_bed, scan_limit=frip_scan_limit
+        )
+        frip = frip_stats["frip"]
+        frip_scan_truncated = bool(frip_stats["frip_scan_truncated"])
+        frip_fragments_scanned = int(frip_stats["frip_fragments_scanned"])
         # Per-barcode FRiP distribution for the QC histogram (P4.1 [B]); same
         # peaks gate as the scalar — None without peaks.
-        frip_distribution = _estimate_frip_distribution(frag_file, peaks_bed=peaks_bed)
+        frip_distribution = _estimate_frip_distribution(
+            frag_file, peaks_bed=peaks_bed, scan_limit=frip_scan_limit
+        )
 
         # ── QC thresholds (standard ENCODE ATAC-seq) ──────────────────────
         MIN_TSS     = 4.0     # below this = failed library prep
@@ -218,6 +234,11 @@ def _scatac_qc(files: list, genome: str,
                 f"Fragment scan capped at {frag_sizes.get('scan_limit')} "
                 f"records; n_barcodes/n_fragments are lower bounds."
             )
+        if frip_scan_truncated:
+            warnings.append(
+                f"FRiP fragment scan capped at {frip_fragments_scanned} "
+                f"records; FRiP is an estimate over the scanned prefix."
+            )
 
         # QC is complete only when both gated metrics are available. Until then
         # pass_qc is None (cannot assert a pass on partial metrics); when
@@ -235,6 +256,8 @@ def _scatac_qc(files: list, genome: str,
             "n_fragments":     int(n_fragments),
             "n_fragments_is_lower_bound": bool(frag_sizes.get("scan_truncated")),
             "frip":            (round(float(frip), 4) if frip is not None else None),
+            "frip_scan_truncated": frip_scan_truncated,
+            "frip_fragments_scanned": frip_fragments_scanned,
             "tss_enrichment":  (round(float(tss_enrichment), 3)
                                 if tss_enrichment is not None else None),
             "mito_fraction":   (
@@ -1169,42 +1192,50 @@ def _peaks_by_chrom_from_bed(peaks_bed: str) -> dict:
 
 
 def _norm_peak_keys(peaks_by_chrom) -> dict:
-    """Contig-normalized copy of ``{chrom: [(start, end), ...]}`` (sorted), so
-    UCSC-named peaks match Ensembl-named fragments and vice versa."""
-    out: dict = {}
+    """Contig-normalized copy of ``{chrom: [(start, end), ...]}`` sorted and
+    merged into disjoint intervals per contig, so UCSC-named peaks match
+    Ensembl-named fragments and overlap queries are exact in O(log P)."""
+    raw: dict = {}
     for chrom, ivs in (peaks_by_chrom or {}).items():
-        out.setdefault(_norm_contig(chrom), []).extend(ivs)
-    for chrom in out:
-        out[chrom].sort()
+        bucket = raw.setdefault(_norm_contig(chrom), [])
+        for start, end in ivs:
+            if end > start:
+                bucket.append((start, end))
+    out: dict = {}
+    for chrom, ivs in raw.items():
+        if not ivs:
+            continue
+        ivs.sort()
+        merged: list[tuple[int, int]] = [ivs[0]]
+        for s, e in ivs[1:]:
+            prev_s, prev_e = merged[-1]
+            if s <= prev_e:
+                if e > prev_e:
+                    merged[-1] = (prev_s, e)
+            else:
+                merged.append((s, e))
+        out[chrom] = merged
     return out
 
 
 def _fragment_overlaps_peak(chrom, start, end, peaks_by_chrom, starts_by_chrom) -> bool:
     """True iff fragment ``(chrom, start, end)`` overlaps any peak (``start <
-    peak_end`` and ``end > peak_start``). Shared by the sample-level and the
-    per-barcode FRiP so both encode exactly one overlap rule."""
+    peak_end`` and ``end > peak_start``). Relies on disjoint sorted intervals
+    from ``_norm_peak_keys`` for exact O(log P) single-bisect overlap (handles
+    arbitrary peak widths including >1 Mb broad domains)."""
     import bisect
 
+    if end <= start:
+        return False
     ivs = peaks_by_chrom.get(chrom)
     if not ivs:
         return False
     starts = starts_by_chrom[chrom]
-    # Peaks with peak_start < frag_end are candidates; scan left from there
-    # while peak_end > frag_start (intervals are short, overlap span small).
     k = bisect.bisect_left(starts, end) - 1
-    while k >= 0:
-        ps, pe = ivs[k]
-        if pe <= start:
-            # Could still be an earlier long peak, but peaks are short and sorted
-            # by start; once peak_start is far left of frag_start, stop.
-            if ps < start - 1_000_000:
-                break
-            k -= 1
-            continue
-        if ps < end and pe > start:
-            return True
-        k -= 1
-    return False
+    if k < 0:
+        return False
+    ps, pe = ivs[k]
+    return ps < end and pe > start
 
 
 def _frip_from_intervals(fragments, peaks_by_chrom) -> tuple:
@@ -1255,6 +1286,55 @@ def _frip_per_barcode_from_intervals(fragments_bc, peaks_by_chrom,
     return [ins.get(bc, 0) / n for bc, n in totals.items() if n >= min_frags]
 
 
+def _estimate_frip_stats(frag_file: str, peaks_bed: str | None = None,
+                         scan_limit: int = 2_000_000) -> dict:
+    """Compute FRiP plus scan-truncation transparency metadata."""
+    out = {
+        "frip": None,
+        "frip_scan_truncated": False,
+        "frip_fragments_scanned": 0,
+        "frip_scan_limit": int(scan_limit),
+    }
+    if not peaks_bed:
+        return out
+    try:
+        import gzip
+        peaks_by_chrom = _peaks_by_chrom_from_bed(peaks_bed)
+        if not peaks_by_chrom:
+            return out
+
+        truncated = False
+
+        def _frag_iter():
+            nonlocal truncated
+            opener = gzip.open if str(frag_file).endswith(".gz") else open
+            n_yielded = 0
+            with opener(frag_file, "rt") as f:
+                for line in f:
+                    if not line or line[0] == "#":
+                        continue
+                    parts = line.rstrip("\n").split("\t")
+                    if len(parts) < 3:
+                        continue
+                    try:
+                        s, e = int(parts[1]), int(parts[2])
+                    except ValueError:
+                        continue
+                    if n_yielded >= scan_limit:
+                        truncated = True
+                        break
+                    n_yielded += 1
+                    yield parts[0], s, e
+
+        frip, n_scanned = _frip_from_intervals(_frag_iter(), peaks_by_chrom)
+        out["frip"] = frip
+        out["frip_scan_truncated"] = bool(truncated)
+        out["frip_fragments_scanned"] = int(n_scanned)
+        return out
+    except Exception:
+        return out
+
+
 def _estimate_frip(frag_file: str, peaks_bed: str | None = None,
                    scan_limit: int = 2_000_000):
     """FRiP (fraction of reads in peaks). REAL when a called-peak BED is supplied
@@ -1262,33 +1342,9 @@ def _estimate_frip(frag_file: str, peaks_bed: str | None = None,
     is undefined before peak calling — never the old fabricated 0.35). The QC
     fragments path has no peaks yet, so it passes None; a post-peak-calling caller
     supplies `peaks_bed`."""
-    if not peaks_bed:
-        return None
-    try:
-        import gzip
-        peaks_by_chrom = _peaks_by_chrom_from_bed(peaks_bed)
-        if not peaks_by_chrom:
-            return None
-
-        def _frag_iter():
-            opener = gzip.open if str(frag_file).endswith(".gz") else open
-            with opener(frag_file, "rt") as f:
-                for i, line in enumerate(f):
-                    if i >= scan_limit:
-                        break
-                    if not line or line[0] == "#":
-                        continue
-                    parts = line.rstrip("\n").split("\t")
-                    if len(parts) >= 3:
-                        try:
-                            yield parts[0], int(parts[1]), int(parts[2])
-                        except ValueError:
-                            continue
-
-        frip, _ = _frip_from_intervals(_frag_iter(), peaks_by_chrom)
-        return frip
-    except Exception:
-        return None
+    return _estimate_frip_stats(
+        frag_file, peaks_bed=peaks_bed, scan_limit=scan_limit
+    )["frip"]
 
 
 def _estimate_frip_distribution(frag_file: str, peaks_bed: str | None = None,
@@ -1307,18 +1363,22 @@ def _estimate_frip_distribution(frag_file: str, peaks_bed: str | None = None,
 
         def _frag_iter():
             opener = gzip.open if str(frag_file).endswith(".gz") else open
+            n_yielded = 0
             with opener(frag_file, "rt") as f:
-                for i, line in enumerate(f):
-                    if i >= scan_limit:
-                        break
+                for line in f:
                     if not line or line[0] == "#":
                         continue
                     parts = line.rstrip("\n").split("\t")
-                    if len(parts) >= 4:
-                        try:
-                            yield parts[0], int(parts[1]), int(parts[2]), parts[3]
-                        except ValueError:
-                            continue
+                    if len(parts) < 4:
+                        continue
+                    try:
+                        s, e = int(parts[1]), int(parts[2])
+                    except ValueError:
+                        continue
+                    if n_yielded >= scan_limit:
+                        break
+                    n_yielded += 1
+                    yield parts[0], s, e, parts[3]
 
         dist = _frip_per_barcode_from_intervals(
             _frag_iter(), peaks_by_chrom, min_frags=min_frags)

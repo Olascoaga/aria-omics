@@ -41,6 +41,56 @@ _COLOR_A = "#d6453d"
 _COLOR_B = "#2a78d6"
 _COLOR_UNPHASED = "#6250d6"
 _PALETTE = ("#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#6250d6", "#e34948")
+EXCLUDED_CHROMS = frozenset({"chrM", "MT", "chrMT", "M", "chrEBV", "EBV"})
+
+
+def _chrom_aliases(chrom: str) -> tuple[str, ...]:
+    c = str(chrom).strip()
+    if not c:
+        return ()
+    if c.lower().startswith("chr"):
+        bare = c[3:]
+        if bare.upper() in {"M", "MT"}:
+            return (c, "chrM", "chrMT", "MT", "M")
+        return (c, bare)
+    if c.upper() in {"M", "MT"}:
+        return (c, "chrM", "chrMT", "MT", "M")
+    return (c, f"chr{c}")
+
+
+def _pick_display_chrom(
+    available_chroms: list[str],
+    requested: Any = None,
+) -> str | None:
+    """Choose display chromosome honoring explicit `chrom`/`chromosomes` and `EXCLUDED_CHROMS`."""
+    all_chroms = [str(c) for c in available_chroms if str(c).strip()]
+    if not all_chroms:
+        return None
+    nuclear = [
+        c for c in all_chroms
+        if c not in EXCLUDED_CHROMS
+        and "random" not in c.lower()
+        and not c.lower().startswith("chrun")
+    ] or all_chroms
+
+    req_list: list[str] = []
+    if requested is not None and requested != "all":
+        if isinstance(requested, str):
+            if requested.strip() and requested.strip().lower() != "all":
+                req_list = [requested.strip()]
+        elif isinstance(requested, (list, tuple, set)):
+            req_list = [str(c).strip() for c in requested if str(c).strip()]
+    if req_list:
+        for req in req_list:
+            aliases = set(_chrom_aliases(req))
+            for cand in all_chroms:
+                if cand in aliases:
+                    return cand
+
+    for preferred in ("chr1", "1"):
+        if preferred in nuclear:
+            return preferred
+    return nuclear[0]
 
 
 def _format_resolution(res_bp: int) -> str:
@@ -188,6 +238,7 @@ def _render_compartment_insulation_track(
     insulation_tsv: str | None,
     out_dir: Path,
     pc1_validated: bool | None = None,
+    chrom: Any = None,
 ) -> dict[str, str] | None:
     import matplotlib
     matplotlib.use("Agg")
@@ -220,19 +271,23 @@ def _render_compartment_insulation_track(
     if comp_df is None and ins_df is None:
         return None
 
-    chrom = None
+    avail_chroms: list[str] = []
     if comp_df is not None:
         e1_vals = pd.to_numeric(comp_df["E1"], errors="coerce").to_numpy(dtype=float)
         valid_c = comp_df[np.isfinite(e1_vals)]
-        if not valid_c.empty:
-            chrom = str(valid_c["chrom"].iloc[0])
-    if chrom is None and ins_df is not None and ins_sc_col is not None:
+        for ch_val in valid_c["chrom"].astype(str).tolist():
+            if ch_val not in avail_chroms:
+                avail_chroms.append(ch_val)
+    if ins_df is not None and ins_sc_col is not None:
         sc_vals = pd.to_numeric(ins_df[ins_sc_col], errors="coerce").to_numpy(dtype=float)
         valid_i = ins_df[np.isfinite(sc_vals)]
-        if not valid_i.empty:
-            chrom = str(valid_i["chrom"].iloc[0])
-    if chrom is None:
+        for ch_val in valid_i["chrom"].astype(str).tolist():
+            if ch_val not in avail_chroms:
+                avail_chroms.append(ch_val)
+    chosen_chrom = _pick_display_chrom(avail_chroms, requested=chrom)
+    if chosen_chrom is None:
         return None
+    chrom = chosen_chrom
 
     sub_c = None
     if comp_df is not None:
@@ -386,6 +441,7 @@ def _render_contact_map(
     tads_bed: str | None,
     out_dir: Path,
     max_bins: int = 300,
+    chrom: Any = None,
 ) -> dict[str, str] | None:
     if not cooler_path or not Path(cooler_path).exists():
         return None
@@ -412,10 +468,10 @@ def _render_contact_map(
         chosen = int(cooler.Cooler(uri).binsize)
 
     clr = cooler.Cooler(uri)
-    chroms = [c for c in clr.chromnames if str(c) not in {"chrM", "MT", "M"}] or list(clr.chromnames)
-    if not chroms:
+    chosen_chrom = _pick_display_chrom([str(c) for c in clr.chromnames], requested=chrom)
+    if not chosen_chrom:
         return None
-    chrom = "chr1" if "chr1" in chroms else chroms[0]
+    chrom = chosen_chrom
     has_w = "weight" in list(clr.bins().columns)
     region_start, region_end = _pick_mappable_window(clr, chrom, chosen, max_bins, has_w)
     if region_end <= region_start:
@@ -616,6 +672,7 @@ def hic_figure(params: dict) -> dict:
 
     # 2. Compartment + Insulation track
     pc1_validated = params.get("pc1_validated")
+    display_chrom = params.get("chrom") or params.get("chromosomes")
     try:
         _record(
             "hic_compartment_insulation_track",
@@ -624,6 +681,7 @@ def hic_figure(params: dict) -> dict:
                 params.get("insulation_tsv"),
                 out_dir,
                 pc1_validated=pc1_validated if isinstance(pc1_validated, bool) else None,
+                chrom=display_chrom,
             ),
             "no_compartment_or_insulation_tsv",
         )
@@ -639,6 +697,7 @@ def hic_figure(params: dict) -> dict:
                 int(params.get("resolution") or 40_000),
                 params.get("tads_bed"),
                 out_dir,
+                chrom=display_chrom,
             ),
             "no_cooler_contact_matrix",
         )

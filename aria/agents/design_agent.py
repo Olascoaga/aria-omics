@@ -801,7 +801,14 @@ class DesignAgent(BaseAgent):
         # the LLM — without it the model can only pattern-match on
         # filenames, which fails when sample IDs are opaque (donor barcodes,
         # internal accession IDs, or single-file h5ad inputs).
-        question = (intent or {}).get("question") or (intent or {}).get("text")
+        intent_d = intent or {}
+        question = (
+            intent_d.get("question")
+            or intent_d.get("text")
+            or intent_d.get("user_question")
+            or intent_d.get("raw_user_question")
+            or intent_d.get("summary")
+        )
         comparison = (intent or {}).get("comparison")
         prompt = build_untrusted_prompt(
             task=(

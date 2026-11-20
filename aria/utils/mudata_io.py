@@ -682,7 +682,7 @@ def _stage_cache(
                 expected_receipt_sha = extra.get("receipt_sha256")
                 if not receipt.is_file():
                     return None, state
-                if expected_receipt_sha and hash_file(receipt) != expected_receipt_sha:
+                if not expected_receipt_sha or hash_file(receipt) != expected_receipt_sha:
                     return None, state
                 result = json.loads(receipt.read_text(encoding="utf-8"))
                 if not isinstance(result, dict) or result.get("status") != "success":

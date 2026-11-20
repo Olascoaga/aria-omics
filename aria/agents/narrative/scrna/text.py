@@ -791,12 +791,27 @@ def build_scrna_methods(findings: dict) -> str:
         if mt is None:
             mt = qc.get("mt_threshold")
         mt_str = f" with mt-fraction cap at {mt}%" if mt is not None else ""
+        scrub = qc.get("scrublet")
+        if isinstance(scrub, dict) and "ran" in scrub:
+            scrublet_ran = bool(scrub.get("ran"))
+        elif isinstance(qc.get("per_sample"), list) and qc["per_sample"]:
+            scrublet_ran = any(
+                bool((s.get("scrublet") or {}).get("ran"))
+                for s in qc["per_sample"]
+                if isinstance(s, dict)
+            )
+        else:
+            scrublet_ran = False
+        scrublet_sentence = (
+            " Doublets were flagged with Scrublet."
+            if scrublet_ran
+            else " Doublet detection with Scrublet was not applied in this run."
+        )
         lines.append(
             f"Raw count matrices were processed using scanpy. "
             f"Cells were filtered by adaptive MAD-based thresholds on "
-            f"total_counts, n_genes, and percent.mt{mt_str}. Doublets were "
-            f"flagged with Scrublet. Counts were normalised to 10,000 "
-            f"per cell and log1p-transformed."
+            f"total_counts, n_genes, and percent.mt{mt_str}.{scrublet_sentence} "
+            f"Counts were normalised to 10,000 per cell and log1p-transformed."
         )
         amb = qc.get("ambient_correction") or {}
         if amb.get("ran"):
@@ -839,17 +854,32 @@ def build_scrna_methods(findings: dict) -> str:
                     if n_cand else "")
         if clu.get("predef_clusters") or cdec.get("predef_clusters"):
             groupby = clu.get("groupby") or cdec.get("groupby") or "input annotation"
+            emb_clause = (
+                f" Pre-existing {embedding_label} coordinates were used for visualisation."
+                if findings.get("embedding_key") or findings.get("embedding_label")
+                else ""
+            )
             lines.append(
-                f"Dimensionality reduction used PCA (50 components) followed "
-                f"by k-NN graph construction (k=15) and {embedding_label} visualisation. "
                 f"ARIA reused pre-existing obs['{groupby}'] labels as "
-                f"{_group_label(groupby)} and skipped Leiden clustering, "
-                f"yielding {clu['n_clusters']} groups."
+                f"{_group_label(groupby)} and skipped Leiden clustering "
+                f"and PCA/k-NN recomputation, yielding {clu['n_clusters']} groups."
+                f"{emb_clause}"
             )
         else:
+            n_pcs = (
+                clu.get("n_pcs")
+                or (clu.get("cache_params") or {}).get("n_pcs")
+                or cdec.get("n_pcs")
+                or 40
+            )
+            n_neighbors = (
+                clu.get("n_neighbors")
+                or (clu.get("cache_params") or {}).get("n_neighbors")
+                or 15
+            )
             lines.append(
-                f"Dimensionality reduction used PCA (50 components) followed by "
-                f"k-NN graph construction (k=15) and {embedding_label} visualisation. "
+                f"Dimensionality reduction used PCA ({int(n_pcs)} components) followed by "
+                f"k-NN graph construction (k={int(n_neighbors)}) and {embedding_label} visualisation. "
                 f"Leiden clustering at resolution={res if res is not None else '?'}"
                 f"{cand_str} yielded {clu['n_clusters']} clusters."
             )
@@ -911,6 +941,12 @@ def build_scrna_methods(findings: dict) -> str:
             design_terms.append(pb.get("replicate_col", "replicate"))
         if cov != "none":
             design_terms.append(cov)
+        lognorm_clause = (
+            "For Seurat-derived h5ads with log-normalised raw.X, counts were "
+            "recovered as expm1(x) × nCount_RNA / 10000 prior to aggregation."
+            if pb.get("lognorm_recovered") is True
+            else ""
+        )
         lines.append(
             f"Between-condition differential expression was performed by "
             f"pseudobulk aggregation: raw counts were summed per "
@@ -929,8 +965,7 @@ def build_scrna_methods(findings: dict) -> str:
             f"{_fdr_primary_clause(pb)} < {thr.get('padj_max', 0.05)} and "
             f"|log2FC| > {thr.get('lfc_min', 0.5)}. "
             f"{_lfc_shrinkage_clause(pb)}"
-            f"For Seurat-derived h5ads with log-normalised raw.X, counts were "
-            f"recovered as expm1(x) × nCount_RNA / 10000 prior to aggregation."
+            f"{lognorm_clause}"
             f"{power_clause}"
         )
 

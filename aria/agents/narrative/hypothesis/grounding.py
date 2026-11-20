@@ -121,7 +121,7 @@ def _design_targets(signals: list[EvidenceSignal]) -> set[str]:
 def build_evidence_index(
     signals: list[EvidenceSignal],
 ) -> dict[str, EvidenceSignal]:
-    """Index audited evidence by normalized entity — the grounding universe.
+    """Index audited evidence by canonical entity key — the grounding universe.
 
     Only real ``EvidenceSignal`` items with a non-empty entity enter the index;
     anything else is ignored (no fabrication of a grounding target).
@@ -129,17 +129,18 @@ def build_evidence_index(
     index: dict[str, EvidenceSignal] = {}
     for sig in signals or []:
         if isinstance(sig, EvidenceSignal) and _norm(sig.entity):
+            key = _canon(sig.entity) or _norm(sig.entity)
             # First-wins: deterministic representative. An entity can now carry
             # several context-distinct signals (H4); use build_signals_by_entity
             # when ALL of them matter (caveat union, independent-line counting).
-            index.setdefault(_norm(sig.entity), sig)
+            index.setdefault(key, sig)
     return index
 
 
 def build_signals_by_entity(
     signals: list[EvidenceSignal],
 ) -> dict[str, list[EvidenceSignal]]:
-    """Index audited evidence by entity, KEEPING every context-distinct signal.
+    """Index audited evidence by canonical entity key, KEEPING every context-distinct signal.
 
     Unlike :func:`build_evidence_index` (one representative per entity), this
     preserves the full list so a gene measured in two contrasts contributes both
@@ -148,7 +149,8 @@ def build_signals_by_entity(
     out: dict[str, list[EvidenceSignal]] = {}
     for sig in signals or []:
         if isinstance(sig, EvidenceSignal) and _norm(sig.entity):
-            out.setdefault(_norm(sig.entity), []).append(sig)
+            key = _canon(sig.entity) or _norm(sig.entity)
+            out.setdefault(key, []).append(sig)
     return out
 
 
@@ -421,7 +423,7 @@ def verify_hypothesis_grounding(
     # entities are already reported by (1), so exclude them here.
     def _fragment_of_target(canon_tok: str) -> bool:
         return len(canon_tok) >= 3 and any(
-            canon_tok in tgt or tgt in canon_tok for tgt in design_targets
+            canon_tok in tgt for tgt in design_targets
         )
 
     ungrounded_prose = sorted(

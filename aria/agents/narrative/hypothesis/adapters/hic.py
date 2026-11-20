@@ -84,6 +84,26 @@ def _split_gene_field(raw: Any) -> list[str]:
 
 
 def _low_replication(findings: dict[str, Any]) -> bool:
+    topo = findings.get("topology") if isinstance(findings.get("topology"), dict) else findings
+    diff3d = (
+        (topo.get("differential_3d") if isinstance(topo, dict) else None)
+        or findings.get("differential_3d")
+        or {}
+    )
+    if isinstance(diff3d, dict) and diff3d.get("descriptive_only") is True:
+        return True
+    loops = (
+        (topo.get("loops") if isinstance(topo, dict) else None)
+        or findings.get("loops")
+        or {}
+    )
+    if isinstance(loops, dict):
+        loop_n = loops.get("n_samples", 1)
+        try:
+            if loop_n is None or int(loop_n) < 2:
+                return True
+        except (TypeError, ValueError):
+            return True
     qc = findings.get("qc") or findings.get("balancing") or {}
     if isinstance(qc, dict):
         n_samp = qc.get("n_samples")
@@ -94,10 +114,6 @@ def _low_replication(findings: dict[str, Any]) -> bool:
                 return True
         except (TypeError, ValueError):
             pass
-    topo = findings.get("topology") if isinstance(findings.get("topology"), dict) else findings
-    diff3d = (topo.get("differential_3d") if isinstance(topo, dict) else None) or findings.get("differential_3d") or {}
-    if isinstance(diff3d, dict) and diff3d.get("descriptive_only") is True:
-        return True
     samples = findings.get("samples")
     if isinstance(samples, list):
         return len(samples) < 2
@@ -117,14 +133,17 @@ def _loop_context(row: dict[str, Any]) -> str:
     return str(loop_id) if loop_id else "hic_loop"
 
 
-def _candidate_loop_rows(loops: dict[str, Any]) -> list[dict[str, Any]]:
+def _inline_loop_rows(loops: dict[str, Any]) -> list[dict[str, Any]]:
     for key in ("top_loops", "top_annotated_loops", "annotated_loops"):
         rows = loops.get(key)
         if isinstance(rows, list) and rows:
             valid = [r for r in rows if isinstance(r, dict)]
             if valid:
                 return valid
+    return []
 
+
+def _disk_loop_rows(loops: dict[str, Any], limit: int = 5000) -> list[dict[str, Any]]:
     ann_path = loops.get("annotated_loops_path")
     if isinstance(ann_path, str) and ann_path:
         p = Path(ann_path)
@@ -134,13 +153,19 @@ def _candidate_loop_rows(loops: dict[str, Any]) -> list[dict[str, Any]]:
                 with p.open("r", encoding="utf-8", errors="replace") as fh:
                     reader = csv.DictReader(fh, delimiter="\t")
                     for idx, r in enumerate(reader):
-                        if idx >= 100:
+                        if idx >= limit:
                             break
                         out.append(dict(r))
             except OSError:
                 return []
             return out
     return []
+
+
+def _candidate_loop_rows(loops: dict[str, Any]) -> list[dict[str, Any]]:
+    inline = _inline_loop_rows(loops)
+    disk = _disk_loop_rows(loops)
+    return inline + disk if inline else disk
 
 
 def hic_evidence(
@@ -173,41 +198,49 @@ def hic_evidence(
     signals: list[EvidenceSignal] = []
     seen_genes: set[str] = set()
 
-    for row in _candidate_loop_rows(loops):
-        qval = _finite_float(
-            row.get("qval")
-            if row.get("qval") is not None
-            else row.get("la_exp.donut.qval", row.get("fdr"))
-        )
-        if qval is not None and fdr_cut is not None and qval > fdr_cut:
-            continue
-        val = qval if qval is not None else _finite_float(row.get("enrichment", row.get("count")))
-        ctx = _loop_context(row)
-        genes = (
-            _split_gene_field(row.get("anchor1_genes"))
-            + _split_gene_field(row.get("anchor1_gene"))
-            + _split_gene_field(row.get("anchor2_genes"))
-            + _split_gene_field(row.get("anchor2_gene"))
-        )
-        for gene in genes:
-            gkey = gene.lower()
-            if gkey in seen_genes:
-                continue
-            seen_genes.add(gkey)
-            signals.append(
-                EvidenceSignal(
-                    entity=gene,
-                    entity_kind="gene",
-                    modality="HiC",
-                    measure=HIC_LOOP_MEASURE,
-                    audited_node_ref=HIC_LOOPS_NODE,
-                    value=val,
-                    direction="na",
-                    caveats_inherited=list(caveats),
-                    context=ctx,
-                )
+    def _consume_rows(rows: list[dict[str, Any]]) -> bool:
+        for row in rows:
+            qval = _finite_float(
+                row.get("qval")
+                if row.get("qval") is not None
+                else row.get("la_exp.donut.qval", row.get("fdr"))
             )
-            if len(signals) >= _MAX_LOOP_GENES:
-                return signals
+            if fdr_cut is not None:
+                if qval is None or qval < 0.0 or qval > fdr_cut:
+                    continue
+            elif qval is not None and qval < 0.0:
+                continue
+            val = qval
+            ctx = _loop_context(row)
+            genes = (
+                _split_gene_field(row.get("anchor1_genes"))
+                + _split_gene_field(row.get("anchor1_gene"))
+                + _split_gene_field(row.get("anchor2_genes"))
+                + _split_gene_field(row.get("anchor2_gene"))
+            )
+            for gene in genes:
+                gkey = gene.lower()
+                if gkey in seen_genes:
+                    continue
+                seen_genes.add(gkey)
+                signals.append(
+                    EvidenceSignal(
+                        entity=gene,
+                        entity_kind="gene",
+                        modality="HiC",
+                        measure=HIC_LOOP_MEASURE,
+                        audited_node_ref=HIC_LOOPS_NODE,
+                        value=val,
+                        direction="na",
+                        caveats_inherited=list(caveats),
+                        context=ctx,
+                    )
+                )
+                if len(signals) >= _MAX_LOOP_GENES:
+                    return True
+        return False
+
+    if not _consume_rows(_inline_loop_rows(loops)):
+        _consume_rows(_disk_loop_rows(loops))
 
     return signals

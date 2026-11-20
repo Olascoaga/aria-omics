@@ -6,6 +6,8 @@ from __future__ import annotations
 import re
 import math
 
+from aria.scripts.rna_bulk.gtf_io import _strip_gene_version
+
 
 def _slugify(s: str) -> str:
     """Make a string safe for use as a directory name."""
@@ -28,7 +30,7 @@ def _format_top_genes(de_result: dict, symbol_map: dict = None) -> list:
             lfc, padj = float(row["log2FoldChange"]), float(row["padj"])
             if not math.isfinite(lfc) or not math.isfinite(padj):
                 continue
-            clean_id = str(g).split(".")[0]
+            clean_id = _strip_gene_version(str(g))
             symbol   = sm.get(clean_id, "")
             top.append({
                 "gene":      g,                    # Ensembl ID (or whatever)
@@ -48,7 +50,7 @@ def _suggest_contrasts(metadata, design_factor: str) -> list[dict]:
     P0-5: suggestions are display-only. The caller must pass one or more of
     them back explicitly as ``contrasts`` before DE can run.
     """
-    groups = sorted(metadata[design_factor].unique())
+    groups = sorted({str(g) for g in metadata[design_factor].unique()})
 
     if len(groups) < 2:
         return []
@@ -60,7 +62,7 @@ def _suggest_contrasts(metadata, design_factor: str) -> list[dict]:
     control = None
     for kw in ctrl_keywords:
         for g in groups:
-            if g.lower() == kw:
+            if str(g).lower() == kw:
                 control = g
                 break
         if control:
@@ -68,7 +70,7 @@ def _suggest_contrasts(metadata, design_factor: str) -> list[dict]:
     if not control:
         for kw in ctrl_keywords:
             for g in groups:
-                if kw in g.lower():
+                if kw in str(g).lower():
                     control = g
                     break
             if control:

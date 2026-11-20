@@ -672,8 +672,10 @@ def test_wnn_overcorrection_and_mofa_batch_confounding_disclosures_are_non_causa
     conflicts_res = agent._resolve_conflicts("exp_disc", {}, {}, synthetic_findings)
     conflict_types = {c["type"] for c in conflicts_res["conflicts"]}
     assert "wnn_harmony_possible_overcorrection" in conflict_types
-    assert "mofa_confounder_factor_excluded" in conflict_types
     assert "mofa_batch_confounded_factors" in conflict_types
+    # Batch-only excluded factors are disclosed under mofa_batch_confounded_factors
+    # and not duplicated with misleading depth/phase wording (D3-M4).
+    assert "mofa_confounder_factor_excluded" not in conflict_types
 
     blocks = IntegrationNarrator().collect(
         "integration_agent",

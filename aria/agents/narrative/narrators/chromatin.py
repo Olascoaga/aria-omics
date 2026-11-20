@@ -1240,11 +1240,18 @@ class ChromatinNarrator:
                     path=comp["annotation_csv"]))
         evidence = [e for e in evidence if e.value is not None]
 
-        label = _modality_label(ann.get("data_type") or "bulk_ATAC")
+        dt = ann.get("data_type") or "bulk_ATAC"
+        label = _modality_label(dt)
+        is_binding = dt in ("ChIP", "CUT_AND_RUN", "CUT_AND_TAG")
+        peak_desc = (
+            "differential binding peak(s)"
+            if is_binding
+            else "differentially accessible peak(s)"
+        )
         claim = (
-            f"Genomic annotation classified {total} {label} differentially "
-            f"accessible peak(s) by feature; {n_promoter} "
-            f"({promoter_pct:.0f}%) fall in promoter regions.")
+            f"Genomic annotation classified {total} {label} {peak_desc} "
+            f"by feature; {n_promoter} ({promoter_pct:.0f}%) fall in "
+            f"promoter regions.")
         return NarrativeBlock(
             id="chromatin.peak_annotation", modality="chromatin",
             analysis="peak_annotation", block_type="result",
@@ -1297,15 +1304,26 @@ class ChromatinNarrator:
                     f"{skipped}: no versioned GMT provisioned — skipped (no "
                     "fabrication).", severity="info"))
 
-        label = _modality_label(ora.get("data_type") or "bulk_ATAC")
+        dt = ora.get("data_type") or "bulk_ATAC"
+        label = _modality_label(dt)
+        is_binding = dt in ("ChIP", "CUT_AND_RUN", "CUT_AND_TAG")
+        peak_desc = (
+            "differential binding peaks"
+            if is_binding
+            else "differentially accessible peaks"
+        )
         claim = (
-            f"Functional ORA ({method}) of genes near {label} differentially "
-            f"accessible peaks found {n_terms} enriched term(s) across "
-            f"{len(per_db)} database(s).")
+            f"Functional ORA ({method}) of genes near {label} {peak_desc} "
+            f"found {n_terms} enriched term(s) across {len(per_db)} "
+            f"database(s).")
         return NarrativeBlock(
             id="chromatin.peak_ora", modality="chromatin",
             analysis="peak_ora", block_type="result",
-            title=f"Functional enrichment of DA-peak genes ({label})",
+            title=(
+                f"Functional enrichment of differential-binding peak genes ({label})"
+                if is_binding
+                else f"Functional enrichment of DA-peak genes ({label})"
+            ),
             status="success", confidence="medium",
             claim=claim, evidence=evidence, caveats=caveats,
             metrics={"comparisons": comps},
@@ -1644,6 +1662,66 @@ class ChromatinNarrator:
                  "evidence of causal gene regulation.")
         return text
 
+    @staticmethod
+    def _peak_annotation_methods_paragraph(ann: dict) -> str | None:
+        if not (isinstance(ann, dict) and ann.get("ran")):
+            return None
+        dt = ann.get("data_type") or "bulk_ATAC"
+        is_binding = dt in ("ChIP", "CUT_AND_RUN", "CUT_AND_TAG")
+        peak_kind = (
+            "differential binding peaks"
+            if is_binding
+            else "differentially accessible peaks"
+        )
+        gtf = ann.get("gtf")
+        up = ann.get("promoter_upstream")
+        down = ann.get("promoter_downstream")
+        gtf_txt = f" against {gtf}" if gtf else " against local GTF gene models"
+        win_txt = (
+            f" (promoter window -{up}/+{down} bp around the TSS)"
+            if up is not None and down is not None
+            else ""
+        )
+        return (
+            f"Genomic peak annotation: significant {peak_kind} were annotated"
+            f"{gtf_txt}{win_txt} into Promoter, Exonic, Intronic, and Distal "
+            f"Intergenic categories using nearest-TSS and gene-body overlap "
+            f"rules; positional proximity is associative."
+        )
+
+    @staticmethod
+    def _peak_ora_methods_paragraph(ora: dict) -> str | None:
+        if not (isinstance(ora, dict) and ora.get("ran")):
+            return None
+        dt = ora.get("data_type") or "bulk_ATAC"
+        is_binding = dt in ("ChIP", "CUT_AND_RUN", "CUT_AND_TAG")
+        peak_kind = (
+            "differential binding peaks"
+            if is_binding
+            else "differentially accessible peaks"
+        )
+        comps = [c for c in (ora.get("comparisons") or []) if isinstance(c, dict)]
+        ora_method = next(
+            (c.get("ora_method") for c in comps if c.get("ora_method")), None
+        )
+        method_txt = (
+            f" ({ora_method})"
+            if ora_method
+            else " (local hypergeometric test over versioned GMT libraries)"
+        )
+        org = ora.get("organism")
+        org_txt = f" for {org}" if org else ""
+        dbs = sorted({
+            str(db) for c in comps for db in (c.get("pathways_summary") or {})
+        })
+        db_txt = f" across {', '.join(dbs)}" if dbs else ""
+        return (
+            f"Peak-proximal functional enrichment: genes annotated to significant "
+            f"{peak_kind} were tested for pathway over-representation{method_txt}"
+            f"{org_txt}{db_txt} against the background of genes near all tested "
+            f"peaks; enriched terms represent associative hypotheses."
+        )
+
     # ── Methods + tables ────────────────────────────────────────────────────
     def _bulk_atac_methods(self, findings: dict) -> list[str]:
         """Copy-pasteable bulk ATAC methods (aligner-input/caller/counting/
@@ -1819,6 +1897,14 @@ class ChromatinNarrator:
                 f"network egress. An enriched motif is an associative database "
                 f"match in the peak set, not evidence of TF activity or "
                 f"regulation.")
+        ann_txt = self._peak_annotation_methods_paragraph(
+            findings.get("peak_annotation") or {})
+        if ann_txt:
+            out.append(ann_txt)
+        ora_txt = self._peak_ora_methods_paragraph(
+            findings.get("peak_ora") or {})
+        if ora_txt:
+            out.append(ora_txt)
         footprint_txt = self._footprint_methods_paragraph(
             findings.get("footprinting") or {})
         if footprint_txt:
@@ -1854,6 +1940,14 @@ class ChromatinNarrator:
                 f"of DA peak sets against background using the versioned local "
                 f"{src.get('collection','motif')} collection "
                 f"(release {src.get('release','?')}); offline, no network egress.")
+        ann_txt = self._peak_annotation_methods_paragraph(
+            findings.get("peak_annotation") or {})
+        if ann_txt:
+            out.append(ann_txt)
+        ora_txt = self._peak_ora_methods_paragraph(
+            findings.get("peak_ora") or {})
+        if ora_txt:
+            out.append(ora_txt)
         regulatory = findings.get("regulatory")
         if _ok(regulatory):
             out.append(
@@ -1883,24 +1977,39 @@ class ChromatinNarrator:
                 report_dir: Path | None = None) -> list[dict]:
         # W0.1 (scATAC P0): surface figures rendered by
         # `_narrative_chromatin.generate_figures` into findings["figures"]
-        # ({key: png_path}). Empty until the figure pipeline runs (honest).
+        # ({key: png_path}) and companion vector paths from findings["figures_svg"].
         entries = _iter_chromatin_modality_findings(agent_result)
         multi = len(entries) > 1
         out: list[dict] = []
         seen_ids: set[str] = set()
         for mod_key, findings in entries:
             figs = findings.get("figures") or {}
+            figs_svg = (
+                findings.get("figures_svg")
+                if isinstance(findings.get("figures_svg"), dict)
+                else {}
+            )
+            ora = findings.get("peak_ora")
+            ora_svg = (
+                ora.get("figures_svg")
+                if isinstance(ora, dict) and isinstance(ora.get("figures_svg"), dict)
+                else {}
+            )
             for key, value in figs.items():
                 if isinstance(value, str):
                     fid = str(key)
                     if multi and mod_key and fid in seen_ids:
                         fid = f"{_safe_id(mod_key)}_{fid}"
                     seen_ids.add(fid)
-                    out.append({
+                    rec: dict = {
                         "id": fid,
                         "path": value,
                         "caption": str(key).replace("_", " "),
-                    })
+                    }
+                    svg_path = figs_svg.get(key) or ora_svg.get(key)
+                    if isinstance(svg_path, str) and svg_path:
+                        rec["svg_path"] = svg_path
+                    out.append(rec)
         return out
 
     def _tables_single_modality(self, findings: dict) -> list[dict]:
@@ -1954,11 +2063,47 @@ class ChromatinNarrator:
             tables.append({"id": "chromatin.da_pseudobulk",
                            "path": pb["output_csv"],
                            "label": "Pseudobulk differential accessibility"})
+        if pb.get("full_results_csv") and pb.get("full_results_csv") != pb.get("output_csv"):
+            tables.append({"id": "chromatin.da_pseudobulk_full",
+                           "path": pb["full_results_csv"],
+                           "label": "Pseudobulk differential accessibility (full results)"})
+        seen_pb_paths = {p for p in (pb.get("output_csv"), pb.get("full_results_csv")) if p}
+        for comp in pb.get("comparisons") or []:
+            if not isinstance(comp, dict):
+                continue
+            cpath = comp.get("full_results_csv") or comp.get("output_csv")
+            if not cpath or cpath in seen_pb_paths:
+                continue
+            seen_pb_paths.add(cpath)
+            ckey = _safe_id(f"{comp.get('test')}_vs_{comp.get('reference')}")
+            tables.append({
+                "id": f"chromatin.da_pseudobulk.{ckey}",
+                "path": cpath,
+                "label": (f"Pseudobulk differential accessibility "
+                          f"{comp.get('test')} vs {comp.get('reference')}"),
+            })
         motifs = findings.get("motifs") or {}
         if motifs.get("output_csv"):
             tables.append({"id": "chromatin.motif_enrichment",
                            "path": motifs["output_csv"],
                            "label": "TF motif enrichment"})
+        peak_ann = findings.get("peak_annotation") or {}
+        if (isinstance(peak_ann, dict) and peak_ann.get("ran") is not False
+                and (peak_ann.get("ran") or _ok(peak_ann))):
+            ann_mod = _modality_label(peak_ann.get("data_type") or "bulk_ATAC")
+            for comp in peak_ann.get("comparisons") or []:
+                if not isinstance(comp, dict):
+                    continue
+                ann_csv = comp.get("annotation_csv")
+                if not ann_csv:
+                    continue
+                key = _safe_id(f"{comp.get('test')}_vs_{comp.get('reference')}")
+                tables.append({
+                    "id": f"chromatin.peak_annotation.{key}",
+                    "path": ann_csv,
+                    "label": (f"{ann_mod} peak annotation "
+                              f"{comp.get('test')} vs {comp.get('reference')}"),
+                })
         regulatory = findings.get("regulatory") or {}
         for key, label in (
             ("motif_activity", "Motif activity"),

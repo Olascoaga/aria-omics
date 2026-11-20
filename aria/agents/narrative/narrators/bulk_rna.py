@@ -97,7 +97,12 @@ class BulkRnaNarrator:
             f"{padj} from a Wald test against |log2FC| > {lfc}."
         )
         tpm_status = findings.get("tpm_status") or {}
-        if isinstance(tpm_status, dict) and tpm_status.get("computed") is False:
+        if (
+            isinstance(tpm_status, dict)
+            and tpm_status.get("computed") is False
+            and tpm_status.get("reason")
+            == "suppressed_for_end_tag_or_umi_protocol_length_bias"
+        ):
             lines.append(
                 "Transcript-length normalization (TPM) was omitted because "
                 f"protocol '{tpm_status.get('library_protocol', 'tag/UMI')}' "
@@ -223,11 +228,12 @@ class BulkRnaNarrator:
             cname = contrast.get("name", "contrast")
             plots = contrast.get("plots", {}) or {}
             for key, path in (plots.get("tables", {}) or {}).items():
-                tables.append({
-                    "id": f"{cname}.{key}",
-                    "path": path,
-                    "label": f"{cname} {key}",
-                })
+                if isinstance(path, str) and path:
+                    tables.append({
+                        "id": f"{cname}.{key}",
+                        "path": path,
+                        "label": f"{cname} {key}",
+                    })
             # Wave 4A: surface the GSEA results CSV and the full DE table.
             if isinstance(plots.get("gsea_table"), str) and plots["gsea_table"]:
                 tables.append({
@@ -526,7 +532,11 @@ class BulkRnaNarrator:
         pathways = contrast.get("pathways", {}) or {}
         terms = []
         for db_name, rows in pathways.items():
-            for row in rows or []:
+            if not isinstance(rows, list):
+                continue
+            for row in rows:
+                if not isinstance(row, dict):
+                    continue
                 term = row.get("term") or row.get("Term")
                 if term:
                     terms.append((db_name, term, row))
@@ -633,6 +643,20 @@ class BulkRnaNarrator:
             ))
 
         name = contrast.get("name", "contrast")
+        if n_pathways == 0:
+            gsea_claim = (
+                f"Preranked GSEA completed for {name} with 0 significant "
+                "pathways at FDR < 0.25."
+            )
+        elif isinstance(n_pathways, int) and n_pathways > 0:
+            gsea_claim = (
+                f"Preranked GSEA identified {n_pathways} exploratory "
+                f"pathway(s) at FDR < 0.25 for {name}."
+            )
+        else:
+            gsea_claim = (
+                f"Preranked GSEA generated ranked pathway support for {name}."
+            )
         return [NarrativeBlock(
             id=f"bulk.gsea.{_safe_id(name)}",
             modality="bulk RNA-seq",
@@ -641,9 +665,7 @@ class BulkRnaNarrator:
             title=f"Preranked GSEA {name}",
             status="success",
             confidence="low",
-            claim=(
-                f"Preranked GSEA generated ranked pathway support for {name}."
-            ),
+            claim=gsea_claim,
             evidence=evidence,
             caveats=caveats,
             metrics={
@@ -742,27 +764,30 @@ class BulkRnaNarrator:
                             "caption": f"{contrast.get('name')} {key}",
                         })
                 for key, path in (plots.get("tables", {}) or {}).items():
-                    block.tables.append({
-                        "id": key,
-                        "path": path,
-                        "label": f"{contrast.get('name')} {key}",
-                    })
+                    if isinstance(path, str) and path:
+                        block.tables.append({
+                            "id": key,
+                            "path": path,
+                            "label": f"{contrast.get('name')} {key}",
+                        })
             if pathway:
                 for db, path in (plots.get("ora_dotplots", {}) or {}).items():
-                    pathway.figures.append({
-                        "id": f"ora.{db}",
-                        "path": path,
-                        "caption": f"{contrast.get('name')} ORA {db}",
-                    })
+                    if isinstance(path, str) and path:
+                        pathway.figures.append({
+                            "id": f"ora.{db}",
+                            "path": path,
+                            "caption": f"{contrast.get('name')} ORA {db}",
+                        })
             if gsea:
                 for idx, path in enumerate(plots.get("gsea_running_sums") or [], 1):
-                    gsea.figures.append({
-                        "id": f"gsea_running_sum_{idx}",
-                        "path": path,
-                        "caption": (
-                            f"{contrast.get('name')} GSEA running sum {idx}"
-                        ),
-                    })
+                    if isinstance(path, str) and path:
+                        gsea.figures.append({
+                            "id": f"gsea_running_sum_{idx}",
+                            "path": path,
+                            "caption": (
+                                f"{contrast.get('name')} GSEA running sum {idx}"
+                            ),
+                        })
 
 
 def _read_gsea_summary(path: str | None) -> dict:

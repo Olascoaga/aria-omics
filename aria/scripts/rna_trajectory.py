@@ -94,8 +94,48 @@ def rna_trajectory(params: dict) -> dict:
 
     # Ensure neighbor graph
     if "neighbors" not in adata.uns:
-        rep = "X_pca_harmony" if "X_pca_harmony" in adata.obsm else "X_pca"
-        sc.pp.neighbors(adata, use_rep=rep, n_pcs=30, random_state=seed)
+        if "X_pca_harmony" in adata.obsm:
+            rep = "X_pca_harmony"
+        elif "X_pca" in adata.obsm:
+            rep = "X_pca"
+        else:
+            from scipy import sparse
+            from aria.utils.count_classifier import classify_matrix
+
+            max_comps = min(adata.shape) - 1
+            if max_comps < 1:
+                return {
+                    "status": "skipped",
+                    "reason": (
+                        "Trajectory requires precomputed neighbors/X_pca or at "
+                        "least two cells and two genes to compute PCA."
+                    ),
+                }
+            x_min = (
+                float(adata.X.data.min()) if sparse.issparse(adata.X) and adata.X.nnz
+                else (0.0 if sparse.issparse(adata.X) else float(np.nanmin(adata.X)))
+            )
+            mat_info = classify_matrix(adata.X)
+            is_scaled = x_min < 0 or mat_info.get("kind") == "scaled"
+            is_lognorm = (not is_scaled) and mat_info.get("kind") == "lognorm"
+            if not is_scaled and not is_lognorm:
+                sc.pp.normalize_total(adata, target_sum=1e4)
+                sc.pp.log1p(adata)
+            n_comps = max(2, min(30, max_comps)) if max_comps >= 2 else 1
+            sc.tl.pca(adata, svd_solver="arpack", n_comps=n_comps, random_state=seed)
+            rep = "X_pca"
+
+        rep_arr = adata.obsm.get(rep) if hasattr(adata, "obsm") else None
+        n_pcs_use = (
+            max(1, min(30, int(rep_arr.shape[1])))
+            if hasattr(rep_arr, "shape") and len(rep_arr.shape) > 1
+            else 30
+        )
+        n_obs_val = getattr(adata, "n_obs", None)
+        nbr_kw = {"use_rep": rep, "n_pcs": n_pcs_use, "random_state": seed}
+        if isinstance(n_obs_val, int) and n_obs_val > 2 and (n_obs_val - 1) < 15:
+            nbr_kw["n_neighbors"] = max(2, n_obs_val - 1)
+        sc.pp.neighbors(adata, **nbr_kw)
 
     # ── 1. PAGA ──────────────────────────────────────────────────────────
     sc.tl.paga(adata, groups=groupby)
@@ -240,6 +280,7 @@ def rna_trajectory(params: dict) -> dict:
             "reason":   "no spliced/unspliced layers — provide loom/raw data for velocity",
         }
 
+    Path(output_dir).mkdir(parents=True, exist_ok=True)
     output_path = str(Path(output_dir) / "trajectory.h5ad")
     adata.write_h5ad(output_path)
 

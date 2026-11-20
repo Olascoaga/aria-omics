@@ -45,6 +45,7 @@ import os
 from pathlib import Path
 import sys
 from typing import Any
+import uuid
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from aria.benchmarks.concordance_mofa import (
@@ -53,6 +54,7 @@ from aria.benchmarks.concordance_mofa import (
     spearman_correlation,
 )
 from aria.scripts._base import mocks_allowed, run_script
+from aria.utils.provenance import hash_file
 from aria.utils.stage_manifest import (
     build_stage_manifest,
     stage_is_current,
@@ -496,19 +498,30 @@ def _prepare_view_matrices(
             y_all = tfidf_all.toarray().astype(np.float64)
 
     else:
-        # Generic continuous view or pre-normalized matrix: select top variable features.
-        x_tr = (
-            x_csr[train_indices, :].toarray().astype(np.float64)
-            if is_sparse
-            else np.asarray(matrix_all[train_indices, :], dtype=np.float64)
-        )
-        n_pick = min(max(2, int(n_top_genes)), n_vars)
-        if n_pick < n_vars:
-            var_f = np.var(x_tr, axis=0)
-            sel_idx = np.sort(np.argsort(var_f)[::-1][:n_pick])
+        # Generic continuous view or pre-normalized matrix: select top variable features sparsely.
+        n_target = int(n_top_peaks) if mod_kind == "atac" else int(n_top_genes)
+        n_pick = min(max(2, n_target), n_vars)
+        if is_sparse:
+            x_tr_sp = x_csr[train_indices, :].astype(np.float64)
+            if n_pick < n_vars:
+                mean_f = np.asarray(x_tr_sp.mean(axis=0)).ravel()
+                sq_f = x_tr_sp.copy()
+                sq_f.data = sq_f.data ** 2
+                var_f = np.maximum(
+                    0.0, np.asarray(sq_f.mean(axis=0)).ravel() - mean_f ** 2
+                )
+                sel_idx = np.sort(np.argsort(var_f)[::-1][:n_pick])
+            else:
+                sel_idx = np.arange(n_vars, dtype=int)
+            y_train = x_tr_sp[:, sel_idx].toarray().astype(np.float64)
         else:
-            sel_idx = np.arange(n_vars, dtype=int)
-        y_train = x_tr[:, sel_idx]
+            x_tr = np.asarray(matrix_all[train_indices, :], dtype=np.float64)
+            if n_pick < n_vars:
+                var_f = np.var(x_tr, axis=0)
+                sel_idx = np.sort(np.argsort(var_f)[::-1][:n_pick])
+            else:
+                sel_idx = np.arange(n_vars, dtype=int)
+            y_train = x_tr[:, sel_idx]
         if n_train == n_all and np.array_equal(train_indices, np.arange(n_all)):
             y_all = y_train
         else:
@@ -796,6 +809,27 @@ def integration_mofa(params: dict) -> dict:
         )
         if is_curr:
             try:
+                manifest_payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+                extra = (
+                    manifest_payload.get("extra")
+                    if isinstance(manifest_payload, dict)
+                    else None
+                ) or {}
+                expected_receipt_sha = extra.get("receipt_sha256")
+                expected_outputs = extra.get("output_sha256")
+                if (
+                    not expected_receipt_sha
+                    or hash_file(cached_result_path) != expected_receipt_sha
+                ):
+                    raise ValueError("MOFA+ receipt digest missing or mismatched")
+                if not isinstance(expected_outputs, dict):
+                    raise ValueError("MOFA+ output digest map missing")
+                for req_p in req_outputs:
+                    exp_sha = expected_outputs.get(str(req_p)) or expected_outputs.get(
+                        req_p.name
+                    )
+                    if not exp_sha or hash_file(req_p) != exp_sha:
+                        raise ValueError(f"MOFA+ output digest mismatch for {req_p.name}")
                 cached_payload = json.loads(
                     cached_result_path.read_text(encoding="utf-8")
                 )
@@ -910,18 +944,26 @@ def integration_mofa(params: dict) -> dict:
                     "warnings": warnings,
                 }
 
-            # Canonical deterministic barcode intersection preserving first modality order.
+            # Reject duplicate cell barcodes per modality before pairing (D3-H11 parity).
             mod_keys = list(loaded_adatas.keys())
+            for mk in mod_keys:
+                mk_obs = [str(bc) for bc in loaded_adatas[mk].obs_names]
+                if len(set(mk_obs)) != len(mk_obs):
+                    return {
+                        "status": "error",
+                        "error_type": "DuplicateBarcodes",
+                        "details": (
+                            f"Duplicate cell barcodes detected in split modality '{mk}'; "
+                            "MOFA+ integration requires unique barcodes per modality."
+                        ),
+                    }
+
+            # Canonical deterministic barcode intersection preserving first modality order.
             first_obs = [str(bc) for bc in loaded_adatas[mod_keys[0]].obs_names]
             shared_set = set(first_obs)
             for mk in mod_keys[1:]:
                 shared_set &= {str(bc) for bc in loaded_adatas[mk].obs_names}
-            seen_bc: set[str] = set()
-            common_cells = []
-            for bc in first_obs:
-                if bc in shared_set and bc not in seen_bc:
-                    common_cells.append(bc)
-                    seen_bc.add(bc)
+            common_cells = [bc for bc in first_obs if bc in shared_set]
 
             if len(common_cells) < min_shared_cells:
                 return {
@@ -1540,51 +1582,57 @@ def integration_mofa(params: dict) -> dict:
         model_path = out_dir_path / "mofa_model.hdf5"
         scores_path = out_dir_path / "mofa_factor_scores.csv"
         loadings_path = out_dir_path / "mofa_loadings.json"
+        tmp_tag = f"{os.getpid()}.{uuid.uuid4().hex[:8]}"
 
-        tmp_model = out_dir_path / ".mofa_model.hdf5.tmp"
-        if tmp_model.exists():
-            tmp_model.unlink()
-        with contextlib.redirect_stdout(io.StringIO()):
-            ent.save(
-                str(tmp_model),
-                save_data=bool(save_model_data),
-                save_parameters=False,
+        tmp_model = out_dir_path / f".mofa_model.tmp.{tmp_tag}.hdf5"
+        try:
+            with contextlib.redirect_stdout(io.StringIO()):
+                ent.save(
+                    str(tmp_model),
+                    save_data=bool(save_model_data),
+                    save_parameters=False,
+                )
+            os.replace(tmp_model, model_path)
+        finally:
+            tmp_model.unlink(missing_ok=True)
+
+        tmp_scores = out_dir_path / f".mofa_factor_scores.tmp.{tmp_tag}.csv"
+        try:
+            pd.DataFrame(
+                z_all,
+                index=common_cells,
+                columns=[f"Factor{i + 1}" for i in range(k_actual)],
+            ).to_csv(tmp_scores)
+            os.replace(tmp_scores, scores_path)
+        finally:
+            tmp_scores.unlink(missing_ok=True)
+
+        tmp_loadings = out_dir_path / f".mofa_loadings.tmp.{tmp_tag}.json"
+        try:
+            tmp_loadings.write_text(
+                json.dumps(
+                    {
+                        "seed": int(seed),
+                        "n_factors": int(k_actual),
+                        "views": view_names,
+                        "canonical_factor_order_from_raw": [int(i) for i in order.tolist()],
+                        "canonical_factor_signs": list(canonical_factor_signs),
+                        "factors": loadings_payload,
+                    },
+                    indent=2,
+                ),
+                encoding="utf-8",
             )
-        os.replace(tmp_model, model_path)
-
-        tmp_scores = out_dir_path / ".mofa_factor_scores.csv.tmp"
-        pd.DataFrame(
-            z_all,
-            index=common_cells,
-            columns=[f"Factor{i + 1}" for i in range(k_actual)],
-        ).to_csv(tmp_scores)
-        os.replace(tmp_scores, scores_path)
-
-        tmp_loadings = out_dir_path / ".mofa_loadings.json.tmp"
-        tmp_loadings.write_text(
-            json.dumps(
-                {
-                    "seed": int(seed),
-                    "n_factors": int(k_actual),
-                    "views": view_names,
-                    "canonical_factor_order_from_raw": [int(i) for i in order.tolist()],
-                    "canonical_factor_signs": list(canonical_factor_signs),
-                    "factors": loadings_payload,
-                },
-                indent=2,
-            ),
-            encoding="utf-8",
-        )
-        os.replace(tmp_loadings, loadings_path)
+            os.replace(tmp_loadings, loadings_path)
+        finally:
+            tmp_loadings.unlink(missing_ok=True)
 
         h5mu_output_path: str | None = None
         if write_h5mu and src_mdata is not None:
             import mudata as md
 
             h5mu_dest = out_dir_path / "mofa_integrated.h5mu"
-            tmp_h5mu = out_dir_path / ".mofa_integrated.h5mu.tmp"
-            if tmp_h5mu.exists():
-                tmp_h5mu.unlink()
+            tmp_h5mu = out_dir_path / f".mofa_integrated.tmp.{tmp_tag}.h5mu"
 
             # Build clean aligned MuData preserving modalities and writing X_mofa + LFs.
             mod_Copies: dict[str, Any] = {}
@@ -1650,9 +1698,12 @@ def integration_mofa(params: dict) -> dict:
                     "batch_factor_ids": batch_factor_ids,
                 }
             )
-            out_mdata.write_h5mu(str(tmp_h5mu))
-            os.replace(tmp_h5mu, h5mu_dest)
-            h5mu_output_path = str(h5mu_dest)
+            try:
+                out_mdata.write_h5mu(str(tmp_h5mu))
+                os.replace(tmp_h5mu, h5mu_dest)
+                h5mu_output_path = str(h5mu_dest)
+            finally:
+                tmp_h5mu.unlink(missing_ok=True)
 
         subsampling_summary = {
             "subsampled": bool(sub_info["subsampled"]),
@@ -1719,14 +1770,21 @@ def integration_mofa(params: dict) -> dict:
         }
 
         if stage_inputs:
+            tmp_res = cached_result_path.with_name(
+                f".integration_mofa.result.tmp.{os.getpid()}.{uuid.uuid4().hex[:8]}.json"
+            )
             try:
-                tmp_res = cached_result_path.with_name(
-                    f".integration_mofa.result.tmp.{os.getpid()}.json"
-                )
+                manifest_path.unlink(missing_ok=True)
                 tmp_res.write_text(
                     json.dumps(result_payload, indent=2), encoding="utf-8"
                 )
                 os.replace(tmp_res, cached_result_path)
+                written_outputs = [model_path, scores_path, loadings_path]
+                if h5mu_output_path:
+                    written_outputs.append(Path(h5mu_output_path))
+                output_sha256 = {
+                    str(p): hash_file(p) for p in written_outputs if p.is_file()
+                }
                 write_stage_manifest(
                     manifest_path,
                     build_stage_manifest(
@@ -1734,13 +1792,19 @@ def integration_mofa(params: dict) -> dict:
                         inputs=stage_inputs,
                         params=manifest_params,
                         tool_version=_STAGE_VERSION,
-                        extra={"output_path": str(model_path)},
+                        extra={
+                            "output_path": str(model_path),
+                            "output_sha256": output_sha256,
+                            "receipt_sha256": hash_file(cached_result_path),
+                        },
                     ),
                 )
             except Exception as manifest_exc:
                 warnings.append(
                     f"Could not write MOFA+ stage manifest: {manifest_exc}"
                 )
+            finally:
+                tmp_res.unlink(missing_ok=True)
 
         return result_payload
 

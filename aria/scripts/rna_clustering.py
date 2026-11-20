@@ -203,15 +203,33 @@ def rna_clustering(params: dict) -> dict:
     preprocessing_skipped = "X_pca" in adata.obsm
 
     if not preprocessing_skipped:
-        # Preserve log-normalized all-gene data in .raw BEFORE HVG subsetting
-        # so downstream DE / pathway / cell-comm can still address non-HVG
-        # genes (housekeeping ligand-receptor pairs, MT, ribo, etc.).
-        sc.pp.normalize_total(adata, target_sum=1e4)
-        sc.pp.log1p(adata)
-        if adata.raw is None:
-            adata.raw = adata.copy()
-        sc.pp.highly_variable_genes(adata, n_top_genes=n_hvg, subset=True)
-        sc.pp.scale(adata, max_value=10)
+        from scipy import sparse
+        from aria.utils.count_classifier import classify_matrix
+
+        if adata.n_obs < 2 or adata.n_vars < 2:
+            return {"status": "skipped", "reason": "PCA requires at least two cells and two genes"}
+
+        x_min = (
+            float(adata.X.data.min()) if sparse.issparse(adata.X) and adata.X.nnz
+            else (0.0 if sparse.issparse(adata.X) else float(np.nanmin(adata.X)))
+        )
+        mat_info = classify_matrix(adata.X)
+        is_scaled = x_min < 0 or mat_info.get("kind") == "scaled"
+        is_lognorm = (not is_scaled) and mat_info.get("kind") == "lognorm"
+
+        if not is_scaled:
+            if not is_lognorm:
+                # Preserve log-normalized all-gene data in .raw BEFORE HVG subsetting
+                # so downstream DE / pathway / cell-comm can still address non-HVG
+                # genes (housekeeping ligand-receptor pairs, MT, ribo, etc.).
+                sc.pp.normalize_total(adata, target_sum=1e4)
+                sc.pp.log1p(adata)
+            if adata.raw is None:
+                adata.raw = adata.copy()
+            if adata.n_vars > n_hvg:
+                sc.pp.highly_variable_genes(adata, n_top_genes=n_hvg, subset=True)
+            sc.pp.scale(adata, max_value=10)
+
         n_comps = min(n_pcs, min(adata.shape) - 1)
         if n_comps < 1:
             return {"status": "skipped", "reason": "PCA requires at least two cells and two genes"}
@@ -289,6 +307,8 @@ def rna_clustering(params: dict) -> dict:
         "cluster_sizes":         cluster_sizes,
         "top_markers":           top_markers,
         "rep_used":              rep,
+        "n_pcs":                 int(n_pcs),
+        "n_neighbors":           int(n_neighbors),
         "output_path":           str(output_path),
         "resolution":            resolution,
         "preprocessing_skipped": preprocessing_skipped,

@@ -712,7 +712,7 @@ def compute_gc_stratified_motif_enrichment(
         obs_hits += a_b
 
     z = np.where(var > 1e-12, num / np.sqrt(np.maximum(var, 1e-12)), 0.0)
-    pvals = stats.norm.sf(z)
+    pvals = np.where(var > 1e-12, stats.norm.sf(z), 1.0)
     log2_fe = np.log2((obs_hits + 0.5) / (exp_hits + 0.5))
     return {
         "cmh_z": z,
@@ -1049,12 +1049,21 @@ def compute_candidate_eregulons(
     log_rna_depth = np.log10(1.0 + np.maximum(rna_lib, 0.0))
     log_atac_depth = np.log10(1.0 + np.maximum(atac_lib, 0.0))
 
+    # Match peak2gene_core.py `< 50`-cell prevalence clamp so small cohorts do not
+    # drop all TFs, peaks, and expressed genes while peak2gene still retains them.
+    if int(min_cells_detected) <= 1:
+        eff_min_cells = 1
+    elif n_cells < 50:
+        eff_min_cells = max(2, min(int(min_cells_detected), n_cells // 5))
+    else:
+        eff_min_cells = int(min_cells_detected)
+
     motifs = parse_meme_motifs(meme_path)
     resolved_tfs, unmapped_motifs = resolve_motifs_to_expressed_tfs(
         motifs,
         rna_gene_names,
         gene_detected,
-        min_cells_detected=int(min_cells_detected),
+        min_cells_detected=int(eff_min_cells),
     )
 
     if not cis_links or not resolved_tfs:
@@ -1089,11 +1098,11 @@ def compute_candidate_eregulons(
         }
 
     # ── Step 3: Fixed-width 500bp peak-center sequences & motif scanning ──
-    # Tested peak universe = detected standard peaks (>= min_cells_detected)
+    # Tested peak universe = detected standard peaks (>= eff_min_cells)
     tested_peak_indices: list[int] = []
     tested_peak_names: list[str] = []
     for p_idx, pname in enumerate(atac_peak_names):
-        if int(peak_detected[p_idx]) < int(min_cells_detected):
+        if int(peak_detected[p_idx]) < int(eff_min_cells):
             continue
         parsed = parse_peak_coord(pname)
         if parsed is None:
@@ -1150,7 +1159,7 @@ def compute_candidate_eregulons(
     )
 
     # ── Step 4: Expressed RNA standardization, depth residuals & 2D null bins ──
-    expr_gene_col_indices = np.flatnonzero(gene_detected >= int(min_cells_detected))
+    expr_gene_col_indices = np.flatnonzero(gene_detected >= int(eff_min_cells))
     if sparse.issparse(rna_matrix):
         sub_rna = rna_csc[:, expr_gene_col_indices].toarray().astype(np.float64)
     else:
@@ -1401,12 +1410,12 @@ def compute_candidate_eregulons(
                         else:
                             mc_sums += float(signed_bg.sum())
 
-            z_mod = (
-                (obs_sum - exp_sum) / math.sqrt(max(var_sum, 1e-12))
-                if var_sum > 1e-12
-                else 0.0
-            )
-            p_analytic = float(stats.norm.sf(z_mod))
+            if var_sum > 1e-12:
+                z_mod = (obs_sum - exp_sum) / math.sqrt(var_sum)
+                p_analytic = float(stats.norm.sf(z_mod))
+            else:
+                z_mod = 0.0
+                p_analytic = 1.0
             if n_null_permutations > 0:
                 n_ge = int(np.sum(mc_sums >= obs_sum - 1e-12))
                 p_emp = float(n_ge + 1) / float(int(n_null_permutations) + 1)
@@ -1605,8 +1614,11 @@ def compute_candidate_eregulons(
         mean_raw_r = float(np.mean([r_g[g_i] for g_i in le_sorted]))
         mean_part_r = float(np.mean([r_g_part[g_i] for g_i in le_sorted]))
         depth_confounded = bool(
-            abs(mean_part_r) < 0.5 * abs(mean_raw_r)
-            and abs(mean_part_r) < float(min_tf_gene_corr)
+            (mean_raw_r * mean_part_r <= 0.0)
+            or (
+                abs(mean_part_r) < 0.5 * abs(mean_raw_r)
+                and abs(mean_part_r) < float(min_tf_gene_corr)
+            )
         )
 
         eregulons.append(

@@ -152,9 +152,21 @@ def detect_atac_doublets(
 def _median(values: list[float]) -> float | None:
     if not values:
         return None
+    finite: list[float] = []
+    for v in values:
+        if v is None:
+            continue
+        try:
+            fv = float(v)
+        except (TypeError, ValueError):
+            continue
+        if math.isfinite(fv):
+            finite.append(fv)
+    if not finite:
+        return None
     import statistics
 
-    return round(float(statistics.median(values)), 4)
+    return round(float(statistics.median(finite)), 4)
 
 
 def public_doublet_summary(result: dict[str, Any], *, removed: int | None = None) -> dict[str, Any]:

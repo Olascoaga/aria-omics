@@ -157,6 +157,7 @@ def _write_rows(path: Path, rows: list[dict[str, Any]]) -> str | None:
 
 def _motif_activity(adata, params: dict, out_dir: Path) -> dict[str, Any]:
     import numpy as np
+    from scipy import sparse
 
     motif_map_path = params.get("motif_peak_map") or params.get("motif_peak_map_csv")
     peak_names = [str(p) for p in adata.var_names]
@@ -167,23 +168,49 @@ def _motif_activity(adata, params: dict, out_dir: Path) -> dict[str, Any]:
             method="motif_peak_accessibility_deviation",
         )
 
+    if sparse.issparse(adata.X):
+        cell_totals = np.asarray(adata.X.sum(axis=1), dtype=float).ravel()
+        peak_totals = np.asarray(adata.X.sum(axis=0), dtype=float).ravel()
+    else:
+        arr = np.asarray(adata.X, dtype=float)
+        cell_totals = arr.sum(axis=1).ravel()
+        peak_totals = arr.sum(axis=0).ravel()
+    grand_total = float(peak_totals[np.isfinite(peak_totals)].sum())
+    nz_cells = np.isfinite(cell_totals) & (cell_totals > 0.0)
+    has_depth_norm = grand_total > 0.0 and bool(nz_cells.any())
+
     peak_index = {p: i for i, p in enumerate(peak_names)}
     rows = []
     for motif, peaks in motif_map.items():
         idx = [peak_index[p] for p in peaks if p in peak_index]
         if not idx:
             continue
-        score = _sum_cols(adata.X, idx)
+        score = np.asarray(_sum_cols(adata.X, idx), dtype=float).ravel()
         mean_score = _safe_mean(score)
+        mean_deviation = None
+        if has_depth_norm:
+            obs_frac = score[nz_cells] / cell_totals[nz_cells]
+            motif_total = float(peak_totals[idx][np.isfinite(peak_totals[idx])].sum())
+            expected_frac = motif_total / grand_total
+            mean_deviation = _safe_mean(obs_frac - expected_frac)
         depth = adata.obs.get("n_fragments")
         depth_corr = _corr(score, depth) if depth is not None else None
         rows.append({
             "motif_id": motif,
             "n_peaks": len(idx),
+            "mean_accessibility_deviation": mean_deviation,
             "mean_accessibility_score": mean_score,
             "depth_correlation": depth_corr,
         })
-    rows.sort(key=lambda r: (-(r["mean_accessibility_score"] or 0), r["motif_id"]))
+    if has_depth_norm:
+        rows.sort(key=lambda r: (
+            -(r["mean_accessibility_deviation"]
+              if r["mean_accessibility_deviation"] is not None else float("-inf")),
+            -(r["mean_accessibility_score"] or 0.0),
+            r["motif_id"],
+        ))
+    else:
+        rows.sort(key=lambda r: (-(r["mean_accessibility_score"] or 0.0), r["motif_id"]))
     csv_path = _write_rows(out_dir / "chromatin_motif_activity.csv", rows)
     return {
         "ran": True,

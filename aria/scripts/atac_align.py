@@ -73,7 +73,7 @@ SAMTOOLS_REQUIRE_FLAGS = 2  # properly paired
 DEFAULT_MIN_MAPQ = 30
 DEFAULT_MAPQ = DEFAULT_MIN_MAPQ
 DEFAULT_MITO = frozenset({"chrM", "MT", "M"})
-DEFAULT_MITO_CONTIGS = tuple(sorted(DEFAULT_MITO))
+DEFAULT_MITO_CONTIGS = tuple(sorted(DEFAULT_MITO | {"chrMT"}))
 
 
 def atac_align(params: dict) -> dict:
@@ -475,7 +475,10 @@ def _align_sample(sample: dict, bwa_index: str, output_dir: Path,
         result.update(_bam_metrics(markdup, mito_contigs, warnings,
                                    final_bam=final_bam,
                                    spikein_contig_prefix=spikein_contig_prefix,
-                                   spikein_scale_constant=spikein_scale_constant))
+                                   spikein_scale_constant=spikein_scale_constant,
+                                   mapq=mapq,
+                                   excl_flags=excl_flags,
+                                   paired=paired))
         if spikein_bwa_index and "spikein_reads" not in result:
             sp_reads = _count_spikein_index(
                 r1, r2 if paired else None, spikein_bwa_index, spikein_fasta,
@@ -484,7 +487,7 @@ def _align_sample(sample: dict, bwa_index: str, output_dir: Path,
             if sp_reads is not None:
                 result["spikein_reads"] = int(sp_reads)
                 result["spikein_scale_factor"] = (
-                    round(float(spikein_scale_constant) / max(1, int(sp_reads)), 6)
+                    float(spikein_scale_constant) / float(int(sp_reads))
                     if sp_reads > 0 else None
                 )
         # Tidy intermediates (keep final + markdup for transparency)
@@ -509,9 +512,9 @@ def _align_sample(sample: dict, bwa_index: str, output_dir: Path,
     return result
 
 
-def _strip_mito_sam(lines, mito=DEFAULT_MITO, exclude_prefix: str = ""):
+def _strip_mito_sam(lines, mito=DEFAULT_MITO_CONTIGS, exclude_prefix: str = ""):
     """Yield SAM headers and alignments outside mitochondrial / spike-in contigs."""
-    mito = set(mito)
+    mito_lower = {str(m).lower() for m in mito}
     for line in lines:
         if line.startswith("@"):
             if exclude_prefix and line.startswith("@SQ\tSN:" + exclude_prefix):
@@ -521,7 +524,7 @@ def _strip_mito_sam(lines, mito=DEFAULT_MITO, exclude_prefix: str = ""):
         fields = line.split("\t", 3)
         if len(fields) >= 3:
             rname = fields[2]
-            if rname in mito:
+            if rname.lower() in mito_lower:
                 continue
             if exclude_prefix and rname.startswith(exclude_prefix):
                 continue
@@ -600,10 +603,48 @@ def _count_spikein_index(
     return None
 
 
+def _count_filtered_spikein_contigs(
+    bam_path: Path,
+    spike_contigs: list[str],
+    *,
+    mapq: int = DEFAULT_MIN_MAPQ,
+    excl_flags: int = SAMTOOLS_EXCLUDE_FLAGS,
+    paired: bool = False,
+) -> int | None:
+    """Count quality/flag-filtered alignments on composite-genome spike-in contigs."""
+    if not spike_contigs:
+        return 0
+    total = 0
+    chunk_size = 500
+    base_cmd = [
+        "samtools", "view", "-c",
+        "-q", str(int(mapq)),
+        "-F", str(int(excl_flags)),
+    ]
+    if paired:
+        base_cmd += ["-f", str(SAMTOOLS_REQUIRE_FLAGS)]
+    base_cmd.append(str(bam_path))
+    for i in range(0, len(spike_contigs), chunk_size):
+        chunk = spike_contigs[i:i + chunk_size]
+        try:
+            proc = subprocess.run(
+                base_cmd + chunk, capture_output=True, text=True, timeout=300
+            )
+            if proc.returncode != 0 or not (proc.stdout or "").strip():
+                return None
+            total += int(proc.stdout.strip())
+        except (FileNotFoundError, subprocess.TimeoutExpired, ValueError, OSError):
+            return None
+    return total
+
+
 def _bam_metrics(pre_filter_bam: Path, mito_contigs: tuple, warnings: list,
                  final_bam: Path | None = None,
                  spikein_contig_prefix: str = "",
-                 spikein_scale_constant: float = 10000.0) -> dict:
+                 spikein_scale_constant: float = 10000.0,
+                 mapq: int = DEFAULT_MIN_MAPQ,
+                 excl_flags: int = SAMTOOLS_EXCLUDE_FLAGS,
+                 paired: bool = False) -> dict:
     """Collect alignment QC: total/mapped/dup from flagstat, mito% from idxstats."""
     metrics: dict = {}
     try:
@@ -630,6 +671,7 @@ def _bam_metrics(pre_filter_bam: Path, mito_contigs: tuple, warnings: list,
         if idx.returncode == 0:
             mito_lower = {m.lower() for m in mito_contigs}
             mito = nuc = spike = 0
+            spike_contigs: list[str] = []
             for line in idx.stdout.splitlines():
                 f = line.split("\t")
                 if len(f) < 3 or f[0] in ("*", ""):
@@ -637,16 +679,32 @@ def _bam_metrics(pre_filter_bam: Path, mito_contigs: tuple, warnings: list,
                 n = int(f[2])
                 if spikein_contig_prefix and f[0].startswith(spikein_contig_prefix):
                     spike += n
+                    if n > 0:
+                        spike_contigs.append(f[0])
                 elif f[0].lower() in mito_lower:
                     mito += n
                 else:
                     nuc += n
             metrics["pct_mito"] = round(mito / max(mito + nuc, 1) * 100, 2)
             if spikein_contig_prefix:
-                metrics["spikein_reads"] = int(spike)
+                filtered_spike = (
+                    _count_filtered_spikein_contigs(
+                        pre_filter_bam,
+                        spike_contigs,
+                        mapq=mapq,
+                        excl_flags=excl_flags,
+                        paired=paired,
+                    )
+                    if spike_contigs else 0
+                )
+                effective_spike = (
+                    filtered_spike if filtered_spike is not None else spike
+                )
+                metrics["spikein_reads"] = int(effective_spike)
+                metrics["spikein_reads_filtered"] = filtered_spike is not None
                 metrics["spikein_scale_factor"] = (
-                    round(float(spikein_scale_constant) / max(1, spike), 6)
-                    if spike > 0 else None
+                    float(spikein_scale_constant) / float(int(effective_spike))
+                    if effective_spike > 0 else None
                 )
     except (FileNotFoundError, subprocess.TimeoutExpired, ValueError) as e:
         warnings.append(f"idxstats metrics unavailable: {e}")

@@ -34,10 +34,13 @@ def node_ran(run_ledger: dict | None, node_id: str) -> bool:
 
 
 def num(value: Any) -> float | None:
+    if value is None or isinstance(value, bool):
+        return None
     try:
-        return float(value)
+        val = float(value)
     except (TypeError, ValueError):
         return None
+    return val if math.isfinite(val) else None
 
 
 def motif_signals(

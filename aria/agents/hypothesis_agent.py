@@ -146,6 +146,11 @@ class HypothesisAgent:
         # Entity -> ALL its context-distinct signals, so the adversarial gate
         # unions confounds across every context the entity was measured in (H4).
         signals_by_entity = build_signals_by_entity(signal_list)
+        signals_by_id = {
+            sig.signal_id: sig
+            for sig in signal_list
+            if isinstance(sig, EvidenceSignal) and sig.signal_id
+        }
         candidates = self._proposer(signal_list, exp_ctx or {}) or []
         # ADR-057 rail #10 (C): surface the proposer's parse diagnostic so an
         # honest-null can never silently hide a model that DID answer but whose
@@ -185,7 +190,9 @@ class HypothesisAgent:
             for gate in (
                 check_falsifiability(hyp),
                 check_language(hyp),
-                check_devils_advocate(hyp, signals_by_entity),
+                check_devils_advocate(
+                    hyp, signals_by_entity, signals_by_id=signals_by_id
+                ),
             ):
                 if not gate.passed:
                     failures.append(gate.to_dict())
@@ -201,7 +208,7 @@ class HypothesisAgent:
                 # H16: stamp the inherited caveat codes (code-owned) so the report
                 # auto-lists every caveat on the evidence used, model-mentioned or not.
                 hyp.inherited_caveats = inherited_caveat_codes(
-                    hyp, signals_by_entity
+                    hyp, signals_by_entity, signals_by_id=signals_by_id
                 )
                 accepted.append(hyp)
 

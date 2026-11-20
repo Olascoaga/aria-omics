@@ -302,9 +302,16 @@ class PseudobulkMixin:
                 "annotation_source") == "unrecoverable_matrix":
             return {"status": "skipped",
                     "reason": "no_celltype_groupby_after_annotation_failure"}
-        covariates = list(pb_cfg.get("covariates") or [])
-        if not covariates and batch_cov:
-            covariates = [batch_cov]
+        covariates = [
+            str(c) for c in (pb_cfg.get("covariates") or [])
+            if c and str(c) not in (str(factor), str(replicate_col))
+        ]
+        if (
+            batch_cov
+            and str(batch_cov) not in covariates
+            and str(batch_cov) not in (str(factor), str(replicate_col))
+        ):
+            covariates.append(str(batch_cov))
 
         self._log_decision(
             experiment_id,
@@ -549,12 +556,24 @@ class PseudobulkMixin:
         comparisons = []
         for comp in raw:
             if isinstance(comp, dict):
-                test = comp.get("test") or comp.get("case") or comp.get("contrast")
-                ref = comp.get("ref") or comp.get("reference") or comp.get("control")
-                if test and ref:
+                test = next(
+                    (comp[k] for k in ("test", "numerator", "case", "contrast")
+                     if comp.get(k) is not None and str(comp.get(k)).strip() != ""),
+                    None,
+                )
+                ref = next(
+                    (comp[k] for k in ("ref", "reference", "denominator", "control")
+                     if comp.get(k) is not None and str(comp.get(k)).strip() != ""),
+                    None,
+                )
+                if test is not None and ref is not None:
                     comparisons.append([str(test), str(ref)])
             elif isinstance(comp, (list, tuple)) and len(comp) >= 2:
-                comparisons.append([str(comp[0]), str(comp[1])])
+                if (
+                    comp[0] is not None and str(comp[0]).strip() != ""
+                    and comp[1] is not None and str(comp[1]).strip() != ""
+                ):
+                    comparisons.append([str(comp[0]), str(comp[1])])
         return comparisons
 
     @staticmethod

@@ -36,7 +36,8 @@ BLOCK_ORDER = {
 
 def render_blocks(blocks: list[NarrativeBlock],
                   report_dir: str | Path | None = None,
-                  strict: bool = True) -> str:
+                  strict: bool = True,
+                  staged_tables: dict[str, str] | None = None) -> str:
     """Render structured blocks to HTML.
 
     ``strict`` (default) keeps the W-CLAIM contract: an unsupported claim or a
@@ -56,8 +57,10 @@ def render_blocks(blocks: list[NarrativeBlock],
             validated,
             key=lambda b: (_group_key(b), BLOCK_ORDER.get(b.block_type, 99), b.id),
         )
-        return "\n".join(_render_block(block, report_dir=report_dir)
-                         for block in ordered)
+        return "\n".join(
+            _render_block(block, report_dir=report_dir, staged_tables=staged_tables)
+            for block in ordered
+        )
 
     # Resilient path: validate + render each block in isolation; withhold any
     # that fail instead of aborting the whole report.
@@ -70,7 +73,9 @@ def render_blocks(blocks: list[NarrativeBlock],
         try:
             vb = validate_blocks([block], base_dir=report_dir,
                                  check_files=report_dir is not None)
-            out.append(_render_block(vb[0], report_dir=report_dir))
+            out.append(
+                _render_block(vb[0], report_dir=report_dir, staged_tables=staged_tables)
+            )
         except (NarrativeValidationError, EvidenceVerificationError) as exc:
             log.warning("Withholding block %s from report (unverified): %s",
                         getattr(block, "id", "?"), exc)
@@ -87,7 +92,7 @@ def _withheld_block_html(block: NarrativeBlock) -> str:
     shown, but the report still renders and the gap is visible."""
     title = html.escape(str(getattr(block, "title", "") or "Result"))
     return f"""
-<section class="narrative-block" data-block-id="{html.escape(str(getattr(block, 'id', '')))}"
+<section class="narrative-block" data-block-id="{html.escape(str(getattr(block, 'id', '')))}" data-withheld="true"
          style="border-top:1px solid var(--border);padding-top:0.9rem;margin-top:0.9rem">
   <h4>{title} <span class="badge insuff" style="margin-left:0.35rem">withheld</span></h4>
   <p style="color:var(--amber)"><em>This section's narrative was withheld because a
@@ -108,14 +113,17 @@ def _group_key(block: NarrativeBlock) -> str:
 
 
 def _render_block(block: NarrativeBlock,
-                  report_dir: str | Path | None = None) -> str:
+                  report_dir: str | Path | None = None,
+                  staged_tables: dict[str, str] | None = None) -> str:
     status_class = "low" if block.status != "success" else block.confidence
     if status_class == "insufficient":
         status_class = "insuff"
     evidence_html = _render_evidence(block)
     caveats_html = _render_caveats(block)
     figures_html = _render_figures(block, report_dir=report_dir)
-    tables_html = _render_tables(block, report_dir=report_dir)
+    tables_html = _render_tables(
+        block, report_dir=report_dir, staged_tables=staged_tables
+    )
     error_html = (
         f"<p class='warning'><strong>Error:</strong> {html.escape(str(block.error))}</p>"
         if block.error else ""
@@ -275,8 +283,74 @@ def _render_figures(block: NarrativeBlock,
     return "\n".join(html_parts)
 
 
+def _resolve_staged_table_href(
+    raw_path: Path,
+    report_dir: Path,
+    block: NarrativeBlock | None = None,
+    staged_tables: dict[str, str] | None = None,
+) -> str | None:
+    """Resolve an absolute table source path to its relative ``tables/...`` path
+    inside ``report_dir`` when a staged copy exists."""
+    rd = Path(report_dir)
+    if staged_tables:
+        for candidate_key in (str(raw_path),):
+            rel = staged_tables.get(candidate_key)
+            if rel and (rd / rel).is_file():
+                return rel
+        try:
+            resolved_key = str(raw_path.resolve())
+            rel = staged_tables.get(resolved_key)
+            if rel and (rd / rel).is_file():
+                return rel
+        except OSError:
+            pass
+
+    try:
+        rel_inside = raw_path.resolve().relative_to(rd.resolve())
+        if (rd / rel_inside).is_file():
+            return rel_inside.as_posix()
+    except (OSError, ValueError):
+        pass
+
+    tables_dir = rd / "tables"
+    direct = tables_dir / raw_path.name
+    if direct.is_file():
+        return f"tables/{raw_path.name}"
+
+    prefixes: list[str] = []
+    if raw_path.parent.name:
+        prefixes.append(raw_path.parent.name)
+    if raw_path.parent.parent.name:
+        prefixes.append(raw_path.parent.parent.name)
+    if block is not None and getattr(block, "id", None):
+        tail = str(block.id).split(".")[-1]
+        if tail:
+            prefixes.append(tail)
+            prefixes.append(tail.lower())
+
+    seen_prefixes: set[str] = set()
+    for prefix in prefixes:
+        if not prefix or prefix in seen_prefixes:
+            continue
+        seen_prefixes.add(prefix)
+        slugged = tables_dir / f"{prefix}_{raw_path.name}"
+        if slugged.is_file():
+            return f"tables/{prefix}_{raw_path.name}"
+
+    if tables_dir.is_dir():
+        suffix = f"_{raw_path.name}"
+        matches = [
+            p for p in sorted(tables_dir.iterdir())
+            if p.is_file() and p.name.endswith(suffix)
+        ]
+        if len(matches) == 1:
+            return f"tables/{matches[0].name}"
+    return None
+
+
 def _render_tables(block: NarrativeBlock,
-                   report_dir: str | Path | None = None) -> str:
+                   report_dir: str | Path | None = None,
+                   staged_tables: dict[str, str] | None = None) -> str:
     if not block.tables:
         return ""
     links = []
@@ -288,9 +362,14 @@ def _render_tables(block: NarrativeBlock,
         if report_dir is not None:
             raw_path = Path(href)
             if raw_path.is_absolute():
-                staged = Path(report_dir) / "tables" / raw_path.name
-                if staged.is_file():
-                    href = f"tables/{raw_path.name}"
+                resolved = _resolve_staged_table_href(
+                    raw_path,
+                    Path(report_dir),
+                    block=block,
+                    staged_tables=staged_tables,
+                )
+                if resolved:
+                    href = resolved
         label = html.escape(str(table.get("label") or table.get("id") or raw))
         links.append(f"<a href='{html.escape(href)}'>{label}</a>")
     if not links:

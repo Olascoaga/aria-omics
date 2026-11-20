@@ -306,6 +306,7 @@ def _convert_bam_to_pairs(
     if p2.returncode != 0:
         raise RuntimeError(f"pairtools sort failed: {p2.stderr[-400:]}")
 
+    stats_path.unlink(missing_ok=True)
     dedup_cmd = [
         pairtools_exe, "dedup",
         "--mark-dups",
@@ -487,11 +488,13 @@ def hic_preprocess(params: dict) -> dict:
         seen_sids.add(cand)
         sample_ids.append(cand)
 
+    chrom_sizes_param = params.get("chrom_sizes") or params.get("chromsizes")
+    genome_fasta_param = params.get("genome_fasta") or params.get("reference_fasta")
+    genome_fai_param = params.get("genome_fai")
     cache_inputs = list(files)
-    for ref_key in ("chrom_sizes", "genome_fasta", "genome_fai"):
-        rv = params.get(ref_key)
-        if isinstance(rv, str) and rv and Path(rv).is_file():
-            cache_inputs.append(rv)
+    for rv in (chrom_sizes_param, genome_fasta_param, genome_fai_param):
+        if isinstance(rv, (str, Path)) and str(rv) and Path(str(rv)).is_file():
+            cache_inputs.append(str(rv))
     manifest_params = {
         "genome": genome,
         "base_res": base_res,
@@ -499,9 +502,13 @@ def hic_preprocess(params: dict) -> dict:
         "zoomify": build_mcool,
         "mapq": mapq,
         "sample_ids": sample_ids,
-        "chrom_sizes": params.get("chrom_sizes") if isinstance(params.get("chrom_sizes"), dict) else str(params.get("chrom_sizes") or ""),
-        "genome_fasta": str(params.get("genome_fasta") or ""),
-        "genome_fai": str(params.get("genome_fai") or ""),
+        "chrom_sizes": (
+            chrom_sizes_param
+            if isinstance(chrom_sizes_param, dict)
+            else str(chrom_sizes_param or "")
+        ),
+        "genome_fasta": str(genome_fasta_param or ""),
+        "genome_fai": str(genome_fai_param or ""),
     }
     if bool(params.get("resume", True)):
         cached = _check_hic_stage_cache(

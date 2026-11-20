@@ -28,6 +28,7 @@ from .types import Hypothesis
 
 SPECULATIVE_TIER = "SPECULATIVE"
 _HYPOTHESIS_SCHEME = "hypothesis://"
+_HYPOTHESIS_SCHEME_RE = re.compile(r"hypothesis://", re.IGNORECASE)
 
 
 class SpeculativePromotionError(ValueError):
@@ -56,8 +57,8 @@ def quarantine_node_id(hyp: Hypothesis) -> str:
 
 
 def is_hypothesis_node(node_id: Any) -> bool:
-    """True iff ``node_id`` is a quarantined hypothesis node."""
-    return isinstance(node_id, str) and node_id.startswith(_HYPOTHESIS_SCHEME)
+    """True iff ``node_id`` is or references a quarantined hypothesis node."""
+    return isinstance(node_id, str) and bool(_HYPOTHESIS_SCHEME_RE.search(node_id))
 
 
 def quarantine_hypotheses(hypotheses: list[Hypothesis]) -> list[dict]:
@@ -110,9 +111,11 @@ def _first_speculative_leak(obj: Any, _seen: set[int] | None = None) -> str | No
         if id(obj) in _seen:
             return None
         _seen.add(id(obj))
-        if str(obj.get("tier") or "") == SPECULATIVE_TIER:
+        if str(obj.get("tier") or "").strip().upper() == SPECULATIVE_TIER:
             return "carries the SPECULATIVE tier"
-        for value in obj.values():
+        for key, value in obj.items():
+            if is_hypothesis_node(key):
+                return f"cites quarantined node {key!r}"
             reason = _first_speculative_leak(value, _seen)
             if reason is not None:
                 return reason

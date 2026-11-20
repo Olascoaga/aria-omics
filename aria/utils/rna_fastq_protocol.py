@@ -377,7 +377,7 @@ def _load_barcode_map_file(path: Path) -> tuple[dict[str, str], list[str]]:
             bc, sample = row[0].strip(), row[1].strip()
             if idx == 0 and bc.lower() in {"barcode", "well_barcode", "cb"}:
                 continue
-            mapping[bc] = sample
+            mapping[bc.upper()] = sample
     except Exception as exc:
         return {}, [f"Could not parse barcode_to_sample file {path}: {exc}"]
     return mapping, errors

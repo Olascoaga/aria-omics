@@ -69,6 +69,47 @@ def _drop_none(params: dict) -> dict:
     return {k: v for k, v in params.items() if v is not None}
 
 
+def _resolve_exp_gtf(exp_ctx: Optional[dict]) -> Optional[str]:
+    """Resolve the experiment GTF path consistently across all chromatin lanes."""
+    if not isinstance(exp_ctx, dict):
+        return None
+    for key in ("gtf_path", "gene_annotation_gtf", "gtf", "gtf_file"):
+        val = exp_ctx.get(key)
+        if val:
+            return str(val)
+    genome_cfg = exp_ctx.get("genome_config")
+    if isinstance(genome_cfg, dict):
+        for key in ("gtf", "gtf_path", "gene_annotation_gtf", "gtf_file"):
+            val = genome_cfg.get(key)
+            if val:
+                return str(val)
+    return None
+
+
+def _select_peak_universe(peaks_res: Optional[dict]) -> Optional[str]:
+    """Select consensus_peaks_path over peaks_path only when non-empty."""
+    if not isinstance(peaks_res, dict):
+        return None
+    consensus = peaks_res.get("consensus_peaks_path")
+    if consensus:
+        n_cons = peaks_res.get("n_consensus_peaks")
+        if n_cons is not None:
+            try:
+                if int(n_cons) > 0:
+                    return str(consensus)
+            except (TypeError, ValueError):
+                pass
+        else:
+            try:
+                p = Path(str(consensus))
+                if p.is_file() and p.stat().st_size > 0:
+                    return str(consensus)
+            except OSError:
+                pass
+    peaks_path = peaks_res.get("peaks_path")
+    return str(peaks_path) if peaks_path else None
+
+
 CHROMATIN_SYSTEM = """
 You are ARIA's ChromatinAgent — a specialist in chromatin accessibility
 and protein-DNA interaction analysis.
@@ -393,8 +434,7 @@ class ChromatinAgent(BaseAgent):
                 matrix_ctx.setdefault("fragments_files", frags)
             if (isinstance(peaks_result, dict)
                     and peaks_result.get("status") == "success"):
-                called_bed = (peaks_result.get("consensus_peaks_path")
-                              or peaks_result.get("peaks_path"))
+                called_bed = _select_peak_universe(peaks_result)
                 if called_bed:
                     matrix_ctx.setdefault("peaks_bed", called_bed)
             matrix_result = self._run_scatac_matrix(
@@ -472,8 +512,7 @@ class ChromatinAgent(BaseAgent):
 
         peak_file = None
         if isinstance(peaks_result, dict) and peaks_result.get("status") == "success":
-            peak_file = (peaks_result.get("consensus_peaks_path")
-                         or peaks_result.get("peaks_path"))
+            peak_file = _select_peak_universe(peaks_result)
         params = {
             "fragments_file": frag,
             "genome": exp_ctx.get("genome", "hg38"),
@@ -635,10 +674,26 @@ class ChromatinAgent(BaseAgent):
                     "findings": {"cohort_matrix_union": merge_res},
                     "reason": (merge_res.get("error_type")
                                or "cohort_matrix_union_failed")}
+        raw_prov = merge_res.get("peak_provenance")
+        if isinstance(raw_prov, dict):
+            peak_prov = dict(raw_prov)
+            peak_prov.setdefault("method", "overlap_unified")
+            peak_prov.setdefault("n_samples", len(matrix_files))
+        else:
+            source_str = str(raw_prov or "cohort_interval_union_consensus")
+            peak_prov = {
+                "method": "overlap_unified",
+                "source": source_str,
+                "n_samples": int(merge_res.get("n_samples") or len(matrix_files)),
+            }
+            if merge_res.get("n_consensus_peaks") is not None:
+                peak_prov["n_consensus_peaks"] = int(merge_res["n_consensus_peaks"])
+            for k in ("overlap_fraction", "reproducibility", "idr", "rare_peak_policy"):
+                if merge_res.get(k) is not None:
+                    peak_prov[k] = merge_res[k]
         merged_ctx = {
             **exp_ctx,
-            "peak_provenance": merge_res.get(
-                "peak_provenance", "cohort_interval_union_consensus"),
+            "peak_provenance": peak_prov,
         }
         matrix_res = self._run_scatac_matrix(
             experiment_id, merged_ctx, intent, merge_res["output_path"])
@@ -661,8 +716,7 @@ class ChromatinAgent(BaseAgent):
         ]
         if not any(c.get("full_results_csv") for c in pb_comparisons):
             return
-        gtf = (exp_ctx.get("gtf") or exp_ctx.get("gtf_path")
-               or exp_ctx.get("gene_annotation_gtf"))
+        gtf = _resolve_exp_gtf(exp_ctx)
         self.publish_status(
             experiment_id, "scATAC DA peak annotation...", 0.65)
         findings["peak_annotation"] = self.env.run_in_stack(
@@ -892,10 +946,7 @@ class ChromatinAgent(BaseAgent):
                     "data_path": clustered,
                     "output_dir": out_dir,
                     "motif_peak_map": exp_ctx.get("motif_peak_map"),
-                    "gtf_path": (
-                        exp_ctx.get("gtf_path")
-                        or exp_ctx.get("gene_annotation_gtf")
-                    ),
+                    "gtf_path": _resolve_exp_gtf(exp_ctx),
                     "rna_data_path": (
                         exp_ctx.get("rna_data_path")
                         or exp_ctx.get("scrna_data_path")
@@ -1390,8 +1441,7 @@ class ChromatinAgent(BaseAgent):
         if not reference_fasta and any(
                 str(f).lower().endswith(".cram") for f in files):
             reference_fasta = exp_ctx.get("genome_fasta")
-        gtf_path = (exp_ctx.get("gtf") or exp_ctx.get("gtf_path")
-                    or exp_ctx.get("gtf_file"))
+        gtf_path = _resolve_exp_gtf(exp_ctx)
 
         # QC
         self.publish_status(experiment_id, "bulk ATAC QC...", 0.35)
@@ -1449,10 +1499,7 @@ class ChromatinAgent(BaseAgent):
                       or intent.get("comparisons")
                       or intent.get("comparison"))
         if run_da:
-            peak_universe = (
-                peaks_result.get("consensus_peaks_path")
-                or peaks_result.get("peaks_path")
-            ) if isinstance(peaks_result, dict) else None
+            peak_universe = _select_peak_universe(peaks_result)
             count_result = None
             if peak_universe:
                 self.publish_status(
@@ -2258,8 +2305,7 @@ class ChromatinAgent(BaseAgent):
             "peaks_bed": (
                 exp_ctx.get("peaks_bed")
                 or exp_ctx.get("peaks_path")
-                or peaks_result.get("consensus_peaks_path")
-                or peaks_result.get("peaks_path")
+                or _select_peak_universe(peaks_result)
             ),
             "replicate_batches": self._bulk_replicate_batches(
                 exp_ctx, files, condition_col=condition_col,
@@ -2370,8 +2416,7 @@ class ChromatinAgent(BaseAgent):
                 "data_type": data_type,
                 "comparisons": comparisons,
                 "genome": exp_ctx.get("genome"),
-                "gtf": (exp_ctx.get("gtf") or exp_ctx.get("gtf_path")
-                        or exp_ctx.get("gtf_file")),
+                "gtf": _resolve_exp_gtf(exp_ctx),
                 "promoter_upstream": exp_ctx.get("promoter_upstream"),
                 "promoter_downstream": exp_ctx.get("promoter_downstream"),
                 "output_dir": str(Path(files[0]).parent / f"{prefix}_annotation"),
@@ -2407,7 +2452,7 @@ class ChromatinAgent(BaseAgent):
                 "comparisons": comparisons,
                 "genome": exp_ctx.get("genome"),
                 "organism": exp_ctx.get("organism"),
-                "gtf": exp_ctx.get("gtf") or exp_ctx.get("gtf_path"),
+                "gtf": _resolve_exp_gtf(exp_ctx),
                 "output_dir": str(Path(files[0]).parent / f"{prefix}_ora"),
             },
         )
@@ -2707,8 +2752,7 @@ class ChromatinAgent(BaseAgent):
         if not reference_fasta and any(
                 str(f).lower().endswith(".cram") for f in target_files):
             reference_fasta = exp_ctx.get("genome_fasta")
-        gtf_path = (exp_ctx.get("gtf") or exp_ctx.get("gtf_path")
-                    or exp_ctx.get("gtf_file"))
+        gtf_path = _resolve_exp_gtf(exp_ctx)
 
         # 1. QC
         self.publish_status(experiment_id, f"{assay_type} QC...", 0.35)
@@ -2816,10 +2860,7 @@ class ChromatinAgent(BaseAgent):
                       or intent.get("comparison"))
         run_counts = run_da or bool(exp_ctx.get("quantify_peaks"))
         if run_counts:
-            peak_universe = (
-                peaks_result.get("consensus_peaks_path")
-                or peaks_result.get("peaks_path")
-            ) if isinstance(peaks_result, dict) else None
+            peak_universe = _select_peak_universe(peaks_result)
             count_result = None
             prefix = assay_type.lower()
             if peak_universe:
@@ -2975,16 +3016,18 @@ class ChromatinAgent(BaseAgent):
             },
         )
 
-        if motif_result.get("status") != "success":
+        if (not isinstance(motif_result, dict)
+                or motif_result.get("status") != "success"
+                or not motif_result.get("ran")):
             return motif_result
 
         # DebateCouncil review — always for motif claims
         # Critic must check Tn5 bias before accepting TF activity claims
+        top_motifs = motif_result.get("top_motifs", [])[:5]
         try:
             from aria.agents.debate_council import DebateCouncil
             council = DebateCouncil(llm=self.llm, max_rounds=2)
 
-            top_motifs = motif_result.get("top_motifs", [])[:5]
             claim = (
                 f"The following transcription factors show significant motif "
                 f"enrichment in accessible chromatin regions: "

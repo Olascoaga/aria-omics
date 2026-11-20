@@ -15,9 +15,14 @@ strict evidence verifier can confirm the discussion against the evidence card.
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
 from itertools import combinations
 from typing import Any
+
+
+def _is_finite_number(x: Any) -> bool:
+    return isinstance(x, (int, float)) and not isinstance(x, bool) and math.isfinite(x)
 
 
 @dataclass
@@ -177,8 +182,8 @@ def detect_bulk_patterns(contrasts: list[dict]) -> dict[str, Any]:
             discordant = len((up_a & down_b) | (down_a & up_b))
         ta, tb = _pathway_terms(a), _pathway_terms(b)
         tb_set, ta_set = set(tb), set(ta)
-        den_a = str(a.get("denominator") or "")
-        den_b = str(b.get("denominator") or "")
+        den_a = str(a.get("denominator") or a.get("reference") or "")
+        den_b = str(b.get("denominator") or b.get("reference") or "")
         cross.append(CrossContrastPattern(
             contrast_a=str(a.get("name", "A")),
             contrast_b=str(b.get("name", "B")),
@@ -234,12 +239,33 @@ def _scrna_pathway_terms(block: dict) -> list[str]:
 def _scrna_successful_pseudobulk(findings: dict) -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
     pb = (findings or {}).get("pseudobulk_de") or {}
+    pb_strategy = (pb.get("multiple_testing") or {}).get("fdr_strategy")
+
+    def _pick_int(comp: dict, *keys: str) -> int:
+        for k in keys:
+            val = comp.get(k)
+            if val is not None and not isinstance(val, bool):
+                try:
+                    num = float(val)
+                    if math.isfinite(num):
+                        return int(num)
+                except (TypeError, ValueError):
+                    continue
+        return 0
+
     for group, info in (pb.get("per_group", {}) or {}).items():
         for comparison, comp in (info.get("per_comparison", {}) or {}).items():
             if comp.get("status", "success") != "success":
                 continue
-            n_sig = int(comp.get("n_significant",
-                                 comp.get("n_significant_global", 0)) or 0)
+            strategy = str(comp.get("fdr_strategy") or pb_strategy or "").strip().lower()
+            if strategy in {"per_cluster", "local"}:
+                n_sig = _pick_int(comp, "n_significant", "n_significant_local")
+                n_up = _pick_int(comp, "n_up", "n_up_local")
+                n_down = _pick_int(comp, "n_down", "n_down_local")
+            else:
+                n_sig = _pick_int(comp, "n_significant", "n_significant_global")
+                n_up = _pick_int(comp, "n_up", "n_up_global")
+                n_down = _pick_int(comp, "n_down", "n_down_global")
             if n_sig <= 0:
                 continue
             out.append({
@@ -247,9 +273,8 @@ def _scrna_successful_pseudobulk(findings: dict) -> list[dict[str, Any]]:
                 "comparison": str(comparison),
                 "block_key": f"{group}::{comparison}",
                 "n_de": n_sig,
-                "n_up": int(comp.get("n_up", comp.get("n_up_global", 0)) or 0),
-                "n_down": int(comp.get("n_down",
-                                        comp.get("n_down_global", 0)) or 0),
+                "n_up": n_up,
+                "n_down": n_down,
                 "composition_corrected": bool(
                     comp.get("corrected_for_composition")
                 ),
@@ -304,8 +329,8 @@ def detect_scrna_patterns(agent_result: dict) -> dict[str, Any]:
     paga = traj.get("paga", {}) or {}
     pt = traj.get("pseudotime", {}) or {}
 
-    powers = [b["power"] for b in pb_blocks
-              if isinstance(b.get("power"), (int, float))]
+    powers = [float(b["power"]) for b in pb_blocks
+              if _is_finite_number(b.get("power"))]
     return {
         "modalities_present": ["scRNA-seq"],
         "n_cells": qc.get("n_cells_after"),
@@ -344,8 +369,8 @@ def detect_scrna_patterns(agent_result: dict) -> dict[str, Any]:
 
 
 def _reliability(contrasts: list[dict]) -> dict[str, Any]:
-    powers = [c.get("power_estimate_at_lfc_min") for c in contrasts
-              if isinstance(c.get("power_estimate_at_lfc_min"), (int, float))]
+    powers = [float(c.get("power_estimate_at_lfc_min")) for c in contrasts
+              if _is_finite_number(c.get("power_estimate_at_lfc_min"))]
     low_power = [str(c.get("name")) for c in contrasts
                  if c.get("low_power_warning")]
     return {

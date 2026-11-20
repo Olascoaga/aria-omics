@@ -152,7 +152,7 @@ def pooled_bh_across_groups(group_pvalues: dict) -> dict:
     pvals: list = []
     for grp, genes in (group_pvalues or {}).items():
         for gene, p in (genes or {}).items():
-            if p is None:
+            if p is None or isinstance(p, bool):
                 continue
             keys.append((grp, gene))
             value = float(p)
@@ -177,9 +177,11 @@ def contrast_family_significance(group_stats: dict, *, padj_max: float,
     already tested against an effect-size null (P1-1b). Returns
     {contrast: {"padj_family", "sig_genes", "n_sig", "n_up", "n_down"}}.
     """
+    import math
+
     pvals = {
         c: {g: s.get("pvalue") for g, s in (genes or {}).items()
-            if s.get("pvalue") is not None}
+            if s.get("pvalue") is not None and not isinstance(s.get("pvalue"), bool)}
         for c, genes in (group_stats or {}).items()
     }
     family_padj = pooled_bh_across_groups(pvals)
@@ -189,11 +191,28 @@ def contrast_family_significance(group_stats: dict, *, padj_max: float,
         fp = family_padj.get(c, {})
         sig, n_up, n_down = [], 0, 0
         for g, s in (genes or {}).items():
-            lfc = s.get("log2fc")
+            raw_lfc = s.get("log2fc")
+            lfc: float | None = None
+            lfc_invalid = False
+            if raw_lfc is not None:
+                if isinstance(raw_lfc, bool):
+                    lfc_invalid = True
+                else:
+                    try:
+                        val = float(raw_lfc)
+                        if math.isfinite(val):
+                            lfc = val
+                        else:
+                            lfc_invalid = True
+                    except (TypeError, ValueError):
+                        lfc_invalid = True
+            if lfc_invalid:
+                continue
             passes_lfc = True if lfc_min is None else (
                 lfc is not None and abs(lfc) > lfc_min
             )
-            if fp.get(g, 1.0) < padj_max and passes_lfc:
+            padj_val = fp.get(g, 1.0)
+            if math.isfinite(padj_val) and padj_val < padj_max and passes_lfc:
                 sig.append(g)
                 if lfc is not None and lfc > 0:
                     n_up += 1

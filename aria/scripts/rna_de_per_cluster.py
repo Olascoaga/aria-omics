@@ -76,7 +76,8 @@ def rna_de_per_cluster(params: dict) -> dict:
             return False
         candidate_params = candidate.get("params", {})
         if (candidate_params.get("groupby") != groupby
-                or candidate_params.get("use_raw") != use_raw):
+                or candidate_params.get("use_raw") != use_raw
+                or candidate_params.get("method") not in (None, "wilcoxon")):
             return False
         required = ("names", "logfoldchanges", "pvals_adj")
         if any(k not in candidate for k in required):

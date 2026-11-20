@@ -99,8 +99,8 @@ def _resolve_celltypist_model(model_explicit, organism, tissue_hint):
     if model_explicit:
         return str(model_explicit), "explicit", None
 
-    org = (organism or "").strip().lower()
-    is_mouse = "musculus" in org or org in {"mouse", "mm", "mm10", "mm39"}
+    from aria.scripts.rna_bulk.gtf_io import _normalize_species
+    is_mouse = _normalize_species(organism or "") == "Mus musculus"
     catalog = _MOUSE_MODELS if is_mouse else _DEFAULT_MODELS
     hint = (tissue_hint or "").lower().strip()
     if hint and hint in catalog:

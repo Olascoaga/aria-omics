@@ -72,10 +72,18 @@ def _run_signals(agent_results: dict, exp_ctx: dict) -> dict:
         ambient_corrected = bool(amb.get("ran"))
     else:
         ambient_corrected = _contains(qc, "soupx", "decontx")
+    dbl_reports = [
+        d for d in (qc.get("scrublet_report"), qc.get("doublet_detection"))
+        if isinstance(d, dict)
+    ]
+    if dbl_reports:
+        doublets_handled = any(bool(d.get("ran")) for d in dbl_reports)
+    else:
+        doublets_handled = _contains(qc, "doublet", "scrublet")
     return {
         "integration_clean": integration_ran and not integration_issue,
         "integration_ran": integration_ran,
-        "doublets_handled": _contains(f.get("qc") or {}, "doublet", "scrublet"),
+        "doublets_handled": doublets_handled,
         "ambient_corrected": ambient_corrected,
         "da_ran": _ran(da),
         "da_significant": bool(da.get("any_significant")),

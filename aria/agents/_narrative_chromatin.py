@@ -113,8 +113,19 @@ def _finite_unit_mask(p):
     return np.isfinite(p) & (p >= 0.0) & (p <= 1.0)
 
 
+_BINDING_MODALITIES = frozenset({"ChIP", "CUT_AND_RUN", "CUT_AND_TAG"})
+
+
+def _signal_terms(data_type: Optional[str]) -> tuple[str, str, str]:
+    """Return ``(noun, title_phrase, peak_phrase)`` for binding vs accessibility."""
+    if str(data_type or "") in _BINDING_MODALITIES:
+        return "binding", "Differential binding", "differential-binding"
+    return "accessibility", "Differential accessibility", "differential-accessibility"
+
+
 def render_da_figures(da_full_csv: str, output_dir: Path,
-                      padj_max: float = 0.05) -> dict:
+                      padj_max: float = 0.05,
+                      data_type: Optional[str] = None) -> dict:
     """W0.3: pseudobulk-DA volcano + MA per comparison, rendered INLINE (matplotlib
     over the full per-peak CSV from `chromatin_diffacc`). T15 honesty: only peaks in
     the convergence-gated `significant` column are drawn as up/down; everything else
@@ -128,6 +139,9 @@ def render_da_figures(da_full_csv: str, output_dir: Path,
     import matplotlib.pyplot as plt
     import numpy as np
     import pandas as pd
+
+    noun, title_phrase, _peak_phrase = _signal_terms(data_type)
+    is_binding = str(data_type or "") in _BINDING_MODALITIES
 
     df = pd.read_csv(da_full_csv)
     # Accept both column conventions: the scATAC pseudobulk CSV
@@ -180,11 +194,11 @@ def render_da_figures(da_full_csv: str, output_dir: Path,
                     ax.axhline(cap, color="#7f7f7f", lw=0.4, ls=":")
                 ax.axhline(-np.log10(padj_max), color="black", lw=0.5, ls="--")
                 ax.axvline(0, color="black", lw=0.4)
-                ax.set_xlabel("log2 fold change (accessibility)", fontsize=9)
+                ax.set_xlabel(f"log2 fold change ({noun})", fontsize=9)
                 ax.set_ylabel("-log10 padj" + (" (padj=0 capped)"
                                                if cap is not None else ""),
                               fontsize=9)
-                ax.set_title(f"Differential accessibility — {comp}", fontsize=10,
+                ax.set_title(f"{title_phrase} — {comp}", fontsize=10,
                              fontweight="bold")
                 ax.legend(loc="upper right", fontsize=7, frameon=False,
                           markerscale=2.0)
@@ -216,9 +230,15 @@ def render_da_figures(da_full_csv: str, output_dir: Path,
                 ax.scatter(x[sig_ma], lfc_ma[sig_ma], s=7, c="#c0392b",
                            linewidths=0, alpha=0.85, label="significant")
                 ax.axhline(0, color="black", lw=0.5)
-                ax.set_xlabel("log10 mean accessibility (baseMean)", fontsize=9)
+                ax.set_xlabel(f"log10 mean {noun} (baseMean)", fontsize=9)
                 ax.set_ylabel("log2 fold change", fontsize=9)
-                ax.set_title(f"MA plot — {comp}", fontsize=10, fontweight="bold")
+                ax.set_title(
+                    f"Differential binding MA plot — {comp}"
+                    if is_binding
+                    else f"Differential accessibility MA plot — {comp}",
+                    fontsize=10,
+                    fontweight="bold",
+                )
                 ax.legend(loc="upper right", fontsize=7, frameon=False,
                           markerscale=2.0)
                 ax.tick_params(labelsize=7)
@@ -283,11 +303,12 @@ def render_sample_correlation(counts_tsv, png_path) -> Optional[str]:
     return out
 
 
-def render_peak_annotation(annotation: dict, png_path) -> Optional[str]:
-    """Bulk ATAC genomic-context figure: horizontal bar chart of the DA-peak feature
-    distribution (Promoter/Exonic/Intronic/Distal Intergenic) from
-    `chromatin_peak_annotation`. Dual PNG+SVG. Honest-None when no annotation ran or
-    the distribution is empty."""
+def render_peak_annotation(annotation: dict, png_path,
+                           data_type: Optional[str] = None) -> Optional[str]:
+    """Bulk ATAC / epigenomic genomic-context figure: horizontal bar chart of the
+    differential-peak feature distribution (Promoter/Exonic/Intronic/Distal
+    Intergenic) from `chromatin_peak_annotation`. Dual PNG+SVG. Honest-None when
+    no annotation ran or the distribution is empty."""
     dist = (annotation or {}).get("feature_distribution_overall") or {}
     dist = {k: int(v) for k, v in dist.items() if v}
     if not dist:
@@ -295,6 +316,10 @@ def render_peak_annotation(annotation: dict, png_path) -> Optional[str]:
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
+
+    eff_dt = data_type or (annotation or {}).get("data_type")
+    _noun, _title_phrase, peak_phrase = _signal_terms(eff_dt)
+    is_binding = str(eff_dt or "") in _BINDING_MODALITIES
 
     # Canonical ChIPseeker-style order (most proximal first).
     order = ["Promoter", "Exonic", "Intronic", "Distal Intergenic"]
@@ -314,8 +339,9 @@ def render_peak_annotation(annotation: dict, png_path) -> Optional[str]:
     ax.set_yticks(list(ypos))
     ax.set_yticklabels(feats, fontsize=8)
     ax.invert_yaxis()
-    ax.set_xlabel("DA peaks", fontsize=9)
-    ax.set_title("Genomic distribution of differential-accessibility peaks",
+    ax.set_xlabel("Differential binding peaks" if is_binding else "DA peaks",
+                  fontsize=9)
+    ax.set_title(f"Genomic distribution of {peak_phrase} peaks",
                  fontsize=10, fontweight="bold")
     ax.margins(x=0.18)
     out = _save_dual(fig, Path(png_path))
@@ -820,6 +846,7 @@ def generate_figures(findings: dict, h5ad_path: Optional[str], output_dir,
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     figs = findings.setdefault("figures", {})
+    figs_svg = findings.setdefault("figures_svg", {})
 
     # 1. UMAP — needs the embedding in the .h5ad, so render in the chromatin stack.
     if h5ad_path and env_manager is not None:
@@ -837,6 +864,9 @@ def generate_figures(findings: dict, h5ad_path: Optional[str], output_dir,
             if res.get("status") == "success":
                 for key, path in (res.get("figures") or {}).items():
                     figs[f"umap_{key}"] = path
+                for key, path in (res.get("figures_svg") or {}).items():
+                    if isinstance(path, str):
+                        figs_svg[f"umap_{key}"] = path
             else:
                 log.warning(
                     "chromatin UMAP figure failed: %s — %s",
@@ -848,12 +878,14 @@ def generate_figures(findings: dict, h5ad_path: Optional[str], output_dir,
     # 2. DA volcano + MA (inline) from the convergence-gated full DA table.
     da = findings.get("differential_accessibility") or {}
     padj_max = float(da.get("padj_max", 0.05))
+    da_dt = da.get("data_type") or _findings_data_type(findings)
     # scATAC shape: a single pseudobulk table.
     pb = da.get("pseudobulk") or {}
     da_full_csv = pb.get("full_results_csv")
     if da_full_csv:
         try:
-            figs.update(render_da_figures(da_full_csv, output_dir, padj_max))
+            figs.update(render_da_figures(
+                da_full_csv, output_dir, padj_max, data_type=da_dt))
         except Exception as e:
             log.warning("chromatin DA figures failed: %s", e)
     # Bulk chromatin shape (bulk_ATAC, ChIP, CUT&RUN, CUT&Tag): one
@@ -864,7 +896,9 @@ def generate_figures(findings: dict, h5ad_path: Optional[str], output_dir,
             if not comp_csv:
                 continue
             try:
-                figs.update(render_da_figures(comp_csv, output_dir, padj_max))
+                figs.update(render_da_figures(
+                    comp_csv, output_dir, padj_max,
+                    data_type=da.get("data_type")))
             except Exception as e:
                 log.warning("bulk ATAC DA figures failed for %s: %s",
                             (comp or {}).get("test"), e)
@@ -889,18 +923,23 @@ def generate_figures(findings: dict, h5ad_path: Optional[str], output_dir,
                   else "scatac")
     try:
         path = render_peak_annotation(
-            ann, output_dir / f"{ann_prefix}_peak_annotation.png")
+            ann, output_dir / f"{ann_prefix}_peak_annotation.png",
+            data_type=ann_dt)
         if path:
             figs[f"{ann_prefix}_peak_annotation"] = path
     except Exception as e:
         log.warning("peak-annotation figure failed: %s", e)
     # ORA dotplots are rendered in the rna stack by the ORA script (seaborn lives
-    # there); surface the returned paths.
+    # there); surface the returned paths (PNG + companion SVG).
     ora = findings.get("peak_ora") or {}
     for key, path in ((ora.get("figures") or {}) if isinstance(ora, dict)
                       else {}).items():
         if isinstance(path, str):
             figs[key] = path
+    for key, path in ((ora.get("figures_svg") or {}) if isinstance(ora, dict)
+                      else {}).items():
+        if isinstance(path, str):
+            figs_svg[key] = path
 
     # 2b. Bulk ATAC sample PCA + ENCODE QC summary (ADR-077), rendered by
     # `chromatin_figure_bulk` in the rna stack (or in-process without an env
@@ -958,6 +997,9 @@ def generate_figures(findings: dict, h5ad_path: Optional[str], output_dir,
                 for key, path in (res.get("figures") or {}).items():
                     if isinstance(path, str):
                         figs[key] = path
+                for key, path in (res.get("figures_svg") or {}).items():
+                    if isinstance(path, str):
+                        figs_svg[key] = path
             else:
                 log.warning(
                     "chromatin cluster figures failed: %s — %s",
@@ -970,12 +1012,27 @@ def generate_figures(findings: dict, h5ad_path: Optional[str], output_dir,
     # footprints are rendered by the TOBIAS backend; surface only files that exist.
     footprinting = findings.get("footprinting") or {}
     if isinstance(footprinting, dict) and footprinting.get("ran"):
-        volcano_png = (footprinting.get("volcano_plot") or {}).get("png")
+        volcano_plot = footprinting.get("volcano_plot") or {}
+        volcano_png = volcano_plot.get("png")
         if isinstance(volcano_png, str) and Path(volcano_png).exists():
             figs["footprint_volcano"] = volcano_png
+        volcano_svg = volcano_plot.get("svg")
+        if isinstance(volcano_svg, str) and Path(volcano_svg).exists():
+            figs_svg["footprint_volcano"] = volcano_svg
         for tf, paths in (footprinting.get("aggregate_plots") or {}).items():
             png = (paths or {}).get("png") if isinstance(paths, dict) else None
+            svg = (paths or {}).get("svg") if isinstance(paths, dict) else None
+            fk = f"footprint_{_safe(tf)}"
             if isinstance(png, str) and Path(png).exists():
-                figs[f"footprint_{_safe(tf)}"] = png
+                figs[fk] = png
+            if isinstance(svg, str) and Path(svg).exists():
+                figs_svg[fk] = svg
+
+    # Record companion sibling SVGs emitted by _save_dual / figure scripts.
+    for key, png_path in figs.items():
+        if key not in figs_svg and isinstance(png_path, str) and png_path:
+            svg_cand = Path(png_path).with_suffix(".svg")
+            if svg_cand.is_file():
+                figs_svg[key] = str(svg_cand)
 
     return findings

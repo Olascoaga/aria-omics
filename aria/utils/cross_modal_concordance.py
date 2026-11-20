@@ -583,9 +583,13 @@ def tf_layer(atac, comp, rna_df, flipped, alpha, warnings, expression=None):
         tf = item["tf"]
         rna = lookup.get(tf.upper())
         expr = (expression or {}).get(tf.upper())
-        significant = rna is not None and ((finite(rna.get("rna_padj")) is not None and rna["rna_padj"] < alpha) or rna.get("rna_known_sig") is True)
+        rna_padj = finite(rna.get("rna_padj")) if rna is not None else None
+        rna_known_sig = bool(rna.get("rna_known_sig") is True) if rna is not None else False
+        significant = rna is not None and ((rna_padj is not None and rna_padj < alpha) or rna_known_sig)
         if rna is None and not (expr is not None and expr > 0):
             classification = "not_detected_in_rna"
+        elif rna is None or (rna_padj is None and not rna_known_sig):
+            classification = "rna_not_tested"
         elif significant and rna.get("rna_direction") in (-1, 1):
             classification = "concordant" if rna["rna_direction"] == item["direction_sign"] else "discordant"
         else:

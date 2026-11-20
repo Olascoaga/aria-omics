@@ -67,6 +67,12 @@ def _normalized_effect(signal) -> float | None:
     measure = str(getattr(signal, "measure", "") or "")
     if measure in ("mofa_shared_rna_loading", "eregulon_target_membership"):
         return None
+    if measure == "hic_loop_anchor":
+        if 0.0 <= value <= 1.0:
+            return math.tanh(-math.log10(max(value, 1e-300)) / 5.0)
+        if value > 1.0:
+            return math.tanh(value)
+        return None
     if (
         measure.startswith("peak2gene")
         or measure in (

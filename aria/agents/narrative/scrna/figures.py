@@ -140,6 +140,10 @@ def render_cellcomm_heatmap(findings: dict,
     output_path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(output_path, dpi=160, bbox_inches="tight",
                 facecolor="white")
+    if output_path.suffix.lower() == ".png":
+        fig.savefig(output_path.with_suffix(".svg"), format="svg",
+                    bbox_inches="tight", facecolor="white",
+                    metadata={"Date": None})
     plt.close(fig)
     return str(output_path)
 
@@ -224,6 +228,10 @@ def render_cellcomm_top_pairs_bar(findings: dict,
     output_path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(output_path, dpi=160, bbox_inches="tight",
                 facecolor="white")
+    if output_path.suffix.lower() == ".png":
+        fig.savefig(output_path.with_suffix(".svg"), format="svg",
+                    bbox_inches="tight", facecolor="white",
+                    metadata={"Date": None})
     plt.close(fig)
     return str(output_path)
 
@@ -279,6 +287,10 @@ def render_per_celltype_de_bar(findings: dict, output_path: Path) -> Optional[st
     output_path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(output_path, dpi=160, bbox_inches="tight",
                 facecolor="white")
+    if output_path.suffix.lower() == ".png":
+        fig.savefig(output_path.with_suffix(".svg"), format="svg",
+                    bbox_inches="tight", facecolor="white",
+                    metadata={"Date": None})
     plt.close(fig)
     return str(output_path)
 

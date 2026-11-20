@@ -9,7 +9,18 @@ comes from the run, the RNA means come from the paired data.
 """
 from __future__ import annotations
 
+import math
 from typing import Any
+
+
+def _finite_mean(value: Any) -> float | None:
+    if value is None or isinstance(value, bool):
+        return None
+    try:
+        num = float(value)
+    except (TypeError, ValueError):
+        return None
+    return num if math.isfinite(num) else None
 
 
 def _tf_genes(tf_name: str) -> list[str]:
@@ -22,20 +33,48 @@ def _tf_genes(tf_name: str) -> list[str]:
 
 
 def _rna_favored_group(genes: list[str], rna_group_means: dict[str, dict[str, float]],
-                       group_a: str, group_b: str) -> tuple[str | None, dict | None]:
+                       group_a: str, group_b: str,
+                       target_group: str | None = None) -> tuple[str | None, dict | None]:
     """Return the group with the higher RNA mean across the TF's gene(s) (and the
-    component means used), or ``(None, None)`` when no component gene has RNA means."""
-    best = None
+    component means used), or ``(None, None)`` when no component gene has finite
+    non-tied RNA means (ties return ``None`` / neutral instead of biasing group_a)."""
+    ci_means: dict[str, dict[str, Any]] = {}
+    for k, v in (rna_group_means or {}).items():
+        if isinstance(v, dict):
+            ku = str(k).strip().upper()
+            if ku and (ku not in ci_means or str(k) == ku):
+                ci_means[ku] = v
+
+    non_tied: list[tuple[str, float, float, str]] = []
+    tied: list[tuple[str, float, float]] = []
     for g in genes:
-        means = rna_group_means.get(g) or rna_group_means.get(g.capitalize())
+        gu = str(g).strip().upper()
+        means = ci_means.get(gu)
         if not means or group_a not in means or group_b not in means:
             continue
-        ma, mb = float(means[group_a]), float(means[group_b])
-        cand = (g, ma, mb, group_a if ma >= mb else group_b)
-        if best is None or abs(cand[1] - cand[2]) > abs(best[1] - best[2]):
-            best = cand
-    if best is None:
+        ma = _finite_mean(means[group_a])
+        mb = _finite_mean(means[group_b])
+        if ma is None or mb is None:
+            continue
+        if ma == mb:
+            tied.append((gu, ma, mb))
+            continue
+        grp = group_a if ma > mb else group_b
+        non_tied.append((gu, ma, mb, grp))
+
+    if not non_tied:
+        if tied:
+            g0, ma0, mb0 = tied[0]
+            return None, {"gene": g0, group_a: round(ma0, 4),
+                          group_b: round(mb0, 4)}
         return None, None
+
+    pool = non_tied
+    if target_group is not None:
+        supporting = [c for c in non_tied if c[3] == target_group]
+        if supporting:
+            pool = supporting
+    best = max(pool, key=lambda c: abs(c[1] - c[2]))
     return best[3], {"gene": best[0], group_a: round(best[1], 4),
                      group_b: round(best[2], 4)}
 
@@ -55,7 +94,8 @@ def footprint_rna_concordance(differential_summary: dict,
         for tf in (differential_summary.get(f"top_toward_{favored}") or [])[:top_n]:
             genes = _tf_genes(tf.get("tf", ""))
             rna_group, means = _rna_favored_group(genes, rna_group_means,
-                                                  group_a, group_b)
+                                                  group_a, group_b,
+                                                  target_group=favored)
             checked = rna_group is not None
             concordant = checked and rna_group == favored
             if checked:

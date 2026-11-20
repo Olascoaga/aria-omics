@@ -8,6 +8,8 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
+from aria.scripts.rna_bulk.gtf_io import _strip_gene_version
+
 log = logging.getLogger(__name__)
 
 _P = dict(
@@ -203,6 +205,7 @@ def _generate_plots(de_result: dict, sample_qc: dict,
         import numpy as np
         import pandas as pd
 
+        Path(output_dir).mkdir(parents=True, exist_ok=True)
         results_df = de_result.get("results")
         if results_df is not None and not results_df.empty:
             # ── Volcano plot ───────────────────────────────────────────
@@ -251,7 +254,7 @@ def _generate_plots(de_result: dict, sample_qc: dict,
             symbol_map = sample_qc.get("_symbol_map") or {}
             for gene, row in top_sig.iterrows():
                 gene_id = str(gene)
-                label = symbol_map.get(gene_id) or symbol_map.get(gene_id.split(".")[0]) or gene_id
+                label = symbol_map.get(gene_id) or symbol_map.get(_strip_gene_version(gene_id)) or gene_id
                 label = str(label)
                 if len(label) > 40:
                     label = label[:37] + "…"
@@ -320,10 +323,16 @@ def _generate_plots(de_result: dict, sample_qc: dict,
                     plots["heatmap_padj"] = hm_a
 
                 # (b) Top 50 by |log2FC| (NEW in v3.8)
-                lfc_sorted = de_results_df.dropna(subset=["padj","log2FoldChange"])
-                lfc_sorted = lfc_sorted[lfc_sorted["padj"] < padj_thr]
+                lfc_vals = pd.to_numeric(de_results_df["log2FoldChange"], errors="coerce")
+                padj_vals = pd.to_numeric(de_results_df["padj"], errors="coerce")
+                finite_mask = (
+                    np.isfinite(lfc_vals)
+                    & np.isfinite(padj_vals)
+                    & padj_vals.between(0, 1)
+                )
+                lfc_sorted = de_results_df.loc[finite_mask & (padj_vals < padj_thr)].copy()
                 lfc_sorted = lfc_sorted.assign(
-                    abs_lfc=lfc_sorted["log2FoldChange"].abs()
+                    abs_lfc=lfc_vals.loc[lfc_sorted.index].abs()
                 ).sort_values("abs_lfc", ascending=False)
                 top_lfc = [g for g in lfc_sorted.index[:50]
                             if g in available_all]
@@ -395,7 +404,7 @@ def _plot_heatmap(genes: list, vst_matrix, counts_filt,
         # Gene labels: symbols when available
         row_labels = []
         for g in available:
-            clean = str(g).split(".")[0]
+            clean = _strip_gene_version(str(g))
             sym   = (symbol_map or {}).get(clean, "")
             row_labels.append(sym if sym else clean)
 

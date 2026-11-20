@@ -73,12 +73,9 @@ def _sa_index_nbases(fasta_path: str) -> int:
 
 
 def rna_align(params: dict) -> dict:
-    samples    = params["samples"]           # from rna_fastq_qc
+    samples    = params.get("samples") or []           # from rna_fastq_qc
     genome_dir = Path(params["genome_dir"])
     gtf_file   = params.get("gtf_file", "")
-    output_dir = Path(params.get("output_dir",
-                                  str(Path(samples[0]["r1_trimmed"]).parent.parent
-                                      / "aria_aligned")))
     threads    = int(params.get("threads", 8))
     library_protocol = str(params.get("library_protocol") or "full_length").strip().lower()
     default_two_pass = library_protocol == "full_length"
@@ -86,8 +83,6 @@ def rna_align(params: dict) -> dict:
     genome_fasta = params.get("genome_fasta", "")
     allow_mock = mocks_allowed(params)
     warnings   = []
-
-    output_dir.mkdir(parents=True, exist_ok=True)
 
     if not samples:
         return {
@@ -110,6 +105,21 @@ def rna_align(params: dict) -> dict:
             "failed_samples": upstream_failed,
             "warnings": warnings,
         }
+
+    out_dir_param = params.get("output_dir")
+    if out_dir_param:
+        output_dir = Path(out_dir_param)
+    else:
+        first_r1 = (
+            samples[0].get("r1_trimmed")
+            or samples[0].get("r1")
+            or (samples[0].get("r1_trimmed_files") or [None])[0]
+        )
+        output_dir = (
+            Path(first_r1).parent.parent / "aria_aligned"
+            if first_r1 else Path("aria_aligned")
+        )
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     # ── Build genome index if needed ──────────────────────────────────────
     sa_nbases = _sa_index_nbases(genome_fasta)

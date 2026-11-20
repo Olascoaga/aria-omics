@@ -20,6 +20,7 @@ when no versioned GMT is provisioned (no fabrication).
 from __future__ import annotations
 
 import os
+import re
 import sys
 from pathlib import Path
 from typing import Optional
@@ -65,9 +66,9 @@ def chromatin_peak_ora(params: dict) -> dict:
     sig genes."""
     import pandas as pd
 
-    data_type, validation_level, _prefix = _modality_stamp(params)
+    data_type, validation_level, prefix = _modality_stamp(params)
     # Bulk ATAC keeps its historical (unprefixed) figure keys/filenames.
-    fig_prefix = "scatac_" if data_type == "scATAC" else ""
+    fig_prefix = "" if data_type == "bulk_ATAC" else f"{prefix}_"
 
     out_dir = Path(params.get("output_dir", "."))
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -134,6 +135,7 @@ def chromatin_peak_ora(params: dict) -> dict:
             [str(p) for p in df[peak_col].tolist()], models)
 
         comp_key = f"{comp.get('test')}_vs_{comp.get('reference')}"
+        safe_key = re.sub(r"[^A-Za-z0-9._-]+", "_", comp_key)
         pathways, pw_warn, ora_meta = _run_pathway_enrichment(
             fg_genes, up_genes, down_genes, organism, str(out_dir),
             symbol_map=None, background_genes=bg_genes, allow_mock=False)
@@ -145,7 +147,8 @@ def chromatin_peak_ora(params: dict) -> dict:
             for db, terms in pathways.items():
                 if not terms:
                     continue
-                key = f"{fig_prefix}peak_ora_{db}_{comp_key}"
+                safe_db = re.sub(r"[^A-Za-z0-9._-]+", "_", str(db))
+                key = f"{fig_prefix}peak_ora_{safe_db}_{safe_key}"
                 path = make_ora_dotplot(
                     terms, db, comp_key.replace("_", " "),
                     str(out_dir / f"{key}.png"))

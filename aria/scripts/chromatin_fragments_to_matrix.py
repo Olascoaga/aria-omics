@@ -188,7 +188,7 @@ def chromatin_fragments_to_matrix(params: dict) -> dict:
             samples = resolve_sample_ids(fragments_files, params.get("sample_ids"))
         except ValueError as exc:
             return not_run("invalid_sample_ids", message=str(exc))
-        if "library_manifest" not in params:
+        if not library_manifest:
             library_manifest = []
             for sample in samples:
                 meta = dict((params.get("sample_metadata") or {}).get(sample) or {})

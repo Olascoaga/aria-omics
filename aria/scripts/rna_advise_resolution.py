@@ -131,13 +131,40 @@ def rna_advise_resolution(params: dict) -> dict:
     # do the preprocessing in-memory. Mirrors rna_clustering.py so the
     # downstream clustering step will skip these stages (idempotency).
     if "X_pca" not in adata.obsm:
-        sc.pp.normalize_total(adata, target_sum=1e4)
-        sc.pp.log1p(adata)
-        if adata.raw is None:
-            adata.raw = adata.copy()
-        sc.pp.highly_variable_genes(adata, n_top_genes=n_hvg, subset=True)
-        sc.pp.scale(adata, max_value=10)
-        sc.tl.pca(adata, svd_solver="arpack", n_comps=n_pcs,
+        from scipy import sparse
+        from aria.utils.count_classifier import classify_matrix
+
+        if adata.n_obs < 2 or adata.n_vars < 2:
+            return {
+                "status": "skipped",
+                "reason": "PCA requires at least two cells and two genes",
+            }
+        x_min = (
+            float(adata.X.data.min()) if sparse.issparse(adata.X) and adata.X.nnz
+            else (0.0 if sparse.issparse(adata.X) else float(np.nanmin(adata.X)))
+        )
+        mat_info = classify_matrix(adata.X)
+        is_scaled = x_min < 0 or mat_info.get("kind") == "scaled"
+        is_lognorm = (not is_scaled) and mat_info.get("kind") == "lognorm"
+
+        if not is_scaled:
+            if not is_lognorm:
+                sc.pp.normalize_total(adata, target_sum=1e4)
+                sc.pp.log1p(adata)
+            if adata.raw is None:
+                adata.raw = adata.copy()
+            if adata.n_vars > n_hvg:
+                sc.pp.highly_variable_genes(adata, n_top_genes=n_hvg, subset=True)
+            sc.pp.scale(adata, max_value=10)
+
+        max_comps = min(adata.shape) - 1
+        if max_comps < 1:
+            return {
+                "status": "skipped",
+                "reason": "PCA requires at least two cells and two genes",
+            }
+        n_comps = max(2, min(n_pcs, max_comps)) if max_comps >= 2 else 1
+        sc.tl.pca(adata, svd_solver="arpack", n_comps=n_comps,
                   random_state=seed)
 
     # Pick embedding: harmony-corrected if available, else PCA.
@@ -150,8 +177,10 @@ def rna_advise_resolution(params: dict) -> dict:
 
     # Ensure neighbor graph exists so leiden can run on every candidate.
     if "neighbors" not in adata.uns:
-        sc.pp.neighbors(adata, use_rep=rep, n_neighbors=15, n_pcs=n_pcs,
-                        random_state=seed)
+        n_pcs_use = max(1, min(n_pcs, adata.obsm[rep].shape[1]))
+        n_neighbors_use = max(2, min(15, adata.n_obs - 1))
+        sc.pp.neighbors(adata, use_rep=rep, n_neighbors=n_neighbors_use,
+                        n_pcs=n_pcs_use, random_state=seed)
 
     pca_emb = adata.obsm[rep][:, :20] if adata.obsm[rep].shape[1] >= 20 \
               else adata.obsm[rep]

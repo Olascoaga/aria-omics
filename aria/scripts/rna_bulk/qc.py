@@ -75,14 +75,24 @@ def _sample_qc(counts, metadata, output_dir: str,
                 for s in sample_ids:
                     others = [x for x in sample_ids if x != s]
                     mean_r = sub_corr.loc[s, others].mean()
-                    replicate_report[s] = round(float(mean_r), 4)
-                    if mean_r < 0.85:
+                    if not np.isfinite(mean_r):
+                        replicate_report[s] = None
                         replicate_outliers.append(s)
                         warnings.append(
-                            f"Sample '{s}' has mean Spearman r={mean_r:.3f} "
-                            f"with other {group} replicates (<0.85). "
-                            f"Possible technical issue or sample swap."
+                            f"Sample '{s}' has undefined/non-finite Spearman "
+                            f"correlation with other {group} replicates "
+                            f"(possible all-zero or constant expression profile)."
                         )
+                    else:
+                        mean_r_f = float(mean_r)
+                        replicate_report[s] = round(mean_r_f, 4)
+                        if mean_r_f < 0.85:
+                            replicate_outliers.append(s)
+                            warnings.append(
+                                f"Sample '{s}' has mean Spearman r={mean_r_f:.3f} "
+                                f"with other {group} replicates (<0.85). "
+                                f"Possible technical issue or sample swap."
+                            )
 
         # ── (b) VST-based dimensionality reduction (PCA + MDS) ────────────
         # Methodology (v3.8):
@@ -134,7 +144,7 @@ def _sample_qc(counts, metadata, output_dir: str,
         # almost certainly broken regardless of PCA.
         critical_replicate = [
             s for s in replicate_outliers
-            if replicate_report.get(s, 1.0) < 0.70
+            if replicate_report.get(s) is None or replicate_report.get(s, 1.0) < 0.70
         ]
         confirmed_outliers = sorted(set(
             critical_replicate +
@@ -182,14 +192,16 @@ def _sample_qc(counts, metadata, output_dir: str,
 
 def _prune_outliers_for_design(outliers: list, metadata,
                                design_factor: str,
-                               warnings: list) -> list:
+                               warnings: list,
+                               min_reps: int = 2) -> list:
     """
     Keep QC from destroying the statistical design.
 
     Sample-level QC can be noisy in very small or synthetic datasets. Removing
     every low-concordance sample is worse than reporting the warning and then
     running the requested contrast with explicit caveats. Only remove a sample
-    when every affected group still has at least two samples afterward.
+    when every affected group still has at least ``min_reps`` (minimum 2)
+    samples afterward.
     """
     if not outliers:
         return []
@@ -198,13 +210,14 @@ def _prune_outliers_for_design(outliers: list, metadata,
     if not outliers or design_factor not in metadata.columns:
         return outliers
 
+    min_required = max(2, int(min_reps))
     kept = []
     skipped = []
     for sample in outliers:
         trial = set(kept + [sample])
         remaining = metadata.drop(index=list(trial), errors="ignore")
         group_sizes = remaining[design_factor].value_counts()
-        if (group_sizes < 2).any() or len(group_sizes) < 2:
+        if (group_sizes < min_required).any() or len(group_sizes) < 2:
             skipped.append(sample)
         else:
             kept.append(sample)
@@ -212,7 +225,7 @@ def _prune_outliers_for_design(outliers: list, metadata,
     if skipped:
         warnings.append(
             "QC flagged samples as potential outliers but kept them because "
-            "removal would leave at least one group with <2 replicates: "
+            f"removal would leave at least one group with <{min_required} replicates: "
             f"{skipped}."
         )
 
@@ -259,7 +272,9 @@ def _run_outlier_sensitivity(
         return summary
 
     counts_s = counts.drop(columns=removable, errors="ignore")
-    metadata_s = metadata.drop(index=removable, errors="ignore")
+    metadata_s = metadata.drop(index=removable, errors="ignore").copy()
+    if design_factor in metadata_s.columns:
+        metadata_s[design_factor] = metadata_s[design_factor].astype(str)
     min_samples = max(2, metadata_s.shape[0] // 4)
     keep = (counts_s > 10).sum(axis=1) >= min_samples
     counts_s_filt = counts_s[keep]
@@ -287,7 +302,7 @@ def _run_outlier_sensitivity(
         if not primary:
             continue
 
-        available_groups = list(metadata_s[design_factor].unique())
+        available_groups = {str(g) for g in metadata_s[design_factor].unique()}
         if num not in available_groups or den not in available_groups:
             sensitivity_results.append({
                 "name": name,
@@ -405,10 +420,21 @@ def _run_outlier_sensitivity(
             ) if k in sens
         }
 
-    summary["status"] = "success" if sensitivity_results else "skipped"
-    summary["reason"] = (
-        "completed" if sensitivity_results else "no_primary_contrast_to_compare"
-    )
+    n_succeeded = sum(1 for s in sensitivity_results if s.get("status") == "success")
+    n_errored = sum(1 for s in sensitivity_results if s.get("status") == "error")
+    if n_succeeded > 0:
+        summary["status"] = "success"
+        summary["reason"] = "completed"
+    elif n_errored > 0:
+        summary["status"] = "error"
+        summary["reason"] = "all_sensitivity_contrasts_failed"
+    else:
+        summary["status"] = "skipped"
+        summary["reason"] = (
+            "all_sensitivity_contrasts_skipped"
+            if sensitivity_results
+            else "no_primary_contrast_to_compare"
+        )
     summary["contrasts"] = sensitivity_results
     summary["conclusion_robust"] = all(robust_values) if robust_values else None
     return summary

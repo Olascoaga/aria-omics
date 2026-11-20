@@ -480,19 +480,58 @@ class IntegrationAgent(BaseAgent):
                 "Assembling raw Multiome FASTQs into paired .h5mu...",
                 0.03,
             )
-            manifest = exp_ctx.get("multiome_fastq_manifest") or {}
+            exp_contract = (
+                exp_ctx.get("multiome_contract")
+                if isinstance(exp_ctx.get("multiome_contract"), dict)
+                else {}
+            )
+            if exp_contract:
+                for ck, cv in exp_contract.items():
+                    if ck not in contract or contract.get(ck) is None:
+                        contract[ck] = cv
+            raw_manifest = exp_ctx.get("multiome_fastq_manifest")
+            manifest = (
+                raw_manifest
+                if isinstance(raw_manifest, dict) and raw_manifest
+                else exp_contract
+            )
             samples = list(
                 (manifest.get("samples") if isinstance(manifest, dict) else None)
                 or (manifest.get("libraries") if isinstance(manifest, dict) else None)
+                or (exp_contract.get("samples") if isinstance(exp_contract, dict) else None)
+                or (exp_contract.get("libraries") if isinstance(exp_contract, dict) else None)
+                or (contract.get("samples") if isinstance(contract, dict) else None)
+                or (contract.get("libraries") if isinstance(contract, dict) else None)
                 or []
             )
             if not samples:
+                top_rna_fqs = (
+                    (manifest.get("rna_fastqs") if isinstance(manifest, dict) else None)
+                    or exp_contract.get("rna_fastqs")
+                    or contract.get("rna_fastqs")
+                    or mods.get("scRNA")
+                    or []
+                )
+                top_atac_fqs = (
+                    (manifest.get("atac_fastqs") if isinstance(manifest, dict) else None)
+                    or exp_contract.get("atac_fastqs")
+                    or contract.get("atac_fastqs")
+                    or mods.get("scATAC")
+                    or []
+                )
                 samples = [
                     {
-                        "sample_id": (contract.get("sample_ids") or ["sample_1"])[0],
-                        "rna_fastqs": list(mods.get("scRNA") or []),
-                        "atac_fastqs": list(mods.get("scATAC") or []),
-                        "platform": contract.get("platform") or "10x_multiome_arc_v1",
+                        "sample_id": (
+                            (manifest.get("sample_id") if isinstance(manifest, dict) else None)
+                            or (contract.get("sample_ids") or ["sample_1"])[0]
+                        ),
+                        "rna_fastqs": list(top_rna_fqs),
+                        "atac_fastqs": list(top_atac_fqs),
+                        "platform": (
+                            (manifest.get("platform") if isinstance(manifest, dict) else None)
+                            or contract.get("platform")
+                            or "10x_multiome_arc_v1"
+                        ),
                     }
                 ]
             base_out = Path(
@@ -756,21 +795,40 @@ class IntegrationAgent(BaseAgent):
                     "platform": contract.get("platform") or "paired_multiome",
                     "output_dir": str(base_out),
                 }
-                if has_frag_peaks:
-                    frags = [
-                        f
-                        for f in atac_files
-                        if "fragment" in Path(f).name.lower()
+                _peak_bed_exts = (".bed", ".bed.gz", ".narrowpeak", ".broadpeak")
+                frags = [
+                    f
+                    for f in atac_files
+                    if (
+                        "fragment" in Path(f).name.lower()
                         or f.lower().endswith(".tsv.gz")
-                    ]
-                    peaks = [
-                        f
-                        for f in atac_files
-                        if f not in frags
-                        and Path(f).name.lower().endswith(
-                            (".bed", ".bed.gz", ".narrowpeak", ".broadpeak")
-                        )
-                    ]
+                    )
+                    and not Path(f).name.lower().endswith(_peak_bed_exts)
+                ]
+                peaks = [
+                    f
+                    for f in atac_files
+                    if f not in frags
+                    and Path(f).name.lower().endswith(_peak_bed_exts)
+                ]
+                peak_matrices = [
+                    f
+                    for f in atac_files
+                    if f not in frags
+                    and f not in peaks
+                    and (
+                        Path(f).name.lower().endswith((".h5ad", ".h5"))
+                        or Path(f).is_dir()
+                        or Path(f).suffix == ""
+                    )
+                ]
+                if peak_matrices:
+                    asm_params["atac_path"] = peak_matrices[0]
+                    if frags:
+                        asm_params["fragments_path"] = frags[0]
+                    if peaks:
+                        asm_params["peaks_path"] = peaks[0]
+                elif has_frag_peaks:
                     if frags:
                         asm_params["fragments_path"] = frags[0]
                     if peaks:
@@ -1045,7 +1103,9 @@ class IntegrationAgent(BaseAgent):
             f"ATAC weight={atac_weight:.2f}"
         )
 
-        if rna_weight > 0.85:
+        dominant_weight = max(rna_weight, atac_weight)
+        if rna_weight > 0.85 or atac_weight > 0.85:
+            dominant_mod = "RNA" if rna_weight >= atac_weight else "ATAC"
             # Imbalanced — debate required
             try:
                 from aria.agents.debate_council import DebateCouncil
@@ -1054,7 +1114,7 @@ class IntegrationAgent(BaseAgent):
                 claim = (
                     f"WNN modality weights are severely imbalanced: "
                     f"RNA={rna_weight:.2f}, ATAC={atac_weight:.2f}. "
-                    f"The joint embedding is dominated by RNA signal."
+                    f"The joint embedding is dominated by {dominant_mod} signal."
                 )
                 debate = council.resolve(
                     topic="wnn_modality_weight_imbalance",
@@ -1070,10 +1130,10 @@ class IntegrationAgent(BaseAgent):
                 wnn_result["weight_debate"] = debate.consensus
                 wnn_result["weight_verdict"] = debate.verdict.value
 
-                conf = Confidence.LOW if rna_weight > 0.90 else Confidence.MEDIUM
+                conf = Confidence.LOW if dominant_weight > 0.90 else Confidence.MEDIUM
             except Exception as e:
                 log.warning(f"DebateCouncil unavailable: {e}")
-                conf = Confidence.MEDIUM
+                conf = Confidence.LOW if dominant_weight > 0.90 else Confidence.MEDIUM
         else:
             conf = Confidence.HIGH
 
@@ -1726,6 +1786,14 @@ class IntegrationAgent(BaseAgent):
                     "cell_cycle_factor_flag": mofa_result.get(
                         "cell_cycle_factor_flag", False
                     ),
+                    "batch_factor_flag": mofa_result.get(
+                        "batch_factor_flag", False
+                    ),
+                    "batch_factor_ids": mofa_result.get("batch_factor_ids") or [],
+                    "batch_key": mofa_result.get("batch_key"),
+                    "batch_condition_confounded": mofa_result.get(
+                        "batch_condition_confounded", False
+                    ),
                     "excluded_factor_ids": excluded_ids,
                 },
                 biological_context=intent,
@@ -1953,26 +2021,55 @@ class IntegrationAgent(BaseAgent):
                     }
                 )
 
-        # Check MOFA+ confounder-associated factors (depth / phase covariates)
+        # Check MOFA+ confounder-associated factors (depth / phase covariates),
+        # excluding batch-only factors already reported under mofa_batch_confounded_factors.
         if mofa.get("status") == "success":
-            excl_ids = [
-                f.get("factor_id")
-                for f in (mofa.get("excluded_factors") or [])
-                if isinstance(f, dict) and f.get("factor_id") is not None
-            ]
+            batch_fids = (
+                set(mofa.get("batch_factor_ids") or [])
+                if mofa.get("batch_factor_flag")
+                else set()
+            )
+            excl_ids: list = []
+            has_depth_reason = False
+            has_phase_reason = False
+            for f in mofa.get("excluded_factors") or []:
+                if not isinstance(f, dict) or f.get("factor_id") is None:
+                    continue
+                fid = f.get("factor_id")
+                reasons_str = " ".join(str(r).lower() for r in (f.get("exclusion_reasons") or []))
+                is_depth = bool(f.get("technical_depth_flag")) or ("depth" in reasons_str)
+                is_phase = bool(f.get("cell_cycle_flag")) or ("cycle" in reasons_str or "phase" in reasons_str)
+                is_batch_only = (fid in batch_fids) and not is_depth and not is_phase
+                if is_batch_only:
+                    continue
+                excl_ids.append(fid)
+                if is_depth:
+                    has_depth_reason = True
+                if is_phase:
+                    has_phase_reason = True
             if not excl_ids and mofa.get("technical_factor_flag"):
                 tfid = mofa.get("technical_factor_id")
-                if tfid is not None:
+                if tfid is not None and tfid not in batch_fids:
                     excl_ids.append(tfid)
+                    has_depth_reason = True
             if not excl_ids and mofa.get("cell_cycle_factor_flag"):
-                excl_ids.extend(mofa.get("cell_cycle_factor_ids") or [])
+                for cfid in mofa.get("cell_cycle_factor_ids") or []:
+                    if cfid not in batch_fids and cfid not in excl_ids:
+                        excl_ids.append(cfid)
+                        has_phase_reason = True
             if excl_ids:
+                if has_depth_reason and not has_phase_reason:
+                    reason_phrase = "measured technical sequencing depth covariates"
+                elif has_phase_reason and not has_depth_reason:
+                    reason_phrase = "measured cell-cycle phase covariates"
+                else:
+                    reason_phrase = "measured technical sequencing depth or phase covariates"
                 conflicts.append(
                     {
                         "type": "mofa_confounder_factor_excluded",
                         "description": (
                             f"MOFA+ factor(s) {excl_ids} strongly correlate with "
-                            "measured technical sequencing depth or phase covariates "
+                            f"{reason_phrase} "
                             "and are excluded from biological lineage interpretation."
                         ),
                         "excluded_factor_ids": excl_ids,

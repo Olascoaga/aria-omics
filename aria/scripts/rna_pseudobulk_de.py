@@ -736,7 +736,7 @@ def rna_pseudobulk_de(params: dict) -> dict:
         from pydeseq2.ds  import DeseqStats
 
         for comp in comparisons:
-            test_lvl, ref_lvl = comp[0], comp[1]
+            test_lvl, ref_lvl = str(comp[0]), str(comp[1])
             comp_key  = f"{test_lvl}_vs_{ref_lvl}"
             mask      = meta_df[condition_col].isin([test_lvl, ref_lvl])
             meta_sub  = meta_df[mask].copy()

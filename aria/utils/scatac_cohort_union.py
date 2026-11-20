@@ -180,7 +180,11 @@ def merge_scatac_matrices(
         merged = ad.concat(projected, join="outer", merge="same")
         merged.var = var.copy()
         merged.layers["counts"] = merged.X.copy()
-        merged.uns["peak_provenance"] = "cohort_interval_union_consensus"
+        merged.uns["peak_provenance"] = {
+            "method": "overlap_unified",
+            "source": "cohort_interval_union_consensus",
+            "n_samples": len(paths),
+        }
         merged.uns["samples"] = samples
         destination = Path(output_path)
         destination.parent.mkdir(parents=True, exist_ok=True)

@@ -198,9 +198,13 @@ def _peak_to_gene_signals(
     wnn_caveats: list[str],
     max_genes: int,
 ) -> list[EvidenceSignal]:
-    padj_cutoff = _finite_float(p2g.get("max_padj"))
-    if padj_cutoff is None:
-        padj_cutoff = 0.05
+    bg_method = str(p2g.get("background_method") or "").strip().lower()
+    if bg_method == "none" or ("max_padj" in p2g and p2g.get("max_padj") is None):
+        padj_cutoff: float | None = None
+    else:
+        padj_cutoff = _finite_float(p2g.get("max_padj"))
+        if padj_cutoff is None:
+            padj_cutoff = 0.05
 
     candidates: list[tuple[float, float, str, str, str, float, str]] = []
     for row in p2g.get("top_links") or []:
@@ -218,12 +222,14 @@ def _peak_to_gene_signals(
         corr = _finite_corr(corr_raw)
         if corr is None or corr == 0.0:
             continue
-        if "padj" in row and row.get("padj") is not None:
-            padj = _finite_float(row.get("padj"))
+        raw_padj = row.get("padj")
+        padj = _finite_float(raw_padj) if raw_padj is not None else None
+        if padj_cutoff is not None:
             if padj is None or padj < 0.0 or padj > padj_cutoff + 1e-12:
                 continue
-        else:
-            padj = None
+        elif raw_padj is not None:
+            if padj is None or padj < 0.0:
+                continue
 
         direction = "up" if corr > 0.0 else "down"
         declared_dir = str(row.get("direction") or "").strip().lower()
@@ -241,7 +247,7 @@ def _peak_to_gene_signals(
         )
         candidates.append(
             (
-                padj if padj is not None else 0.0,
+                padj if padj is not None else 1.0,
                 -abs(corr),
                 gene.lower(),
                 peak_raw,
@@ -288,8 +294,13 @@ def _eregulon_signals(
     max_eregulons: int,
     max_targets: int,
 ) -> list[EvidenceSignal]:
-    padj_cutoff = _finite_float(ereg.get("max_padj"))
-    if padj_cutoff is None:
+    if "max_regulon_padj" in ereg:
+        raw_cut = ereg.get("max_regulon_padj")
+        padj_cutoff: float | None = None if raw_cut is None else (_finite_float(raw_cut) if _finite_float(raw_cut) is not None else 0.05)
+    elif "max_padj" in ereg:
+        raw_cut = ereg.get("max_padj")
+        padj_cutoff = None if raw_cut is None else (_finite_float(raw_cut) if _finite_float(raw_cut) is not None else 0.05)
+    else:
         padj_cutoff = 0.05
 
     ranked_mods: list[tuple[float, float, str, str, dict[str, Any], str, float]] = []
@@ -318,16 +329,17 @@ def _eregulon_signals(
             if mod.get("regulon_padj") is not None
             else mod.get("padj")
         )
-        if raw_padj is not None:
-            padj = _finite_float(raw_padj)
+        padj = _finite_float(raw_padj) if raw_padj is not None else None
+        if padj_cutoff is not None:
             if padj is None or padj < 0.0 or padj > padj_cutoff + 1e-12:
                 continue
-        else:
-            padj = None
+        elif raw_padj is not None:
+            if padj is None or padj < 0.0:
+                continue
 
         ranked_mods.append(
             (
-                padj if padj is not None else 0.0,
+                padj if padj is not None else 1.0,
                 -abs(mean_r),
                 tf.lower(),
                 sign_class,

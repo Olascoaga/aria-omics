@@ -81,6 +81,9 @@ class ReportSectionsMixin:
                         frip_str = (f"{frip_f:.2f}"
                                     if frip_f is not None else "?")
                         tss_f = _finite_num(peaks.get("tss_enrichment"))
+                        if tss_f is None:
+                            af_qc = af.get("qc") if isinstance(af.get("qc"), dict) else {}
+                            tss_f = _finite_num(af_qc.get("tss_enrichment"))
                         tss_str = (f" · TSS enrichment {tss_f:.1f}"
                                    if tss_f is not None else "")
                         rows.append(
@@ -93,8 +96,8 @@ class ReportSectionsMixin:
             hic = agent_results.get("genome_arch_agent") or {}
             if hic.get("status") == "done":
                 hic_f = hic.get("findings", {}) or {}
-                bal   = hic_f.get("balancing", {}) or {}
-                if bal.get("status"):
+                bal   = hic_f.get("balancing") or hic_f.get("qc") or {}
+                if isinstance(bal, dict) and bal.get("status"):
                     rows.append(
                         f"<tr><td>Hi-C</td>"
                         f"<td>ICE balancing: {_html.escape(str(bal.get('status', 'done')))}</td></tr>"
@@ -174,14 +177,18 @@ class ReportSectionsMixin:
                 sev   = f.get("severity", "warning")
                 color = "var(--red)" if sev == "blocking" else "var(--amber)"
                 label = "BLOCKING" if sev == "blocking" else "WARNING"
-                msg   = (f.get("message", "")
-                          .replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"))
-                rec   = (f.get("recommendation", "")
-                          .replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"))
+                chk_raw = f.get("check")
+                chk = _html.escape(
+                    str("" if chk_raw is None else chk_raw).replace("_", " ").title()
+                )
+                msg_raw = f.get("message")
+                msg = _html.escape(str("" if msg_raw is None else msg_raw))
+                rec_raw = f.get("recommendation")
+                rec = _html.escape(str("" if rec_raw is None else rec_raw))
                 rows_html.append(
                     f"<tr>"
                     f"<td style='color:{color};font-weight:600'>{label}</td>"
-                    f"<td>{f.get('check','').replace('_',' ').title()}</td>"
+                    f"<td>{chk}</td>"
                     f"<td>{msg}<br><em style='color:var(--muted);font-size:0.8em'>"
                     f"Recommendation: {rec}</em></td>"
                     f"</tr>"
@@ -245,23 +252,53 @@ class ReportSectionsMixin:
             # BiologicalSynthesisAgent blocks carry the "integration." id prefix.
             "integration": "integration",
         }
+        staged_tables = getattr(self, "_staged_table_map", None)
+        rendered_prefixes: set[str] = set()
         for key, (label, color) in section_labels.items():
             # Most sections share their key with the block-id prefix
             # (chromatin/hic/synthesis/rna); only bulk_rna/scrna/integration
             # remap. Defaulting to the key itself lets chromatin blocks
             # ("chromatin.*") render in the Chromatin section (v4.6 step 6).
-            blocks = block_groups.get(section_prefix.get(key, key), [])
+            prefix = section_prefix.get(key, key)
+            rendered_prefixes.add(prefix)
+            blocks = block_groups.get(prefix, [])
             if not blocks:
                 continue
 
             plot_html = render_blocks(
-                blocks, report_dir=report_dir, strict=False
+                blocks,
+                report_dir=report_dir,
+                strict=False,
+                staged_tables=staged_tables,
             )
 
             parts.append(f"""
 <div class="card">
   <h3 style="color:{color}">{label}</h3>
   {plot_html}
+</div>""")
+        # Render any surviving compiled non-executive-summary blocks whose id
+        # prefix is not in section_labels so HTML Findings never silently drops
+        # a published claim.
+        extra_blocks = [
+            b
+            for prefix, grp in block_groups.items()
+            if prefix not in rendered_prefixes and prefix != "executive_summary"
+            for b in grp
+            if getattr(b, "id", None) != "executive_summary"
+            and (getattr(b, "metadata", {}) or {}).get("render_surface") != "executive_summary"
+        ]
+        if extra_blocks:
+            extra_html = render_blocks(
+                extra_blocks,
+                report_dir=report_dir,
+                strict=False,
+                staged_tables=staged_tables,
+            )
+            parts.append(f"""
+<div class="card">
+  <h3 style="color:var(--navy)">Additional Governed Findings</h3>
+  {extra_html}
 </div>""")
         return "\n".join(parts) if parts else \
                ('<div class="card"><p>No governed narrative claims were '
@@ -553,6 +590,26 @@ class ReportSectionsMixin:
         """
         import shutil
 
+        self._staged_table_map: dict[str, str] = {}
+        tables_dir = report_dir / "tables"
+
+        def _stage_table_file(src_path: Path, dst_name: str) -> None:
+            if not src_path.is_file():
+                return
+            tables_dir.mkdir(parents=True, exist_ok=True)
+            dst_path = tables_dir / dst_name
+            try:
+                if not dst_path.exists() or src_path.resolve() != dst_path.resolve():
+                    shutil.copy2(src_path, dst_path)
+                rel = f"tables/{dst_name}"
+                self._staged_table_map[str(src_path)] = rel
+                try:
+                    self._staged_table_map[str(src_path.resolve())] = rel
+                except OSError:
+                    pass
+            except Exception as e:
+                log.warning(f"Stage table {src_path.name}: {e}")
+
         bulk = agent_results.get("bulk_rna_agent", {})
 
         contrasts = []
@@ -563,35 +620,49 @@ class ReportSectionsMixin:
                 continue
 
             contrast_dir = c.get("contrast_dir")
-            if not contrast_dir:
-                continue
+            raw_slug = (
+                Path(contrast_dir).name
+                if contrast_dir
+                else str(c.get("name") or "contrast").replace(" ", "_").replace("/", "_")
+            )
+            slug = re.sub(r"[^A-Za-z0-9_.-]+", "_", raw_slug).strip("_") or "contrast"
 
-            slug = Path(contrast_dir).name
+            if contrast_dir:
+                # Stage figures: report_dir/figures/<slug>/
+                src_fig = Path(contrast_dir) / "figures"
+                if src_fig.exists():
+                    dst_fig = report_dir / "figures" / slug
+                    dst_fig.mkdir(parents=True, exist_ok=True)
+                    for f in src_fig.iterdir():
+                        if f.is_file():
+                            try:
+                                shutil.copy2(f, dst_fig / f.name)
+                            except Exception as e:
+                                log.warning(f"Stage figure {f.name}: {e}")
 
-            # Stage figures: report_dir/figures/<slug>/
-            src_fig = Path(contrast_dir) / "figures"
-            if src_fig.exists():
-                dst_fig = report_dir / "figures" / slug
-                dst_fig.mkdir(parents=True, exist_ok=True)
-                for f in src_fig.iterdir():
-                    if f.is_file():
-                        try:
-                            shutil.copy2(f, dst_fig / f.name)
-                        except Exception as e:
-                            log.warning(f"Stage figure {f.name}: {e}")
+                # Stage tables: report_dir/tables/<slug>_*.tsv
+                src_tbl = Path(contrast_dir) / "tables"
+                if src_tbl.exists():
+                    for f in src_tbl.iterdir():
+                        if f.is_file():
+                            _stage_table_file(f, f"{slug}_{f.name}")
 
-            # Stage tables: report_dir/tables/<slug>_*.tsv
-            src_tbl = Path(contrast_dir) / "tables"
-            if src_tbl.exists():
-                for f in src_tbl.iterdir():
-                    if f.is_file():
-                        try:
-                            shutil.copy2(
-                                f,
-                                report_dir / "tables" / f"{slug}_{f.name}",
-                            )
-                        except Exception as e:
-                            log.warning(f"Stage table {f.name}: {e}")
+            # Also stage explicit table references (plots.tables, gsea_table,
+            # full_results_csv) even when they sit outside contrast_dir/tables/.
+            plots = c.get("plots") or {}
+            if isinstance(plots, dict):
+                for _tkey, tpath in (plots.get("tables") or {}).items():
+                    if isinstance(tpath, str) and tpath:
+                        p = Path(tpath)
+                        _stage_table_file(p, f"{slug}_{p.name}")
+                gsea_tbl = plots.get("gsea_table")
+                if isinstance(gsea_tbl, str) and gsea_tbl:
+                    p = Path(gsea_tbl)
+                    _stage_table_file(p, f"{slug}_{p.name}")
+            full_csv = c.get("full_results_csv")
+            if isinstance(full_csv, str) and full_csv:
+                p = Path(full_csv)
+                _stage_table_file(p, f"{slug}_{p.name}")
 
         # Also stage shared figures + tables at report_dir level (v3.8)
         import shutil as _sh

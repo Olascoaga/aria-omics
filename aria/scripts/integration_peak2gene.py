@@ -352,13 +352,23 @@ def integration_peak2gene(params: dict) -> dict[str, Any]:
         genome=genome,
         organism=organism,
     )
+    want_h5mu_write = bool(
+        params.get("write_h5mu", False)
+        or params.get("update_h5mu", False)
+        or params.get("output_h5mu")
+    )
+    required_cache_outputs = (
+        ("output_path", "h5mu_output_path")
+        if (want_h5mu_write and resolved_h5mu)
+        else ("output_path",)
+    )
     cached, stage_state = _stage_cache(
         "integration_peak2gene",
         output_dir,
         stage_inputs,
         stage_params,
         params.get("resume", True),
-        required=("output_path",),
+        required=required_cache_outputs,
     )
     if cached:
         return cached
@@ -445,14 +455,25 @@ def integration_peak2gene(params: dict) -> dict[str, Any]:
                     "warnings": warnings,
                 }
 
+            # Reject duplicate cell barcodes before pairing (D3-H11 parity).
+            rna_obs_list = [str(bc) for bc in rna_ad.obs_names]
+            atac_obs_list = [str(bc) for bc in atac_ad.obs_names]
+            if (
+                len(set(rna_obs_list)) != len(rna_obs_list)
+                or len(set(atac_obs_list)) != len(atac_obs_list)
+            ):
+                return {
+                    "status": "error",
+                    "error_type": "DuplicateBarcodes",
+                    "details": (
+                        "Duplicate cell barcodes detected in split RNA/ATAC inputs; "
+                        "peak-to-gene linking requires unique barcodes per modality."
+                    ),
+                }
+
             # Canonical deterministic barcode order preserving RNA obs_names order.
-            atac_set = {str(bc) for bc in atac_ad.obs_names}
-            seen_bc: set[str] = set()
-            common_cells = []
-            for bc in (str(x) for x in rna_ad.obs_names):
-                if bc in atac_set and bc not in seen_bc:
-                    common_cells.append(bc)
-                    seen_bc.add(bc)
+            atac_set = set(atac_obs_list)
+            common_cells = [bc for bc in rna_obs_list if bc in atac_set]
 
             if len(common_cells) < min_shared_cells:
                 return {
@@ -464,8 +485,8 @@ def integration_peak2gene(params: dict) -> dict[str, Any]:
                     ),
                 }
 
-            r_map = {str(bc): i for i, bc in enumerate(rna_ad.obs_names)}
-            a_map = {str(bc): i for i, bc in enumerate(atac_ad.obs_names)}
+            r_map = {bc: i for i, bc in enumerate(rna_obs_list)}
+            a_map = {bc: i for i, bc in enumerate(atac_obs_list)}
             rna_sub = rna_ad[[r_map[bc] for bc in common_cells], :].copy()
             atac_sub = atac_ad[[a_map[bc] for bc in common_cells], :].copy()
 
@@ -590,11 +611,6 @@ def integration_peak2gene(params: dict) -> dict[str, Any]:
         csv_path = _write_links_csv_atomic(output_dir / "peak_gene_links.csv", links)
 
         h5mu_output_path: str | None = None
-        want_h5mu_write = bool(
-            params.get("write_h5mu", False)
-            or params.get("update_h5mu", False)
-            or params.get("output_h5mu")
-        )
         if want_h5mu_write and src_mdata is not None:
             target_h5mu = Path(
                 str(

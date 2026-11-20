@@ -65,11 +65,13 @@ class QCClusteringMixin:
                                        f"— {sample_result.get('details', '')[:200]}"),
                         "failed_sample": sid}
             per_sample.append({
-                "sample_id":      sid,
-                "n_cells_before": sample_result.get("n_cells_before", 0),
-                "n_cells_after":  sample_result.get("n_cells_after", 0),
-                "pct_removed":    sample_result.get("pct_removed", 0),
-                "scrublet":       sample_result.get("scrublet", {}),
+                "sample_id":          sid,
+                "n_cells_before":     sample_result.get("n_cells_before", 0),
+                "n_cells_after":      sample_result.get("n_cells_after", 0),
+                "pct_removed":        sample_result.get("pct_removed", 0),
+                "mt_threshold_used":  sample_result.get("mt_threshold_used"),
+                "ambient_correction": sample_result.get("ambient_correction"),
+                "scrublet":           sample_result.get("scrublet", {}),
             })
             manifest.append({
                 "path":      sample_result["output_path"],
@@ -95,6 +97,76 @@ class QCClusteringMixin:
                     "per_sample": per_sample}
 
         n_total = concat_result.get("n_cells_total", 0)
+
+        # Aggregate per-sample counts & QC metadata so downstream report
+        # consumers can inspect multi-sample QC without losing provenance.
+        n_before_total = sum(int(p.get("n_cells_before", 0)) for p in per_sample)
+        n_after_total  = sum(int(p.get("n_cells_after",  0)) for p in per_sample)
+        pct_removed    = (
+            round(100.0 * (n_before_total - n_after_total) / n_before_total, 2)
+            if n_before_total else 0.0
+        )
+        mt_vals = [
+            float(p["mt_threshold_used"])
+            for p in per_sample
+            if isinstance(p.get("mt_threshold_used"), (int, float))
+            and not isinstance(p.get("mt_threshold_used"), bool)
+            and math.isfinite(float(p["mt_threshold_used"]))
+        ]
+        mt_threshold_used = round(max(mt_vals), 3) if mt_vals else None
+
+        ambient_reports = [
+            p.get("ambient_correction")
+            for p in per_sample
+            if isinstance(p.get("ambient_correction"), dict)
+        ]
+        if any(a.get("ran") for a in ambient_reports):
+            ambient_correction = next(a for a in ambient_reports if a.get("ran"))
+        elif ambient_reports:
+            ambient_correction = ambient_reports[0]
+        else:
+            ambient_correction = {"ran": False, "method": None, "reason": "not_requested"}
+
+        scrub_reports = [
+            p.get("scrublet")
+            for p in per_sample
+            if isinstance(p.get("scrublet"), dict) and p.get("scrublet")
+        ]
+        scrublet_agg = {
+            "ran": any(bool(s.get("ran")) for s in scrub_reports),
+            "n_doublets": sum(int(s.get("n_doublets", 0) or 0) for s in scrub_reports),
+        }
+
+        n_effective = (
+            int(n_total)
+            if "n_cells_total" in concat_result and concat_result.get("n_cells_total") is not None
+            else int(n_after_total)
+        )
+        if n_effective < 100 or n_after_total < 100:
+            self.publish_finding(
+                experiment_id,
+                {"summary": f"Only {min(n_effective, n_after_total)} cells passed multi-sample QC — analysis unreliable",
+                 "per_sample": per_sample},
+                Confidence.INSUFFICIENT,
+            )
+            return {
+                "status":             "error",
+                "error_type":         "InsufficientCells",
+                "details":            f"Only {min(n_effective, n_after_total)} cells passed multi-sample QC (<100 minimum).",
+                "output_path":        concat_result["output_path"],
+                "n_samples":          len(files),
+                "n_cells_before":     n_before_total,
+                "n_cells_after":      n_after_total,
+                "n_cells_total":      n_total,
+                "pct_removed":        pct_removed,
+                "mt_threshold_used":  mt_threshold_used,
+                "ambient_correction": ambient_correction,
+                "scrublet":           scrublet_agg,
+                "n_genes_shared":     concat_result.get("n_genes_shared"),
+                "per_sample":         per_sample,
+                "batch_col":          concat_result.get("batch_col", "batch"),
+            }
+
         self.publish_finding(
             experiment_id,
             {"summary": (f"Multi-sample QC + concat: "
@@ -104,27 +176,20 @@ class QCClusteringMixin:
             Confidence.HIGH,
         )
 
-        # Aggregate per-sample counts so downstream report consumers
-        # (narrative_agent QC table, _narrative_scrna.summarize_scrna_text)
-        # can show "before → after" without special-casing the multi-sample
-        # shape.
-        n_before_total = sum(int(p.get("n_cells_before", 0)) for p in per_sample)
-        n_after_total  = sum(int(p.get("n_cells_after",  0)) for p in per_sample)
-        pct_removed    = (
-            round(100.0 * (n_before_total - n_after_total) / n_before_total, 2)
-            if n_before_total else 0.0
-        )
         return {
-            "status":         "success",
-            "output_path":    concat_result["output_path"],
-            "n_samples":      len(files),
-            "n_cells_before": n_before_total,
-            "n_cells_after":  n_after_total,
-            "n_cells_total":  n_total,
-            "pct_removed":    pct_removed,
-            "n_genes_shared": concat_result.get("n_genes_shared"),
-            "per_sample":     per_sample,
-            "batch_col":      concat_result.get("batch_col", "batch"),
+            "status":             "success",
+            "output_path":        concat_result["output_path"],
+            "n_samples":          len(files),
+            "n_cells_before":     n_before_total,
+            "n_cells_after":      n_after_total,
+            "n_cells_total":      n_total,
+            "pct_removed":        pct_removed,
+            "mt_threshold_used":  mt_threshold_used,
+            "ambient_correction": ambient_correction,
+            "scrublet":           scrublet_agg,
+            "n_genes_shared":     concat_result.get("n_genes_shared"),
+            "per_sample":         per_sample,
+            "batch_col":          concat_result.get("batch_col", "batch"),
         }
 
     def _qc_single(self, experiment_id: str, path: str,

@@ -13,8 +13,32 @@ from __future__ import annotations
 import html as _html
 import json
 import logging
+import math
 from datetime import datetime, timezone
 from pathlib import Path
+
+
+def _sanitize_json_value(obj):
+    """Recursively replace non-finite floats with None for strict RFC-8259 JSON."""
+    if isinstance(obj, bool) or obj is None:
+        return obj
+    if isinstance(obj, float):
+        return obj if math.isfinite(obj) else None
+    if isinstance(obj, dict):
+        return {k: _sanitize_json_value(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_sanitize_json_value(v) for v in obj]
+    if isinstance(obj, tuple):
+        return [_sanitize_json_value(v) for v in obj]
+    if isinstance(obj, set):
+        return [_sanitize_json_value(v) for v in sorted(obj, key=str)]
+    item = getattr(obj, "item", None)
+    if callable(item) and type(obj).__module__.startswith("numpy"):
+        try:
+            return _sanitize_json_value(item())
+        except Exception:
+            pass
+    return obj
 
 from .adapters import (
     PAIRED_CIS_REGULATORY_KEY,
@@ -219,7 +243,13 @@ def persist_speculative_manifest(
     manifest = build_speculative_manifest(section, generated_utc=generated)
     path = Path(report_dir) / SPECULATIVE_MANIFEST_FILENAME
     path.write_text(
-        json.dumps(manifest, indent=2, default=str), encoding="utf-8"
+        json.dumps(
+            _sanitize_json_value(manifest),
+            indent=2,
+            default=str,
+            allow_nan=False,
+        ),
+        encoding="utf-8",
     )
     return path
 
@@ -304,9 +334,23 @@ def _render_gate_blocked(section: dict) -> str:
     """Visible note when the causal gate withheld the section (rail #1).
 
     The agent did not run because the run's audited claims failed W-CLAIM/
-    W-LEDGER verification. That is a governance signal, not nothing — render it
-    instead of silently dropping the section.
+    W-LEDGER verification or verification evidence was absent. That is a
+    governance signal, not nothing — render it instead of silently dropping the
+    section.
     """
+    if section.get("reason") == "verification_evidence_absent":
+        detail = (
+            "No hypotheses were generated: W-CLAIM/W-LEDGER verification "
+            "evidence was absent or incomplete, so the speculative layer is "
+            "withheld fail-closed (a hypothesis must not build without "
+            "observed verification)."
+        )
+    else:
+        detail = (
+            "No hypotheses were generated: the run's audited claims did not "
+            "pass W-CLAIM/W-LEDGER verification, so the speculative layer is "
+            "withheld (a hypothesis must not build on an unverified claim)."
+        )
     return "\n".join(
         [
             "<h2>Speculative Hypotheses "
@@ -314,9 +358,7 @@ def _render_gate_blocked(section: dict) -> str:
             "padding:0.1rem 0.4rem;border-radius:0.25rem'>SPECULATIVE</span></h2>",
             "<div class='card' style='border-left:4px solid var(--amber)'>",
             f"<p><strong>{_esc(SPECULATIVE_HEADER)}</strong></p>",
-            "<p>No hypotheses were generated: the run's audited claims did not "
-            "pass W-CLAIM/W-LEDGER verification, so the speculative layer is "
-            "withheld (a hypothesis must not build on an unverified claim).</p>",
+            f"<p>{detail}</p>",
             "</div>",
         ]
     )
@@ -348,9 +390,12 @@ def render_speculative_section_html(section: dict | None) -> str:
     if not section:
         return ""
     if not section.get("ran"):
-        # The causal gate withheld generation (verification did not pass). Make
-        # it visible rather than silently emitting nothing.
-        if section.get("reason") == "verification_gate_not_passed":
+        # The causal gate withheld generation (verification did not pass or its
+        # evidence was absent). Make it visible rather than silently emitting nothing.
+        if section.get("reason") in (
+            "verification_gate_not_passed",
+            "verification_evidence_absent",
+        ):
             return _render_gate_blocked(section)
         return ""
     hypotheses = section.get("hypotheses") or []

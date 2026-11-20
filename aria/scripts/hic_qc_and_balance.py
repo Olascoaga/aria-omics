@@ -120,11 +120,11 @@ def _measure_cooler_pixels(clr) -> dict[str, Any]:
     bin_start = bins_df["start"].to_numpy(dtype=np.int64)
 
     nnz = int(clr.info.get("nnz", len(clr.pixels())))
-    total_pairs = 0
-    cis_pairs = 0
-    trans_pairs = 0
-    cis_short = 0
-    cis_long = 0
+    total_pairs = 0.0
+    cis_pairs = 0.0
+    trans_pairs = 0.0
+    cis_short = 0.0
+    cis_long = 0.0
 
     px_selector = clr.pixels()
     for lo in range(0, nnz, PIXEL_CHUNK_SIZE):
@@ -132,30 +132,31 @@ def _measure_cooler_pixels(clr) -> dict[str, Any]:
         chunk = px_selector[lo:hi]
         b1 = chunk["bin1_id"].to_numpy(dtype=np.int64)
         b2 = chunk["bin2_id"].to_numpy(dtype=np.int64)
-        cnt = chunk["count"].to_numpy(dtype=np.int64)
+        cnt_raw = chunk["count"].to_numpy(dtype=np.float64)
+        cnt = np.where(np.isfinite(cnt_raw), cnt_raw, 0.0)
 
-        total_pairs += int(cnt.sum())
+        total_pairs += float(np.sum(cnt, dtype=np.float64))
         same_chrom = bin_chrom[b1] == bin_chrom[b2]
         cis_cnt = cnt[same_chrom]
-        cis_pairs += int(cis_cnt.sum())
-        trans_pairs += int(cnt[~same_chrom].sum())
+        cis_pairs += float(np.sum(cis_cnt, dtype=np.float64))
+        trans_pairs += float(np.sum(cnt[~same_chrom], dtype=np.float64))
 
         if cis_cnt.size:
             dist = np.abs(bin_start[b2[same_chrom]] - bin_start[b1[same_chrom]])
             long_mask = dist >= 20_000
-            cis_long += int(cis_cnt[long_mask].sum())
-            cis_short += int(cis_cnt[~long_mask].sum())
+            cis_long += float(np.sum(cis_cnt[long_mask], dtype=np.float64))
+            cis_short += float(np.sum(cis_cnt[~long_mask], dtype=np.float64))
 
-    denom = max(total_pairs, 1)
+    denom = total_pairs if total_pairs > 0.0 else 1.0
     return {
-        "n_valid_pairs": int(total_pairs),
+        "n_valid_pairs": int(round(total_pairs)),
         "n_nonzero_pixels": int(nnz),
         "n_bins": int(clr.info.get("nbins", len(bins_df))),
-        "cis_reads": int(cis_pairs),
-        "trans_reads": int(trans_pairs),
+        "cis_reads": int(round(cis_pairs)),
+        "trans_reads": int(round(trans_pairs)),
         "cis_trans_ratio": round(float(cis_pairs / denom), 6),
-        "cis_short_lt20kb": int(cis_short),
-        "cis_long_ge20kb": int(cis_long),
+        "cis_short_lt20kb": int(round(cis_short)),
+        "cis_long_ge20kb": int(round(cis_long)),
         "long_range_cis": round(float(cis_long / denom), 6),
     }
 
@@ -211,10 +212,13 @@ def _stage_and_balance_cooler(
         staged_path.chmod(0o644)
 
     balance_meta: dict[str, Any] = {"already_balanced": False}
+    converged_by_res: dict[str, bool] = {}
+    all_converged = True
     for r in resolutions_to_check:
         r_uri = f"{staged_path}::{res_map[r]}" if is_mcool else str(staged_path)
         r_clr = cooler.Cooler(r_uri)
         if not force_rebalance and _has_valid_weights(r_clr):
+            converged_by_res[str(r)] = True
             continue
         nbins = int(r_clr.info.get("nbins", 0))
         min_nnz = 10 if nbins >= 500 else max(1, min(3, nbins // 10))
@@ -229,20 +233,34 @@ def _stage_and_balance_cooler(
                 max_iters=300,
                 store=True,
             )
+            r_conv = bool(stats.get("converged", True))
+            converged_by_res[str(r)] = r_conv
+            if not r_conv:
+                all_converged = False
+                warnings.append(
+                    f"ICE balancing did not converge for {sample_id} at {r:,}bp."
+                )
             if r == chosen_res:
                 n_valid = int(np.isfinite(weights).sum())
                 balance_meta.update({
-                    "converged": bool(stats.get("converged", True)),
                     "n_balanced_bins": n_valid,
                     "frac_valid_bins": round(n_valid / max(len(weights), 1), 4),
                 })
         except Exception as exc:
+            converged_by_res[str(r)] = False
+            all_converged = False
             warnings.append(
                 f"ICE balancing failed for {sample_id} at {r:,}bp: {str(exc)[:160]}"
             )
             if r == chosen_res:
-                return None, chosen_res, {"already_balanced": False, "converged": False}
+                return None, chosen_res, {
+                    "already_balanced": False,
+                    "converged": False,
+                    "converged_by_resolution": converged_by_res,
+                }
 
+    balance_meta["converged"] = all_converged
+    balance_meta["converged_by_resolution"] = converged_by_res
     final_uri = f"{staged_path}::{res_map[chosen_res]}" if is_mcool else str(staged_path)
     final_clr = cooler.Cooler(final_uri)
     if _has_valid_weights(final_clr):
@@ -250,10 +268,6 @@ def _stage_and_balance_cooler(
         n_valid = int(np.isfinite(w).sum())
         balance_meta.setdefault("n_balanced_bins", n_valid)
         balance_meta.setdefault("frac_valid_bins", round(n_valid / max(len(w), 1), 4))
-        if balance_meta.get("converged") is False:
-            warnings.append(
-                f"ICE balancing did not converge for {sample_id} at {chosen_res:,}bp."
-            )
         return str(staged_path), chosen_res, balance_meta
     warnings.append(
         f"ICE balancing produced zero valid finite weights for {sample_id} at {chosen_res:,}bp."
@@ -290,18 +304,26 @@ def _compute_ps_decay(clr, out_tsv: Path) -> dict[str, Any]:
     denom_col = "n_valid" if "n_valid" in exp_df.columns else "n_total"
 
     if sum_col in exp_df.columns and denom_col in exp_df.columns:
+        work = exp_df.copy()
+        s_val = pd.to_numeric(work[sum_col], errors="coerce").to_numpy(dtype=float)
+        d_val = pd.to_numeric(work[denom_col], errors="coerce").to_numpy(dtype=float)
+        ok = np.isfinite(s_val) & np.isfinite(d_val) & (d_val > 0.0)
+        work["_sum_ok"] = np.where(ok, s_val, 0.0)
+        work["_den_ok"] = np.where(ok, d_val, 0.0)
         agg = (
-            exp_df.groupby("dist", as_index=False)
+            work.groupby("dist", as_index=False)
             .agg(
                 dist_bp=("dist_bp", "first"),
-                n_valid=(denom_col, "sum"),
-                _sum_val=(sum_col, "sum"),
+                n_valid=("_den_ok", "sum"),
+                _sum_val=("_sum_ok", "sum"),
             )
             .sort_values("dist")
         )
         denom = agg["n_valid"].to_numpy(dtype=float)
         num = agg["_sum_val"].to_numpy(dtype=float)
-        agg["contact_prob"] = np.where(denom > 0.0, num / denom, np.nan)
+        agg["contact_prob"] = np.divide(
+            num, denom, out=np.full_like(num, np.nan, dtype=float), where=denom > 0.0
+        )
         agg = agg.drop(columns=["_sum_val"])
     else:
         # Fallback: n_valid-weighted average across chromosomes.
@@ -321,7 +343,10 @@ def _compute_ps_decay(clr, out_tsv: Path) -> dict[str, Any]:
             .sort_values("dist")
         )
         denom = agg["n_valid"].to_numpy(dtype=float)
-        agg["contact_prob"] = np.where(denom > 0.0, agg["_wv"].to_numpy(dtype=float) / denom, np.nan)
+        wv_arr = agg["_wv"].to_numpy(dtype=float)
+        agg["contact_prob"] = np.divide(
+            wv_arr, denom, out=np.full_like(wv_arr, np.nan, dtype=float), where=denom > 0.0
+        )
         agg = agg.drop(columns=["_wv"])
     agg.to_csv(out_tsv, sep="\t", index=False)
 
@@ -624,7 +649,16 @@ def hic_qc_and_balance(params: dict) -> dict:
         seen_sids.add(cand)
         sample_ids.append(cand)
 
+    min_cis_trans = float(params.get("min_cis_trans_ratio", 0.60))
+    min_valid_pairs = int(params.get("min_valid_pairs", 1_000_000))
+    chrom_sizes_param = params.get("chrom_sizes") or params.get("chromsizes")
+    genome_fasta_param = params.get("genome_fasta") or params.get("reference_fasta")
+    genome_fai_param = params.get("genome_fai")
+
     raw_input_files = list(valid_files)
+    for ref_val in (chrom_sizes_param, genome_fasta_param, genome_fai_param):
+        if isinstance(ref_val, (str, Path)) and str(ref_val) and Path(str(ref_val)).is_file():
+            raw_input_files.append(str(ref_val))
     explicit_scc_res = (
         int(params["scc_resolution"])
         if params.get("scc_resolution") is not None
@@ -636,6 +670,15 @@ def hic_qc_and_balance(params: dict) -> dict:
         "scc_resolution": explicit_scc_res,
         "force_rebalance": force_rebalance,
         "sample_ids": sample_ids,
+        "min_cis_trans_ratio": min_cis_trans,
+        "min_valid_pairs": min_valid_pairs,
+        "chrom_sizes": (
+            chrom_sizes_param
+            if isinstance(chrom_sizes_param, dict)
+            else str(chrom_sizes_param or "")
+        ),
+        "genome_fasta": str(genome_fasta_param or ""),
+        "genome_fai": str(genome_fai_param or ""),
     }
     if bool(params.get("resume", True)):
         cached = _check_hic_stage_cache(
@@ -669,15 +712,20 @@ def hic_qc_and_balance(params: dict) -> dict:
     if needs_prep:
         from aria.scripts.hic_preprocess import hic_preprocess
 
+        prep_base_res = (
+            resolution if resolution <= 25_000 else math.gcd(resolution, 10_000)
+        )
+        if prep_base_res <= 0:
+            prep_base_res = min(resolution, 10_000)
         prep_res = hic_preprocess({
             "files": valid_files,
             "sample_ids": sample_ids,
             "genome": genome,
-            "resolution": min(resolution, 10_000),
-            "zoom_resolutions": sorted({min(resolution, 10_000), resolution, 100_000}),
-            "chrom_sizes": params.get("chrom_sizes"),
-            "genome_fasta": params.get("genome_fasta"),
-            "genome_fai": params.get("genome_fai"),
+            "resolution": prep_base_res,
+            "zoom_resolutions": sorted({prep_base_res, resolution, 100_000}),
+            "chrom_sizes": chrom_sizes_param,
+            "genome_fasta": genome_fasta_param,
+            "genome_fai": genome_fai_param,
             "output_dir": str(out_dir / "preprocessed"),
         })
         if prep_res.get("status") != "success":
@@ -766,9 +814,6 @@ def hic_qc_and_balance(params: dict) -> dict:
         scc_df.to_csv(scc_path, sep="\t")
         scc_tsv = str(scc_path)
 
-    min_cis_trans = float(params.get("min_cis_trans_ratio", 0.60))
-    min_valid_pairs = int(params.get("min_valid_pairs", 1_000_000))
-
     pass_qc = True
     if len(balanced_files) < len(ok_records):
         warnings.append(
@@ -829,7 +874,12 @@ def hic_qc_and_balance(params: dict) -> dict:
         "output_dir": str(out_dir),
     }
 
-    manifest_outputs = [p for p in [*balanced_files, primary_ps, scc_tsv] if p]
+    all_ps_tsvs = [
+        r.get("ps_curve_tsv") for r in ok_records if r.get("ps_curve_tsv")
+    ]
+    manifest_outputs = list(
+        dict.fromkeys(p for p in [*balanced_files, *all_ps_tsvs, scc_tsv] if p)
+    )
     _save_hic_stage_cache(
         out_dir,
         stage="hic_qc_and_balance",

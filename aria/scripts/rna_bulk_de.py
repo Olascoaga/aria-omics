@@ -65,7 +65,7 @@ from pathlib import Path
 from aria.scripts.rna_bulk.gtf_io import (  # noqa: E402,F401
     _load_symbol_map, _locate_gtf, _gtf_to_symbol_map,
     _load_gene_annotation, _parse_gtf_biotype_and_length, _to_symbols,
-    _normalize_species,
+    _normalize_species, _strip_gene_version,
 )
 from aria.scripts.rna_bulk.ora import (  # noqa: E402,F401
     _enrichr_enrichment, _run_pathway_enrichment, _get_gene_sets,
@@ -246,6 +246,7 @@ def bulk_rna_de(params: dict) -> dict:
                 f"Available columns: {list(metadata.columns)}"
             ),
         }
+    metadata[design_factor] = metadata[design_factor].astype(str)
 
     # ── 2a. Total metadata correspondence (B5) ────────────────────────────
     # Partial metadata must not silently reduce n. Every count column needs a
@@ -310,8 +311,10 @@ def bulk_rna_de(params: dict) -> dict:
         _sample_qc, counts, metadata, output_dir, warnings,
         biotype_map=biotype_map, design_factor=design_factor)
     flagged_outliers = list(sample_qc.get("outliers", []) or [])
-    outlier_samples = _prune_outliers_for_design(
-        sample_qc.get("outliers", []), metadata, design_factor, warnings
+    outlier_samples = _call_with_optional_keywords(
+        _prune_outliers_for_design,
+        sample_qc.get("outliers", []), metadata, design_factor, warnings,
+        min_reps=min_reps,
     )
     sample_qc["outliers"] = flagged_outliers
     sample_qc["candidate_outliers"] = flagged_outliers
@@ -438,7 +441,7 @@ def bulk_rna_de(params: dict) -> dict:
             continue
 
         # Validate groups exist in metadata
-        available_groups = list(metadata[design_factor].unique())
+        available_groups = [str(g) for g in metadata[design_factor].unique()]
         if num not in available_groups or den not in available_groups:
             warnings.append(
                 f"Skipping contrast '{name}': "
@@ -565,7 +568,7 @@ def bulk_rna_de(params: dict) -> dict:
             try:
                 all_df = results_df_all.copy()
                 all_df["gene_id"] = all_df.index.astype(str)
-                all_df["clean_id"] = all_df["gene_id"].str.split(".").str[0]
+                all_df["clean_id"] = all_df["gene_id"].map(_strip_gene_version)
                 all_df["gene_symbol"] = (
                     all_df["clean_id"].map(symbol_map).fillna("")
                     if symbol_map
@@ -573,7 +576,10 @@ def bulk_rna_de(params: dict) -> dict:
                 )
                 all_cols = ["gene_id", "gene_symbol"] + [
                     c
-                    for c in ("baseMean", "log2FoldChange", "lfcSE", "stat", "pvalue", "padj")
+                    for c in (
+                        "baseMean", "log2FoldChange", "log2FoldChange_raw",
+                        "lfcSE", "stat", "pvalue", "padj",
+                    )
                     if c in all_df.columns
                 ]
                 full_path = tables_dir / "de_all_genes.tsv"
@@ -641,8 +647,11 @@ def bulk_rna_de(params: dict) -> dict:
                 output_path=str(tables_dir / "pathways.tsv"),
             )
             plots["tables"] = {
-                "de_genes": de_tsv,
-                "pathways": pw_tsv,
+                k: v for k, v in (
+                    ("de_genes", de_tsv),
+                    ("pathways", pw_tsv),
+                )
+                if isinstance(v, str) and v
             }
 
         except Exception as e:

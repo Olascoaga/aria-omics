@@ -210,9 +210,45 @@ def rna_pathway_per_cluster(params: dict) -> dict:
                     and r["gene"].strip() and r["gene"].strip().lower() != "nan"
                     and (not cl_background_set
                          or r["gene"].strip().upper() in cl_background_set)]
+
+        # For cluster-identity ORA (keys without "::" contrast delimiter),
+        # prioritize positive cluster markers (log2fc > 0) so downregulated
+        # genes from other lineages do not pollute cluster-identity enrichment.
+        is_cluster_identity = "::" not in str(cluster_id)
+        if is_cluster_identity:
+            positive_lfc = [
+                r for r in eligible
+                if _finite_float(r.get("log2fc"), None) is not None
+                and _finite_float(r.get("log2fc"), 0.0) > 0
+            ]
+            if positive_lfc:
+                eligible = [
+                    r for r in eligible
+                    if (
+                        _finite_float(r.get("log2fc"), None) is None
+                        or _finite_float(r.get("log2fc"), 0.0) > 0
+                    )
+                ]
+
         sorted_records = sorted(
             eligible,
             key=lambda r: (
+                (
+                    0
+                    if (
+                        is_cluster_identity
+                        and _finite_float(r.get("log2fc"), None) is not None
+                        and _finite_float(r.get("log2fc"), 0.0) > 0
+                    )
+                    else (
+                        1
+                        if (
+                            is_cluster_identity
+                            and _finite_float(r.get("log2fc"), None) is None
+                        )
+                        else (2 if is_cluster_identity else 0)
+                    )
+                ),
                 _finite_float(r.get("padj"), float("inf")),
                 _finite_float(r.get("pvalue"), float("inf")),
                 -abs(_finite_float(r.get("log2fc"), 0.0)),

@@ -27,10 +27,12 @@ import os
 from pathlib import Path
 import sys
 from typing import Any
+import uuid
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from aria.scripts._base import run_script
 from aria.utils.integration_qc import assess_integration_quality
+from aria.utils.provenance import hash_file
 from aria.utils.stage_manifest import (
     build_stage_manifest,
     stage_is_current,
@@ -554,6 +556,28 @@ def integration_wnn(params: dict) -> dict:
         )
         if is_curr:
             try:
+                manifest_payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+                extra = (
+                    manifest_payload.get("extra")
+                    if isinstance(manifest_payload, dict)
+                    else None
+                ) or {}
+                expected_receipt_sha = extra.get("receipt_sha256")
+                expected_outputs = extra.get("output_sha256")
+                if (
+                    not expected_receipt_sha
+                    or hash_file(cached_result_path) != expected_receipt_sha
+                ):
+                    raise ValueError("WNN receipt digest missing or mismatched")
+                if not isinstance(expected_outputs, dict):
+                    raise ValueError("WNN output digest map missing")
+                exp_out_sha = (
+                    expected_outputs.get(str(out_h5mu_candidate))
+                    or expected_outputs.get("output_path")
+                    or expected_outputs.get(out_h5mu_candidate.name)
+                )
+                if not exp_out_sha or hash_file(out_h5mu_candidate) != exp_out_sha:
+                    raise ValueError("WNN output .h5mu digest mismatch")
                 cached_payload = json.loads(
                     cached_result_path.read_text(encoding="utf-8")
                 )
@@ -825,15 +849,37 @@ def integration_wnn(params: dict) -> dict:
                 "details": "Fewer than 3 expressed genes across shared cells.",
             }
 
-        n_hvg_target = min(max(2, n_top_genes), int(nonzero_gene_mask.sum()))
+        n_hvg_target = min(max(3, n_top_genes), int(nonzero_gene_mask.sum()))
         rna_work = rna_adata[:, nonzero_gene_mask].copy()
         if n_hvg_target < rna_work.n_vars:
             sc.pp.highly_variable_genes(
                 rna_work,
                 n_top_genes=n_hvg_target,
                 flavor="seurat",
-                subset=True,
+                subset=False,
             )
+            hv_mask = np.asarray(rna_work.var["highly_variable"].values, dtype=bool)
+            n_hv_found = int(hv_mask.sum())
+            if n_hv_found < 3:
+                x_nz = rna_work.X
+                if sp.issparse(x_nz):
+                    mean_g = np.asarray(x_nz.mean(axis=0)).ravel()
+                    sq_g = x_nz.copy()
+                    sq_g.data = sq_g.data ** 2
+                    var_g = np.maximum(
+                        0.0, np.asarray(sq_g.mean(axis=0)).ravel() - mean_g ** 2
+                    )
+                else:
+                    var_g = np.var(np.asarray(x_nz, dtype=np.float64), axis=0)
+                top_idx = np.sort(np.argsort(var_g)[::-1][:n_hvg_target])
+                warnings.append(
+                    f"HVG selection returned only {n_hv_found} gene(s) (< 3); "
+                    f"fell back to top {len(top_idx)} expressed genes by variance."
+                )
+                rna_work = rna_work[:, top_idx].copy()
+                rna_work.var["highly_variable"] = True
+            else:
+                rna_work = rna_work[:, hv_mask].copy()
         hvg_names = set(map(str, rna_work.var_names))
         rna_adata.var["highly_variable"] = [
             str(g) in hvg_names for g in rna_adata.var_names
@@ -1274,7 +1320,9 @@ def integration_wnn(params: dict) -> dict:
 
         # ── 6. Atomic .h5mu output write ──────────────────────────────────
         out_path = Path(output_dir) / "wnn_integrated.h5mu"
-        tmp_path = Path(output_dir) / f".wnn_integrated.tmp.{os.getpid()}.h5mu"
+        tmp_path = Path(output_dir) / (
+            f".wnn_integrated.tmp.{os.getpid()}.{uuid.uuid4().hex[:8]}.h5mu"
+        )
         try:
             mdata.write_h5mu(str(tmp_path))
             os.replace(str(tmp_path), str(out_path))
@@ -1352,10 +1400,11 @@ def integration_wnn(params: dict) -> dict:
         }
 
         if stage_inputs:
+            tmp_res = cached_result_path.with_name(
+                f".integration_wnn.result.tmp.{os.getpid()}.{uuid.uuid4().hex[:8]}.json"
+            )
             try:
-                tmp_res = cached_result_path.with_name(
-                    f".integration_wnn.result.tmp.{os.getpid()}.json"
-                )
+                manifest_path.unlink(missing_ok=True)
                 tmp_res.write_text(
                     json.dumps(result_payload, indent=2), encoding="utf-8"
                 )
@@ -1367,13 +1416,21 @@ def integration_wnn(params: dict) -> dict:
                         inputs=stage_inputs,
                         params=manifest_params,
                         tool_version=_STAGE_VERSION,
-                        extra={"output_path": str(out_path)},
+                        extra={
+                            "output_path": str(out_path),
+                            "output_sha256": {
+                                str(out_path): hash_file(out_path),
+                            },
+                            "receipt_sha256": hash_file(cached_result_path),
+                        },
                     ),
                 )
             except Exception as manifest_exc:
                 warnings.append(
                     f"Could not write WNN stage manifest: {manifest_exc}"
                 )
+            finally:
+                tmp_res.unlink(missing_ok=True)
 
         return result_payload
 

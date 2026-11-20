@@ -92,8 +92,10 @@ def _draw_paga(conn, cats, sizes, output_path: Path,
     import numpy as np
 
     conn = np.array(conn, dtype=float, copy=True)
+    conn = np.where(np.isfinite(conn), conn, 0.0)
+    conn = np.maximum(conn, 0.0)
     np.fill_diagonal(conn, 0.0)
-    c_max = float(conn.max())
+    c_max = float(conn.max()) if conn.size else 0.0
     pos = _spring_layout(conn)
     fig, ax = plt.subplots(figsize=(7, 6.5), dpi=160)
     colors = _categorical_colors(len(cats))
@@ -164,6 +166,10 @@ def _draw_paga(conn, cats, sizes, output_path: Path,
     output_path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(output_path, dpi=160, bbox_inches="tight",
                 facecolor="white")
+    if output_path.suffix.lower() == ".png":
+        fig.savefig(output_path.with_suffix(".svg"), format="svg",
+                    bbox_inches="tight", facecolor="white",
+                    metadata={"Date": None})
     plt.close(fig)
     return str(output_path)
 
@@ -182,8 +188,9 @@ def make_paga_figures(params: dict) -> dict:
         return {"status": "error", "error_type": "NoPAGA",
                 "details": "uns['paga'] not present in h5ad"}
 
-    if groupby is None:
-        groupby = adata.uns["paga"].get("groups", "leiden")
+    paga_groups = adata.uns["paga"].get("groups")
+    if not groupby:
+        groupby = paga_groups or "leiden"
     if groupby not in adata.obs.columns:
         return {"status": "error", "error_type": "GroupNotFound",
                 "details": f"obs column '{groupby}' missing"}
@@ -192,6 +199,14 @@ def make_paga_figures(params: dict) -> dict:
     if hasattr(conn, "toarray"):
         conn = conn.toarray()
     conn = np.array(conn, dtype=float, copy=True)
+    if conn.ndim != 2 or conn.shape[0] != conn.shape[1] or conn.shape[0] == 0:
+        return {
+            "status": "error",
+            "error_type": "InvalidPAGAMatrix",
+            "details": f"Expected non-empty square PAGA connectivities matrix; got shape {conn.shape}.",
+        }
+    conn = np.where(np.isfinite(conn), conn, 0.0)
+    conn = np.maximum(conn, 0.0)
     np.fill_diagonal(conn, 0.0)
 
     if min_conn > 0:
@@ -200,8 +215,19 @@ def make_paga_figures(params: dict) -> dict:
     cats = (list(adata.obs[groupby].cat.categories)
             if hasattr(adata.obs[groupby], "cat")
             else sorted(adata.obs[groupby].unique()))
+    if len(cats) != conn.shape[0]:
+        return {
+            "status": "error",
+            "error_type": "PAGAShapeMismatch",
+            "details": (
+                f"PAGA connectivities shape {conn.shape} does not match "
+                f"{len(cats)} categories in obs['{groupby}']"
+                + (f" (uns['paga']['groups']={paga_groups!r})" if paga_groups else "")
+                + "."
+            ),
+        }
     sizes = [int((adata.obs[groupby] == c).sum()) for c in cats]
-    max_off = float(conn.max())
+    max_off = float(conn.max()) if conn.size else 0.0
 
     out_dir.mkdir(parents=True, exist_ok=True)
     figures: dict = {}

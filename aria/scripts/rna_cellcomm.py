@@ -60,8 +60,8 @@ def rna_cellcomm(params: dict) -> dict:
     # reports. Keep it configurable, but default to 1000.
     n_perms       = int(params.get("n_perms", 1000))
     seed          = int(params.get("seed", 42))
-    organism = str(params.get("organism", "Homo sapiens")).strip().lower()
-    is_mouse = "musculus" in organism or organism in {"mouse", "mm", "mm10", "mm39"}
+    from aria.scripts.rna_bulk.gtf_io import _normalize_species
+    is_mouse = _normalize_species(params.get("organism", "Homo sapiens")) == "Mus musculus"
 
     adata = read_h5ad(data_path)
 
@@ -98,7 +98,7 @@ def rna_cellcomm(params: dict) -> dict:
         # Drop self-interactions (autocrine) — they dominate the output
         # because expression overlap with self is trivially perfect, but
         # they're rarely the biological question for cell-cell comm.
-        autocrine_mask = liana_df["source"] == liana_df["target"]
+        autocrine_mask = liana_df["source"].astype(str) == liana_df["target"].astype(str)
         autocrine_count = int(autocrine_mask.sum())
         liana_df = liana_df[~autocrine_mask].copy()
 

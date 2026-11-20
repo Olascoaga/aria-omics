@@ -45,8 +45,10 @@ def bulk_power_estimate(n_per_group,
         return 0.0
     mean_expression = float(1.0 if mean_expression is None else mean_expression)
     dispersion = float(0.0 if dispersion is None else dispersion)
-    mean_expression = max(mean_expression, 1.0) if isfinite(mean_expression) else 1.0
-    dispersion = max(dispersion, 1e-8) if isfinite(dispersion) else 0.1
+    if not isfinite(mean_expression) or mean_expression <= 0:
+        return 0.0
+    if not isfinite(dispersion) or dispersion < 0:
+        return 0.0
     target = abs(float(0.0 if target_log2fc is None else target_log2fc))
     alpha = float(0.05 if alpha is None else alpha)
     if not isfinite(target) or not isfinite(alpha) or alpha <= 0:

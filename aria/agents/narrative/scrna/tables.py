@@ -57,6 +57,21 @@ def extract_pseudobulk_de_table(findings: dict,
                     f"{html.escape(str(comp.get('reason', '')))}</em></td></tr>"
                 )
                 continue
+            if comp.get("status") == "error":
+                err_msg = (
+                    comp.get("error")
+                    or comp.get("reason")
+                    or comp.get("details")
+                    or "failed"
+                )
+                rows.append(
+                    f"<tr><td>{html.escape(str(group))}</td>"
+                    f"<td>{n_ps}</td><td>{html.escape(str(comp_key))}</td>"
+                    f"<td colspan='3' style='color:var(--red)'>"
+                    f"<em>error: "
+                    f"{html.escape(str(err_msg))}</em></td></tr>"
+                )
+                continue
             if comp.get("status") != "success":
                 continue
             # Wave 4A: counts follow the PRIMARY FDR family (fdr_strategy) —
@@ -360,6 +375,16 @@ def export_supplementary_tables(findings: dict, output_dir: Path) -> dict:
                 for term in terms or []:
                     if not isinstance(term, dict):
                         continue
+                    raw_genes = _term_value(
+                        term, "genes", "Genes", "lead_genes"
+                    )
+                    if isinstance(raw_genes, (list, tuple)):
+                        genes_val = ";".join(
+                            str(g) for g in raw_genes
+                            if g is not None and str(g).strip()
+                        )
+                    else:
+                        genes_val = raw_genes
                     rows.append({
                         "mode": mode,
                         "block": block_key,
@@ -379,9 +404,7 @@ def export_supplementary_tables(findings: dict, output_dir: Path) -> dict:
                         "combined_score": _term_value(
                             term, "combined_score", "Combined Score"
                         ),
-                        "genes": _term_value(
-                            term, "genes", "Genes", "lead_genes"
-                        ),
+                        "genes": genes_val,
                     })
         return rows
 

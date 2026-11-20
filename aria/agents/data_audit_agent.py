@@ -1503,6 +1503,8 @@ class DataAuditAgent(BaseAgent):
 
             if human_score >= 5 and mouse_score == 0:
                 return "hg38", "Homo sapiens"
+            if mouse_score >= 5 and human_score == 0:
+                return "mm39", "Mus musculus"
 
         return "unknown", "unknown"
 

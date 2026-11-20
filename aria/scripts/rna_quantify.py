@@ -57,14 +57,8 @@ def _featurecounts_version() -> str:
 
 
 def rna_quantify(params: dict) -> dict:
-    bam_files = params["bam_files"]
+    bam_files = params.get("bam_files") or []
     gtf_file = params["gtf_file"]
-    output_dir = Path(
-        params.get(
-            "output_dir",
-            str(Path(bam_files[0]["bam"]).parent.parent / "aria_counts"),
-        )
-    )
     threads = int(params.get("threads", 8))
     strand_in = params.get("strand", 0)  # 0/1/2 or "auto"
     paired_param = params.get("paired")
@@ -74,7 +68,12 @@ def rna_quantify(params: dict) -> dict:
     allow_mock = mocks_allowed(params)
     warnings: list[str] = []
 
-    output_dir.mkdir(parents=True, exist_ok=True)
+    if not bam_files:
+        return {
+            "status": "error",
+            "error_type": "NoBamsFound",
+            "details": "No valid BAM files found from alignment step.",
+        }
 
     failed_bams = [
         b.get("name", "unknown")
@@ -91,6 +90,19 @@ def rna_quantify(params: dict) -> dict:
             ),
             "failed_samples": failed_bams,
         }
+
+    def _resolve_output_dir(records: list[dict]) -> Path:
+        out_param = params.get("output_dir")
+        if out_param:
+            resolved = Path(out_param)
+        else:
+            first_bam = next((r.get("bam") for r in records if r.get("bam")), None)
+            resolved = (
+                Path(first_bam).parent.parent / "aria_counts"
+                if first_bam else Path("aria_counts")
+            )
+        resolved.mkdir(parents=True, exist_ok=True)
+        return resolved
 
     valid_bams = [
         b
@@ -128,6 +140,7 @@ def rna_quantify(params: dict) -> dict:
                     "error_type": "MixedReadLayouts",
                     "details": "Mock BAM records contain mixed read layouts.",
                 }
+            output_dir = _resolve_output_dir(mock_bams)
             return _mock_counts_matrix(
                 mock_bams, output_dir, warnings, read_layout=mock_layout
             )
@@ -136,6 +149,8 @@ def rna_quantify(params: dict) -> dict:
             "error_type": "NoBamsFound",
             "details": "No valid BAM files found from alignment step.",
         }
+
+    output_dir = _resolve_output_dir(valid_bams)
 
     layouts = {
         b.get(
@@ -546,10 +561,10 @@ def _load_strand_intervals(gtf: str) -> tuple[dict[str, dict[str, Any]], str | N
     gene_plus: dict[str, list[tuple[int, int]]] = {}
     gene_minus: dict[str, list[tuple[int, int]]] = {}
 
-    MAX_EXONS = 100_000
-    MAX_GENES = 20_000
-    n_exons = 0
-    n_genes = 0
+    MAX_EXONS_PER_CHROM = 5_000
+    MAX_GENES_PER_CHROM = 2_000
+    exon_counts: dict[str, int] = {}
+    gene_counts: dict[str, int] = {}
 
     try:
         with opener(gtf, "rt", encoding="utf-8", errors="replace") as fh:
@@ -570,16 +585,16 @@ def _load_strand_intervals(gtf: str) -> tuple[dict[str, dict[str, Any]], str | N
                 end = int(fields[4])
                 if end <= start:
                     continue
-                if feat == "exon" and n_exons < MAX_EXONS:
-                    target = exon_plus if strand == "+" else exon_minus
-                    target.setdefault(chrom, []).append((start, end))
-                    n_exons += 1
-                elif feat == "gene" and n_genes < MAX_GENES:
-                    target = gene_plus if strand == "+" else gene_minus
-                    target.setdefault(chrom, []).append((start, end))
-                    n_genes += 1
-                if n_exons >= MAX_EXONS and n_genes >= MAX_GENES:
-                    break
+                if feat == "exon":
+                    if exon_counts.get(chrom, 0) < MAX_EXONS_PER_CHROM:
+                        target = exon_plus if strand == "+" else exon_minus
+                        target.setdefault(chrom, []).append((start, end))
+                        exon_counts[chrom] = exon_counts.get(chrom, 0) + 1
+                elif feat == "gene":
+                    if gene_counts.get(chrom, 0) < MAX_GENES_PER_CHROM:
+                        target = gene_plus if strand == "+" else gene_minus
+                        target.setdefault(chrom, []).append((start, end))
+                        gene_counts[chrom] = gene_counts.get(chrom, 0) + 1
     except Exception as exc:
         return {}, f"GTF parse failed for strand detection: {exc}"
 

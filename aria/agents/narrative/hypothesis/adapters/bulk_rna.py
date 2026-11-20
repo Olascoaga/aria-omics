@@ -12,6 +12,7 @@ signals only if that ledger node actually ran (no fabrication).
 
 from __future__ import annotations
 
+import math
 from typing import Any
 
 from aria.agents.narrative.run_ledger import _node_index
@@ -39,10 +40,13 @@ def _node_ran(run_ledger: dict | None, node_id: str) -> bool:
 
 
 def _num(value: Any) -> float | None:
+    if value is None or isinstance(value, bool):
+        return None
     try:
-        return float(value)
+        val = float(value)
     except (TypeError, ValueError):
         return None
+    return val if math.isfinite(val) else None
 
 
 def _direction(value: Any) -> str:
@@ -113,6 +117,8 @@ def bulk_rna_evidence(
     for c_index, contrast in enumerate(findings.get("contrasts") or []):
         if not isinstance(contrast, dict):
             continue
+        if contrast.get("status", "success") != "success":
+            continue
         label = _contrast_label(contrast, c_index)
         caveats = list(base_caveats)
         if (
@@ -126,7 +132,7 @@ def bulk_rna_evidence(
                 if not isinstance(gene, dict):
                     continue
                 symbol = gene.get("symbol") or gene.get("gene")
-                lfc = gene.get("log2fc")
+                lfc = _num(gene.get("log2fc"))
                 if not symbol or lfc is None:
                     continue
                 key = ("gene", str(symbol), label)
@@ -140,7 +146,7 @@ def bulk_rna_evidence(
                         modality="bulk_RNA",
                         measure="log2fc",
                         audited_node_ref=_DE_NODE,
-                        value=_num(lfc),
+                        value=lfc,
                         direction=_direction(lfc),
                         caveats_inherited=list(caveats),
                         context=label,

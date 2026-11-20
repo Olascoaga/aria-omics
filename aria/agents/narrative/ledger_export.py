@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import os
 import shutil
 import sqlite3
@@ -28,6 +29,29 @@ from pathlib import Path, PureWindowsPath
 from typing import Any
 
 from aria.utils.reference_integrity import sha256_file
+
+
+def _sanitize_json_value(obj: Any) -> Any:
+    """Recursively replace non-finite floats with None for strict RFC-8259 JSON."""
+    if isinstance(obj, bool) or obj is None:
+        return obj
+    if isinstance(obj, float):
+        return obj if math.isfinite(obj) else None
+    if isinstance(obj, dict):
+        return {k: _sanitize_json_value(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_sanitize_json_value(v) for v in obj]
+    if isinstance(obj, tuple):
+        return [_sanitize_json_value(v) for v in obj]
+    if isinstance(obj, set):
+        return [_sanitize_json_value(v) for v in sorted(obj, key=str)]
+    item = getattr(obj, "item", None)
+    if callable(item) and type(obj).__module__.startswith("numpy"):
+        try:
+            return _sanitize_json_value(item())
+        except Exception:
+            pass
+    return obj
 
 RO_CRATE_CONTEXT = "https://w3id.org/ro/crate/1.1/context"
 _METHODOLOGY_NAME = "methodology.json"
@@ -336,7 +360,15 @@ def write_ro_crate(report_dir: str | Path) -> Path:
     methodology = load_methodology(rd)
     crate = build_ro_crate(methodology, rd)
     out = rd / "ro-crate-metadata.json"
-    _atomic_write_text(out, json.dumps(crate, indent=2, default=str))
+    _atomic_write_text(
+        out,
+        json.dumps(
+            _sanitize_json_value(crate),
+            indent=2,
+            default=str,
+            allow_nan=False,
+        ),
+    )
     return out
 
 
@@ -454,7 +486,13 @@ def _sanitize_staged_report(report_dir: Path, methodology: dict) -> None:
     portable = _portable_methodology(methodology)
     _atomic_write_text(
         report_dir / _METHODOLOGY_NAME,
-        json.dumps(portable, indent=2, sort_keys=True, default=str),
+        json.dumps(
+            _sanitize_json_value(portable),
+            indent=2,
+            sort_keys=True,
+            default=str,
+            allow_nan=False,
+        ),
     )
     text_suffixes = {".html", ".json", ".md", ".txt", ".tsv", ".csv", ".yaml", ".yml"}
     for path in sorted(report_dir.rglob("*")):
@@ -468,7 +506,13 @@ def _sanitize_staged_report(report_dir: Path, methodology: dict) -> None:
                     portable_dm = _portable_value(raw_dm)
                     _atomic_write_text(
                         path,
-                        json.dumps(portable_dm, indent=2, sort_keys=True, default=str),
+                        json.dumps(
+                            _sanitize_json_value(portable_dm),
+                            indent=2,
+                            sort_keys=True,
+                            default=str,
+                            allow_nan=False,
+                        ),
                     )
                     continue
             except (OSError, ValueError, json.JSONDecodeError):
@@ -618,7 +662,13 @@ def write_reproducible_capsule(report_dir: str | Path,
                 archive.write(path, arcname)
             archive.writestr(
                 _CAPSULE_MANIFEST,
-                json.dumps(manifest, indent=2, sort_keys=True, default=str),
+                json.dumps(
+                    _sanitize_json_value(manifest),
+                    indent=2,
+                    sort_keys=True,
+                    default=str,
+                    allow_nan=False,
+                ),
             )
 
         # Validate hashes and the embedded scoped SQLite before publication.
@@ -1016,7 +1066,16 @@ def cli_main(argv: list[str]) -> int:
     if args.cmd == "diff":
         d = diff_methodologies(load_methodology(args.report_a),
                                load_methodology(args.report_b))
-        print(json.dumps(d, indent=2, default=str) if args.json else format_diff(d))
+        print(
+            json.dumps(
+                _sanitize_json_value(d),
+                indent=2,
+                default=str,
+                allow_nan=False,
+            )
+            if args.json
+            else format_diff(d)
+        )
         return 0
 
     if args.cmd == "export":
@@ -1034,7 +1093,14 @@ def cli_main(argv: list[str]) -> int:
             compare_report=args.compare_report,
         )
         if args.json:
-            print(json.dumps(result, indent=2, default=str))
+            print(
+                json.dumps(
+                    _sanitize_json_value(result),
+                    indent=2,
+                    default=str,
+                    allow_nan=False,
+                )
+            )
         else:
             print(format_reproduce_result(result))
         return 0 if result.get("status") in {"pass", "warning"} else 1

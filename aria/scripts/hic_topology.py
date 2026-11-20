@@ -161,7 +161,7 @@ def _ensure_balanced_cooler(fpath: str, resolution: int, out_dir: Path):
         nbins = int(s_clr.info.get("nbins", 0))
         min_nnz = 10 if nbins >= 500 else max(1, min(3, nbins // 10))
         ignore_diags = 2 if nbins >= 20 else 1
-        cooler.balance_cooler(
+        bal_ret = cooler.balance_cooler(
             s_clr,
             cis_only=False,
             ignore_diags=ignore_diags,
@@ -170,7 +170,16 @@ def _ensure_balanced_cooler(fpath: str, resolution: int, out_dir: Path):
             max_iters=300,
             store=True,
         )
+        stats = bal_ret[1] if isinstance(bal_ret, tuple) and len(bal_ret) >= 2 else None
         s_clr = cooler.Cooler(s_uri)
+        if not _has_valid_weights(s_clr):
+            raise RuntimeError(
+                f"ICE balancing produced zero valid finite weights for {fpath} at {chosen_res:,}bp."
+            )
+        if isinstance(stats, dict) and stats.get("converged") is False:
+            raise RuntimeError(
+                f"ICE balancing did not converge for {fpath} at {chosen_res:,}bp."
+            )
     return s_clr, chosen_res
 
 
@@ -842,8 +851,20 @@ def _calibrate_insulation(
         out_path.mkdir(parents=True, exist_ok=True)
         clr, actual_res = _ensure_balanced_cooler(fpath, resolution, out_path)
         chroms = _get_chromosomes(clr, chromosomes)
+        if not chroms:
+            return {
+                "status": "error",
+                "error_type": "NoValidChromosomes",
+                "details": "No analyzable chromosomes found for insulation calibration.",
+            }
         cal_chrom = "chr1" if "chr1" in chroms else chroms[0]
         view_df = _build_view_df(clr, [cal_chrom])
+        if view_df.empty:
+            return {
+                "status": "error",
+                "error_type": "NoValidChromosomes",
+                "details": f"Calibration chromosome {cal_chrom!r} has zero valid length.",
+            }
         valid_windows = [_snap_window(w, actual_res) for w in windows]
         ignore_diags = _safe_ignore_diags(clr, view_df, actual_res)
 
@@ -1099,6 +1120,14 @@ def _compute_loops(
         if gtf_path and not dots_df.empty:
             ann_df, loop_class_counts = _annotate_loops_with_gtf(dots_df, gtf_path)
             if loop_class_counts:
+                sort_cols_ann = [
+                    c for c in ("la_exp.donut.qval", "count") if c in ann_df.columns
+                ]
+                asc_ann = [c != "count" for c in sort_cols_ann]
+                if sort_cols_ann:
+                    ann_df = ann_df.sort_values(
+                        sort_cols_ann, ascending=asc_ann, na_position="last"
+                    )
                 ann_file = out_path / "annotated_loops.tsv"
                 ann_df.to_csv(ann_file, sep="\t", index=False)
                 annotated_path = str(ann_file)
@@ -1108,7 +1137,11 @@ def _compute_loops(
         if not dots_df.empty:
             sort_cols = [c for c in ("la_exp.donut.qval", "count") if c in dots_df.columns]
             asc = [c != "count" for c in sort_cols]
-            ranked = dots_df.sort_values(sort_cols, ascending=asc) if sort_cols else dots_df
+            ranked = (
+                dots_df.sort_values(sort_cols, ascending=asc, na_position="last")
+                if sort_cols
+                else dots_df
+            )
             for _, row in ranked.head(20).iterrows():
                 item: dict[str, Any] = {
                     "chrom1": str(row["chrom1"]),
@@ -1197,12 +1230,63 @@ def _moderated_linear_contrast(
         cov_sub = [row for row, kp in zip(covariate_rows, keep_samples) if kp]
         cov_df = pd.DataFrame(cov_sub)
         for col in cov_df.columns:
-            vals = cov_df[col].astype(str)
-            if vals.nunique() < 2:
-                dropped_covariates.append(f"{col}:constant_within_contrast")
-                continue
-            dummies = pd.get_dummies(vals, prefix=str(col), drop_first=True, dtype=float)
-            cand = pd.concat([df_design, dummies], axis=1)
+            raw_vals = list(cov_df[col])
+            missing_any = False
+            for v in raw_vals:
+                if v is None:
+                    missing_any = True
+                    break
+                try:
+                    if pd.isna(v):
+                        missing_any = True
+                        break
+                except (TypeError, ValueError):
+                    pass
+                if isinstance(v, str) and not v.strip():
+                    missing_any = True
+                    break
+            if missing_any:
+                raise ValueError(
+                    f"Covariate {col!r} contains missing/NaN values for contrast "
+                    f"{test_group}_vs_{ref_group}; refusing phantom-category encoding."
+                )
+
+            # Treat finite numeric covariates as continuous numeric columns (1 df)
+            # instead of one-hot encoding unique numbers as categorical dummies.
+            parsed_nums: list[float] = []
+            all_numeric = True
+            for v in raw_vals:
+                if isinstance(v, bool):
+                    all_numeric = False
+                    break
+                try:
+                    fv = float(v)
+                except (TypeError, ValueError):
+                    all_numeric = False
+                    break
+                if not math.isfinite(fv):
+                    all_numeric = False
+                    break
+                parsed_nums.append(fv)
+
+            if all_numeric:
+                num_arr = np.asarray(parsed_nums, dtype=float)
+                std_val = float(np.std(num_arr))
+                if std_val <= 1e-12:
+                    dropped_covariates.append(f"{col}:constant_within_contrast")
+                    continue
+                cov_block = pd.DataFrame(
+                    {str(col): (num_arr - float(np.mean(num_arr))) / std_val}
+                )
+            else:
+                vals = pd.Series([str(v).strip() for v in raw_vals])
+                if vals.nunique() < 2:
+                    dropped_covariates.append(f"{col}:constant_within_contrast")
+                    continue
+                cov_block = pd.get_dummies(
+                    vals, prefix=str(col), drop_first=True, dtype=float
+                )
+            cand = pd.concat([df_design, cov_block], axis=1)
             cand_rank = int(np.linalg.matrix_rank(cand.to_numpy(dtype=float)))
             if cand_rank < cand.shape[1]:
                 raise ValueError(
@@ -1333,15 +1417,19 @@ def _compute_differential_3d(params: dict, out_dir: str) -> dict:
     meta_by_sid: dict[str, dict] = {}
     if isinstance(sample_metadata, (str, Path)) and Path(str(sample_metadata)).is_file():
         sep = "\t" if str(sample_metadata).lower().endswith((".tsv", ".txt")) else ","
-        df_meta = pd.read_csv(sample_metadata, sep=sep)
-        sid_col = next(
-            (c for c in ("sample_id", "sample", "id") if c in df_meta.columns),
-            df_meta.columns[0],
-        )
-        for row_dict in df_meta.to_dict(orient="records"):
-            sid_val = row_dict.get(sid_col)
-            if sid_val is not None:
-                meta_by_sid[str(sid_val)] = row_dict
+        try:
+            df_meta = pd.read_csv(sample_metadata, sep=sep)
+        except pd.errors.EmptyDataError:
+            df_meta = pd.DataFrame()
+        if not df_meta.empty and len(df_meta.columns) > 0:
+            sid_col = next(
+                (c for c in ("sample_id", "sample", "id") if c in df_meta.columns),
+                df_meta.columns[0],
+            )
+            for row_dict in df_meta.to_dict(orient="records"):
+                sid_val = row_dict.get(sid_col)
+                if sid_val is not None and not pd.isna(sid_val):
+                    meta_by_sid[str(sid_val)] = row_dict
     elif isinstance(sample_metadata, dict):
         for sid, m in sample_metadata.items():
             if isinstance(m, dict):
@@ -1406,6 +1494,7 @@ def _compute_differential_3d(params: dict, out_dir: str) -> dict:
     # Compute per-sample E1 and insulation tracks
     e1_by_sid: dict[str, pd.DataFrame] = {}
     ins_by_sid: dict[str, pd.DataFrame] = {}
+    ref_e1_by_chrom: dict[str, np.ndarray] = {}
     phasing_df = None
     phasing_built = False
     phasing_coords = None
@@ -1419,6 +1508,12 @@ def _compute_differential_3d(params: dict, out_dir: str) -> dict:
         clr_c, actual_comp_res = _ensure_balanced_cooler(fpath, comp_res, out_path / sid)
         chroms = _get_chromosomes(clr_c, chromosomes)
         vdf_c = _build_view_df(clr_c, chroms)
+        if vdf_c.empty:
+            return {
+                "status": "error",
+                "error_type": "NoValidChromosomes",
+                "details": f"Sample {sid!r} has no analyzable chromosomes for compartment testing.",
+            }
         long_c = [
             c for c in vdf_c["chrom"]
             if (int(clr_c.chromsizes[c]) // max(actual_comp_res, 1)) >= 6
@@ -1464,26 +1559,32 @@ def _compute_differential_3d(params: dict, out_dir: str) -> dict:
             ignore_diags=_safe_ignore_diags(clr_c, vdf_c, actual_comp_res),
             seed=0,
         )
-        # Always align cross-replicate E1 sign for chromosomes NOT in phased_chroms so
-        # arbitrary per-chromosome eigenvector flips never create artificial deltas.
-        if e1_by_sid:
-            ref_df = next(iter(e1_by_sid.values()))
-            unphased_for_align = [c for c in analyzed_c if c not in phased_chroms]
-            if unphased_for_align:
-                ev_df = ev_df.copy()
-                for ch_name in unphased_for_align:
-                    r_mask = ref_df["chrom"].astype(str) == ch_name
-                    c_mask = ev_df["chrom"].astype(str) == ch_name
-                    ref_ch = ref_df.loc[r_mask, "E1"].to_numpy(dtype=float)
-                    cur_ch = ev_df.loc[c_mask, "E1"].to_numpy(dtype=float)
-                    if ref_ch.shape == cur_ch.shape:
-                        ok = np.isfinite(ref_ch) & np.isfinite(cur_ch)
-                        if ok.sum() >= 5 and float(np.dot(ref_ch[ok], cur_ch[ok])) < 0:
-                            ev_df.loc[c_mask, "E1"] = -cur_ch
+        # Always align cross-replicate E1 sign per chromosome for chromosomes NOT in
+        # phased_chroms using the first sample with >=5 finite bins on that chromosome.
+        unphased_for_align = [c for c in analyzed_c if c not in phased_chroms]
+        if unphased_for_align:
+            ev_df = ev_df.copy()
+            for ch_name in unphased_for_align:
+                c_mask = ev_df["chrom"].astype(str) == ch_name
+                cur_ch = ev_df.loc[c_mask, "E1"].to_numpy(dtype=float)
+                ref_ch = ref_e1_by_chrom.get(ch_name)
+                if ref_ch is None:
+                    if int(np.isfinite(cur_ch).sum()) >= 5:
+                        ref_e1_by_chrom[ch_name] = cur_ch.copy()
+                elif ref_ch.shape == cur_ch.shape:
+                    ok = np.isfinite(ref_ch) & np.isfinite(cur_ch)
+                    if int(ok.sum()) >= 5 and float(np.dot(ref_ch[ok], cur_ch[ok])) < 0:
+                        ev_df.loc[c_mask, "E1"] = -cur_ch
         e1_by_sid[sid] = ev_df[["chrom", "start", "end", "E1"]].reset_index(drop=True)
 
         clr_t, actual_tad_res = _ensure_balanced_cooler(fpath, tad_res, out_path / sid)
         vdf_t = _build_view_df(clr_t, _get_chromosomes(clr_t, chromosomes))
+        if vdf_t.empty:
+            return {
+                "status": "error",
+                "error_type": "NoValidChromosomes",
+                "details": f"Sample {sid!r} has no analyzable chromosomes for insulation testing.",
+            }
         eff_w = _snap_window(window_bp, actual_tad_res)
         ins_df = ins.insulation(
             clr_t, [eff_w], view_df=vdf_t, ignore_diags=_safe_ignore_diags(clr_t, vdf_t, actual_tad_res), nproc=1
@@ -1494,8 +1595,24 @@ def _compute_differential_3d(params: dict, out_dir: str) -> dict:
         ).reset_index(drop=True)
 
     # Collapse technical replicates to biological replicates (mean track per replicate unit)
+    def _clean_cov_val(val: Any) -> Any:
+        if val is None:
+            return None
+        try:
+            if pd.isna(val):
+                return None
+        except (TypeError, ValueError):
+            pass
+        if isinstance(val, bool):
+            return str(val)
+        if isinstance(val, (int, float, np.integer, np.floating)):
+            fv = float(val)
+            return fv if math.isfinite(fv) else None
+        s = str(val).strip()
+        return s if s != "" else None
+
     rep_units: dict[tuple[str, str], list[str]] = {}
-    rep_covs: dict[tuple[str, str], dict[str, str]] = {}
+    rep_covs: dict[tuple[str, str], dict[str, Any]] = {}
     for sid in e1_by_sid:
         m = meta_by_sid[sid]
         raw_cond = m.get(cond_col) if cond_col in m else m.get("condition")
@@ -1508,7 +1625,7 @@ def _compute_differential_3d(params: dict, out_dir: str) -> dict:
             rep = str(raw_rep)
         key = (str(raw_cond), str(rep))
         rep_units.setdefault(key, []).append(sid)
-        rep_covs.setdefault(key, {c: ("" if (m.get(c) is None or pd.isna(m.get(c))) else str(m.get(c))) for c in covariates})
+        rep_covs.setdefault(key, {c: _clean_cov_val(m.get(c)) for c in covariates})
 
     if not e1_by_sid or not rep_units:
         return {
@@ -1884,15 +2001,26 @@ def hic_topology(params: dict) -> dict:
         }
 
     if result.get("status") == "success" and not allow_mock:
-        outs = [
+        out_candidates = [
             str(result[k]) for k in (
                 "compartments_tsv", "compartments_bedgraph",
                 "tads_bed", "insulation_tsv", "loops_path",
                 "annotated_loops_path", "differential_compartments_csv",
-                "differential_insulation_csv",
+                "differential_insulation_csv", "descriptive_csv",
             )
-            if result.get(k) and Path(str(result[k])).exists()
+            if result.get(k)
         ]
+        for comp in result.get("comparisons") or []:
+            if not isinstance(comp, dict):
+                continue
+            for ck in (
+                "differential_compartments_csv",
+                "differential_insulation_csv",
+                "descriptive_csv",
+            ):
+                if comp.get(ck):
+                    out_candidates.append(str(comp[ck]))
+        outs = [p for p in dict.fromkeys(out_candidates) if Path(p).is_file()]
         _save_hic_stage_cache(
             out_path,
             stage=f"hic_topology_{analysis}",

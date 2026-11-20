@@ -310,6 +310,9 @@ def chromatin_bulk_diffacc(params: dict) -> dict:
     allow_mock = mocks_allowed(params)
     warnings: list[str] = []
 
+    requested_norm = str(params.get("normalization_mode") or "").strip().lower()
+    opt_out_norms = {"deseq2_median_of_ratios", "median_of_ratios", "conventional"}
+
     try:
         counts = _load_counts_matrix(counts_path)
         metadata = _load_sample_metadata(metadata_path)
@@ -324,31 +327,49 @@ def chromatin_bulk_diffacc(params: dict) -> dict:
             resolve_replicate_spikein_size_factors,
             run_deseq2_with_external_size_factors,
         )
-        spikein_sf, spikein_info = resolve_replicate_spikein_size_factors(
-            metadata.loc[list(counts.columns)],
-            rep_meta,
-            condition_col,
-            replicate_col,
-            spikein_counts=params.get("spikein_counts"),
-            spikein_scale_factors=params.get("spikein_scale_factors"),
-            spikein_counts_col=params.get("spikein_counts_col"),
-            spikein_scale_col=params.get("spikein_scale_col"),
-        )
+        if requested_norm in opt_out_norms:
+            spikein_sf = None
+            spikein_info = {
+                "used": False,
+                "source": None,
+                "skipped_reason": f"explicit_normalization_mode:{requested_norm}",
+            }
+        else:
+            spikein_sf, spikein_info = resolve_replicate_spikein_size_factors(
+                metadata.loc[list(counts.columns)],
+                rep_meta,
+                condition_col,
+                replicate_col,
+                spikein_counts=params.get("spikein_counts"),
+                spikein_scale_factors=params.get("spikein_scale_factors"),
+                spikein_counts_col=params.get("spikein_counts_col"),
+                spikein_scale_col=params.get("spikein_scale_col"),
+            )
     except (ValueError, OSError) as exc:
         return _skipped(str(exc), data_type=data_type)
 
-    requested_norm = str(params.get("normalization_mode") or "").strip().lower()
-    if requested_norm == "heterologous_spikein" and spikein_sf is None:
+    if (requested_norm == "heterologous_spikein" or spikein_info.get("explicit_requested")) and spikein_sf is None:
         # Fail CLOSED: an explicitly requested spike-in normalization must never
         # silently degrade to DESeq2 median-of-ratios (global shifts, e.g. a
         # histone-mark loss, would be normalized away).
+        invalid_reason = spikein_info.get("invalid_reason")
+        skip_msg = (
+            invalid_reason
+            if invalid_reason and requested_norm != "heterologous_spikein"
+            else (
+                "normalization_mode='heterologous_spikein' was requested but no valid "
+                "spike-in counts / scale factors were resolved for the replicates; "
+                "refusing to fall back to median-of-ratios normalization"
+                + (f" ({invalid_reason})" if invalid_reason else "")
+            )
+        )
         return _skipped(
-            "normalization_mode='heterologous_spikein' was requested but no valid "
-            "spike-in counts / scale factors were resolved for the replicates; "
-            "refusing to fall back to median-of-ratios normalization",
+            skip_msg,
             data_type=data_type,
             normalization_mode=None,
-            normalization_mode_requested="heterologous_spikein",
+            normalization_mode_requested=(
+                requested_norm or "heterologous_spikein"
+            ),
             spikein_normalization=spikein_info,
         )
     normalization_mode = (

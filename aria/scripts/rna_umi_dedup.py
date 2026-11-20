@@ -29,7 +29,7 @@ from aria.utils.stage_manifest import (
     write_stage_manifest,
 )
 
-_UMI_RE = re.compile(r"^[ACGTN]{4,32}$")
+_UMI_RE = re.compile(r"^[ACGTN]{4,32}(?:_[ACGTN]{4,32})?$")
 
 
 def _pysam_version() -> str:

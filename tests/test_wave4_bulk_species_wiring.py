@@ -260,8 +260,10 @@ def test_gtf_csv_symbol_map_persists_and_reload_preserves_samples(tmp_path):
     assert list(table.columns) == ["gene_symbol", "s1", "s2"]
     assert table.loc["ENSMUSG000001.7", "gene_symbol"] == "Sox2"
     assert table["s2"].tolist() == [30, 40]
+    # Unmapped Ensembl fallback entries (ENSMUSG000002.1) must not reload into
+    # symbol_map and pollute downstream ORA (D1-H7).
     assert gtf_io._load_symbol_map([str(counts)], []) == {
-        "ENSMUSG000001": "Sox2", "ENSMUSG000002": "ENSMUSG000002.1"}
+        "ENSMUSG000001": "Sox2"}
 
 
 @pytest.mark.parametrize("compressed", [False, True])
@@ -450,7 +452,7 @@ def test_primary_fdr_reaches_every_artifact(tmp_path, monkeypatch, family, n_con
         np.testing.assert_allclose(seen["gsea"][comp["name"]]["padj"], expected_padj)
         table = pd.read_csv(comp["full_results_csv"], sep="\t")
         np.testing.assert_allclose(table["padj"], expected_padj)
-        de_table = comp["plots"]["tables"]["de_genes"]
+        de_table = comp["plots"]["tables"].get("de_genes")
         if expected_sig:
             significant = pd.read_csv(de_table, sep="\t")
             assert significant["gene_id"].tolist() == expected_sig

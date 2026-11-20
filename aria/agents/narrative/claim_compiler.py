@@ -346,7 +346,11 @@ def _quantitative_stats_gate(block: NarrativeBlock) -> tuple[bool, list[str]]:
     if block.analysis not in _STATS_GATE_ANALYSES:
         return True, []
     failures: list[str] = []
-    n_sig_keys = ("n_significant", "n_significant_global", "n_significant_local")
+    fdr_strategy = str((block.metrics or {}).get("fdr_strategy") or "").strip().lower()
+    if fdr_strategy in {"per_cluster", "local"}:
+        n_sig_keys = ("n_significant", "n_significant_local", "n_significant_global")
+    else:
+        n_sig_keys = ("n_significant", "n_significant_global", "n_significant_local")
     n_sig = _numeric_metric(block, *n_sig_keys)
     if n_sig is not None and n_sig <= 0:
         failures.append("no significant features passed the selected FDR rule")
