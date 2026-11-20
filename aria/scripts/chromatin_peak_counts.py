@@ -300,6 +300,22 @@ def _write_genome_file(path: Path, genome_sizes: list[tuple[str, int]]) -> None:
             handle.write(f"{chrom}\t{int(length)}\n")
 
 
+def _peak_contigs_missing(peaks_path: str | Path, genome_order: list[str]) -> list[str]:
+    """Peak contigs (in first-seen order) that are absent from ``genome_order``."""
+    known = set(genome_order)
+    missing: list[str] = []
+    seen: set[str] = set()
+    with open(peaks_path, "r", newline="") as handle:
+        for line in handle:
+            if not line.strip() or line.startswith(("#", "track", "browser")):
+                continue
+            chrom = line.split("\t", 1)[0].strip()
+            if chrom and chrom not in known and chrom not in seen:
+                seen.add(chrom)
+                missing.append(chrom)
+    return missing
+
+
 def _sort_peaks_by_genome(peaks_path: str | Path, genome_order: list[str],
                           out_path: Path) -> None:
     """Sort a peak file by the alignment's chromosome order, then start/end.
@@ -463,6 +479,16 @@ def chromatin_peak_counts(params: dict) -> dict:
                         _genome_sizes_from_bam(Path(files[0]).expanduser()))
         genome_file = None
         count_peaks_path = peaks_path
+        missing_contigs = (_peak_contigs_missing(peaks_path, [c for c, _ in genome_sizes])
+                           if genome_sizes else [])
+        if genome_sizes and missing_contigs:
+            # `bedtools coverage -sorted -g` aborts when a peak contig is absent
+            # from the genome file; count with the in-memory algorithm instead.
+            warnings.append(
+                f"{len(missing_contigs)} peak contig(s) absent from the alignment "
+                f"header (e.g. {', '.join(missing_contigs[:3])}); counting with the "
+                "unsorted in-memory bedtools algorithm (higher memory use).")
+            genome_sizes = []
         if genome_sizes:
             genome_file = output_dir / "genome.txt"
             _write_genome_file(genome_file, genome_sizes)

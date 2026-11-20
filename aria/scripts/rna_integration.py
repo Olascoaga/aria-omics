@@ -136,7 +136,10 @@ def rna_integration(params: dict) -> dict:
             adata.raw = adata.copy()
         sc.pp.highly_variable_genes(adata, n_top_genes=3000, subset=True)
         sc.pp.scale(adata, max_value=10)
-        sc.tl.pca(adata, svd_solver="arpack", n_comps=50, random_state=seed)
+        n_comps = min(50, min(adata.shape) - 1)
+        if n_comps < 1:
+            return {"status": "skipped", "reason": "PCA requires at least two cells and two genes"}
+        sc.tl.pca(adata, svd_solver="arpack", n_comps=n_comps, random_state=seed)
 
     # Silhouette score — batch separation (lower is better AFTER correction).
     from sklearn.metrics import silhouette_score
@@ -144,10 +147,20 @@ def rna_integration(params: dict) -> dict:
     le = LabelEncoder()
     batch_labels = le.fit_transform(adata.obs[batch_col].astype(str))
     pca20 = adata.obsm["X_pca"][:, :20]
-    sil_before = float(silhouette_score(
-        pca20, batch_labels,
-        sample_size=min(2000, len(batch_labels)), random_state=seed,
-    ))
+    def _silhouette(embedding):
+        _, sizes = np.unique(batch_labels, return_counts=True)
+        if len(sizes) < 2 or sizes.min() < 2:
+            return None
+        try:
+            value = float(silhouette_score(
+                embedding, batch_labels,
+                sample_size=min(2000, len(batch_labels)), random_state=seed,
+            ))
+            return value if np.isfinite(value) else None
+        except ValueError:
+            return None
+
+    sil_before = _silhouette(pca20)
 
     # Harmony integration — call harmonypy directly. scanpy's
     # sc.external.pp.harmony_integrate hardcodes `harmony_out.Z_corr.T`,
@@ -175,13 +188,11 @@ def rna_integration(params: dict) -> dict:
     adata.obsm["X_pca_harmony"] = Z
     rep = "X_pca_harmony"
 
-    sil_after = float(silhouette_score(
-        adata.obsm[rep][:, :20], batch_labels,
-        sample_size=min(2000, len(batch_labels)), random_state=seed,
-    ))
+    sil_after = _silhouette(adata.obsm[rep][:, :20])
 
     # Recompute graph + UMAP on corrected embedding.
-    sc.pp.neighbors(adata, use_rep=rep, n_neighbors=15, n_pcs=30,
+    n_pcs = max(1, min(30, min(adata.shape) - 1, adata.obsm[rep].shape[1]))
+    sc.pp.neighbors(adata, use_rep=rep, n_neighbors=15, n_pcs=n_pcs,
                     random_state=seed)
     sc.tl.umap(adata, random_state=seed)
 
@@ -192,9 +203,9 @@ def rna_integration(params: dict) -> dict:
         "method":                 "harmony",
         "n_batches":              n_batches,
         "batch_col":              batch_col,
-        "silhouette_before":      round(sil_before, 4),
-        "silhouette_after":       round(sil_after, 4),
-        "batch_correction_delta": round(sil_before - sil_after, 4),
+        "silhouette_before":      round(sil_before, 4) if sil_before is not None else None,
+        "silhouette_after":       round(sil_after, 4) if sil_after is not None else None,
+        "batch_correction_delta": round(sil_before - sil_after, 4) if sil_before is not None and sil_after is not None else None,
         "rep_used":               rep,
         "output_path":            str(output_path),
         "cache_version":          2,

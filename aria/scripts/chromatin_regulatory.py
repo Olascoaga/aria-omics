@@ -253,7 +253,8 @@ def _peak_to_gene(adata, params: dict, out_dir: Path) -> dict[str, Any]:
     from aria.utils.safe_h5ad import read_h5ad
 
     rna = read_h5ad(str(rna_path))
-    common = [c for c in adata.obs_names if c in set(rna.obs_names)]
+    rna_obs_set = set(rna.obs_names)  # hoisted: O(N) membership, not O(N^2)
+    common = [c for c in adata.obs_names if c in rna_obs_set]
     if len(common) < min_shared:
         return _skip(
             f"only {len(common)} shared cells; peak-to-gene requires >= {min_shared}",
@@ -513,7 +514,8 @@ def _label_transfer(adata, params: dict, out_dir: Path) -> dict[str, Any]:
             method="barcode_matched_label_hypothesis",
             trusted_for_inference=False,
         )
-    common = [c for c in adata.obs_names if c in set(rna.obs_names)]
+    rna_obs_set = set(rna.obs_names)  # hoisted: O(N) membership, not O(N^2)
+    common = [c for c in adata.obs_names if c in rna_obs_set]
     if not common:
         return _skip(
             "no shared barcodes between scATAC and scRNA",

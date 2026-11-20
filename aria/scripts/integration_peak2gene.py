@@ -105,9 +105,19 @@ def _load_atac_adata(atac_files: list[str]):
         if p.suffix == ".h5ad":
             return ad.read_h5ad(str(p)), None
         if p.suffix == ".h5":
-            return sc.read_10x_h5(str(p), gex_only=False), None
+            ad_obj = sc.read_10x_h5(str(p), gex_only=False)
+            if "feature_types" in ad_obj.var.columns:
+                ft = ad_obj.var["feature_types"].astype(str)
+                if (ft == "Peaks").any():
+                    ad_obj = ad_obj[:, ft == "Peaks"].copy()
+            return ad_obj, None
         if p.is_dir():
-            return sc.read_10x_mtx(str(p), cache=False), None
+            ad_obj = sc.read_10x_mtx(str(p), gex_only=False, cache=False)
+            if "feature_types" in ad_obj.var.columns:
+                ft = ad_obj.var["feature_types"].astype(str)
+                if (ft == "Peaks").any():
+                    ad_obj = ad_obj[:, ft == "Peaks"].copy()
+            return ad_obj, None
         low = p.name.lower()
         if low.endswith((".tsv.gz", ".fragments.tsv.gz", ".bed.gz", ".bam")):
             return None, (
@@ -198,11 +208,11 @@ def integration_peak2gene(params: dict) -> dict[str, Any]:
             else round(distance_kb_val, 3)
         )
 
-    min_distance_bp = int(params.get("min_distance_bp", 0) or 0)
-    promoter_bp = int(params.get("promoter_bp", 2000) or 2000)
+    min_distance_bp = int(params["min_distance_bp"]) if params.get("min_distance_bp") is not None else 0
+    promoter_bp = int(params["promoter_bp"]) if params.get("promoter_bp") is not None else 2000
     min_corr = float(params.get("min_corr", 0.3))
-    min_shared_cells = int(params.get("min_shared_cells", 50) or 50)
-    min_cells_detected = int(params.get("min_cells_detected", 10) or 10)
+    min_shared_cells = int(params["min_shared_cells"]) if params.get("min_shared_cells") is not None else 50
+    min_cells_detected = int(params["min_cells_detected"]) if params.get("min_cells_detected") is not None else 10
     atac_transform = str(params.get("atac_transform") or "raw_counts").strip().lower()
     standard_chroms_only = bool(params.get("standard_chroms_only", False))
     background_null = bool(params.get("background_null", True))
@@ -465,8 +475,26 @@ def integration_peak2gene(params: dict) -> dict[str, Any]:
             atac_chk = _select_raw_counts_matrix(
                 atac_sub, modality_label="atac", require_raw_counts=False
             )
-            rna_is_raw = bool(rna_chk.get("is_raw_counts", False))
-            atac_is_raw = bool(atac_chk.get("is_raw_counts", False))
+            if not rna_chk.get("ok"):
+                return {
+                    "status": "error",
+                    "error_type": "InvalidInputMatrix",
+                    "details": str(
+                        rna_chk.get("error")
+                        or "RNA input failed matrix integrity check (non-finite or invalid values)."
+                    ),
+                }
+            if not atac_chk.get("ok"):
+                return {
+                    "status": "error",
+                    "error_type": "InvalidInputMatrix",
+                    "details": str(
+                        atac_chk.get("error")
+                        or "ATAC input failed matrix integrity check (non-finite or invalid values)."
+                    ),
+                }
+            rna_is_raw = bool((rna_chk.get("inspection") or {}).get("is_raw_counts", False))
+            atac_is_raw = bool((atac_chk.get("inspection") or {}).get("is_raw_counts", False))
             rna_mat = (
                 rna_chk["matrix"] if rna_chk.get("matrix") is not None else rna_sub.X
             )

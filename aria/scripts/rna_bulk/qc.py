@@ -13,7 +13,8 @@ from aria.scripts.rna_bulk.plots import _plot_pca_mds
 
 def _sample_qc(counts, metadata, output_dir: str,
                warnings: list,
-               biotype_map: dict | None = None) -> dict:
+               biotype_map: dict | None = None,
+               design_factor: str | None = None) -> dict:
     """
     Sample-level QC for bulk RNA-seq.
 
@@ -53,9 +54,9 @@ def _sample_qc(counts, metadata, output_dir: str,
         corr_full  = log_counts.corr(method="spearman")
 
         # Identify the condition column from metadata
-        condition_col = None
+        condition_col = design_factor if design_factor in metadata.columns else None
         for c in metadata.columns:
-            if c not in ("sample", "batch", "replicate"):
+            if condition_col is None and c not in ("sample", "batch", "replicate"):
                 condition_col = c
                 break
 
@@ -108,7 +109,7 @@ def _sample_qc(counts, metadata, output_dir: str,
 
         # Run PCA + MDS on same matrix (apples to apples)
         pca_plot, mds_plot, coords, var_exp = _plot_pca_mds(
-            vst_variable, metadata, output_dir, warnings,
+            vst_variable, metadata, output_dir, warnings, design_factor=design_factor,
         )
         if coords is None:
             # DR failed entirely — empty fallback

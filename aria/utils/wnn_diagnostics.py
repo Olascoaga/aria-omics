@@ -604,7 +604,7 @@ def _evaluate_rare_groups(
     for grp in unique_groups:
         idx = np.flatnonzero(lbl_arr == grp)
         n_grp = int(idx.size)
-        if n_grp < min_rare_cells or n_grp > max_rare_count:
+        if n_grp < max(2, int(min_rare_cells)) or n_grp > max_rare_count:
             continue
 
         grp_set = set(idx.tolist())
@@ -655,7 +655,10 @@ def _evaluate_rare_groups(
             nat2_raw = float(np.mean(nat2_coh_cells))
             nat2_null = float(np.mean(nat2_null_cells))
             nat2_adj = _chance_adjust(nat2_raw, nat2_null)
-            if (nat2_adj or -1.0) > (nat1_adj or -1.0):
+            if (
+                nat2_adj is not None
+                and (nat1_adj is None or nat2_adj > nat1_adj)
+            ):
                 nat_raw, nat_null, nat_adj = nat2_raw, nat2_null, nat2_adj
             else:
                 nat_raw, nat_null, nat_adj = nat1_raw, nat1_null, nat1_adj
@@ -1184,7 +1187,7 @@ def compute_wnn_anti_degradation_diagnostics(
             continue
 
         reasons: list[str] = []
-        if anchor_evaluable and mean_orphan > 0.50 and (anchor_adj or 0.0) < 0.25:
+        if anchor_evaluable and mean_orphan > 0.50 and anchor_adj is not None and anchor_adj < 0.25:
             reasons.append("high_orphan_wnn_edges")
 
         if r_purity < 0.65 and a_purity < 0.65:
@@ -1260,80 +1263,121 @@ def compute_wnn_anti_degradation_diagnostics(
             "clusters": {},
         }
     else:
-        g_mean_rna = float(np.mean(rna_w))
-        g_med_rna = float(np.median(rna_w))
-        g_iqr_rna = float(np.percentile(rna_w, 75) - np.percentile(rna_w, 25))
-        if g_mean_rna > 0.85 or g_mean_rna < 0.15:
+        fin_rna_mask = np.isfinite(rna_w)
+        fin_atac_mask = np.isfinite(atac_w)
+        fin_both_mask = fin_rna_mask & fin_atac_mask
+        if not np.any(fin_rna_mask) or not np.any(fin_atac_mask):
             issues.append(
                 {
-                    "code": "global_modality_imbalance",
+                    "code": "missing_modality_weights",
                     "severity": "warn",
-                    "detail": (
-                        f"Global mean RNA weight={g_mean_rna:.3f} indicates "
-                        f"strong dominance of a single modality."
-                    ),
+                    "detail": "Per-cell modality weights contained no finite values.",
                 }
             )
-
-        cluster_weights: dict[str, dict[str, Any]] = {}
-        collapsed_clusters: list[str] = []
-        for cl in sorted(set(wnn_arr.tolist())):
-            c_idx = np.flatnonzero(wnn_arr == cl)
-            n_cl = int(c_idx.size)
-            rw_c = rna_w[c_idx]
-            aw_c = atac_w[c_idx]
-            m_rw = float(np.mean(rw_c))
-            m_aw = float(np.mean(aw_c))
-            med_rw = float(np.median(rw_c))
-            iqr_rw = float(np.percentile(rw_c, 75) - np.percentile(rw_c, 25))
-            frac_r_dom = float(np.mean(rw_c > 0.55))
-            frac_a_dom = float(np.mean(aw_c > 0.55))
-            frac_bal = float(np.mean(np.abs(rw_c - aw_c) <= 0.10))
-            collapsed = bool(n_cl >= 5 and (m_rw > 0.90 or m_rw < 0.10))
-            if collapsed:
-                collapsed_clusters.append(str(cl))
-
-            dom_label = (
-                "rna"
-                if m_rw > m_aw + 0.05
-                else ("atac" if m_aw > m_rw + 0.05 else "balanced")
-            )
-            cluster_weights[str(cl)] = {
-                "n_cells": n_cl,
-                "mean_rna_weight": round(m_rw, 4),
-                "median_rna_weight": round(med_rw, 4),
-                "iqr_rna_weight": round(iqr_rw, 4),
-                "mean_atac_weight": round(m_aw, 4),
-                "fraction_rna_dominant": round(frac_r_dom, 4),
-                "fraction_atac_dominant": round(frac_a_dom, 4),
-                "fraction_balanced": round(frac_bal, 4),
-                "dominant_modality": dom_label,
-                "modality_collapsed": collapsed,
+            weight_audit = {
+                "evaluable": False,
+                "reason": "non_finite_modality_weights",
+                "clusters": {},
             }
+        else:
+            rw_fin = rna_w[fin_rna_mask]
+            aw_fin = atac_w[fin_atac_mask]
+            g_mean_rna = float(np.mean(rw_fin))
+            g_med_rna = float(np.median(rw_fin))
+            g_iqr_rna = float(np.percentile(rw_fin, 75) - np.percentile(rw_fin, 25))
+            g_mean_atac = float(np.mean(aw_fin))
+            if g_mean_rna > 0.85 or g_mean_rna < 0.15:
+                issues.append(
+                    {
+                        "code": "global_modality_imbalance",
+                        "severity": "warn",
+                        "detail": (
+                            f"Global mean RNA weight={g_mean_rna:.3f} indicates "
+                            f"strong dominance of a single modality."
+                        ),
+                    }
+                )
 
-        if collapsed_clusters:
-            issues.append(
-                {
-                    "code": "cluster_modality_collapse",
-                    "severity": "warn",
-                    "detail": (
-                        f"{len(collapsed_clusters)} joint cluster(s) have extreme "
-                        f"single-modality weight (>0.90 or <0.10): "
-                        f"{', '.join(collapsed_clusters)}."
-                    ),
+            cluster_weights: dict[str, dict[str, Any]] = {}
+            collapsed_clusters: list[str] = []
+            for cl in sorted(set(wnn_arr.tolist())):
+                c_idx = np.flatnonzero(wnn_arr == cl)
+                n_cl = int(c_idx.size)
+                rw_raw = rna_w[c_idx]
+                aw_raw = atac_w[c_idx]
+                c_fin_r = rw_raw[np.isfinite(rw_raw)]
+                c_fin_a = aw_raw[np.isfinite(aw_raw)]
+                c_fin_both = np.isfinite(rw_raw) & np.isfinite(aw_raw)
+                if c_fin_r.size == 0 or c_fin_a.size == 0:
+                    cluster_weights[str(cl)] = {
+                        "n_cells": n_cl,
+                        "mean_rna_weight": None,
+                        "median_rna_weight": None,
+                        "iqr_rna_weight": None,
+                        "mean_atac_weight": None,
+                        "fraction_rna_dominant": None,
+                        "fraction_atac_dominant": None,
+                        "fraction_balanced": None,
+                        "dominant_modality": "unknown",
+                        "modality_collapsed": False,
+                    }
+                    continue
+                m_rw = float(np.mean(c_fin_r))
+                m_aw = float(np.mean(c_fin_a))
+                med_rw = float(np.median(c_fin_r))
+                iqr_rw = float(np.percentile(c_fin_r, 75) - np.percentile(c_fin_r, 25))
+                frac_r_dom = float(np.mean(c_fin_r > 0.55))
+                frac_a_dom = float(np.mean(c_fin_a > 0.55))
+                frac_bal = (
+                    float(np.mean(np.abs(rw_raw[c_fin_both] - aw_raw[c_fin_both]) <= 0.10))
+                    if np.any(c_fin_both)
+                    else 0.0
+                )
+                collapsed = bool(c_fin_r.size >= 5 and (m_rw > 0.90 or m_rw < 0.10))
+                if collapsed:
+                    collapsed_clusters.append(str(cl))
+
+                dom_label = (
+                    "rna"
+                    if m_rw > m_aw + 0.05
+                    else ("atac" if m_aw > m_rw + 0.05 else "balanced")
+                )
+                cluster_weights[str(cl)] = {
+                    "n_cells": n_cl,
+                    "mean_rna_weight": round(m_rw, 4),
+                    "median_rna_weight": round(med_rw, 4),
+                    "iqr_rna_weight": round(iqr_rw, 4),
+                    "mean_atac_weight": round(m_aw, 4),
+                    "fraction_rna_dominant": round(frac_r_dom, 4),
+                    "fraction_atac_dominant": round(frac_a_dom, 4),
+                    "fraction_balanced": round(frac_bal, 4),
+                    "dominant_modality": dom_label,
+                    "modality_collapsed": collapsed,
                 }
-            )
 
-        weight_audit = {
-            "evaluable": True,
-            "global_mean_rna_weight": round(g_mean_rna, 4),
-            "global_median_rna_weight": round(g_med_rna, 4),
-            "global_iqr_rna_weight": round(g_iqr_rna, 4),
-            "global_mean_atac_weight": round(float(np.mean(atac_w)), 4),
-            "n_collapsed_clusters": len(collapsed_clusters),
-            "collapsed_clusters": collapsed_clusters,
-            "clusters": cluster_weights,
-        }
+            if collapsed_clusters:
+                issues.append(
+                    {
+                        "code": "cluster_modality_collapse",
+                        "severity": "warn",
+                        "detail": (
+                            f"{len(collapsed_clusters)} joint cluster(s) have extreme "
+                            f"single-modality weight (>0.90 or <0.10): "
+                            f"{', '.join(collapsed_clusters)}."
+                        ),
+                    }
+                )
+
+            weight_audit = {
+                "evaluable": True,
+                "global_mean_rna_weight": round(g_mean_rna, 4),
+                "global_median_rna_weight": round(g_med_rna, 4),
+                "global_iqr_rna_weight": round(g_iqr_rna, 4),
+                "global_mean_atac_weight": round(g_mean_atac, 4),
+                "n_collapsed_clusters": len(collapsed_clusters),
+                "collapsed_clusters": collapsed_clusters,
+                "clusters": cluster_weights,
+            }
 
     # ── Final Guardrail Status ────────────────────────────────────────────
     issue_codes = [str(it["code"]) for it in issues]

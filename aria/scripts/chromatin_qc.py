@@ -222,8 +222,10 @@ def _scatac_qc(files: list, genome: str,
         # QC is complete only when both gated metrics are available. Until then
         # pass_qc is None (cannot assert a pass on partial metrics); when
         # complete it is the AND of the real checks.
+        # A measured failure is a definitive fail even when another metric is
+        # missing (partial metrics can never mask a real failure).
         qc_complete = (tss_enrichment is not None and frip is not None)
-        pass_qc = (not qc_failures) if qc_complete else None
+        pass_qc = _scatac_pass_qc(qc_failures, qc_complete)
 
         return {
             "status":          "success",
@@ -422,6 +424,27 @@ def _h5ad_atac_qc(h5ad_path: str, genome: str,
     }
 
 
+def _norm_contig(chrom) -> str:
+    """Reconcile UCSC (``chr1``/``chrM``) and Ensembl (``1``/``MT``) contig names so
+    BAM/fragment contigs match GTF/peak contigs regardless of naming convention."""
+    c = str(chrom).strip()
+    if c[:3].lower() == "chr":
+        c = c[3:]
+    return "MT" if c.upper() in ("M", "MT") else c
+
+
+def _is_mito_contig(chrom) -> bool:
+    return _norm_contig(chrom) == "MT"
+
+
+def _scatac_pass_qc(qc_failures, qc_complete):
+    """scATAC pass/fail: any measured failure is a definitive False; otherwise True
+    only when the gating metrics are complete, else None (cannot assert a pass)."""
+    if qc_failures:
+        return False
+    return True if qc_complete else None
+
+
 def _read_local_tss(gtf_path):
     """Read deduplicated, strand-aware, zero-based 1-bp TSSs from local GTF."""
     from collections import defaultdict
@@ -446,6 +469,45 @@ def _read_local_tss(gtf_path):
             for chrom, rows in tss.items()}
 
 
+def _strand_cc_scores(cc, frag_lag, phantom_lag, hi_frag_lag, step, n_bins):
+    """ENCODE NSC/RSC from a strand cross-correlation profile ``cc`` (lag-indexed,
+    ``step`` bp per lag), with a stabilized background baseline.
+
+    The baseline ``min_cc`` is the minimum CC over the background lags (>=1000 bp
+    and beyond the fragment search window, up to the profile end ~1500 bp). The
+    profile is mean-centred, so the background hovers near 0 on weak libraries;
+    a ratio against a baseline that is not distinguishable from sampling noise
+    (``1/sqrt(n_bins)``, the null SD of a Pearson CC) explodes, so NSC/RSC are
+    reported as None (undefined) instead of a fabricated huge / inverted value.
+    RSC additionally requires ``phantom_cc > min_cc`` (non-inverted denominator).
+    """
+    import math
+    import numpy as np
+    cc = np.asarray(cc, dtype=float)
+    max_lag = cc.size - 1
+    if max_lag < 2 or not (0 <= frag_lag <= max_lag) or not (0 <= phantom_lag <= max_lag):
+        return None, None
+    bg_lo = max(int(math.ceil(1000 / step)), int(hi_frag_lag) + 1)
+    if bg_lo > max_lag - 5:
+        bg_lo = max(1, max_lag - 10)
+    background = cc[bg_lo: max_lag + 1]
+    background = background[np.isfinite(background)]
+    if background.size == 0:
+        return None, None
+    min_cc = float(np.min(background))
+    frag_cc = float(cc[frag_lag])
+    phantom_cc = float(cc[phantom_lag])
+    if not all(math.isfinite(v) for v in (min_cc, frag_cc, phantom_cc)):
+        return None, None
+    noise = 1.0 / math.sqrt(max(int(n_bins), 1))
+    nsc = rsc = None
+    if min_cc > noise and frag_cc > 0:
+        nsc = round(frag_cc / min_cc, 4)
+    if phantom_cc - min_cc > noise and frag_cc >= min_cc:
+        rsc = round((frag_cc - min_cc) / (phantom_cc - min_cc), 4)
+    return nsc, rsc
+
+
 def _scan_bam_metrics(bam_path, reference_fasta=None, max_reads=500_000, tss=None,
                       compute_cross_corr: bool = False):
     """Count every primary read; detailed insert/TSS/complexity/CC sampling is capped."""
@@ -461,6 +523,16 @@ def _scan_bam_metrics(bam_path, reference_fasta=None, max_reads=500_000, tss=Non
     read_lengths: list[int] = []
     sizes = []
     window = center = flank = 0
+    # Contig-normalized TSS view (UCSC chr1 BAM vs Ensembl 1 GTF, or vice versa);
+    # the caller's dict keeps its raw GTF contig keys.
+    tss_by_norm: dict = {}
+    for _chrom, (_rows, _positions) in (tss or {}).items():
+        key = _norm_contig(_chrom)
+        if key in tss_by_norm:
+            merged = sorted(set(tss_by_norm[key][0]) | set(_rows))
+            tss_by_norm[key] = (merged, [p for p, _s in merged])
+        else:
+            tss_by_norm[key] = (_rows, _positions)
     with _open_alignment(bam_path, reference_fasta) as bam:
         pg = str(bam.header.to_dict().get("PG", [])).lower()
         marked = any(token in pg for token in ("markdup", "markduplicates", "dedup"))
@@ -473,7 +545,7 @@ def _scan_bam_metrics(bam_path, reference_fasta=None, max_reads=500_000, tss=Non
                 continue
             mapped += 1
             chrom = read.reference_name
-            is_mito = chrom in {"chrM", "MT", "M"} or chrom.lower().startswith("chrm")
+            is_mito = _is_mito_contig(chrom)
             mito += int(is_mito)
             if complexity_sampled < max(max_reads, 1) and not is_mito:
                 complexity_sampled += 1
@@ -506,7 +578,7 @@ def _scan_bam_metrics(bam_path, reference_fasta=None, max_reads=500_000, tss=Non
                 sizes.append(abs(read.template_length))
             if tss and read.reference_end is not None:
                 cut = read.reference_end - 5 if read.is_reverse else read.reference_start + 4
-                rows, positions = tss.get(chrom, ([], []))
+                rows, positions = tss_by_norm.get(_norm_contig(chrom), ([], []))
                 lo = bisect_left(positions, cut - 2000)
                 hi = bisect_right(positions, cut + 2000)
                 for pos, strand in rows[lo:hi]:
@@ -544,7 +616,10 @@ def _scan_bam_metrics(bam_path, reference_fasta=None, max_reads=500_000, tss=Non
             f_sub = (f_arr[(f_arr >= lo_bp) & (f_arr <= hi_bp)] - lo_bp) // step
             r_sub = (r_arr[(r_arr >= lo_bp) & (r_arr <= hi_bp)] - lo_bp) // step
             n_bins = max(200, int((hi_bp - lo_bp) // step) + 2)
-            max_lag = min(100, n_bins // 4)  # 100 * 5bp = 500bp
+            # 300 * 5bp = 1500bp: the NSC/RSC baseline is the background
+            # cross-correlation far beyond the fragment length (ENCODE /
+            # phantompeakqualtools), not the noisy 450-500bp tail.
+            max_lag = min(300, n_bins // 4)
             if f_sub.size >= 100 and r_sub.size >= 100 and max_lag >= 60:
                 fv = np.bincount(f_sub, minlength=n_bins).astype(np.float64)
                 rv = np.bincount(r_sub, minlength=n_bins).astype(np.float64)
@@ -565,23 +640,17 @@ def _scan_bam_metrics(bam_path, reference_fasta=None, max_reads=500_000, tss=Non
                     hi_frag_lag = min(max_lag, 350 // step)
                     if hi_frag_lag > lo_frag_lag:
                         best_lag = int(lo_frag_lag + np.argmax(cc[lo_frag_lag : hi_frag_lag + 1]))
-                        frag_cc = float(cc[best_lag])
-                        phantom_cc = float(cc[ph_lag])
-                        min_cc = float(np.min(cc[max(1, max_lag - 10) : max_lag + 1]))
                         est_frag_bp = int(best_lag * step)
-                        if min_cc > 1e-6:
-                            nsc = round(frag_cc / min_cc, 4)
-                        elif frag_cc > 0:
-                            nsc = round((frag_cc + 1e-3) / (max(min_cc, 0.0) + 1e-3), 4)
-                        if abs(phantom_cc - min_cc) > 1e-6:
-                            rsc = round((frag_cc - min_cc) / (phantom_cc - min_cc), 4)
+                        nsc, rsc = _strand_cc_scores(
+                            cc, best_lag, ph_lag, hi_frag_lag, step, n_bins)
 
     return {
         "file": str(bam_path),
         "total_reads": total_primary,
         "mapped_reads": mapped,
         "mapped_nonduplicate_reads": nondup,
-        "mito_frac": mito / max(mapped, 1),
+        # Undefined (None) without mapped reads -- never a fabricated 0.0.
+        "mito_frac": (mito / mapped) if mapped > 0 else None,
         "dup_rate": dup_rate,
         "nrf": nrf,
         "pbc1": pbc1,
@@ -675,6 +744,22 @@ def _default_bulk_qc_thresholds(data_type: str) -> dict:
     return {"min_frip": 0.05, "require_tss": False}
 
 
+def _bulk_qc_failures(th: dict, require_tss: bool, frip, enrichment, nrf_mean) -> list:
+    """Measured threshold failures for bulk chromatin QC (FRiP, TSSe when required,
+    and library complexity NRF when the assay declares ``min_nrf``)."""
+    failures = []
+    if frip is not None and frip < th["min_frip"]:
+        failures.append(f"FRiP {frip:.3f} < {th['min_frip']}")
+    if require_tss and enrichment is not None and "min_tss" in th \
+            and enrichment < th["min_tss"]:
+        failures.append(f"TSS enrichment {enrichment:.2f} < {th['min_tss']}")
+    if th.get("min_nrf") is not None and nrf_mean is not None \
+            and nrf_mean < th["min_nrf"]:
+        failures.append(
+            f"NRF {nrf_mean:.3f} < {th['min_nrf']} (low library complexity)")
+    return failures
+
+
 def _bulk_chromatin_qc(files: list, data_type: str,
                         genome: str, assay_class: str,
                         warnings: list, allow_mocks: bool = False,
@@ -715,6 +800,7 @@ def _bulk_chromatin_qc(files: list, data_type: str,
     from aria.scripts.chromatin_peaks import _compute_frip, _read_peak_intervals
     usable_peaks = bool(peaks and Path(peaks).is_file() and _read_peak_intervals(str(peaks)))
     compute_cc = (data_type == "ChIP")
+    seen_sids: dict[str, int] = {}
     for path in bam_files:
         try:
             row, fragments = _scan_bam_metrics(
@@ -726,6 +812,12 @@ def _bulk_chromatin_qc(files: list, data_type: str,
             )
             sizes.extend(fragments)
             sid = Path(path).stem
+            if sid in seen_sids:
+                # Replicate BAMs in different dirs can share a basename; never
+                # let a later sample silently overwrite an earlier one.
+                seen_sids[sid] += 1
+                sid = f"{sid}_{seen_sids[sid]}"
+            seen_sids.setdefault(sid, 1)
             row["sample_id"] = sid
             if row["dup_rate"] is not None:
                 dup_per_sample[sid] = row["dup_rate"]
@@ -747,7 +839,8 @@ def _bulk_chromatin_qc(files: list, data_type: str,
                 if frip is not None:
                     frip_per_sample[sid] = frip
             metrics.append(row)
-            if row["mito_frac"] > (0.2 if data_type == "ChIP" else 0.1):
+            if (row["mito_frac"] is not None
+                    and row["mito_frac"] > (0.2 if data_type == "ChIP" else 0.1)):
                 warnings.append(f"{path}: high mito fraction ({row['mito_frac']:.1%})")
             if row["dup_rate"] is not None and row["dup_rate"] > 0.5:
                 warnings.append(f"{path}: high duplicate rate ({row['dup_rate']:.1%})")
@@ -764,6 +857,7 @@ def _bulk_chromatin_qc(files: list, data_type: str,
     pbc2_mean = mean(pbc2_per_sample.values())
     nsc_mean = mean(nsc_per_sample.values())
     rsc_mean = mean(rsc_per_sample.values())
+    mito_mean = mean([m["mito_frac"] for m in metrics if m.get("mito_frac") is not None])
     jsd_vs_control = (
         _compute_ip_control_jsd(bam_files, control_files, reference_fasta=reference)
         if control_files else None
@@ -783,12 +877,11 @@ def _bulk_chromatin_qc(files: list, data_type: str,
     if not_computed:
         warnings.append("QC metrics not computed: " + ", ".join(not_computed))
 
-    pass_qc = None
-    if complete:
-        if require_tss:
-            pass_qc = bool(frip >= th["min_frip"] and enrichment >= th["min_tss"])
-        else:
-            pass_qc = bool(frip >= th["min_frip"])
+    qc_failures = _bulk_qc_failures(th, require_tss, frip, enrichment, nrf_mean)
+    warnings.extend(qc_failures)
+    # A measured failure is definitive even if another gating metric is missing;
+    # otherwise pass only when complete, else None.
+    pass_qc = False if qc_failures else (True if complete else None)
 
     result = {
         "status": "success", "data_type": data_type,
@@ -798,7 +891,7 @@ def _bulk_chromatin_qc(files: list, data_type: str,
         "frip": frip, "frip_per_sample": frip_per_sample,
         "frip_distribution": list(frip_per_sample.values()) if frip_per_sample else None,
         "tss_enrichment": enrichment, "tss_enrichment_per_sample": tss_per_sample,
-        "mito_fraction": round(mean([m["mito_frac"] for m in metrics]), 4),
+        "mito_fraction": (round(mito_mean, 4) if mito_mean is not None else None),
         "dup_rate": mean(dup_per_sample.values()), "dup_rate_per_sample": dup_per_sample,
         "nrf": round(nrf_mean, 4) if nrf_mean is not None else None,
         "nrf_per_sample": nrf_per_sample,
@@ -815,6 +908,7 @@ def _bulk_chromatin_qc(files: list, data_type: str,
         "per_sample": metrics, "metrics_not_computed": not_computed,
         "qc_complete": complete,
         "pass_qc": pass_qc,
+        "qc_failures": qc_failures,
         "thresholds": th, "warnings": warnings,
     }
     if sizes:
@@ -1023,21 +1117,32 @@ def _compute_fragment_sizes(frag_file: str) -> dict:
 
 
 def _compute_mito_fraction(frag_file: str, mito_chr: str) -> float | None:
-    """Estimate mitochondrial fragment fraction from fragment file."""
+    """Mitochondrial fragment fraction over the WHOLE fragments file.
+
+    10x fragments are coordinate-sorted with chrM last, so a head-only scan never
+    reaches the mitochondrial records; the full file is streamed (only the contig
+    field is parsed). Returns None when the file holds no fragment records or is
+    unreadable -- never a fabricated 0.0.
+    """
+    import gzip
+    mito_names = {mito_chr} if mito_chr else set()
     try:
-        import gzip
-        total = 0; mito = 0
-        opener = gzip.open if frag_file.endswith(".gz") else open
-        with opener(frag_file, "rt") as f:
-            for i, line in enumerate(f):
-                if i > 200000: break
-                if line.startswith("#"): continue
-                parts = line.strip().split("\t")
-                if len(parts) >= 1:
-                    total += 1
-                    if parts[0] in (mito_chr, "M", "MT", "chrM"):
-                        mito += 1
-        return mito / max(total, 1)
+        total = 0
+        mito = 0
+        opener = gzip.open if str(frag_file).endswith(".gz") else open
+        with opener(frag_file, "rb") as f:
+            for line in f:
+                if not line.strip() or line.startswith(b"#"):
+                    continue
+                chrom = line.split(b"\t", 1)[0].decode("utf-8", "replace").strip()
+                if not chrom:
+                    continue
+                total += 1
+                if chrom in mito_names or _is_mito_contig(chrom):
+                    mito += 1
+        if total == 0:
+            return None
+        return mito / total
     except (OSError, EOFError, gzip.BadGzipFile, UnicodeDecodeError):
         return None
 
@@ -1058,6 +1163,17 @@ def _peaks_by_chrom_from_bed(peaks_bed: str) -> dict:
                 out.setdefault(parts[0], []).append((int(parts[1]), int(parts[2])))
             except ValueError:
                 continue
+    for chrom in out:
+        out[chrom].sort()
+    return out
+
+
+def _norm_peak_keys(peaks_by_chrom) -> dict:
+    """Contig-normalized copy of ``{chrom: [(start, end), ...]}`` (sorted), so
+    UCSC-named peaks match Ensembl-named fragments and vice versa."""
+    out: dict = {}
+    for chrom, ivs in (peaks_by_chrom or {}).items():
+        out.setdefault(_norm_contig(chrom), []).extend(ivs)
     for chrom in out:
         out[chrom].sort()
     return out
@@ -1098,12 +1214,15 @@ def _frip_from_intervals(fragments, peaks_by_chrom) -> tuple:
     snapatac2. ``fragments`` is an iterable of ``(chrom, start, end)``;
     ``peaks_by_chrom`` is ``{chrom: sorted [(start, end), ...]}``. Returns
     ``(frip|None, n_fragments)``; None when there are no fragments.
+    Contig names are normalized (``chr1`` == ``1``) on both sides.
     """
+    peaks_by_chrom = _norm_peak_keys(peaks_by_chrom)
     starts_by_chrom = {c: [p[0] for p in iv] for c, iv in peaks_by_chrom.items()}
     n_total = 0
     n_in = 0
     for chrom, start, end in fragments:
         n_total += 1
+        chrom = _norm_contig(chrom)
         if _fragment_overlaps_peak(chrom, start, end, peaks_by_chrom, starts_by_chrom):
             n_in += 1
     if n_total == 0:
@@ -1120,13 +1239,16 @@ def _frip_per_barcode_from_intervals(fragments_bc, peaks_by_chrom,
     ``(chrom, start, end, barcode)``. Returns a list of per-barcode FRiP floats
     for barcodes with at least ``min_frags`` fragments (low-count barcodes give
     noisy ratios). Empty list when nothing qualifies — never fabricated.
+    Contig names are normalized (``chr1`` == ``1``) on both sides.
     """
+    peaks_by_chrom = _norm_peak_keys(peaks_by_chrom)
     starts_by_chrom = {c: [p[0] for p in iv] for c, iv in peaks_by_chrom.items()}
     totals: dict = {}
     ins: dict = {}
     for chrom, start, end, bc in fragments_bc:
         if not bc:
             continue
+        chrom = _norm_contig(chrom)
         totals[bc] = totals.get(bc, 0) + 1
         if _fragment_overlaps_peak(chrom, start, end, peaks_by_chrom, starts_by_chrom):
             ins[bc] = ins.get(bc, 0) + 1

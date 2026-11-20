@@ -48,6 +48,7 @@ def _resolve_groupby(params: dict) -> str:
 
 
 def rna_cellcomm(params: dict) -> dict:
+    import math
     import pandas as pd
     from pathlib import Path
     from aria.utils.safe_h5ad import read_h5ad
@@ -59,6 +60,8 @@ def rna_cellcomm(params: dict) -> dict:
     # reports. Keep it configurable, but default to 1000.
     n_perms       = int(params.get("n_perms", 1000))
     seed          = int(params.get("seed", 42))
+    organism = str(params.get("organism", "Homo sapiens")).strip().lower()
+    is_mouse = "musculus" in organism or organism in {"mouse", "mm", "mm10", "mm39"}
 
     adata = read_h5ad(data_path)
 
@@ -84,7 +87,8 @@ def rna_cellcomm(params: dict) -> dict:
         li.mt.rank_aggregate(
             adata,
             groupby=cell_type_col,
-            use_raw=False,
+            use_raw=(adata.raw is not None),
+            resource_name="mouseconsensus" if is_mouse else "consensus",
             verbose=False,
             n_perms=n_perms,
             seed=seed,
@@ -128,17 +132,26 @@ def rna_cellcomm(params: dict) -> dict:
         ]
         sort_cols = [chosen_rank, *tie_cols]
         sort_asc = [ascending, *([True] * len(tie_cols))]
-        ranked = (liana_df
+        n_interactions_total = int(len(liana_df))
+        significance_col = next((c for c in ("specificity_rank", "cellphone_pvals")
+                                 if c in liana_df.columns), None)
+        if significance_col is not None:
+            sig_values = pd.to_numeric(liana_df[significance_col], errors="coerce")
+            significant = sig_values.map(math.isfinite) & sig_values.ge(0) & sig_values.lt(0.05)
+            n_significant = int(significant.sum())
+        else:
+            n_significant = None
+        ranked_full = (liana_df
                   .dropna(subset=[chosen_rank])
-                  .sort_values(sort_cols, ascending=sort_asc, kind="mergesort")
-                  .head(50))
+                  .sort_values(sort_cols, ascending=sort_asc, kind="mergesort"))
+        ranked = ranked_full.head(50)
         for rank_idx, (_, row) in enumerate(ranked.iterrows(), start=1):
             raw_score = float(row.get(chosen_rank, 0))
             raw_pval = row.get("cellphone_pvals") if "cellphone_pvals" in row else None
             try:
-                pval = float(raw_pval) if raw_pval is not None else None
-                if pval <= 0:
-                    pval = None
+                pval = (float(raw_pval) if raw_pval is not None
+                        and not isinstance(raw_pval, bool)
+                        and math.isfinite(float(raw_pval)) else None)
             except Exception:
                 pval = None
             interactions.append({
@@ -178,7 +191,7 @@ def rna_cellcomm(params: dict) -> dict:
 
     # Summarize by sender→receiver pair
     pair_counts: dict = {}
-    for ia in interactions:
+    for _, ia in liana_df.iterrows():
         k = f"{ia['source']}→{ia['target']}"
         pair_counts[k] = pair_counts.get(k, 0) + 1
     top_pairs = [p for p, _ in sorted(pair_counts.items(), key=lambda x: (-x[1], x[0]))[:10]]
@@ -189,7 +202,7 @@ def rna_cellcomm(params: dict) -> dict:
         out_dir = Path(output_dir)
         out_dir.mkdir(parents=True, exist_ok=True)
         result_path = str(out_dir / "cellcomm_interactions.csv")
-        pd.DataFrame(interactions).to_csv(result_path, index=False)
+        liana_df.to_csv(result_path, index=False)
     except Exception as e:
         result_path = None
         # Surface the reason in the result for downstream debugging
@@ -200,7 +213,9 @@ def rna_cellcomm(params: dict) -> dict:
         "method":             method,
         "seed":               seed,
         "n_cell_types":       n_types,
-        "n_interactions":     len(interactions),
+        "n_interactions":     n_interactions_total,
+        "n_interactions_total": n_interactions_total,
+        "n_significant":      n_significant,
         "n_autocrine_dropped": autocrine_count,
         "top_interactions":   interactions[:20],
         "top_pairs":          top_pairs,

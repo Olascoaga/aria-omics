@@ -157,22 +157,33 @@ def annotate_one_peak(chrom: str, start: int, end: int, models_by_chrom: dict,
     hi = min(len(glist), pos + _NEIGHBORS)
     cands = glist[lo:hi] or glist
 
-    nearest = min(cands, key=lambda g: abs(center - g["tss"]))
+    # Candidates ordered by |center - TSS| (closest first; ties broken by TSS then
+    # gene name for determinism), NOT by genomic TSS order -- otherwise a
+    # bidirectional/overlapping promoter resolves to the leftmost TSS.
+    cands = sorted(cands, key=lambda g: (abs(center - g["tss"]), g["tss"],
+                                         str(g["gene"])))
+    nearest = cands[0]
 
-    # Priority: Promoter > Exonic > Intronic > Distal Intergenic.
+    # Strict priority across ALL candidates: Promoter > Exonic > Intronic >
+    # Distal Intergenic (an exon of any overlapping gene beats an intron of
+    # another, regardless of which gene's TSS comes first).
     for g in cands:
         sdist = _signed_tss_distance(center, g)
         if -promoter_upstream <= sdist <= promoter_downstream:
             return {"nearest_gene": g["gene"],
-                    "distance_to_tss": _signed_tss_distance(center, g),
+                    "distance_to_tss": sdist,
                     "feature": FEATURE_PROMOTER}
-    for g in cands:
-        if g["start"] <= center <= g["end"]:
-            feature = FEATURE_EXONIC if _in_exon(center, g["exons"]) \
-                else FEATURE_INTRONIC
+    body = [g for g in cands if g["start"] <= center <= g["end"]]
+    for g in body:
+        if _in_exon(center, g["exons"]):
             return {"nearest_gene": g["gene"],
                     "distance_to_tss": _signed_tss_distance(center, g),
-                    "feature": feature}
+                    "feature": FEATURE_EXONIC}
+    if body:
+        g = body[0]
+        return {"nearest_gene": g["gene"],
+                "distance_to_tss": _signed_tss_distance(center, g),
+                "feature": FEATURE_INTRONIC}
     return {"nearest_gene": nearest["gene"],
             "distance_to_tss": _signed_tss_distance(center, nearest),
             "feature": FEATURE_INTERGENIC}
@@ -217,12 +228,53 @@ def _resolve_gtf(params: dict, out_dir: Path) -> Optional[Path]:
     # Prefer the GTF for THIS experiment's assembly before the generic search.
     genome = params.get("genome") or params.get("assembly")
     if genome:
-        genome_dir = Path.home() / ".aria" / "genomes" / str(genome)
-        for name in ("annotation.gtf", "annotation.gtf.gz"):
-            cand = genome_dir / name
-            if cand.exists() and cand.stat().st_size > 100_000:
-                return cand
+        # An explicit assembly NEVER falls through to the generic search: that
+        # returns the first GTF under any genome dir and can silently annotate
+        # mouse peaks with a human GTF (or vice versa). Honest None instead.
+        return _assembly_gtf(str(genome))
     return _locate_gtf(out_dir / "peaks", hint)
+
+
+# UCSC <-> GENCODE/Ensembl assembly aliases (same assembly, different names).
+_ASSEMBLY_ALIASES = {
+    "hg38": {"hg38", "grch38"}, "grch38": {"hg38", "grch38"},
+    "hg19": {"hg19", "grch37"}, "grch37": {"hg19", "grch37"},
+    "mm10": {"mm10", "grcm38"}, "grcm38": {"mm10", "grcm38"},
+    "mm39": {"mm39", "grcm39"}, "grcm39": {"mm39", "grcm39"},
+}
+
+
+def _assembly_gtf(genome: str) -> Optional[Path]:
+    """GTF for exactly this assembly (alias-aware, case-insensitive) under the
+    managed genome store(s): ``ARIA_GENOME_DIR`` / ``$ARIA_HOME/genomes`` and
+    ``~/.aria/genomes``. Returns None when absent (no cross-assembly fallback)."""
+    key = str(genome).strip().lower()
+    names = _ASSEMBLY_ALIASES.get(key, {key}) if key else set()
+    if not names:
+        return None
+    bases = []
+    override = os.environ.get("ARIA_GENOME_DIR")
+    if override:
+        bases.append(Path(override).expanduser())
+    home = os.environ.get("ARIA_HOME")
+    if home:
+        bases.append(Path(home).expanduser() / "genomes")
+    bases.append(Path.home() / ".aria" / "genomes")
+    seen = set()
+    for base in bases:
+        try:
+            subdirs = [d for d in base.iterdir() if d.is_dir()] if base.is_dir() else []
+        except OSError:
+            continue
+        for d in sorted(subdirs, key=lambda x: x.name):
+            if d.name.lower() not in names or d in seen:
+                continue
+            seen.add(d)
+            for name in ("annotation.gtf", "annotation.gtf.gz"):
+                cand = d / name
+                if cand.exists() and cand.stat().st_size > 100_000:
+                    return cand
+    return None
 
 
 def _modality_stamp(params: dict) -> tuple:
@@ -240,16 +292,21 @@ def _select_comparison_rows(df, comp: Optional[dict]):
     """Restrict a DA table to one contrast when it is a combined multi-contrast
     table (a ``comparison`` column, as in the scATAC pseudobulk full CSV).
 
-    Filters to ``f"{test}_vs_{reference}"`` only when that key is present in the
-    table; a single-contrast table (no ``comparison`` column, or no matching
-    rows) is returned unchanged, so per-comparison CSVs are never emptied."""
+    A multi-contrast table (>1 distinct ``comparison``) is ALWAYS filtered to
+    ``f"{test}_vs_{reference}"`` -- possibly to zero rows; it never falls back to
+    the other contrasts' peaks. A single-contrast table (no ``comparison``
+    column, or one distinct value) is returned unchanged when the key does not
+    match, so per-comparison CSVs are never emptied."""
     comp = comp or {}
     test, ref = comp.get("test"), comp.get("reference")
     if "comparison" not in df.columns or test is None or ref is None:
         return df
     comp_key = f"{test}_vs_{ref}"
-    mask = df["comparison"].astype(str) == comp_key
-    return df[mask] if bool(mask.any()) else df
+    labels = df["comparison"].astype(str)
+    mask = labels == comp_key
+    if bool(mask.any()) or labels.nunique(dropna=True) > 1:
+        return df[mask]
+    return df
 
 
 def _significant_peaks(csv_path: str, comp: Optional[dict] = None):
@@ -312,7 +369,8 @@ def chromatin_peak_annotation(params: dict) -> dict:
             continue
         ann = annotate_peaks(peaks, models, promoter_up, promoter_down)
         comp_key = f"{comp.get('test')}_vs_{comp.get('reference')}"
-        ann_csv = out_dir / f"{prefix}_peak_annotation_{comp_key}.csv"
+        safe_key = re.sub(r"[^A-Za-z0-9._-]+", "_", comp_key)
+        ann_csv = out_dir / f"{prefix}_peak_annotation_{safe_key}.csv"
 
         # persist_csv calls write_fn() with no args; bind the per-iteration path +
         # rows via defaults to avoid late-binding over the loop variables.

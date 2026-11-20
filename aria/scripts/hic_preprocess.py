@@ -353,53 +353,66 @@ def _convert_hic_to_cooler(
     )
     bins_df = bioframe.binnify(chrom_series, chosen_res)
     chrom_offsets: dict[str, int] = {}
+    chrom_nbins: dict[str, int] = {}
     for chrom_name, grp in bins_df.groupby("chrom", sort=False, observed=False):
         chrom_offsets[str(chrom_name)] = int(grp.index[0])
+        chrom_nbins[str(chrom_name)] = int(len(grp))
 
     def _pixel_chunks():
+        import math
+
         names = [str(c.name) for c in chrom_objs]
         lengths = {str(c.name): int(c.length) for c in chrom_objs}
         for i, c1 in enumerate(names):
             off1 = chrom_offsets[c1]
+            nb1 = chrom_nbins[c1]
             len1 = lengths[c1]
             for j in range(i, len(names)):
                 c2 = names[j]
                 off2 = chrom_offsets[c2]
+                nb2 = chrom_nbins[c2]
                 len2 = lengths[c2]
-                mzd = hic.getMatrixZoomData(
-                    c1, c2, "observed", "NONE", "BP", chosen_res
-                )
-                recs = mzd.getRecords(0, len1, 0, len2)
+                try:
+                    mzd = hic.getMatrixZoomData(
+                        c1, c2, "observed", "NONE", "BP", chosen_res
+                    )
+                    if mzd is None:
+                        continue
+                    recs = mzd.getRecords(0, max(0, len1 - 1), 0, max(0, len2 - 1))
+                except Exception:
+                    continue
                 if not recs:
                     continue
-                b1 = np.fromiter(
-                    (off1 + int(r.binX) // chosen_res for r in recs),
-                    dtype=np.int64,
-                    count=len(recs),
-                )
-                b2 = np.fromiter(
-                    (off2 + int(r.binY) // chosen_res for r in recs),
-                    dtype=np.int64,
-                    count=len(recs),
-                )
-                cnt = np.fromiter(
-                    (max(0, int(round(float(r.counts)))) for r in recs),
-                    dtype=np.int64,
-                    count=len(recs),
-                )
-                keep = cnt > 0
-                if not np.any(keep):
+                b1_list: list[int] = []
+                b2_list: list[int] = []
+                cnt_list: list[int] = []
+                for r in recs:
+                    try:
+                        c_raw = float(r.counts)
+                    except (TypeError, ValueError):
+                        continue
+                    if not math.isfinite(c_raw) or c_raw <= 0.0:
+                        continue
+                    c_int = int(round(c_raw))
+                    if c_int <= 0:
+                        continue
+                    lb1 = int(r.binX) // chosen_res
+                    lb2 = int(r.binY) // chosen_res
+                    if not (0 <= lb1 < nb1 and 0 <= lb2 < nb2):
+                        continue
+                    g1 = off1 + lb1
+                    g2 = off2 + lb2
+                    if g1 > g2:
+                        g1, g2 = g2, g1
+                    b1_list.append(g1)
+                    b2_list.append(g2)
+                    cnt_list.append(c_int)
+                if not cnt_list:
                     continue
-                b1, b2, cnt = b1[keep], b2[keep], cnt[keep]
-                swap = b1 > b2
-                if np.any(swap):
-                    b1_s = np.where(swap, b2, b1)
-                    b2 = np.where(swap, b1, b2)
-                    b1 = b1_s
                 df_chunk = pd.DataFrame({
-                    "bin1_id": b1,
-                    "bin2_id": b2,
-                    "count": cnt,
+                    "bin1_id": np.asarray(b1_list, dtype=np.int64),
+                    "bin2_id": np.asarray(b2_list, dtype=np.int64),
+                    "count": np.asarray(cnt_list, dtype=np.int64),
                 })
                 df_chunk = (
                     df_chunk.groupby(["bin1_id", "bin2_id"], as_index=False)["count"]
@@ -452,10 +465,32 @@ def hic_preprocess(params: dict) -> dict:
 
     declared_sids = params.get("sample_ids")
     if isinstance(declared_sids, list) and len(declared_sids) == len(files):
-        sample_ids = [str(s) for s in declared_sids]
+        raw_sids = [str(s) for s in declared_sids]
     else:
-        sample_ids = [_strip_hic_suffixes(f) for f in files]
+        raw_sids = [_strip_hic_suffixes(f) for f in files]
+    # Deduplicate colliding derived sample_ids (e.g. rep1/matrix.mcool, rep2/matrix.mcool).
+    sid_counts: dict[str, int] = {}
+    for s in raw_sids:
+        sid_counts[s] = sid_counts.get(s, 0) + 1
+    seen_sids: set[str] = set()
+    sample_ids: list[str] = []
+    for idx_s, (s, fpath_s) in enumerate(zip(raw_sids, files)):
+        cand = s
+        if sid_counts.get(s, 0) > 1:
+            parent_tag = Path(fpath_s).parent.name.strip()
+            cand = f"{parent_tag}_{s}" if parent_tag else f"{s}_{idx_s + 1}"
+            if cand in seen_sids:
+                cand = f"{s}_{idx_s + 1}"
+        while cand in seen_sids:
+            cand = f"{cand}_{idx_s + 1}"
+        seen_sids.add(cand)
+        sample_ids.append(cand)
 
+    cache_inputs = list(files)
+    for ref_key in ("chrom_sizes", "genome_fasta", "genome_fai"):
+        rv = params.get(ref_key)
+        if isinstance(rv, str) and rv and Path(rv).is_file():
+            cache_inputs.append(rv)
     manifest_params = {
         "genome": genome,
         "base_res": base_res,
@@ -463,6 +498,9 @@ def hic_preprocess(params: dict) -> dict:
         "zoomify": build_mcool,
         "mapq": mapq,
         "sample_ids": sample_ids,
+        "chrom_sizes": params.get("chrom_sizes") if isinstance(params.get("chrom_sizes"), dict) else str(params.get("chrom_sizes") or ""),
+        "genome_fasta": str(params.get("genome_fasta") or ""),
+        "genome_fai": str(params.get("genome_fai") or ""),
     }
     if bool(params.get("resume", True)):
         cached = _check_hic_stage_cache(
@@ -470,7 +508,7 @@ def hic_preprocess(params: dict) -> dict:
             stage="hic_preprocess",
             version=STAGE_VERSION,
             params=manifest_params,
-            inputs=files,
+            inputs=cache_inputs,
         )
         if cached is not None and isinstance(cached.get("result"), dict):
             resumed = dict(cached["result"])
@@ -506,7 +544,7 @@ def hic_preprocess(params: dict) -> dict:
                 res_paths = cooler.fileops.list_coolers(str(src))
                 res_vals = sorted(
                     int(p.split("/")[-1]) for p in res_paths
-                    if p.split("/")[-1].isdigit()
+                    if "/resolutions/" in p and p.split("/")[-1].isdigit()
                 )
                 cooler_files.append(str(src))
                 processed_samples.append({
@@ -528,7 +566,7 @@ def hic_preprocess(params: dict) -> dict:
                     res_paths = cooler.fileops.list_coolers(str(out_path))
                     res_vals = sorted(
                         int(p.split("/")[-1]) for p in res_paths
-                        if p.split("/")[-1].isdigit()
+                        if "/resolutions/" in p and p.split("/")[-1].isdigit()
                     ) or [src_res]
                 cooler_files.append(str(out_path))
                 processed_samples.append({
@@ -551,7 +589,7 @@ def hic_preprocess(params: dict) -> dict:
                     res_vals = sorted(
                         int(p.split("/")[-1])
                         for p in cooler.fileops.list_coolers(str(out_path))
-                        if p.split("/")[-1].isdigit()
+                        if "/resolutions/" in p and p.split("/")[-1].isdigit()
                     ) or [base_res]
                 cooler_files.append(str(out_path))
                 processed_samples.append({
@@ -577,7 +615,7 @@ def hic_preprocess(params: dict) -> dict:
                     res_vals = sorted(
                         int(p.split("/")[-1])
                         for p in cooler.fileops.list_coolers(str(out_path))
-                        if p.split("/")[-1].isdigit()
+                        if "/resolutions/" in p and p.split("/")[-1].isdigit()
                     ) or [base_res]
                 cooler_files.append(str(out_path))
                 processed_samples.append({
@@ -605,7 +643,7 @@ def hic_preprocess(params: dict) -> dict:
                     res_vals = sorted(
                         int(p.split("/")[-1])
                         for p in cooler.fileops.list_coolers(str(out_path))
-                        if p.split("/")[-1].isdigit()
+                        if "/resolutions/" in p and p.split("/")[-1].isdigit()
                     ) or [chosen_res]
                 cooler_files.append(str(out_path))
                 processed_samples.append({
@@ -638,6 +676,7 @@ def hic_preprocess(params: dict) -> dict:
         "data_type": "HiC",
         "validation_level": "production",
         "genome": genome,
+        "base_resolution": int(base_res),
         "n_samples": len(cooler_files),
         "sample_ids": sample_ids,
         "cooler_files": cooler_files,
@@ -649,7 +688,7 @@ def hic_preprocess(params: dict) -> dict:
         stage="hic_preprocess",
         version=STAGE_VERSION,
         params=manifest_params,
-        inputs=files,
+        inputs=cache_inputs,
         outputs=cooler_files,
         extra={"result": result},
     )

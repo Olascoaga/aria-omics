@@ -234,10 +234,15 @@ def resolve_motifs_to_expressed_tfs(
         g = str(g_raw).strip()
         if not g:
             continue
-        all_upper_buckets.setdefault(g.upper(), []).append(g)
+        key_u = g.upper()
+        all_bucket = all_upper_buckets.setdefault(key_u, [])
+        if g not in all_bucket:
+            all_bucket.append(g)
         if int(gene_cells_detected[idx]) >= min_cells_detected:
             expressed_exact.add(g)
-            upper_buckets.setdefault(g.upper(), []).append(g)
+            expr_bucket = upper_buckets.setdefault(key_u, [])
+            if g not in expr_bucket:
+                expr_bucket.append(g)
 
     def _lookup_one(token: str) -> tuple[str | None, str | None, str | None]:
         tok = token.strip()
@@ -402,7 +407,7 @@ def fetch_peak_center_sequences_from_indexed_fasta(
         if parsed is None:
             continue
         chrom, s, e = parsed
-        raw_c = chrom if chrom in idx else canon_to_raw.get(chrom)
+        raw_c = chrom if chrom in idx else canon_to_raw.get(canonical_contig(chrom) or "")
         if raw_c is None:
             n_missing_contig += 1
             continue
@@ -684,7 +689,7 @@ def compute_gc_stratified_motif_enrichment(
     num = np.zeros(n_motifs, dtype=np.float64)
     var = np.zeros(n_motifs, dtype=np.float64)
     exp_hits = np.zeros(n_motifs, dtype=np.float64)
-    obs_hits = hits_f[:, fg].sum(axis=1)
+    obs_hits = np.zeros(n_motifs, dtype=np.float64)
 
     for b in range(n_gc_bins):
         in_b = bins == b
@@ -704,6 +709,7 @@ def compute_gc_stratified_motif_enrichment(
         num += a_b - e_b
         var += v_b
         exp_hits += e_b
+        obs_hits += a_b
 
     z = np.where(var > 1e-12, num / np.sqrt(np.maximum(var, 1e-12)), 0.0)
     pvals = stats.norm.sf(z)
@@ -1021,8 +1027,9 @@ def compute_candidate_eregulons(
 
     # ── Step 2: Normalize RNA (`log1p(CP10k)`) & detect expressed genes/TFs ──
     if sparse.issparse(rna_matrix):
-        rna_csc = rna_matrix.tocsc()
-        gene_detected = np.diff(rna_csc.indptr)
+        rna_csc = rna_matrix.tocsc().copy()
+        rna_csc.eliminate_zeros()
+        gene_detected = np.asarray((rna_csc > 0).sum(axis=0)).ravel().astype(np.int64)
         rna_lib = np.asarray(rna_csc.sum(axis=1)).ravel().astype(np.float64)
     else:
         rna_arr_in = np.asarray(rna_matrix, dtype=np.float64)
@@ -1030,8 +1037,9 @@ def compute_candidate_eregulons(
         rna_lib = rna_arr_in.sum(axis=1)
 
     if sparse.issparse(atac_matrix):
-        atac_csc = atac_matrix.tocsc()
-        peak_detected = np.diff(atac_csc.indptr)
+        atac_csc = atac_matrix.tocsc().copy()
+        atac_csc.eliminate_zeros()
+        peak_detected = np.asarray((atac_csc > 0).sum(axis=0)).ravel().astype(np.int64)
         atac_lib = np.asarray(atac_csc.sum(axis=1)).ravel().astype(np.float64)
     else:
         atac_arr_in = np.asarray(atac_matrix, dtype=np.float64)
@@ -1182,18 +1190,48 @@ def compute_candidate_eregulons(
     )
     cis_scan_to_sub = {s_i: k for k, s_i in enumerate(cis_local_scan_indices)}
     cis_atac_cols = [scanned_atac_col_indices[s_i] for s_i in cis_local_scan_indices]
+    # Compute an orthonormal basis Q for the joint [log_rna_depth, log_atac_depth]
+    # covariate subspace so cross-modal partial r(TF, Peak | Z) projects BOTH
+    # variables onto the exact same orthogonal complement.
+    def _joint_depth_residuals(mat_cols: np.ndarray, q_basis: np.ndarray | None) -> np.ndarray:
+        centered = mat_cols - mat_cols.mean(axis=0, keepdims=True)
+        if q_basis is not None and q_basis.shape[1] > 0:
+            resid = centered - q_basis @ (q_basis.T @ centered)
+        else:
+            resid = centered
+        norms = np.linalg.norm(resid, axis=0, keepdims=True)
+        safe = np.where(norms > 1e-12, norms, 1.0)
+        out = resid / safe
+        out[:, norms.ravel() <= 1e-12] = 0.0
+        return out
+
+    joint_cov_cols = []
+    for cov_vec in (log_rna_depth, log_atac_depth):
+        c = np.asarray(cov_vec, dtype=np.float64)
+        c = np.where(np.isfinite(c), c, 0.0)
+        c = c - c.mean()
+        if float(np.linalg.norm(c)) > 1e-12:
+            joint_cov_cols.append(c)
+    if joint_cov_cols:
+        cov_mat = np.column_stack(joint_cov_cols)
+        q_raw, r_mat = np.linalg.qr(cov_mat, mode="reduced")
+        keep_q = np.abs(np.diag(r_mat)) > 1e-10
+        joint_depth_q = q_raw[:, keep_q] if np.any(keep_q) else None
+    else:
+        joint_depth_q = None
+
     if cis_atac_cols:
         if sparse.issparse(atac_matrix):
             sub_atac = atac_csc[:, cis_atac_cols].toarray().astype(np.float64)
         else:
             sub_atac = np.asarray(atac_matrix[:, cis_atac_cols], dtype=np.float64)
-        # Condition ATAC peaks on ATAC depth (and RNA depth for cross-modal partial r)
-        z_atac, z_atac_resid, _ = _zscore_columns_and_depth_residual(
+        z_atac, _, _ = _zscore_columns_and_depth_residual(
             sub_atac, log_atac_depth
         )
+        z_atac_joint_resid = _joint_depth_residuals(sub_atac, joint_depth_q)
     else:
         z_atac = np.zeros((n_cells, 0), dtype=np.float64)
-        z_atac_resid = np.zeros((n_cells, 0), dtype=np.float64)
+        z_atac_joint_resid = np.zeros((n_cells, 0), dtype=np.float64)
 
     # Index cis links by scanned peak local index
     links_by_scan_peak: dict[int, list[dict[str, Any]]] = {}
@@ -1214,11 +1252,12 @@ def compute_candidate_eregulons(
         tf_locs = [expr_gene_to_local[tf] for tf in unique_tfs]
         z_tf = z_rna[:, tf_locs]  # (n_cells, n_tfs)
         z_tf_res = z_rna_resid[:, tf_locs]
+        z_tf_joint_res = _joint_depth_residuals(z_tf, joint_depth_q)
         r_tf_gene_all = np.clip(z_tf.T @ z_rna, -1.0, 1.0)  # (n_tfs, n_expr_genes)
         r_tf_gene_part = np.clip(z_tf_res.T @ z_rna_resid, -1.0, 1.0)
         if z_atac.shape[1] > 0:
             r_tf_peak_all = np.clip(z_tf.T @ z_atac, -1.0, 1.0)
-            r_tf_peak_part = np.clip(z_tf_res.T @ z_atac_resid, -1.0, 1.0)
+            r_tf_peak_part = np.clip(z_tf_joint_res.T @ z_atac_joint_resid, -1.0, 1.0)
         else:
             r_tf_peak_all = np.zeros((len(unique_tfs), 0), dtype=np.float64)
             r_tf_peak_part = np.zeros((len(unique_tfs), 0), dtype=np.float64)
@@ -1262,7 +1301,13 @@ def compute_candidate_eregulons(
                     self_peaks.append(str(lk["peak"]))
                     continue
                 g_loc = expr_gene_to_local[g_name]
-                if float(lk["correlation"]) >= 0.0:
+                try:
+                    corr_v = float(lk["correlation"])
+                except (TypeError, ValueError):
+                    continue
+                if not math.isfinite(corr_v):
+                    continue
+                if corr_v >= 0.0:
                     pos_p2g_by_gene.setdefault(g_loc, []).append((int(s_idx), lk))
                 else:
                     neg_p2g_by_gene.setdefault(g_loc, []).append((int(s_idx), lk))
@@ -1321,9 +1366,9 @@ def compute_candidate_eregulons(
                 pool = bin_pools[b_id]
                 signed_pool = pool if pos_tf_dir else -pool
                 n_b = len(signed_pool)
-                mu_b = float(signed_pool.mean())
-                exp_sum += k_b * mu_b
                 if n_b > k_b and n_b > 1:
+                    mu_b = float(signed_pool.mean())
+                    exp_sum += k_b * mu_b
                     fpc = 1.0 - (float(k_b) / float(n_b))
                     v_b = float(signed_pool.var(ddof=1))
                     var_sum += k_b * fpc * v_b
@@ -1338,18 +1383,23 @@ def compute_candidate_eregulons(
                             )[:, :k_b]
                             mc_sums += signed_pool[pick_idx].sum(axis=1)
                 else:
-                    # Tiny stratum fallback: draw from full background
-                    var_sum += k_b * global_var
+                    # Tiny stratum fallback: draw from full background with consistent moments
+                    n_bg_tot = len(signed_bg)
+                    k_eff = min(k_b, n_bg_tot)
+                    exp_sum += k_eff * float(signed_bg.mean())
+                    fpc_bg = max(0.0, 1.0 - (float(k_eff) / float(max(n_bg_tot, 1))))
+                    var_sum += k_eff * fpc_bg * global_var
                     if n_null_permutations > 0:
                         n_mc = int(n_null_permutations)
-                        n_bg_tot = len(signed_bg)
-                        if k_b == 1:
+                        if k_eff == 1:
                             mc_sums += signed_bg[rng.integers(0, n_bg_tot, size=n_mc)]
-                        elif k_b < n_bg_tot:
+                        elif k_eff < n_bg_tot:
                             pick_idx = np.argpartition(
-                                rng.random((n_mc, n_bg_tot)), k_b - 1, axis=1
-                            )[:, :k_b]
+                                rng.random((n_mc, n_bg_tot)), k_eff - 1, axis=1
+                            )[:, :k_eff]
                             mc_sums += signed_bg[pick_idx].sum(axis=1)
+                        else:
+                            mc_sums += float(signed_bg.sum())
 
             z_mod = (
                 (obs_sum - exp_sum) / math.sqrt(max(var_sum, 1e-12))
@@ -1504,10 +1554,19 @@ def compute_candidate_eregulons(
         for g_loc in le_sorted:
             g_sym = expr_gene_names[g_loc]
             reg_genes.append(g_sym)
+            def _safe_padj_key(val: Any) -> float:
+                if val is None or val == "" or isinstance(val, bool):
+                    return 1.0
+                try:
+                    f = float(val)
+                except (TypeError, ValueError):
+                    return 1.0
+                return f if math.isfinite(f) else 1.0
+
             peak_entries = sorted(
                 m["gene_map"][g_loc],
                 key=lambda pair: (
-                    float(pair[1].get("padj") or 1.0),
+                    _safe_padj_key(pair[1].get("padj")),
                     -abs(float(pair[1]["correlation"])),
                     str(pair[1]["peak"]),
                 ),

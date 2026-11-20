@@ -114,13 +114,15 @@ def _cache_params(params: dict) -> dict:
     return {
         "organism": str(params.get("organism", "Homo sapiens")),
         "mt_threshold": (
-            None if "mt_threshold" not in params
+            None if params.get("mt_threshold") is None
             else float(params.get("mt_threshold"))
         ),
-        "min_genes": int(params.get("min_genes", 200)),
-        "min_cells": int(params.get("min_cells", 3)),
-        "initial_min_genes": int(params.get("initial_min_genes", 200)),
-        "initial_min_cells": int(params.get("initial_min_cells", 3)),
+        "min_genes": int(params.get("min_genes") if params.get("min_genes") is not None else 200),
+        "min_cells": int(params.get("min_cells") if params.get("min_cells") is not None else 3),
+        "initial_min_genes": int(params.get("initial_min_genes") if params.get("initial_min_genes") is not None else 200),
+        "initial_min_cells": int(params.get("initial_min_cells") if params.get("initial_min_cells") is not None else 3),
+        **{key: None if params.get(key) is None else float(params[key])
+           for key in ("min_counts", "max_counts", "max_genes")},
         "run_scrublet": bool(params.get("run_scrublet", True)),
         "run_ambient": bool(params.get("run_ambient", False)),
         "ambient_method": str(params.get("ambient_method", "auto")),
@@ -130,7 +132,7 @@ def _cache_params(params: dict) -> dict:
 
 
 def _cache_matches(cached: dict, expected: dict) -> bool:
-    return cached.get("cache_version") == 6 and cached.get("cache_params") == expected
+    return cached.get("cache_version") == 7 and cached.get("cache_params") == expected
 
 
 def _mad_bounds(values, n_mad: float = 3.0, *, log_space: bool = False,
@@ -165,7 +167,13 @@ def _mad_bounds(values, n_mad: float = 3.0, *, log_space: bool = False,
         # These metrics are integer counts; round the back-transformed bounds to
         # the nearest integer so the expm1(log1p(x)) float round-trip does not
         # leave a bound at e.g. 899.9999 that would wrongly clip a 900-gene cell.
-        lo, hi = float(round(float(np.expm1(lo)))), float(round(float(np.expm1(hi))))
+        def _back_transform(bound):
+            if not np.isfinite(bound):
+                return float("nan")
+            with np.errstate(over="ignore", invalid="ignore"):
+                value = float(np.expm1(bound))
+            return float(round(value)) if np.isfinite(value) else float("nan")
+        lo, hi = _back_transform(lo), _back_transform(hi)
     return lo, hi
 
 
@@ -334,8 +342,8 @@ def rna_qc(params: dict) -> dict:
         # count distribution collapses median→0 and MAD→0, producing
         # mt_high=NaN and nuking every real cell. Apply a coarse initial filter
         # so adaptive MAD thresholds are estimated on plausible cells only.
-        initial_min_genes = int(params.get("initial_min_genes", 200))
-        initial_min_cells = int(params.get("initial_min_cells", 3))
+        initial_min_genes = int(params.get("initial_min_genes") if params.get("initial_min_genes") is not None else 200)
+        initial_min_cells = int(params.get("initial_min_cells") if params.get("initial_min_cells") is not None else 3)
         sc.pp.filter_cells(adata, min_genes=initial_min_genes)
         sc.pp.filter_genes(adata, min_cells=initial_min_cells)
 
@@ -361,11 +369,15 @@ def rna_qc(params: dict) -> dict:
     # ── Mitochondrial gene prefix ─────────────────────────────────────────
     # Human and mouse use MT- / mt- respectively
     is_human = "sapiens" in organism.lower()
-    is_mouse = "musculus" in organism.lower()
+    org = str(organism).strip().lower()
+    is_mouse = "musculus" in org or org in {"mouse", "mm", "mm10", "mm39"}
     mt_prefix = "MT-" if is_human else "mt-" if is_mouse else "MT-"
 
     if not use_existing_h5ad_qc:
         adata.var["mt"] = adata.var_names.str.startswith(mt_prefix)
+        if not adata.var["mt"].any():
+            adata.var["mt"] = adata.var_names.str.lower().str.startswith("mt-")
+            warnings_list.append("No mitochondrial genes matched the species prefix; using case-insensitive ^mt- detection.")
         sc.pp.calculate_qc_metrics(
             adata, qc_vars=["mt"],
             percent_top=None, log1p=False, inplace=True,
@@ -390,21 +402,25 @@ def rna_qc(params: dict) -> dict:
     mt_default = min(_finite_or(mt_high, mt_ceiling), mt_ceiling)
 
     # Apply user overrides if provided
-    mt_threshold = float(params.get("mt_threshold", mt_default))
-    min_genes    = int(params.get(
+    def _override(key, default):
+        value = params.get(key)
+        return default if value is None else value
+
+    mt_threshold = float(_override("mt_threshold", mt_default))
+    min_genes    = int(_override(
         "min_genes",
         max(int(_finite_or(genes_low, 200)), 200),
     ))
-    min_cells    = int(params.get("min_cells", 3))
-    min_counts   = float(params.get(
+    min_cells    = int(params.get("min_cells") if params.get("min_cells") is not None else 3)
+    min_counts   = float(_override(
         "min_counts",
         max(_finite_or(counts_low, 0.0), 0.0),
     ))
-    max_counts   = float(params.get(
+    max_counts   = float(_override(
         "max_counts",
         _finite_or(counts_high, float("inf")),
     ))
-    max_genes    = float(params.get(
+    max_genes    = float(_override(
         "max_genes",
         _finite_or(genes_high, float("inf")),
     ))
@@ -596,7 +612,7 @@ def rna_qc(params: dict) -> dict:
             "mean": round(float(adata.obs["pct_counts_mt"].mean()), 3),
             "max":  round(float(adata.obs["pct_counts_mt"].max()), 3),
         },
-        "cache_version": 6,
+        "cache_version": 7,
         "cache_params": cache_params,
     }
     try:

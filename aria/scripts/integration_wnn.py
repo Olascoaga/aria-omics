@@ -151,23 +151,29 @@ def _compute_graph_ilisi(
         start, end = csr.indptr[i], csr.indptr[i + 1]
         nbrs = csr.indices[start:end]
         wts = csr.data[start:end]
-        pos_mask = wts > 0.0
+        pos_mask = np.isfinite(wts) & (wts > 0.0) & (nbrs != i)
         nbrs = nbrs[pos_mask]
         wts = wts[pos_mask]
         if nbrs.size == 0:
             ilisi_vals[i] = 1.0
             continue
         w_sum = float(np.sum(wts))
-        if w_sum <= 0.0:
+        if not np.isfinite(w_sum) or w_sum <= 0.0:
             probs = np.full(nbrs.size, 1.0 / float(nbrs.size), dtype=np.float64)
         else:
             probs = wts / w_sum
         batch_masses = np.bincount(b_idx[nbrs], weights=probs, minlength=n_batches)
         simpson = float(np.sum(batch_masses ** 2))
-        ilisi_vals[i] = (1.0 / simpson) if simpson > 1e-12 else 1.0
+        ilisi_vals[i] = (1.0 / simpson) if (np.isfinite(simpson) and simpson > 1e-12) else 1.0
 
-    med_ilisi = float(np.median(ilisi_vals))
-    norm_ilisi = max(0.0, min(1.0, (med_ilisi - 1.0) / float(n_batches - 1)))
+    fin_ilisi = ilisi_vals[np.isfinite(ilisi_vals)]
+    if fin_ilisi.size == 0:
+        return None, None
+    med_ilisi = float(np.median(fin_ilisi))
+    if not np.isfinite(med_ilisi):
+        return None, None
+    norm_raw = (med_ilisi - 1.0) / float(n_batches - 1)
+    norm_ilisi = max(0.0, min(1.0, norm_raw)) if np.isfinite(norm_raw) else 0.0
     return round(med_ilisi, 4), round(norm_ilisi, 4)
 
 
@@ -911,15 +917,27 @@ def integration_wnn(params: dict) -> dict:
             atac_w = np.asarray(atac_w_series.values, dtype=np.float64)
             mdata.obs["rna_weight"] = rna_w
             mdata.obs["atac_weight"] = atac_w
-            mean_rna_w = float(np.mean(rna_w))
-            mean_atac_w = float(np.mean(atac_w))
-            median_rna_w = float(np.median(rna_w))
-            median_atac_w = float(np.median(atac_w))
+            fin_r = rna_w[np.isfinite(rna_w)]
+            fin_a = atac_w[np.isfinite(atac_w)]
+            mean_rna_w = float(np.mean(fin_r)) if fin_r.size > 0 else None
+            mean_atac_w = float(np.mean(fin_a)) if fin_a.size > 0 else None
+            median_rna_w = float(np.median(fin_r)) if fin_r.size > 0 else None
+            median_atac_w = float(np.median(fin_a)) if fin_a.size > 0 else None
 
             for cl in sorted(set(wnn_labels)):
                 mask = np.asarray([lbl == cl for lbl in wnn_labels], dtype=bool)
-                cl_rna = float(np.mean(rna_w[mask]))
-                cl_atac = float(np.mean(atac_w[mask]))
+                cl_r_fin = rna_w[mask][np.isfinite(rna_w[mask])]
+                cl_a_fin = atac_w[mask][np.isfinite(atac_w[mask])]
+                if cl_r_fin.size == 0 or cl_a_fin.size == 0:
+                    per_cluster_weights[str(cl)] = {
+                        "n_cells": int(mask.sum()),
+                        "mean_rna_weight": None,
+                        "mean_atac_weight": None,
+                        "dominant_modality": "unknown",
+                    }
+                    continue
+                cl_rna = float(np.mean(cl_r_fin))
+                cl_atac = float(np.mean(cl_a_fin))
                 dom = (
                     "rna"
                     if cl_rna > cl_atac + 0.05
@@ -1049,20 +1067,50 @@ def integration_wnn(params: dict) -> dict:
                     "wnn_batch_ilisi_norm_median": wnn_ilisi_norm,
                 }
             )
-            if (
-                should_harmonize
-                and rna_sil_before is not None
-                and rna_sil_after is not None
-                and wnn_cl_sil is not None
+            if should_harmonize and wnn_cl_sil is not None and (
+                (rna_sil_before is not None and rna_sil_after is not None)
+                or (atac_sil_before is not None and atac_sil_after is not None)
             ):
-                qa = assess_integration_quality(
-                    silhouette_before=rna_sil_before,
-                    silhouette_after=rna_sil_after,
-                    cluster_silhouette=wnn_cl_sil,
-                )
-                qa_issues = qa.get("issues") or []
+                qa: dict[str, Any] | None = None
+                qa_issues: list[dict[str, Any]] = []
+                if rna_sil_before is not None and rna_sil_after is not None:
+                    qa = assess_integration_quality(
+                        silhouette_before=rna_sil_before,
+                        silhouette_after=rna_sil_after,
+                        cluster_silhouette=wnn_cl_sil,
+                    )
+                    qa_issues.extend(qa.get("issues") or [])
+                if atac_sil_before is not None and atac_sil_after is not None:
+                    qa_atac = assess_integration_quality(
+                        silhouette_before=atac_sil_before,
+                        silhouette_after=atac_sil_after,
+                        cluster_silhouette=wnn_cl_sil,
+                    )
+                    atac_issues = qa_atac.get("issues") or []
+                    if qa is None:
+                        qa = qa_atac
+                        qa_issues = list(atac_issues)
+                    else:
+                        qa["atac_assessment"] = qa_atac
+                        seen_checks = {
+                            (it.get("check") or it.get("code"), it.get("message"))
+                            for it in qa_issues
+                            if isinstance(it, dict)
+                        }
+                        for it in atac_issues:
+                            if not isinstance(it, dict):
+                                continue
+                            sig = (it.get("check") or it.get("code"), it.get("message"))
+                            if sig not in seen_checks:
+                                tagged = dict(it)
+                                tagged.setdefault("modality", "atac")
+                                qa_issues.append(tagged)
+                                seen_checks.add(sig)
+                        qa["issues"] = qa_issues
+                assert qa is not None
                 qa["possible_overcorrection"] = any(
-                    isinstance(it, dict) and it.get("code") == "possible_overcorrection"
+                    isinstance(it, dict)
+                    and (it.get("check") or it.get("code")) == "possible_overcorrection"
                     for it in qa_issues
                 )
                 if qa_issues and not qa.get("warning"):

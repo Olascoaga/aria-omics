@@ -44,7 +44,7 @@ def _load_counts(files: list, allow_nonraw: bool = False) -> tuple:
 
     # Try to load as single matrix or merge multiple per-sample files
     if len(count_files) == 1:
-        sep = "\t" if count_files[0].endswith(".tsv") else ","
+        sep = "," if str(count_files[0]).lower().endswith(".csv") else "\t"
         try:
             counts = pd.read_csv(count_files[0], sep=sep, index_col=0,
                                   comment="#")
@@ -62,7 +62,7 @@ def _load_counts(files: list, allow_nonraw: bool = False) -> tuple:
         # Multiple per-sample files — merge by gene ID
         frames = []
         for f in count_files:
-            sep = "\t" if f.endswith(".tsv") else ","
+            sep = "," if str(f).lower().endswith(".csv") else "\t"
             try:
                 df = pd.read_csv(f, sep=sep, index_col=0, comment="#",
                                   header=None)
@@ -156,6 +156,7 @@ def _load_counts(files: list, allow_nonraw: bool = False) -> tuple:
 
     # Round to integers (required by DESeq2)
     counts = counts.round().astype(int)
+    counts.columns = counts.columns.astype(str)
 
     return counts, warnings, {
         "count_source": count_source,
@@ -257,10 +258,13 @@ def _load_or_infer_metadata(counts, metadata_file: str,
     import re
     warnings = []
 
+    counts.columns = counts.columns.astype(str)
+
     # Try loading explicit metadata file
     if metadata_file and Path(metadata_file).exists():
         try:
             meta = pd.read_csv(metadata_file, sep="\t", index_col=0)
+            meta.index = meta.index.astype(str)
             # Align to count matrix samples
             common = [s for s in counts.columns if s in meta.index]
             if len(common) < 2:

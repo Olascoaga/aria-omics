@@ -74,8 +74,7 @@ Output:
              "pval": float,
              "clr_log_ratio": float | null,  // condition coefficient on the
                                              // CLR scale; null for fallback
-             "dispersion": float,   // retained for backward compatibility;
-                                    // NaN for compositional/fallback paths
+             "dispersion": float | null, // null when unmeasured
              "padj": float | null,  // BH within donor-level CLR tests only;
                                     // null for cell-level Fisher diagnostics
              "fdr_included": bool,
@@ -289,7 +288,8 @@ def rna_diff_abundance(params: dict) -> dict:
             log2fc = float(math.log2((prop_t + 1e-9) / (prop_r + 1e-9)))
 
             pval = float("nan")
-            dispersion = float("nan")
+            dispersion = None
+            used_fisher: bool = False
             clr_log_ratio = None
 
             if sm is not None:
@@ -326,7 +326,9 @@ def rna_diff_abundance(params: dict) -> dict:
                     )
                     pval = float("nan")
 
-            if math.isnan(pval):
+            if not math.isfinite(pval) or clr_log_ratio is None or not math.isfinite(clr_log_ratio):
+                used_fisher = True
+                clr_log_ratio = None
                 # Fisher exact fallback on 2x2
                 try:
                     from scipy.stats import fisher_exact
@@ -344,7 +346,7 @@ def rna_diff_abundance(params: dict) -> dict:
 
             row_model = (
                 "fisher_exact_fallback"
-                if clr_log_ratio is None else "donor_clr_ols_hc3"
+                if used_fisher else "donor_clr_ols_hc3"
             )
             fdr_included = bool(
                 row_model == "donor_clr_ols_hc3" and math.isfinite(pval)
@@ -389,9 +391,10 @@ def rna_diff_abundance(params: dict) -> dict:
                 r["significant"] = bool(r["padj"] < alpha)
                 if r["significant"]:
                     any_significant = True
-                if r["log2_fold_change"] > 0 and r["significant"]:
+                effect = r["clr_log_ratio"]
+                if effect > 0 and r["significant"]:
                     r["direction"] = "up"
-                elif r["log2_fold_change"] < 0 and r["significant"]:
+                elif effect < 0 and r["significant"]:
                     r["direction"] = "down"
                 else:
                     r["direction"] = "none"

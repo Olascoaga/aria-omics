@@ -25,6 +25,28 @@ def _open_alignment(path: str | Path, reference_fasta: str | None = None):
     return pysam.AlignmentFile(str(path), mode, **kwargs)
 
 
+def _fmt_bedgraph_value(val: float) -> str:
+    """bedGraph score with 10 significant digits (never truncates small scaled
+    values to 0 the way a fixed ``:.6f`` does)."""
+    return f"{float(val):.10g}"
+
+
+def _finite_positive_scales(scales, label: str) -> list[float] | None:
+    """Validate optional per-sample scale factors (finite and > 0) or raise."""
+    if scales is None:
+        return None
+    out: list[float] = []
+    for i, v in enumerate(list(scales)):
+        try:
+            f = float(v)
+        except (TypeError, ValueError):
+            raise ValueError(f"{label}[{i}] is not numeric: {v!r}")
+        if isinstance(v, bool) or not math.isfinite(f) or f <= 0:
+            raise ValueError(f"{label}[{i}] must be finite and positive, got {v!r}")
+        out.append(f)
+    return out
+
+
 def bam_to_fragment_bedgraph(
     bam_path: str | Path,
     output_bedgraph: str | Path,
@@ -136,11 +158,9 @@ def bam_to_fragment_bedgraph(
             nz = np.flatnonzero(cov > 0)
             for idx in nz:
                 val = float(cov[idx]) * scale
-                val_str = (
-                    str(int(round(val)))
-                    if abs(val - round(val)) < 1e-9
-                    else f"{val:.6f}".rstrip("0").rstrip(".")
-                )
+                # :.10g keeps tiny spike-in-scaled scores (< 5e-7) non-zero; a
+                # fixed :.6f would round them to 0 and drop the signal block.
+                val_str = _fmt_bedgraph_value(val)
                 out.write(f"{chrom}\t{int(coords[idx])}\t{int(coords[idx + 1])}\t{val_str}\n")
                 n_intervals += 1
 
@@ -402,7 +422,9 @@ def call_seacr_peaks(
                             if len(cols) >= 4:
                                 try:
                                     val = float(cols[3]) * scale
-                                    dst.write(f"{cols[0]}\t{cols[1]}\t{cols[2]}\t{val:.6f}\n")
+                                    if not math.isfinite(val):
+                                        continue
+                                    dst.write(f"{cols[0]}\t{cols[1]}\t{cols[2]}\t{_fmt_bedgraph_value(val)}\n")
                                 except ValueError:
                                     continue
                     bgs.append(str(bg_scaled))
@@ -454,7 +476,7 @@ def call_seacr_peaks(
                 np.add.at(delta, np.searchsorted(coords, e_arr), -v_arr)
                 cov = np.cumsum(delta)[:-1]
                 for idx in np.flatnonzero(cov > 1e-9):
-                    out.write(f"{chrom}\t{int(coords[idx])}\t{int(coords[idx + 1])}\t{cov[idx]:.6f}\n")
+                    out.write(f"{chrom}\t{int(coords[idx])}\t{int(coords[idx + 1])}\t{_fmt_bedgraph_value(float(cov[idx]))}\n")
         return str(merged_out)
 
     used_spikein = bool(already_spikein_scaled or target_scale_factors or control_scale_factors)
@@ -572,6 +594,10 @@ def _read_scored_peaks(path: str | Path) -> list[tuple[str, int, int, float]]:
                     score = float(cols[3])
                 except ValueError:
                     score = 1.0
+            # A non-finite signal cannot be ranked (it corrupts the copula IDR
+            # ranks); the peak is dropped rather than given a fabricated score.
+            if not math.isfinite(float(score)):
+                continue
             peaks.append((chrom, start, end, float(score)))
     return peaks
 
@@ -800,9 +826,9 @@ def compute_idr_reproducible_peaks(
         s1 = np.array([r[3] for r in paired], dtype=float)
         s2 = np.array([r[4] for r in paired], dtype=float)
         fit = fit_copula_idr_pair(s1, s2)
-        g_idr = fit["global_idr"]
-        l_idr = fit["local_idr"]
-        keep_idx = np.flatnonzero(g_idr <= float(idr_threshold))
+        g_idr = np.asarray(fit["global_idr"], dtype=float)
+        l_idr = np.asarray(fit["local_idr"], dtype=float)
+        keep_idx = np.flatnonzero(np.isfinite(g_idr) & (g_idr <= float(idr_threshold)))
         for idx in keep_idx:
             c, s, e, v1, v2 = paired[int(idx)]
             passing_intervals.append((c, s, e, 0.5 * (v1 + v2), float(g_idr[int(idx)])))
@@ -816,8 +842,9 @@ def compute_idr_reproducible_peaks(
             "converged": fit["converged"],
             "n_iter": fit["n_iter"],
             "copula_params": fit["params"],
+            # Full precision: round(..., 6) silently zeroed values < 5e-7.
             "median_local_idr_passing": (
-                round(float(np.median(l_idr[keep_idx])), 6) if keep_idx.size else None
+                float(np.median(l_idr[keep_idx])) if keep_idx.size else None
             ),
         })
 
@@ -834,7 +861,8 @@ def compute_idr_reproducible_peaks(
     passing_intervals.sort(key=lambda r: (r[0], r[1], r[2]))
     merged: list[tuple[str, int, int, float, float]] = []
     for c, s, e, mean_sig, gidr in passing_intervals:
-        if not merged or merged[-1][0] != c or s > merged[-1][2]:
+        # Half-open BED: [100,200) and [200,300) are book-ended, NOT overlapping.
+        if not merged or merged[-1][0] != c or s >= merged[-1][2]:
             merged.append((c, s, e, mean_sig, gidr))
         else:
             pc, ps, pe, psig, pidr = merged[-1]
@@ -896,6 +924,13 @@ def call_broad_domains(
 
     win = max(1000, int(bin_size))
     mito = {"chrm", "mt", "m"}
+    try:
+        ip_scale_factors = _finite_positive_scales(ip_scale_factors, "ip_scale_factors")
+        control_scale_factors = _finite_positive_scales(
+            control_scale_factors, "control_scale_factors")
+    except ValueError as exc:
+        return {"status": "error", "error_type": "InvalidScaleFactors",
+                "details": str(exc)}
 
     def _bin_cohort(paths: list[str], scales: list[float] | None) -> tuple[dict[str, np.ndarray], dict[str, int]]:
         chrom_sizes: dict[str, int] = {}
@@ -958,7 +993,8 @@ def call_broad_domains(
             bg_arr = np.full_like(ip_arr, bg_val)
 
         l2fc = np.log2((ip_arr + pseudo) / (bg_arr + pseudo))
-        enriched_idx = np.flatnonzero(l2fc >= float(min_log2_enrichment))
+        enriched_idx = np.flatnonzero(
+            np.isfinite(l2fc) & (l2fc >= float(min_log2_enrichment)))
         if enriched_idx.size == 0:
             continue
 
@@ -1029,24 +1065,21 @@ def write_normalized_bigwig(
     n_frags = max(1, int(raw_info["n_fragments"]))
 
     norm_mode = str(normalization or "CPM").strip().upper()
-    if spikein_scale_factor is not None:
-        scale = float(spikein_scale_factor)
-        norm_mode = "SPIKEIN"
-    elif norm_mode == "RPGC" and effective_genome_size and effective_genome_size > 0:
-        scale = float(effective_genome_size) / float(n_frags * 200.0)
-    else:
-        scale = 1e6 / float(n_frags)
-        norm_mode = "CPM"
+    if norm_mode == "RPGC" and spikein_scale_factor is None and not (
+            effective_genome_size and float(effective_genome_size) > 0):
+        tmp_bg.unlink(missing_ok=True)
+        raise ValueError(
+            "RPGC normalization requires a positive effective_genome_size "
+            "(refusing to silently fall back to CPM).")
 
     header = [(c, int(length)) for c, length in chrom_lengths.items() if int(length) > 0]
-    bw = pyBigWig.open(str(out_bw), "w")
+    chrom_set = {c: int(length) for c, length in header}
+    chroms: list[str] = []
+    starts: list[int] = []
+    ends: list[int] = []
+    raw_vals: list[float] = []
+    total_cov_bp = 0.0
     try:
-        bw.addHeader(header)
-        chroms: list[str] = []
-        starts: list[int] = []
-        ends: list[int] = []
-        vals: list[float] = []
-        chrom_set = {c: int(length) for c, length in header}
         with open(tmp_bg, encoding="utf-8") as fh:
             for line in fh:
                 cols = line.rstrip("\n").split("\t")
@@ -1057,19 +1090,46 @@ def write_normalized_bigwig(
                 e = min(chrom_set[c], int(cols[2]))
                 if e <= s:
                     continue
+                v = float(cols[3])
+                if not math.isfinite(v):
+                    continue
                 chroms.append(c)
                 starts.append(s)
                 ends.append(e)
-                vals.append(float(cols[3]) * scale)
+                raw_vals.append(v)
+                total_cov_bp += v * (e - s)
+    finally:
+        tmp_bg.unlink(missing_ok=True)
+
+    mean_fragment_bp = (total_cov_bp / float(n_frags)) if total_cov_bp > 0 else None
+    if spikein_scale_factor is not None:
+        scale = float(spikein_scale_factor)
+        if not math.isfinite(scale) or scale <= 0:
+            raise ValueError(
+                f"spikein_scale_factor must be finite and positive, got {spikein_scale_factor!r}")
+        norm_mode = "SPIKEIN"
+    elif norm_mode == "RPGC":
+        # RPGC = 1x genome coverage: egs / (n_fragments * mean fragment length),
+        # i.e. egs / total covered bp (the measured fragment bp, not a fixed 200).
+        scale = (float(effective_genome_size) / total_cov_bp) if total_cov_bp > 0 else 1.0
+    else:
+        scale = 1e6 / float(n_frags)
+        norm_mode = "CPM"
+
+    bw = pyBigWig.open(str(out_bw), "w")
+    try:
+        bw.addHeader(header)
         if chroms:
-            bw.addEntries(chroms, starts, ends=ends, values=vals)
+            bw.addEntries(chroms, starts, ends=ends, values=[v * scale for v in raw_vals])
     finally:
         bw.close()
-        tmp_bg.unlink(missing_ok=True)
 
     return {
         "bigwig_path": str(out_bw),
         "normalization": norm_mode,
-        "scale_factor": round(scale, 8),
+        "scale_factor": float(scale),
+        "effective_genome_size": (int(effective_genome_size)
+                                  if norm_mode == "RPGC" else None),
+        "mean_fragment_bp": mean_fragment_bp,
         "n_fragments": int(raw_info["n_fragments"]),
     }

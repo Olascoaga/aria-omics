@@ -74,6 +74,10 @@ def rna_de_per_cluster(params: dict) -> dict:
     def _compatible_rank_genes_groups(candidate: dict | None) -> bool:
         if not candidate:
             return False
+        candidate_params = candidate.get("params", {})
+        if (candidate_params.get("groupby") != groupby
+                or candidate_params.get("use_raw") != use_raw):
+            return False
         required = ("names", "logfoldchanges", "pvals_adj")
         if any(k not in candidate for k in required):
             return False
@@ -102,6 +106,11 @@ def rna_de_per_cluster(params: dict) -> dict:
     X = adata.raw.X if use_raw else adata.X
     var_names = list(adata.raw.var_names) if use_raw else list(adata.var_names)
     var_idx   = {g: i for i, g in enumerate(var_names)}
+
+    warnings_list = []
+    scaled = bool(X.min() < 0)
+    if scaled:
+        warnings_list.append("Expression has negative/scaled values; detection fractions and min_pct_in filtering are unavailable.")
 
     cluster_membership = {
         str(c): np.asarray(adata.obs[groupby].astype(str) == str(c))
@@ -136,14 +145,14 @@ def rna_de_per_cluster(params: dict) -> dict:
                 l_val = float(l)
             except (TypeError, ValueError):
                 continue
-            if (np.isnan(p_val) or np.isnan(l_val) or
+            if (not (np.isfinite(p_val) and np.isfinite(l_val)) or
                     gene in ("nan", "") or gene not in var_idx):
                 continue
             if p_val >= padj_max or abs(l_val) < lfc_min:
                 continue
             gi = var_idx[gene]
-            pct_in  = _pct(gi, mask_in)  if mask_in  is not None else None
-            pct_out = _pct(gi, mask_out) if mask_out is not None else None
+            pct_in  = _pct(gi, mask_in)  if mask_in  is not None and not scaled else None
+            pct_out = _pct(gi, mask_out) if mask_out is not None and not scaled else None
             if pct_in is not None and pct_in < min_pct_in:
                 continue
             record = {
@@ -180,6 +189,7 @@ def rna_de_per_cluster(params: dict) -> dict:
         "n_sig_by_cluster":      n_sig_by_cluster,
         "de_genes_by_cluster":   de_genes_by_cluster,
         "output_csv":            csv_path,
+        "warnings":              warnings_list,
     }
 
 

@@ -138,6 +138,16 @@ def _load_barcode_design(tsv_path: str) -> dict[str, dict[str, str | None]]:
     return design
 
 
+def _finite_change(value: Any) -> bool:
+    """True only for a real, finite number (rejects None/bool/NaN/inf)."""
+    if value is None or isinstance(value, bool):
+        return False
+    try:
+        return math.isfinite(float(value))
+    except (TypeError, ValueError):
+        return False
+
+
 def _bh_adjust(pvalues: list[float]) -> list[float]:
     """Benjamini-Hochberg adjusted p-values, preserving NaN positions."""
     adjusted = [math.nan] * len(pvalues)
@@ -495,10 +505,14 @@ def infer_replicate_footprints(
                 "status": "descriptive_only",
                 "reason": descriptive_reason,
             },
+            # Direction-strict: a TF is listed "toward A" only when change > 0 and
+            # "toward B" only when change < 0 (never back-filled with the other sign).
             f"top_toward_{group_a}": sorted(
-                ranked, key=lambda row: -row["change"])[:top_n],
+                [r for r in ranked if _finite_change(r["change"]) and r["change"] > 0],
+                key=lambda row: -row["change"])[:top_n],
             f"top_toward_{group_b}": sorted(
-                ranked, key=lambda row: row["change"])[:top_n],
+                [r for r in ranked if _finite_change(r["change"]) and r["change"] < 0],
+                key=lambda row: row["change"])[:top_n],
         }
     if not complete:
         return {
@@ -534,7 +548,9 @@ def infer_replicate_footprints(
             "padj": padj,
             "n_sites": int(record.get("n_sites") or 0),
         })
-    significant = [row for row in results if row["padj"] <= alpha]
+    significant = [row for row in results
+                   if _finite_change(row["change"]) and _finite_change(row["pvalue"])
+                   and _finite_change(row["padj"]) and row["padj"] <= alpha]
     null_controls = (_within_batch_null_controls(
         matrix, len(reps_a), batches, alpha, max_label_permutations, random_seed,
     ) if batch_adjusted else _null_label_controls(
@@ -561,9 +577,11 @@ def infer_replicate_footprints(
             "null_label_controls": null_controls,
         },
         f"top_toward_{group_a}": sorted(
-            significant, key=lambda row: -row["change"])[:top_n],
+            [r for r in significant if r["change"] > 0],
+            key=lambda row: -row["change"])[:top_n],
         f"top_toward_{group_b}": sorted(
-            significant, key=lambda row: row["change"])[:top_n],
+            [r for r in significant if r["change"] < 0],
+            key=lambda row: row["change"])[:top_n],
         "all_results": results,
     }
 
@@ -753,7 +771,10 @@ def summarize_bindetect(results_txt: str, group_a: str, group_b: str,
         # Descriptive candidate filter (see docstring): an uncorrected p<pvalue_max
         # gate + site-count floor over a pseudobulk-per-condition contrast. NOT
         # FDR-controlled significance; it only prunes the ranked candidate list.
-        return [x for x in rs if (x[2] == x[2]) and x[2] < pvalue_max and x[3] >= min_sites]
+        # Both change and p must be finite (NaN/inf would corrupt the ordering and
+        # leak non-strict JSON into the report).
+        return [x for x in rs if math.isfinite(x[1]) and math.isfinite(x[2])
+                and x[2] < pvalue_max and x[3] >= min_sites]
 
     ranked = _ranked(rows)
     fmt = lambda x: {"tf": x[0], "change": round(x[1], 4), "pvalue": x[2], "n_sites": x[3]}
@@ -770,8 +791,11 @@ def summarize_bindetect(results_txt: str, group_a: str, group_b: str,
                      "significance. TOBIAS pools each condition into one pseudobulk, so "
                      "per-site p-values ignore biological replication."),
         },
-        f"top_toward_{group_a}": [fmt(x) for x in sorted(ranked, key=lambda x: -x[1])[:top_n]],
-        f"top_toward_{group_b}": [fmt(x) for x in sorted(ranked, key=lambda x: x[1])[:top_n]],
+        # Direction-strict (change > 0 toward A, change < 0 toward B).
+        f"top_toward_{group_a}": [fmt(x) for x in sorted(
+            [x for x in ranked if x[1] > 0], key=lambda x: -x[1])[:top_n]],
+        f"top_toward_{group_b}": [fmt(x) for x in sorted(
+            [x for x in ranked if x[1] < 0], key=lambda x: x[1])[:top_n]],
     }
 
 

@@ -51,9 +51,9 @@ def hic_inspect(params: dict) -> dict:
                 all_chroms.append(ch)
 
     sorted_res = sorted(all_resolutions)
-    from aria.utils.hic_constants import RAM_ESTIMATES_GB
+    from aria.utils.hic_constants import estimate_ram_gb
 
-    estimates = {r: RAM_ESTIMATES_GB.get(r, 1.0) for r in sorted_res}
+    estimates = {r: estimate_ram_gb(r) for r in sorted_res}
     return {
         "status": "success",
         "data_type": "HiC",
@@ -98,13 +98,25 @@ def _inspect_mcool(fpath: str) -> dict:
         res_values: list[int] = []
         for r in resolutions:
             tail = r.split("/")[-1]
-            if tail.isdigit():
+            if "/resolutions/" in r and tail.isdigit():
                 res_values.append(int(tail))
         chroms: list[str] = []
         if res_values:
             finest = f"{fpath}::resolutions/{min(res_values)}"
             clr = cooler.Cooler(finest)
             chroms = list(clr.chromnames)
+        elif resolutions:
+            # Legacy zoom-level mcool without /resolutions/<bp> paths: query binsize directly.
+            for r in resolutions:
+                try:
+                    clr = cooler.Cooler(f"{fpath}::{r}")
+                    if clr.binsize:
+                        res_values.append(int(clr.binsize))
+                    if not chroms:
+                        chroms = list(clr.chromnames)
+                except Exception:
+                    continue
+            res_values = sorted(set(res_values))
         return {
             "format": "mcool",
             "resolutions": sorted(res_values),
@@ -168,9 +180,7 @@ def _inspect_pairs(fpath: str) -> dict:
     opener = gzip.open if str(fpath).lower().endswith(".gz") else open
     try:
         with opener(fpath, "rt", encoding="utf-8", errors="replace") as fh:
-            for idx, line in enumerate(fh):
-                if idx > 500:
-                    break
+            for line in fh:
                 if line.startswith("#chromsize:"):
                     parts = line.strip().split()
                     if len(parts) >= 3:

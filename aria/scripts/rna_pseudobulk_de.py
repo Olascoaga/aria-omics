@@ -538,7 +538,16 @@ def rna_pseudobulk_de(params: dict) -> dict:
                 rep_cell_idx = cell_pos[mask]
                 rep_lib      = lib_sizes_full[rep_cell_idx][:, None]
                 recovered    = np.expm1(block_dense) * rep_lib / norm_scale_factor
-                summed       = np.round(recovered.sum(axis=0)).astype(np.int64)
+                if not np.isfinite(recovered).all():
+                    return {"status": "error", "error_type": "LognormRecoveryFailed",
+                            "details": "Recovered counts contain non-finite values."}
+                recovered = np.clip(recovered, 0, None)
+                recovered_sum = np.round(recovered.sum(axis=0))
+                if (not np.isfinite(recovered_sum).all()
+                        or (recovered_sum >= float(np.iinfo(np.int64).max)).any()):
+                    return {"status": "error", "error_type": "LognormRecoveryFailed",
+                            "details": "Recovered sums exceed the int64 count range."}
+                summed = recovered_sum.astype(np.int64)
             elif is_sparse:
                 summed = np.asarray(block.sum(axis=0)).ravel().astype(np.int64)
             else:
@@ -718,9 +727,8 @@ def rna_pseudobulk_de(params: dict) -> dict:
                 disp = ((variances - means) / (means ** 2)).replace(
                     [np.inf, -np.inf], np.nan
                 )
-                dispersion_estimate = float(
-                    np.nanmedian(np.clip(disp.dropna(), 1e-8, None))
-                ) if len(disp.dropna()) else 0.1
+                positive_disp = disp[np.isfinite(disp) & (disp > 0)]
+                dispersion_estimate = float(positive_disp.median()) if len(positive_disp) else 0.1
                 mean_expression = float(np.nanmedian(means[means > 0])) \
                     if (means > 0).any() else 1.0
                 power_estimate = pseudobulk_power_estimate(
@@ -875,11 +883,13 @@ def rna_pseudobulk_de(params: dict) -> dict:
 
             comp = per_group[block["group"]]["per_comparison"][block["comparison"]]
             sig_local = res[
-                (res["padj_local"] < padj_max)
+                np.isfinite(res["padj_local"]) & (res["padj_local"] < padj_max)
+                & np.isfinite(res["log2FoldChange"])
                 & (res["log2FoldChange"].abs() > lfc_min)
             ].sort_values("padj_local")
             sig_global = res[
                 (res["padj_global"] < padj_max)
+                & np.isfinite(res["log2FoldChange"])
                 & (res["log2FoldChange"].abs() > lfc_min)
             ].sort_values("padj_global")
 
@@ -899,7 +909,7 @@ def rna_pseudobulk_de(params: dict) -> dict:
                 v = row.get("log2FoldChange_raw")
                 try:
                     v = float(v)
-                    return round(v, 3) if v == v else None   # NaN -> None
+                    return round(v, 3) if np.isfinite(v) else None
                 except (TypeError, ValueError):
                     return None
 
@@ -909,9 +919,9 @@ def rna_pseudobulk_de(params: dict) -> dict:
                  "log2fc_raw":  _raw_lfc(row),
                  "pvalue":      float(row["pvalue"]),
                  "padj":        float(row[primary_padj_col]),
-                 "padj_local":  float(row["padj_local"]),
+                 "padj_local":  float(row["padj_local"]) if np.isfinite(row["padj_local"]) else None,
                  "padj_global": float(row["padj_global"]),
-                 "basemean":    round(float(row["baseMean"]), 1)}
+                 "basemean":    round(float(row["baseMean"]), 1) if np.isfinite(row["baseMean"]) else None}
                 for g, row in sig_primary.head(top_n).iterrows()
             ]
             all_records = [
@@ -920,12 +930,14 @@ def rna_pseudobulk_de(params: dict) -> dict:
                  "log2fc_raw":  _raw_lfc(row),
                  "pvalue":      float(row["pvalue"]),
                  "padj":        float(row[primary_padj_col]),
-                 "padj_local":  float(row["padj_local"]),
+                 "padj_local":  float(row["padj_local"]) if np.isfinite(row["padj_local"]) else None,
                  "padj_global": float(row["padj_global"])}
                 for g, row in sig_primary.iterrows()
             ]
 
-            effective_alpha_local = _effective_alpha_from_significant(sig_local)
+            effective_alpha_local = _effective_alpha_from_significant(
+                res[np.isfinite(res["padj_local"]) & (res["padj_local"] < padj_max)]
+            )
             effective_alpha_primary = (
                 effective_alpha_global
                 if fdr_strategy == "global"
@@ -956,7 +968,7 @@ def rna_pseudobulk_de(params: dict) -> dict:
                     "axes": {
                         "fdr_strategy": ["per_cluster", "global"],
                         "composition_covariate": [
-                            "included" if block_corrected_for_composition
+                            "included" if comp.get("corrected_for_composition")
                             else "not_included"
                         ],
                     },
@@ -1025,12 +1037,12 @@ def rna_pseudobulk_de(params: dict) -> dict:
                     "group":       block["group"],
                     "comparison":  block["comparison"],
                     "gene":        str(g_id),
-                    "log2fc":      round(float(row["log2FoldChange"]), 4) if pd.notna(row.get("log2FoldChange")) else None,
+                    "log2fc":      round(float(row["log2FoldChange"]), 4) if np.isfinite(row["log2FoldChange"]) else None,
                     "log2fc_raw":  _raw_lfc(row),
                     "pvalue":      float(row["pvalue"]),
-                    "padj":        float(p_val) if pd.notna(p_val) else None,
-                    "padj_local":  float(row["padj_local"]) if pd.notna(row.get("padj_local")) else None,
-                    "padj_global": float(row["padj_global"]) if pd.notna(row.get("padj_global")) else None,
+                    "padj":        float(p_val) if np.isfinite(p_val) else None,
+                    "padj_local":  float(row["padj_local"]) if np.isfinite(row["padj_local"]) else None,
+                    "padj_global": float(row["padj_global"]) if np.isfinite(row["padj_global"]) else None,
                 })
 
     # Primary significance is finalized after global BH. Evaluate every fitted

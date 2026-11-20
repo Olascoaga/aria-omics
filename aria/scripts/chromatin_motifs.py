@@ -72,6 +72,7 @@ Output:
 """
 
 from __future__ import annotations
+import math
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from aria.scripts._base import run_script, mocks_allowed
@@ -425,42 +426,13 @@ def chromatin_motifs(params: dict) -> dict:
             recs = df.to_dicts()
         except Exception:
             recs = []
-        cols = list(recs[0].keys()) if recs else []
-        id_c = _detect_col(cols, "id")
-        name_c = _detect_col(cols, "name")
-        fam_c = _detect_col(cols, "family")
-        p_c = _detect_col(cols, "p-value", "pvalue", "p_value", "pval")
-        padj_c = _detect_col(cols, "adjusted", "padj", "fdr", "q-value", "qval")
-        lfc_c = _detect_col(cols, "log2", "fold", "enrichment", "odds")
-
-        norm = []
-        for r in recs:
-            padj_v = _as_float(r.get(padj_c)) if padj_c else None
-            mid = str(r.get(id_c)) if id_c and r.get(id_c) is not None else None
-            nm = (str(r.get(name_c))
-                  if name_c and r.get(name_c) is not None else None)
-            # JASPAR MEME records carry id + TF name in one token
-            # (e.g. "MA0752.2 ZNF410"); split so the matrix id and the TF name
-            # are reported separately. The TF name is a database fact, not an
-            # inferred biological claim about the cluster.
-            if nm is None and mid and " " in mid:
-                matrix_id, nm = mid.split(None, 1)
-            else:
-                matrix_id = mid
-            norm.append({
-                "motif_id": matrix_id,
-                "name": nm,
-                "family": str(r.get(fam_c)) if fam_c else None,
-                "log2_enrichment": _as_float(r.get(lfc_c)) if lfc_c else None,
-                "pvalue": _as_float(r.get(p_c)) if p_c else None,
-                "padj": padj_v,
-            })
-        # sort by padj (then pvalue) ascending; count enriched at threshold
-        norm.sort(key=lambda x: (x["padj"] if x["padj"] is not None else 1.0,
-                                 x["pvalue"] if x["pvalue"] is not None else 1.0))
-        n_enriched = sum(1 for x in norm
-                         if x["padj"] is not None and x["padj"] < padj_max)
-        top = norm[:top_n]
+        norm_res = _normalize_motif_records(recs, padj_max, top_n)
+        if norm_res["lfc_column_missing"] and recs:
+            warnings.append(
+                f"group {g}: motif enrichment table has no log2 fold-change column; "
+                "enrichment direction is unknown, so no motif is reported as enriched.")
+        n_enriched = norm_res["n_enriched"]
+        top = norm_res["top"]
         for x in top:
             row = {"group": g}
             row.update(x)
@@ -470,6 +442,8 @@ def chromatin_motifs(params: dict) -> dict:
             "n_regions_dropped": dropped_counts.get(g, 0),
             "n_motifs_tested": n_motifs_loaded,
             "n_enriched": n_enriched,
+            "n_depleted": norm_res["n_depleted"],
+            "n_nonfinite_dropped": norm_res["n_nonfinite"],
             "top_motifs": top,
         }
 
@@ -513,11 +487,115 @@ def chromatin_motifs(params: dict) -> dict:
 
 
 def _as_float(v):
+    """Finite float or None. Rejects bool, NaN and +/-inf (SnapATAC2 emits
+    log2_enrichment = -inf/+inf when the foreground/background hit count is 0)."""
+    if v is None or isinstance(v, bool):
+        return None
     try:
         f = float(v)
-        return f
     except (TypeError, ValueError):
         return None
+    return f if math.isfinite(f) else None
+
+
+def _detect_pvalue_col(cols):
+    """The RAW p-value column: exact names first, then a substring match that
+    never selects an adjusted/FDR column (``"adjusted p-value"`` contains
+    ``"p-value"``)."""
+    exact = {"p-value", "pvalue", "p_value", "pval", "pvals", "p"}
+    for c in cols:
+        if str(c).strip().lower() in exact:
+            return c
+    for c in cols:
+        lc = str(c).lower()
+        if any(bad in lc for bad in ("adj", "fdr", "q-value", "qval", "q_value")):
+            continue
+        if any(n in lc for n in ("p-value", "pvalue", "p_value", "pval")):
+            return c
+    return None
+
+
+def _clean_str(v):
+    """String form of a database label, or None (never the literal ``"None"``)."""
+    if v is None:
+        return None
+    if isinstance(v, float) and not math.isfinite(v):
+        return None
+    sv = str(v).strip()
+    return sv if sv and sv.lower() not in ("none", "nan", "null") else None
+
+
+def _normalize_motif_records(recs, padj_max, top_n):
+    """Normalize SnapATAC2 motif-enrichment records and rank the ENRICHED ones.
+
+    SnapATAC2 tests both tails: for ``log2(fold change) < 0`` the reported p is the
+    lower-tail DEPLETION p-value. A motif therefore counts as enriched only when its
+    log2 enrichment is finite and > 0; depleted motifs are counted separately
+    (``n_depleted``) and never ranked in ``top``. Non-finite statistics are dropped.
+    """
+    cols = list(recs[0].keys()) if recs else []
+    id_c = _detect_col(cols, "id")
+    name_c = _detect_col(cols, "name")
+    fam_c = _detect_col(cols, "family")
+    p_c = _detect_pvalue_col(cols)
+    padj_c = _detect_col(cols, "adjusted", "padj", "fdr", "q-value", "qval")
+    lfc_c = _detect_col(cols, "log2", "fold", "enrichment", "odds")
+
+    norm = []
+    n_nonfinite = 0
+    n_depleted = 0
+    for r in recs:
+        raw_lfc = r.get(lfc_c) if lfc_c else None
+        raw_padj = r.get(padj_c) if padj_c else None
+        padj_v = _as_float(raw_padj)
+        lfc_v = _as_float(raw_lfc)
+        if ((raw_lfc is not None and lfc_v is None)
+                or (raw_padj is not None and padj_v is None)):
+            n_nonfinite += 1
+        # Direction from the RAW value: -inf (bound_fg == 0) is depleted too.
+        try:
+            lfc_dir = (None if raw_lfc is None or isinstance(raw_lfc, bool)
+                       else float(raw_lfc))
+        except (TypeError, ValueError):
+            lfc_dir = None
+        if (lfc_dir is not None and lfc_dir < 0
+                and padj_v is not None and padj_v < padj_max):
+            n_depleted += 1
+        mid = _clean_str(r.get(id_c)) if id_c else None
+        nm = _clean_str(r.get(name_c)) if name_c else None
+        # JASPAR MEME records carry id + TF name in one token
+        # (e.g. "MA0752.2 ZNF410"); split so the matrix id and the TF name
+        # are reported separately. The TF name is a database fact, not an
+        # inferred biological claim about the cluster.
+        if nm is None and mid and " " in mid:
+            matrix_id, nm = mid.split(None, 1)
+        else:
+            matrix_id = mid
+        norm.append({
+            "motif_id": matrix_id,
+            "name": nm,
+            "family": _clean_str(r.get(fam_c)) if fam_c else None,
+            "log2_enrichment": lfc_v,
+            "pvalue": _as_float(r.get(p_c)) if p_c else None,
+            "padj": padj_v,
+        })
+
+    def _sig(x):
+        return x["padj"] is not None and x["padj"] < padj_max
+
+    enriched = [x for x in norm
+                if x["log2_enrichment"] is not None and x["log2_enrichment"] > 0]
+    # sort by padj (then pvalue, then larger enrichment) ascending
+    enriched.sort(key=lambda x: (x["padj"] if x["padj"] is not None else 1.0,
+                                 x["pvalue"] if x["pvalue"] is not None else 1.0,
+                                 -x["log2_enrichment"]))
+    return {
+        "n_enriched": sum(1 for x in enriched if _sig(x)),
+        "n_depleted": n_depleted,
+        "n_nonfinite": n_nonfinite,
+        "lfc_column_missing": lfc_c is None,
+        "top": enriched[:top_n],
+    }
 
 
 if __name__ == "__main__":

@@ -151,6 +151,22 @@ def parse_gtf_tss_detailed(
     opener = gzip.open if str(gtf_path).endswith(".gz") else open
     best_by_gene: dict[str, tuple[tuple[int, int, int, int], str, dict[str, Any]]] = {}
 
+    wanted_set = set(wanted) if wanted is not None else None
+    wanted_no_ver: dict[str, str] = {}
+    wanted_upper_unique: dict[str, str] = {}
+    if wanted_set is not None:
+        no_ver_buckets: dict[str, list[str]] = {}
+        upper_buckets: dict[str, list[str]] = {}
+        for w in wanted_set:
+            ws = str(w).strip()
+            if not ws:
+                continue
+            base = ws.split(".", 1)[0]
+            no_ver_buckets.setdefault(base, []).append(ws)
+            upper_buckets.setdefault(ws.upper(), []).append(ws)
+        wanted_no_ver = {k: v[0] for k, v in no_ver_buckets.items() if len(v) == 1}
+        wanted_upper_unique = {k: v[0] for k, v in upper_buckets.items() if len(v) == 1}
+
     def _scan_feature(target_feature: str) -> None:
         needle = f"\t{target_feature}\t"
         with opener(str(gtf_path), "rt", encoding="utf-8", errors="replace") as fh:
@@ -166,10 +182,19 @@ def parse_gtf_tss_detailed(
                 gene_name = _gtf_attr(attrs, "gene_name") or gene_id
                 if not gene_name:
                     continue
-                if wanted is not None and gene_name not in wanted:
-                    if not gene_id or gene_id not in wanted:
+                if wanted_set is not None:
+                    if gene_name in wanted_set:
+                        key_symbol = gene_name
+                    elif gene_id and gene_id in wanted_set:
+                        key_symbol = gene_id
+                    elif gene_id and gene_id.split(".", 1)[0] in wanted_no_ver:
+                        key_symbol = wanted_no_ver[gene_id.split(".", 1)[0]]
+                    elif gene_name.upper() in wanted_upper_unique:
+                        key_symbol = wanted_upper_unique[gene_name.upper()]
+                    elif gene_id and gene_id.upper() in wanted_upper_unique:
+                        key_symbol = wanted_upper_unique[gene_id.upper()]
+                    else:
                         continue
-                    key_symbol = gene_id
                 else:
                     key_symbol = gene_name
 
@@ -923,7 +948,7 @@ def compute_peak_to_gene_links(
                     "distance_bp": c_dist[j],
                     "distance_kb": round(float(c_dist[j]) / 1000.0, 3),
                     "tss_offset_bp": c_off[j],
-                    "direction": "positive" if r_round > 0.0 else "negative",
+                    "direction": "positive" if r_round >= 0.0 else "negative",
                     "region_class": (
                         "promoter_proximal"
                         if c_dist[j] <= int(promoter_bp)

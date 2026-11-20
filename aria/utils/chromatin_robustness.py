@@ -30,7 +30,9 @@ def _row_sums_and_features(counts) -> tuple[list[float], list[float]]:
         if sparse.issparse(counts):
             x = counts.tocsr()
             totals = np.asarray(x.sum(axis=1)).ravel()
-            features = np.diff(x.indptr)
+            # (x > 0), not indptr diffs: explicit stored zeros are not
+            # accessible features.
+            features = np.asarray((x > 0).sum(axis=1)).ravel()
             return _as_1d(totals), _as_1d(features)
         arr = np.asarray(counts)
         return _as_1d(arr.sum(axis=1)), _as_1d((arr > 0).sum(axis=1))
@@ -93,8 +95,17 @@ def detect_atac_doublets(
             "_doublet_score": [0.0] * n,
         }
 
-    log_depth = [math.log1p(max(v, 0.0)) for v in totals]
-    log_features = [math.log1p(max(v, 0.0)) for v in features]
+    def _safe_log1p(v) -> float:
+        # Non-finite totals (NaN/inf) would poison the median in _robust_z for
+        # every cell; treat them as 0 depth (never flagged as a doublet).
+        try:
+            f = float(v)
+        except (TypeError, ValueError):
+            return 0.0
+        return math.log1p(f) if math.isfinite(f) and f > 0 else 0.0
+
+    log_depth = [_safe_log1p(v) for v in totals]
+    log_features = [_safe_log1p(v) for v in features]
     z_depth = _robust_z(log_depth)
     z_features = _robust_z(log_features)
     scores = [
@@ -106,7 +117,8 @@ def detect_atac_doublets(
         for zd, zf in zip(z_depth, z_features)
     ]
 
-    max_n = max(1, int(math.ceil(max(0.0, min(float(max_rate), 1.0)) * n)))
+    # max_rate <= 0 means "flag nobody" (max_n = 0), not a forced minimum of 1.
+    max_n = max(0, int(math.ceil(max(0.0, min(float(max_rate), 1.0)) * n)))
     ranked = sorted(range(n), key=lambda i: scores[i], reverse=True)
     allowed = set(ranked[:max_n])
     mask = [bool(candidates[i] and i in allowed) for i in range(n)]
@@ -248,10 +260,12 @@ def assess_consensus_peak_provenance(
 
     method = str(metadata.get("method") or metadata.get("source") or "").lower()
     n_samples = _to_int(metadata.get("n_samples") or metadata.get("samples"))
-    reproducibility = (
-        metadata.get("idr")
-        or metadata.get("overlap_fraction")
-        or metadata.get("reproducibility")
+    # `is not None`, not truthiness: a measured 0.0 IDR / overlap fraction is
+    # real provenance, not a missing value.
+    reproducibility = next(
+        (metadata.get(k) for k in ("idr", "overlap_fraction", "reproducibility")
+         if metadata.get(k) is not None),
+        None,
     )
     rare_policy = metadata.get("rare_peak_policy")
 

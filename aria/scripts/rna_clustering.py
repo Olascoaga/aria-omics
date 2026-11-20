@@ -212,12 +212,16 @@ def rna_clustering(params: dict) -> dict:
             adata.raw = adata.copy()
         sc.pp.highly_variable_genes(adata, n_top_genes=n_hvg, subset=True)
         sc.pp.scale(adata, max_value=10)
-        sc.tl.pca(adata, svd_solver="arpack", n_comps=n_pcs,
+        n_comps = min(n_pcs, min(adata.shape) - 1)
+        if n_comps < 1:
+            return {"status": "skipped", "reason": "PCA requires at least two cells and two genes"}
+        sc.tl.pca(adata, svd_solver="arpack", n_comps=n_comps,
                   random_state=seed)
 
     # Prefer harmony-corrected embedding if integration ran first.
     rep = "X_pca_harmony" if "X_pca_harmony" in adata.obsm else "X_pca"
 
+    n_pcs = max(1, min(n_pcs, min(adata.shape) - 1, adata.obsm[rep].shape[1]))
     if "neighbors" not in adata.uns:
         sc.pp.neighbors(adata, n_neighbors=n_neighbors, n_pcs=n_pcs,
                         use_rep=rep, random_state=seed)

@@ -139,28 +139,36 @@ def _compute_categorical_eta2(
     import numpy as np
 
     z = np.asarray(values, dtype=np.float64)
-    n = int(z.size)
-    if n < 3 or len(group_labels) != n:
+    n_in = int(z.size)
+    if n_in < 3 or len(group_labels) != n_in:
         return None, None
+    w = (
+        np.asarray(weights, dtype=np.float64)
+        if weights is not None
+        else np.ones(n_in, dtype=np.float64)
+    )
+    if w.size != n_in:
+        return None, None
+    fin = np.isfinite(z) & np.isfinite(w) & (w > 0.0)
+    if int(np.sum(fin)) < 3:
+        return None, None
+    z = z[fin]
+    w = w[fin]
+    group_labels = [lbl for lbl, ok in zip(group_labels, fin.tolist()) if ok]
+    n = int(len(z))
     uniq = sorted(set(group_labels))
     b = len(uniq)
     if b < 2 or b >= n:
         return None, None
     if float(np.std(z)) <= 1e-12:
         return 0.0, 0.0
-
-    w = (
-        np.asarray(weights, dtype=np.float64)
-        if weights is not None
-        else np.ones(n, dtype=np.float64)
-    )
     w_sum = float(np.sum(w))
-    if w_sum <= 0.0:
+    if not math.isfinite(w_sum) or w_sum <= 1e-15:
         return None, None
 
     grand_mean = float(np.sum(w * z) / w_sum)
     ss_tot = float(np.sum(w * ((z - grand_mean) ** 2)))
-    if ss_tot <= 1e-15:
+    if not math.isfinite(ss_tot) or ss_tot <= 1e-15:
         return 0.0, 0.0
 
     ss_between = 0.0
@@ -180,12 +188,15 @@ def _compute_categorical_eta2(
         mean_g_unw = float(np.mean(z[mask]))
         ss_bet_unw += float(n_g) * ((mean_g_unw - mean_unw) ** 2)
 
-    eta2 = max(0.0, min(1.0, ss_between / ss_tot))
+    ratio = ss_between / ss_tot
+    eta2 = max(0.0, min(1.0, ratio)) if math.isfinite(ratio) else 0.0
     ss_within_unw = max(0.0, ss_tot_unw - ss_bet_unw)
     df_bet = b - 1
     df_with = n - b
-    if df_bet > 0 and df_with > 0 and ss_within_unw > 1e-15:
+    if df_bet > 0 and df_with > 0 and math.isfinite(ss_within_unw) and ss_within_unw > 1e-15:
         f_stat = (ss_bet_unw / float(df_bet)) / (ss_within_unw / float(df_with))
+        if not math.isfinite(f_stat):
+            f_stat = 0.0
     else:
         f_stat = 0.0
     return round(float(eta2), 4), round(float(f_stat), 4)
@@ -360,10 +371,14 @@ def _prepare_view_matrices(
     n_train = int(len(train_indices))
 
     if is_sparse:
-        cell_totals = np.asarray(x_csr.sum(axis=1)).ravel().astype(np.float64)
+        x_pos = x_csr.copy()
+        if x_pos.nnz > 0:
+            x_pos.data = np.where(np.isfinite(x_pos.data), np.maximum(x_pos.data, 0.0), 0.0)
+        cell_totals = np.maximum(np.asarray(x_pos.sum(axis=1)).ravel().astype(np.float64), 0.0)
     else:
         arr_all = np.asarray(matrix_all, dtype=np.float64)
-        cell_totals = np.sum(np.maximum(arr_all, 0.0), axis=1)
+        arr_clean = np.where(np.isfinite(arr_all), np.maximum(arr_all, 0.0), 0.0)
+        cell_totals = np.sum(arr_clean, axis=1)
 
     if mod_kind == "rna" and is_raw_counts:
         # Fit HVG selection strictly on training cells using log1p(CP10k).
@@ -929,7 +944,17 @@ def integration_mofa(params: dict) -> dict:
                 raw_chk = _select_raw_counts_matrix(
                     ad_sub, modality_label=mk, require_raw_counts=False
                 )
-                is_raw = bool(raw_chk.get("is_raw_counts", False))
+                if not raw_chk.get("ok"):
+                    return {
+                        "status": "error",
+                        "error_type": "InvalidInputMatrix",
+                        "details": str(
+                            raw_chk.get("error")
+                            or f"{mk}: failed matrix integrity check (non-finite or invalid values)."
+                        ),
+                        "warnings": warnings,
+                    }
+                is_raw = bool((raw_chk.get("inspection") or {}).get("is_raw_counts", False))
                 mat_sel = raw_chk["matrix"] if raw_chk.get("matrix") is not None else ad_sub.X
                 if not is_raw and kind in ("rna", "atac"):
                     warnings.append(
@@ -1097,20 +1122,22 @@ def integration_mofa(params: dict) -> dict:
             projection_method = "none_all_cells_trained"
 
         # ── Step 5: Canonical factor ordering & deterministic sign ────────
-        r2_pos_matrix = np.maximum(0.0, r2_raw_matrix)
+        r2_raw_clean = np.nan_to_num(r2_raw_matrix, nan=0.0, posinf=0.0, neginf=0.0)
+        r2_pos_matrix = np.maximum(0.0, r2_raw_clean)
         factor_r2_sums = np.sum(r2_pos_matrix, axis=0)
         order = np.argsort(-factor_r2_sums, kind="mergesort")
 
         z_train = z_train_raw[:, order].copy()
         z_all = z_all_raw[:, order].copy()
         w_list = [w[:, order].copy() for w in w_raw_list]
-        r2_raw = r2_raw_matrix[:, order].copy()
+        r2_raw = r2_raw_clean[:, order].copy()
         r2_pos = r2_pos_matrix[:, order].copy()
 
         rna_view_idx = next(
             (i for i, pv in enumerate(prepared_views) if pv["mod_kind"] == "rna"),
             0,
         )
+        canonical_factor_signs = [1] * k_actual
         for k in range(k_actual):
             # Anchor sign on highest-R^2 view for factor k (tie-breaking to RNA).
             best_v = int(np.argmax(r2_pos[:, k]))
@@ -1120,6 +1147,7 @@ def integration_mofa(params: dict) -> dict:
             if w_anchor.size > 0:
                 top_f = int(np.argmax(np.abs(w_anchor)))
                 if float(w_anchor[top_f]) < 0.0:
+                    canonical_factor_signs[k] = -1
                     z_train[:, k] *= -1.0
                     z_all[:, k] *= -1.0
                     for v in range(len(view_names)):
@@ -1130,7 +1158,8 @@ def integration_mofa(params: dict) -> dict:
         variance_explained_additive: dict[str, float] = {}
         view_pos_sums: dict[str, float] = {}
         for v, v_name in enumerate(view_names):
-            tot_v = max(0.0, float(r2_tot_vec[v]))
+            tot_raw = float(r2_tot_vec[v])
+            tot_v = max(0.0, tot_raw) if math.isfinite(tot_raw) else 0.0
             add_v = float(np.sum(r2_pos[v, :]))
             variance_explained[v_name] = round(tot_v, 4)
             variance_explained_additive[v_name] = round(add_v, 4)
@@ -1144,7 +1173,7 @@ def integration_mofa(params: dict) -> dict:
 
         # ── Step 7: Quantitative confounder screening (depth & cell cycle) ─
         depth_log10_train: dict[str, np.ndarray] = {
-            pv["mod_name"]: np.log10(1.0 + pv["cell_totals"][train_indices])
+            pv["mod_name"]: np.log10(1.0 + np.maximum(pv["cell_totals"][train_indices], 0.0))
             for pv in prepared_views
         }
 
@@ -1539,6 +1568,7 @@ def integration_mofa(params: dict) -> dict:
                     "n_factors": int(k_actual),
                     "views": view_names,
                     "canonical_factor_order_from_raw": [int(i) for i in order.tolist()],
+                    "canonical_factor_signs": list(canonical_factor_signs),
                     "factors": loadings_payload,
                 },
                 indent=2,
@@ -1573,15 +1603,19 @@ def integration_mofa(params: dict) -> dict:
                 mod_Copies[m_key] = ad_copy
 
             out_mdata = md.MuData(mod_Copies)
-            if src_mdata.obs is not None and len(src_mdata.obs.columns) > 0:
-                m_map = {str(bc): i for i, bc in enumerate(src_mdata.obs_names)}
-                if all(bc in m_map for bc in common_cells):
-                    m_take = [m_map[bc] for bc in common_cells]
+            m_map = {str(bc): i for i, bc in enumerate(src_mdata.obs_names)}
+            if all(bc in m_map for bc in common_cells):
+                m_take = [m_map[bc] for bc in common_cells]
+                if src_mdata.obs is not None and len(src_mdata.obs.columns) > 0:
                     for col in src_mdata.obs.columns:
                         out_mdata.obs[col] = src_mdata.obs[col].iloc[m_take].values
-            for obsm_k, obsm_v in src_mdata.obsm.items():
-                if getattr(obsm_v, "shape", (0,))[0] == len(common_cells):
-                    out_mdata.obsm[obsm_k] = obsm_v.copy()
+                for obsm_k, obsm_v in src_mdata.obsm.items():
+                    if getattr(obsm_v, "shape", (0,))[0] == len(src_mdata.obs_names):
+                        out_mdata.obsm[obsm_k] = (
+                            obsm_v.iloc[m_take].copy()
+                            if hasattr(obsm_v, "iloc")
+                            else obsm_v[m_take].copy()
+                        )
 
             train_mask = np.zeros(n_cells_total, dtype=bool)
             train_mask[train_indices] = True
@@ -1593,6 +1627,8 @@ def integration_mofa(params: dict) -> dict:
                     "seed": int(seed),
                     "n_factors": int(k_actual),
                     "n_active_factors": int(n_active_factors),
+                    "canonical_factor_order_from_raw": [int(i) for i in order.tolist()],
+                    "canonical_factor_signs": list(canonical_factor_signs),
                     "scale_views": bool(scale_views),
                     "subsampled": bool(sub_info["subsampled"]),
                     "subsample_method": sub_info["method"],
@@ -1734,11 +1770,19 @@ def _load_modality(mod_name: str, path: str):
         p = Path(path)
         if p.suffix == ".h5ad":
             return sc.read_h5ad(str(p))
+        ad_obj = None
         if p.suffix == ".h5":
-            return sc.read_10x_h5(str(p))
-        if p.is_dir():
-            return sc.read_10x_mtx(str(p), var_names="gene_symbols", cache=True)
-        return None
+            ad_obj = sc.read_10x_h5(str(p), gex_only=False)
+        elif p.is_dir():
+            ad_obj = sc.read_10x_mtx(str(p), var_names="gene_symbols", gex_only=False, cache=False)
+        if ad_obj is not None and "feature_types" in ad_obj.var.columns:
+            kind = _classify_modality_kind(mod_name)
+            ft = ad_obj.var["feature_types"].astype(str)
+            if kind == "atac" and (ft == "Peaks").any():
+                ad_obj = ad_obj[:, ft == "Peaks"].copy()
+            elif kind == "rna" and (ft == "Gene Expression").any():
+                ad_obj = ad_obj[:, ft == "Gene Expression"].copy()
+        return ad_obj
     except Exception:
         return None
 

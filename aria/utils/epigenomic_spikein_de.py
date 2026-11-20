@@ -104,7 +104,8 @@ def resolve_replicate_spikein_size_factors(
                     )
                 source_kind = f"metadata_column:{col}"
                 sample_exposures = {str(k): float(v) for k, v in vals.items()}
-        elif scale_col_candidates:
+        # An all-NaN count column must not shadow a populated scale column.
+        if not sample_exposures and scale_col_candidates:
             col = scale_col_candidates[0]
             raw_col = meta[col]
             if raw_col.notna().any():
@@ -227,14 +228,21 @@ def run_deseq2_with_external_size_factors(
         }, warnings_out
 
     sf_raw = external_size_factors.reindex(meta_sub.index).astype(float)
-    if sf_raw.isna().any() or (sf_raw <= 0).any():
+    sf_arr = sf_raw.to_numpy(dtype=float)
+    if (sf_arr.size == 0 or (~np.isfinite(sf_arr)).any() or (sf_arr <= 0).any()):
         return {
             "status": "error",
             "error_type": "InvalidSpikeInSizeFactors",
             "details": "External spike-in size factors must be finite and > 0 for all contrast samples.",
         }, warnings_out
     # Re-center subset size factors to geometric mean = 1.0 matching R DESeq2 subset semantics
-    sf_sub = sf_raw / float(np.exp(np.mean(np.log(sf_raw.to_numpy(dtype=float)))))
+    sf_sub = sf_raw / float(np.exp(np.mean(np.log(sf_arr))))
+    if not np.isfinite(sf_sub.to_numpy(dtype=float)).all() or (sf_sub <= 0).any():
+        return {
+            "status": "error",
+            "error_type": "InvalidSpikeInSizeFactors",
+            "details": "Re-centred spike-in size factors are not finite and positive.",
+        }, warnings_out
 
     try:
         from pydeseq2.dds import DeseqDataSet

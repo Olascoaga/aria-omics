@@ -241,10 +241,12 @@ def integration_paired_qc(params: dict[str, Any]) -> dict[str, Any]:
     max_pct_mt = float(params.get("max_pct_mt", 20.0))
     min_peaks = int(params.get("min_peaks", 200))
     min_atac_counts = int(params.get("min_atac_counts", 500))
-    max_atac_mito_frac = (
-        None if params.get("max_atac_mito_frac") is None and atac_mito_col is None
-        else float(params.get("max_atac_mito_frac", 0.10))
-    )
+    if "max_atac_mito_frac" in params and params["max_atac_mito_frac"] is None:
+        max_atac_mito_frac = None
+    elif params.get("max_atac_mito_frac") is None and atac_mito_col is None:
+        max_atac_mito_frac = None
+    else:
+        max_atac_mito_frac = float(params.get("max_atac_mito_frac", 0.10))
 
     pass_rna = (rna_totals >= min_rna_counts) & (rna_n_genes >= min_genes)
     if mt_measured and pct_counts_mt is not None:
@@ -259,7 +261,9 @@ def integration_paired_qc(params: dict[str, Any]) -> dict[str, Any]:
         )
         finite_mito = raw_atac_mito[np.isfinite(raw_atac_mito)]
         if finite_mito.size > 0:
-            if float(np.max(finite_mito)) > 1.0:
+            col_low = str(atac_mito_col).lower()
+            is_pct_named = ("pct" in col_low) or ("percent" in col_low)
+            if float(np.max(finite_mito)) > 1.0 or is_pct_named:
                 atac_mito_frac_01 = raw_atac_mito / 100.0
                 atac_mito_scale = "percent_converted_to_fraction"
             else:
@@ -421,6 +425,15 @@ def integration_paired_qc(params: dict[str, Any]) -> dict[str, Any]:
     if not out_name.lower().endswith(".h5mu"):
         out_name = f"{out_name}.h5mu"
     out_path = out_dir / out_name
+    if out_path.resolve() == in_path.resolve():
+        return {
+            "status": "error",
+            "error_type": "InPlaceOverwriteDisallowed",
+            "details": (
+                f"Output path ({out_path}) resolves to the input path ({in_path}); "
+                "refusing in-place overwrite to preserve provenance and stage cache."
+            ),
+        }
     tmp_path = out_dir / f".{out_Path_safe(out_name)}.tmp.{os.getpid()}.h5mu"
 
     try:
@@ -434,6 +447,19 @@ def integration_paired_qc(params: dict[str, Any]) -> dict[str, Any]:
                 pass
 
     pct_removed = round(100.0 * float(n_shared - n_after) / float(n_shared), 2)
+
+    def _median_obs_col(col_name: str | None, row_indices: list[int] | np.ndarray) -> float | None:
+        if col_name is None or col_name not in atac_adata.obs.columns:
+            return None
+        vals = np.asarray(atac_adata.obs.iloc[row_indices][col_name].values, dtype=np.float64)
+        fin = vals[np.isfinite(vals)]
+        return round(float(np.median(fin)), 4) if fin.size > 0 else None
+
+    atac_kept_rows = [atac_rows[int(i)] for i in kept_idx_arr.tolist()]
+    med_frag_before = _median_obs_col(atac_frag_col, atac_rows)
+    med_frag_after = _median_obs_col(atac_frag_col, atac_kept_rows)
+    med_mito_before = _median_obs_col(atac_mito_col, atac_rows)
+    med_mito_after = _median_obs_col(atac_mito_col, atac_kept_rows)
 
     result = {
         "status": "success",
@@ -500,11 +526,11 @@ def integration_paired_qc(params: dict[str, Any]) -> dict[str, Any]:
             "frip": None,
             "tss_enrichment": None,
             "fragment_count_col": atac_frag_col,
-            "median_fragments_per_cell": paired.get(
-                "median_atac_fragments_per_cell"
-            ),
+            "median_fragments_per_cell_before": med_frag_before,
+            "median_fragments_per_cell": med_frag_after,
             "mito_obs_col": atac_mito_col,
-            "median_mito_obs": paired.get("median_atac_mito_fraction"),
+            "median_mito_obs_before": med_mito_before,
+            "median_mito_obs": med_mito_after,
         },
         "label_join": label_join_summary,
         "metrics_not_computed": metrics_not_computed,

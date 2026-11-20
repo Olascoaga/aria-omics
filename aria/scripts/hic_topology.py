@@ -44,11 +44,48 @@ from aria.scripts.hic_preprocess import _check_hic_stage_cache, _save_hic_stage_
 
 STAGE_VERSION = 1
 EXCLUDED_CHROMS = frozenset({"chrM", "MT", "chrMT", "M", "chrEBV", "EBV"})
-_ATTR_GENE_NAME_RE = re.compile(r'gene_name\s+"?([^";]+)"?')
-_ATTR_GENE_ID_RE = re.compile(r'gene_id\s+"?([^";]+)"?')
+_ATTR_GENE_NAME_RE = re.compile(r'(?:gene_name|Name)[=\s]+"?([^";]+)"?')
+_ATTR_GENE_ID_RE = re.compile(r'(?:gene_id|ID)[=\s]+"?([^";]+)"?')
 
 
 # ── Shared helpers ───────────────────────────────────────────────────────────
+
+
+def _snap_window(window_bp: int, resolution_bp: int) -> int:
+    """Snap insulation window to an exact integer multiple of ``resolution_bp`` (>= 3 bins)."""
+    res = max(int(resolution_bp), 1)
+    n_bins = max(3, int(round(int(window_bp) / float(res))))
+    return n_bins * res
+
+
+def _chrom_aliases(chrom: str) -> tuple[str, ...]:
+    c = str(chrom).strip()
+    if not c:
+        return ()
+    if c.lower().startswith("chr"):
+        bare = c[3:]
+        if bare.upper() in {"M", "MT"}:
+            return (c, "chrM", "chrMT", "MT", "M")
+        return (c, bare)
+    if c.upper() in {"M", "MT"}:
+        return (c, "chrM", "chrMT", "MT", "M")
+    return (c, f"chr{c}")
+
+
+def _safe_ignore_diags(clr, view_df, actual_res: int) -> int:
+    import numpy as np
+
+    if view_df is None or view_df.empty:
+        return 2
+    bins_per_chr = [
+        int(clr.chromsizes[c]) // max(int(actual_res), 1)
+        for c in view_df["chrom"]
+        if c in clr.chromsizes
+    ]
+    if not bins_per_chr:
+        return 2
+    med_bins = float(np.median(bins_per_chr))
+    return 2 if med_bins >= 12.0 else 1
 
 
 def _resolve_uri(fpath: str, resolution: int) -> tuple[str, int]:
@@ -58,7 +95,7 @@ def _resolve_uri(fpath: str, resolution: int) -> tuple[str, int]:
         avail = sorted(
             int(p.split("/")[-1])
             for p in cooler.fileops.list_coolers(fpath)
-            if p.split("/")[-1].isdigit()
+            if "/resolutions/" in p and p.split("/")[-1].isdigit()
         )
         if not avail:
             raise ValueError(f"No resolutions inside .mcool: {fpath}")
@@ -76,7 +113,8 @@ def _has_valid_weights(clr) -> bool:
     if "weight" not in list(clr.bins().columns):
         return False
     w = np.asarray(clr.bins()[:]["weight"], dtype=float)
-    return bool(np.isfinite(w).any() and np.nanmax(w) > 0)
+    finite = w[np.isfinite(w)]
+    return bool(finite.size > 0 and float(np.max(finite)) > 0.0)
 
 
 def _ensure_balanced_cooler(fpath: str, resolution: int, out_dir: Path):
@@ -129,10 +167,16 @@ def _get_chromosomes(clr, chromosomes) -> list[str]:
         auto_chroms = [c for c in all_chroms if c not in EXCLUDED_CHROMS] or all_chroms
     if chromosomes == "all" or chromosomes is None:
         return auto_chroms
-    if isinstance(chromosomes, (list, tuple)):
-        picked = [str(c) for c in chromosomes if str(c) in all_chroms]
-        return picked or auto_chroms[:1]
-    return auto_chroms
+    if isinstance(chromosomes, str):
+        req_list = [chromosomes]
+    elif isinstance(chromosomes, (list, tuple, set)):
+        req_list = [str(c) for c in chromosomes]
+    else:
+        return auto_chroms
+    req_aliases = {alias for c in req_list for alias in _chrom_aliases(c)}
+    # Preserve cooler's native chromosome ordering so cooltools viewframe sorting checks pass.
+    picked = [c for c in all_chroms if c in req_aliases]
+    return picked or auto_chroms[:1]
 
 
 def _build_view_df(clr, chroms: list[str]):
@@ -187,6 +231,86 @@ def _parse_gtf_tss(gtf_path: str | None) -> list[tuple[str, int, str]]:
     return genes
 
 
+def _phasing_valid_chroms(phasing_df, chroms: list[str]) -> set[str]:
+    """Return chromosomes whose phasing track has finite non-zero variance."""
+    import numpy as np
+
+    if phasing_df is None or phasing_df.empty:
+        return set()
+    val_col = [c for c in phasing_df.columns if c not in {"chrom", "start", "end"}]
+    if not val_col:
+        return set()
+    vcol = val_col[0]
+    valid: set[str] = set()
+    for ch in chroms:
+        sub = phasing_df[phasing_df["chrom"].astype(str) == str(ch)]
+        if sub.empty:
+            continue
+        vals = sub[vcol].to_numpy(dtype=float)
+        fin = vals[np.isfinite(vals)]
+        if fin.size >= 5 and float(np.std(fin)) > 1e-12:
+            valid.add(str(ch))
+    return valid
+
+
+def _run_eigs_per_chrom_safe(
+    eig_mod,
+    clr,
+    *,
+    phasing_df,
+    view_df,
+    n_eigs: int,
+    ignore_diags: int,
+    seed: int = 0,
+):
+    """Run deterministic eigs_cis without wiping chromosomes that lack phasing variance."""
+    import pandas as pd
+
+    chroms = [str(c) for c in view_df["chrom"].tolist()]
+    if phasing_df is None or phasing_df.empty:
+        return _run_eigs_cis_deterministic(
+            eig_mod, clr, phasing_track=None, view_df=view_df,
+            n_eigs=n_eigs, ignore_diags=ignore_diags, seed=seed,
+        )
+
+    valid_phased = _phasing_valid_chroms(phasing_df, chroms)
+    if len(valid_phased) == len(chroms):
+        return _run_eigs_cis_deterministic(
+            eig_mod, clr, phasing_track=phasing_df, view_df=view_df,
+            n_eigs=n_eigs, ignore_diags=ignore_diags, seed=seed,
+        )
+    if not valid_phased:
+        return _run_eigs_cis_deterministic(
+            eig_mod, clr, phasing_track=None, view_df=view_df,
+            n_eigs=n_eigs, ignore_diags=ignore_diags, seed=seed,
+        )
+
+    phased_vdf = view_df[view_df["chrom"].astype(str).isin(valid_phased)].reset_index(drop=True)
+    unphased_vdf = view_df[~view_df["chrom"].astype(str).isin(valid_phased)].reset_index(drop=True)
+    ev_parts = []
+    vec_parts = []
+    if not phased_vdf.empty:
+        ev_p, vec_p = _run_eigs_cis_deterministic(
+            eig_mod, clr, phasing_track=phasing_df, view_df=phased_vdf,
+            n_eigs=n_eigs, ignore_diags=ignore_diags, seed=seed,
+        )
+        ev_parts.append(ev_p)
+        vec_parts.append(vec_p)
+    if not unphased_vdf.empty:
+        ev_u, vec_u = _run_eigs_cis_deterministic(
+            eig_mod, clr, phasing_track=None, view_df=unphased_vdf,
+            n_eigs=n_eigs, ignore_diags=ignore_diags, seed=seed,
+        )
+        ev_parts.append(ev_u)
+        vec_parts.append(vec_u)
+    chrom_rank = {c: i for i, c in enumerate(chroms)}
+    ev_out = pd.concat(ev_parts, ignore_index=True)
+    vec_out = pd.concat(vec_parts, ignore_index=True)
+    vec_out["_ord"] = vec_out["chrom"].astype(str).map(lambda c: chrom_rank.get(c, 999999))
+    vec_out = vec_out.sort_values(["_ord", "start"], kind="mergesort").drop(columns=["_ord"]).reset_index(drop=True)
+    return ev_out, vec_out
+
+
 def _build_phasing_track(clr, chroms: list[str], genome_fasta: str | None, gtf_path: str | None):
     """Build a ``(chrom, start, end, phasing_score)`` DataFrame for ``eigs_cis``.
 
@@ -196,7 +320,6 @@ def _build_phasing_track(clr, chroms: list[str], genome_fasta: str | None, gtf_p
 
     bins_df = clr.bins()[:][["chrom", "start", "end"]].copy()
     bins_df["chrom"] = bins_df["chrom"].astype(str)
-    mask = bins_df["chrom"].isin(set(chroms))
 
     # 1. Local genome FASTA GC fraction (gold standard for cooltools eigs_cis)
     if genome_fasta and Path(str(genome_fasta)).is_file():
@@ -205,12 +328,16 @@ def _build_phasing_track(clr, chroms: list[str], genome_fasta: str | None, gtf_p
 
             with pysam.FastaFile(str(genome_fasta)) as fa:
                 refs = set(fa.references)
-                shared = [c for c in chroms if c in refs]
-                if shared:
+                alias_to_ref: dict[str, str] = {}
+                for r in refs:
+                    for al in _chrom_aliases(r):
+                        alias_to_ref.setdefault(al, r)
+                matched = [(c, alias_to_ref[c]) for c in chroms if c in alias_to_ref]
+                if matched:
                     gc_vals = np.full(len(bins_df), np.nan, dtype=float)
-                    for ch in shared:
-                        ch_len = int(fa.get_reference_length(ch))
-                        seq = fa.fetch(ch, 0, ch_len).upper()
+                    for ch, ref_ch in matched:
+                        ch_len = int(fa.get_reference_length(ref_ch))
+                        seq = fa.fetch(ref_ch, 0, ch_len).upper()
                         ch_idx = np.flatnonzero(bins_df["chrom"].to_numpy() == ch)
                         starts = bins_df["start"].to_numpy(dtype=int)[ch_idx]
                         ends = bins_df["end"].to_numpy(dtype=int)[ch_idx]
@@ -224,9 +351,11 @@ def _build_phasing_track(clr, chroms: list[str], genome_fasta: str | None, gtf_p
                             )
                             if atgc >= 20:
                                 gc_vals[idx_pos] = (sub.count("G") + sub.count("C")) / float(atgc)
-                    if np.isfinite(gc_vals[mask]).sum() >= 5 and np.nanstd(gc_vals[mask]) > 0:
-                        bins_df["GC"] = gc_vals
-                        return bins_df[["chrom", "start", "end", "GC"]], "gc_content", True
+                    cand_df = bins_df[["chrom", "start", "end"]].copy()
+                    cand_df["GC"] = gc_vals
+                    valid_ch = _phasing_valid_chroms(cand_df, chroms)
+                    if valid_ch:
+                        return cand_df, "gc_content", True
         except Exception:
             pass
 
@@ -237,18 +366,25 @@ def _build_phasing_track(clr, chroms: list[str], genome_fasta: str | None, gtf_p
         counts = np.zeros(len(bins_df), dtype=float)
         offsets: dict[str, int] = {}
         lengths: dict[str, int] = {}
+        alias_to_cooler_ch: dict[str, str] = {}
         for ch, grp in bins_df.groupby("chrom", sort=False, observed=False):
-            offsets[str(ch)] = int(grp.index[0])
-            lengths[str(ch)] = len(grp)
+            ch_s = str(ch)
+            offsets[ch_s] = int(grp.index[0])
+            lengths[ch_s] = len(grp)
+            for al in _chrom_aliases(ch_s):
+                alias_to_cooler_ch.setdefault(al, ch_s)
         for ch, tss, _gene in tss_records:
-            if ch not in offsets:
+            target_ch = alias_to_cooler_ch.get(str(ch))
+            if target_ch is None:
                 continue
             b = tss // max(binsize, 1)
-            if 0 <= b < lengths[ch]:
-                counts[offsets[ch] + b] += 1.0
-        if counts[mask].sum() > 0 and np.std(counts[mask]) > 0:
-            bins_df["gene_density"] = counts
-            return bins_df[["chrom", "start", "end", "gene_density"]], "gene_density", True
+            if 0 <= b < lengths[target_ch]:
+                counts[offsets[target_ch] + b] += 1.0
+        cand_df = bins_df[["chrom", "start", "end"]].copy()
+        cand_df["gene_density"] = counts
+        valid_ch = _phasing_valid_chroms(cand_df, chroms)
+        if valid_ch:
+            return cand_df, "gene_density", True
 
     return None, "unphased_arbitrary_sign", False
 
@@ -358,14 +494,21 @@ def _compute_compartments(
         phasing_df, phasing_method, pc1_validated = _build_phasing_track(
             clr, chroms, genome_fasta, gtf_path
         )
+        # Filter out tiny scaffolds that would degrade genome-wide ignore_diags or n_eigs.
+        long_chroms = [
+            c for c in view_df["chrom"]
+            if (int(clr.chromsizes[c]) // max(actual_res, 1)) >= 6
+        ]
+        if long_chroms and len(long_chroms) < len(view_df):
+            view_df = view_df[view_df["chrom"].isin(long_chroms)].reset_index(drop=True)
         nbins_min = min(int(clr.chromsizes[c]) // max(actual_res, 1) for c in view_df["chrom"])
         n_eigs = min(3, max(1, nbins_min - 2))
-        ignore_diags = 2 if nbins_min >= 12 else 1
+        ignore_diags = _safe_ignore_diags(clr, view_df, actual_res)
 
-        eigvals_df, eigvecs_df = _run_eigs_cis_deterministic(
+        eigvals_df, eigvecs_df = _run_eigs_per_chrom_safe(
             eig,
             clr,
-            phasing_track=phasing_df,
+            phasing_df=phasing_df,
             view_df=view_df,
             n_eigs=n_eigs,
             ignore_diags=ignore_diags,
@@ -485,7 +628,7 @@ def _compute_tads(
         out_path = Path(out_dir)
         out_path.mkdir(parents=True, exist_ok=True)
         clr, actual_res = _ensure_balanced_cooler(fpath, resolution, out_path)
-        window_bp = max(int(window_size), int(actual_res) * 3)
+        window_bp = _snap_window(window_size, actual_res)
         chroms = _get_chromosomes(clr, chromosomes)
         view_df = _build_view_df(clr, chroms)
         if view_df.empty:
@@ -495,8 +638,7 @@ def _compute_tads(
                 "details": "No analyzable chromosomes found for TAD calling.",
             }
 
-        nbins_min = min(int(clr.chromsizes[c]) // max(actual_res, 1) for c in view_df["chrom"])
-        ignore_diags = 2 if nbins_min >= 12 else 1
+        ignore_diags = _safe_ignore_diags(clr, view_df, actual_res)
         ins_table = ins.insulation(
             clr,
             [window_bp],
@@ -509,7 +651,10 @@ def _compute_tads(
         bound_col = f"is_boundary_{window_bp}"
         strength_col = f"boundary_strength_{window_bp}"
 
-        if score_col not in ins_table.columns or ins_table[score_col].notna().sum() == 0:
+        if (
+            score_col not in ins_table.columns
+            or int(np.isfinite(ins_table[score_col].to_numpy(dtype=float)).sum()) == 0
+        ):
             return {
                 "status": "error",
                 "error_type": "TADFailed",
@@ -529,13 +674,16 @@ def _compute_tads(
             b_df = ch_df[ch_df[bound_col].fillna(False).astype(bool)]
             positions = [int(x) for x in b_df["start"].tolist()]
             all_boundaries[str(ch)] = positions
+            st_map: dict[int, float] = {}
             if strength_col in b_df.columns:
-                st_vals = b_df[strength_col].dropna().to_numpy(dtype=float)
-                strengths.extend(float(x) for x in st_vals if math.isfinite(float(x)))
-            st_map = (
-                dict(zip(b_df["start"].astype(int), b_df[strength_col].fillna(0.0).astype(float)))
-                if strength_col in b_df.columns else {}
-            )
+                raw_st = b_df[strength_col].to_numpy(dtype=float)
+                for pos_i, sval in zip(positions, raw_st):
+                    if math.isfinite(float(sval)):
+                        fv = float(sval)
+                        strengths.append(fv)
+                        st_map[pos_i] = fv
+                    else:
+                        st_map[pos_i] = 0.0
             if len(positions) >= 2:
                 for idx in range(len(positions) - 1):
                     s_bp = positions[idx]
@@ -544,6 +692,8 @@ def _compute_tads(
                         size_kb = (e_bp - s_bp) / 1000.0
                         tad_sizes_kb.append(size_kb)
                         mean_st = 0.5 * (st_map.get(s_bp, 0.0) + st_map.get(e_bp, 0.0))
+                        if not math.isfinite(mean_st):
+                            mean_st = 0.0
                         tad_rows.append((str(ch), s_bp, e_bp, f"TAD_{ch}_{idx+1}", round(mean_st, 4)))
 
         tads_bed = out_path / "tads.bed"
@@ -619,9 +769,8 @@ def _calibrate_insulation(
         chroms = _get_chromosomes(clr, chromosomes)
         cal_chrom = "chr1" if "chr1" in chroms else chroms[0]
         view_df = _build_view_df(clr, [cal_chrom])
-        valid_windows = [max(int(w), int(actual_res) * 3) for w in windows]
-        nbins = int(clr.chromsizes[cal_chrom]) // max(actual_res, 1)
-        ignore_diags = 2 if nbins >= 12 else 1
+        valid_windows = [_snap_window(w, actual_res) for w in windows]
+        ignore_diags = _safe_ignore_diags(clr, view_df, actual_res)
 
         table = ins.insulation(
             clr,
@@ -640,12 +789,17 @@ def _calibrate_insulation(
                 table[table[bound_col].fillna(False).astype(bool)]
                 if bound_col in table.columns else table.iloc[0:0]
             )
-            if not b_rows.empty and st_col in b_rows.columns and b_rows[st_col].notna().any():
-                val = float(np.nanmean(b_rows[st_col].to_numpy(dtype=float)))
-            elif not b_rows.empty and sc_col in b_rows.columns and b_rows[sc_col].notna().any():
-                val = float(np.nanmean(np.abs(b_rows[sc_col].to_numpy(dtype=float))))
-            else:
-                val = 0.0
+            val = 0.0
+            if not b_rows.empty and st_col in b_rows.columns:
+                arr_st = b_rows[st_col].to_numpy(dtype=float)
+                fin_st = arr_st[np.isfinite(arr_st)]
+                if fin_st.size > 0:
+                    val = float(np.mean(fin_st))
+            if val == 0.0 and not b_rows.empty and sc_col in b_rows.columns:
+                arr_sc = b_rows[sc_col].to_numpy(dtype=float)
+                fin_sc = arr_sc[np.isfinite(arr_sc)]
+                if fin_sc.size > 0:
+                    val = float(np.mean(np.abs(fin_sc)))
             boundary_strengths[str(orig_w)] = round(val if math.isfinite(val) else 0.0, 4)
 
         return {
@@ -676,7 +830,8 @@ def _annotate_loops_with_gtf(loops_df, gtf_path: str | None, promoter_window_bp:
         return loops_df, {}
     by_chrom: dict[str, list[tuple[int, str]]] = {}
     for ch, tss, gene in tss_list:
-        by_chrom.setdefault(str(ch), []).append((int(tss), gene))
+        for al in _chrom_aliases(ch):
+            by_chrom.setdefault(al, []).append((int(tss), gene))
 
     def _hit_genes(chrom: str, start: int, end: int) -> list[str]:
         lo = int(start) - promoter_window_bp
@@ -774,6 +929,38 @@ def _compute_loops(
         out_path = Path(out_dir)
         out_path.mkdir(parents=True, exist_ok=True)
         clr, actual_res = _ensure_balanced_cooler(fpath, resolution, out_path)
+        if actual_res < 4_000:
+            # cooltools.dotfinder.recommend_kernels raises ValueError below 4 kb (Micro-C 1-2 kb).
+            fallback_res = None
+            if str(fpath).lower().endswith(".mcool"):
+                import cooler as _cooler
+
+                avail_ok = sorted(
+                    int(p.split("/")[-1])
+                    for p in _cooler.fileops.list_coolers(fpath)
+                    if "/resolutions/" in p
+                    and p.split("/")[-1].isdigit()
+                    and 4_000 <= int(p.split("/")[-1]) <= 25_000
+                )
+                if avail_ok:
+                    fallback_res = avail_ok[0]
+            if fallback_res is not None:
+                clr, actual_res = _ensure_balanced_cooler(fpath, fallback_res, out_path)
+            else:
+                return {
+                    "status": "skipped",
+                    "ran": False,
+                    "data_type": "HiC",
+                    "analysis": "loops",
+                    "validation_level": "production",
+                    "resolution": int(actual_res),
+                    "n_loops": 0,
+                    "reason": "resolution_too_fine_for_default_donut_kernels",
+                    "message": (
+                        f"Loop dot calling with cooltools default donut kernels requires "
+                        f"4 kb - 25 kb resolution; available resolution was {actual_res:,} bp."
+                    ),
+                }
         if actual_res > 25_000:
             return {
                 "status": "skipped",
@@ -854,9 +1041,19 @@ def _compute_loops(
                     "end2": int(row["end2"]),
                 }
                 if "count" in row and row["count"] is not None:
-                    item["count"] = int(row["count"])
-                if "la_exp.donut.qval" in row and math.isfinite(float(row["la_exp.donut.qval"])):
-                    item["qval"] = float(row["la_exp.donut.qval"])
+                    try:
+                        c_f = float(row["count"])
+                        if math.isfinite(c_f):
+                            item["count"] = int(round(c_f))
+                    except (TypeError, ValueError):
+                        pass
+                if "la_exp.donut.qval" in row and row["la_exp.donut.qval"] is not None:
+                    try:
+                        q_f = float(row["la_exp.donut.qval"])
+                        if math.isfinite(q_f):
+                            item["qval"] = q_f
+                    except (TypeError, ValueError):
+                        pass
                 if "anchor1_genes" in row and str(row["anchor1_genes"]):
                     item["anchor1_genes"] = str(row["anchor1_genes"])
                 if "anchor2_genes" in row and str(row["anchor2_genes"]):
@@ -1080,9 +1277,25 @@ def _compute_differential_3d(params: dict, out_dir: str) -> dict:
 
     declared_sids = params.get("sample_ids")
     if isinstance(declared_sids, list) and len(declared_sids) == len(files):
-        sample_ids = [str(s) for s in declared_sids]
+        raw_sids = [str(s) for s in declared_sids]
     else:
-        sample_ids = [Path(f).stem.replace(".balanced", "").replace(".mcool", "").replace(".cool", "") for f in files]
+        raw_sids = [Path(f).stem.replace(".balanced", "").replace(".mcool", "").replace(".cool", "") for f in files]
+    sid_counts: dict[str, int] = {}
+    for s in raw_sids:
+        sid_counts[s] = sid_counts.get(s, 0) + 1
+    seen_sids: set[str] = set()
+    sample_ids: list[str] = []
+    for idx_s, (s, fpath_s) in enumerate(zip(raw_sids, files)):
+        cand = s
+        if sid_counts.get(s, 0) > 1:
+            parent_tag = Path(fpath_s).parent.name.strip()
+            cand = f"{parent_tag}_{s}" if parent_tag else f"{s}_{idx_s + 1}"
+            if cand in seen_sids:
+                cand = f"{s}_{idx_s + 1}"
+        while cand in seen_sids:
+            cand = f"{cand}_{idx_s + 1}"
+        seen_sids.add(cand)
+        sample_ids.append(cand)
 
     comparisons = _parse_comparisons(params.get("comparisons"))
     if not meta_by_sid or not comparisons:
@@ -1116,26 +1329,50 @@ def _compute_differential_3d(params: dict, out_dir: str) -> dict:
     e1_by_sid: dict[str, pd.DataFrame] = {}
     ins_by_sid: dict[str, pd.DataFrame] = {}
     phasing_df = None
+    phasing_built = False
+    phasing_coords = None
     pc1_validated = False
     phasing_method = "unphased_arbitrary_sign"
 
-    for idx, (sid, fpath) in enumerate(zip(sample_ids, files)):
+    for sid, fpath in zip(sample_ids, files):
         if sid not in meta_by_sid:
             continue
         clr_c, actual_comp_res = _ensure_balanced_cooler(fpath, comp_res, out_path / sid)
         chroms = _get_chromosomes(clr_c, chromosomes)
         vdf_c = _build_view_df(clr_c, chroms)
-        if idx == 0:
+        cur_bins = clr_c.bins()[:][["chrom", "start", "end"]].reset_index(drop=True)
+        if not phasing_built:
             phasing_df, phasing_method, pc1_validated = _build_phasing_track(
                 clr_c, chroms, genome_fasta, gtf_path
             )
+            phasing_coords = cur_bins
+            phasing_built = True
+        elif phasing_coords is not None and (
+            len(cur_bins) != len(phasing_coords) or not cur_bins.equals(phasing_coords)
+        ):
+            return {
+                "status": "error",
+                "error_type": "CoordinateMismatch",
+                "details": (
+                    f"Sample {sid!r} compartment bin grid does not match cohort reference "
+                    "(mismatched resolution or chromosome assembly across Hi-C inputs)."
+                ),
+            }
+        long_c = [
+            c for c in vdf_c["chrom"]
+            if (int(clr_c.chromsizes[c]) // max(actual_comp_res, 1)) >= 6
+        ]
+        if long_c and len(long_c) < len(vdf_c):
+            vdf_c = vdf_c[vdf_c["chrom"].isin(long_c)].reset_index(drop=True)
         nb_min = min(int(clr_c.chromsizes[c]) // max(actual_comp_res, 1) for c in vdf_c["chrom"])
-        _, ev_df = eig.eigs_cis(
+        _, ev_df = _run_eigs_per_chrom_safe(
+            eig,
             clr_c,
-            phasing_track=phasing_df,
+            phasing_df=phasing_df,
             view_df=vdf_c,
             n_eigs=min(3, max(1, nb_min - 2)),
-            ignore_diags=2 if nb_min >= 12 else 1,
+            ignore_diags=_safe_ignore_diags(clr_c, vdf_c, actual_comp_res),
+            seed=0,
         )
         # If unphased, align sign of sample i >= 1 to sample 0 PER CHROMOSOME so arbitrary
         # per-chromosome eigenvector flips do not create artificial cross-replicate deltas!
@@ -1155,10 +1392,9 @@ def _compute_differential_3d(params: dict, out_dir: str) -> dict:
 
         clr_t, actual_tad_res = _ensure_balanced_cooler(fpath, tad_res, out_path / sid)
         vdf_t = _build_view_df(clr_t, _get_chromosomes(clr_t, chromosomes))
-        eff_w = max(window_bp, actual_tad_res * 3)
-        nb_t = min(int(clr_t.chromsizes[c]) // max(actual_tad_res, 1) for c in vdf_t["chrom"])
+        eff_w = _snap_window(window_bp, actual_tad_res)
         ins_df = ins.insulation(
-            clr_t, [eff_w], view_df=vdf_t, ignore_diags=2 if nb_t >= 12 else 1, nproc=1
+            clr_t, [eff_w], view_df=vdf_t, ignore_diags=_safe_ignore_diags(clr_t, vdf_t, actual_tad_res), nproc=1
         )
         sc_col = f"log2_insulation_score_{eff_w}"
         ins_by_sid[sid] = ins_df[["chrom", "start", "end", sc_col]].rename(
@@ -1170,13 +1406,27 @@ def _compute_differential_3d(params: dict, out_dir: str) -> dict:
     rep_covs: dict[tuple[str, str], dict[str, str]] = {}
     for sid in e1_by_sid:
         m = meta_by_sid[sid]
-        cond = m.get(cond_col) or m.get("condition")
-        rep = m.get(rep_col) if m.get(rep_col) is not None else sid
-        if cond is None:
+        raw_cond = m.get(cond_col) if cond_col in m else m.get("condition")
+        if raw_cond is None or pd.isna(raw_cond) or str(raw_cond).strip() == "":
             continue
-        key = (str(cond), str(rep))
+        raw_rep = m.get(rep_col)
+        if raw_rep is None or pd.isna(raw_rep) or str(raw_rep).strip() == "":
+            rep = sid
+        else:
+            rep = str(raw_rep)
+        key = (str(raw_cond), str(rep))
         rep_units.setdefault(key, []).append(sid)
-        rep_covs.setdefault(key, {c: str(m.get(c, "")) for c in covariates})
+        rep_covs.setdefault(key, {c: ("" if (m.get(c) is None or pd.isna(m.get(c))) else str(m.get(c))) for c in covariates})
+
+    if not e1_by_sid or not rep_units:
+        return {
+            "status": "skipped",
+            "ran": False,
+            "data_type": "HiC",
+            "analysis": "differential_3d",
+            "validation_level": "production",
+            "reason": "no_matched_samples_in_metadata",
+        }
 
     contrast_results: list[dict[str, Any]] = []
     warnings: list[str] = []

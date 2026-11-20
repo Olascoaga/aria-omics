@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import csv
 import os
+import re
 import sys
 from pathlib import Path
 from typing import Any
@@ -336,6 +337,23 @@ def chromatin_bulk_diffacc(params: dict) -> dict:
     except (ValueError, OSError) as exc:
         return _skipped(str(exc), data_type=data_type)
 
+    requested_norm = str(params.get("normalization_mode") or "").strip().lower()
+    if requested_norm == "heterologous_spikein" and spikein_sf is None:
+        # Fail CLOSED: an explicitly requested spike-in normalization must never
+        # silently degrade to DESeq2 median-of-ratios (global shifts, e.g. a
+        # histone-mark loss, would be normalized away).
+        return _skipped(
+            "normalization_mode='heterologous_spikein' was requested but no valid "
+            "spike-in counts / scale factors were resolved for the replicates; "
+            "refusing to fall back to median-of-ratios normalization",
+            data_type=data_type,
+            normalization_mode=None,
+            normalization_mode_requested="heterologous_spikein",
+            spikein_normalization=spikein_info,
+        )
+    normalization_mode = (
+        "heterologous_spikein" if spikein_sf is not None else "deseq2_median_of_ratios")
+
     for dropped in covariates_dropped:
         warnings.append(
             f"Covariate '{dropped.get('covariate')}' was not adjusted for in "
@@ -354,6 +372,7 @@ def chromatin_bulk_diffacc(params: dict) -> dict:
             covariates_adjusted=usable_covariates,
             covariates_dropped=covariates_dropped,
             warnings=warnings,
+            data_type=data_type,
         )
 
     nonzero = rep_counts.sum(axis=1) > 0
@@ -362,7 +381,8 @@ def chromatin_bulk_diffacc(params: dict) -> dict:
         warnings.append(f"Dropped {n_dropped_zero} all-zero peak(s) before DESeq2.")
     rep_counts = rep_counts.loc[nonzero]
     if rep_counts.empty:
-        return _skipped("all peaks had zero counts after replicate aggregation")
+        return _skipped("all peaks had zero counts after replicate aggregation",
+                        data_type=data_type, warnings=warnings)
 
     output_dir = Path(str(params.get("output_dir") or
                           Path(str(counts_path)).parent / "bulk_atac_da"))
@@ -451,7 +471,10 @@ def chromatin_bulk_diffacc(params: dict) -> dict:
         n_sig_total += n_sig
         n_success += 1
 
-        full_csv = output_dir / f"bulk_atac_da_{comp_key}_full.csv"
+        # Sanitized filename (a level like "a/b" must not escape output_dir or
+        # crash the write); the `comparison` column keeps the raw comp_key.
+        safe_key = re.sub(r"[^A-Za-z0-9._-]+", "_", comp_key)
+        full_csv = output_dir / f"bulk_atac_da_{safe_key}_full.csv"
         _write_comparison_table(full_csv, results_df, sig_df, comp_key)
         top_peaks = []
         for peak, row_df in sig_df.head(top_n).iterrows():
@@ -530,6 +553,7 @@ def chromatin_bulk_diffacc(params: dict) -> dict:
             covariates_adjusted=usable_covariates,
             covariates_dropped=covariates_dropped,
             spikein_normalization=spikein_info,
+            normalization_mode=normalization_mode,
         )
 
     method_label = (
@@ -545,6 +569,7 @@ def chromatin_bulk_diffacc(params: dict) -> dict:
         "analysis": "differential_accessibility",
         "validation_level": "production",
         "method": method_label,
+        "normalization_mode": normalization_mode,
         "spikein_normalization": spikein_info,
         "counts_matrix_path": str(counts_path),
         "sample_metadata_path": str(metadata_path),

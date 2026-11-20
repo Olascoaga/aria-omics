@@ -339,13 +339,16 @@ def chromatin_lsi_clustering(params: dict) -> dict:
 
     # ── Optional random sketch for very large matrices ──────────────────────
     sketch_used = False
-    if n_cells_total > max_cells:
+    # Sample from the CURRENT matrix (post doublet removal), never from the stale
+    # pre-filter n_cells_total: indices >= adata.n_obs would raise IndexError.
+    n_cells_current = int(adata.n_obs)
+    if n_cells_current > max_cells:
         rng = np.random.default_rng(seed)
-        keep = np.sort(rng.choice(n_cells_total, size=max_cells, replace=False))
+        keep = np.sort(rng.choice(n_cells_current, size=max_cells, replace=False))
         adata = adata[keep, :].copy()
         sketch_used = True
         warnings.append(
-            f"Sketched {max_cells} of {n_cells_total} cells (seed={seed}) "
+            f"Sketched {max_cells} of {n_cells_current} cells (seed={seed}) "
             f"before LSI; cluster assignments cover the sketch only."
         )
 

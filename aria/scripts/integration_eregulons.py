@@ -163,27 +163,56 @@ def _format_eregulon_csv_rows(eregulons: list[dict[str, Any]]) -> list[dict[str,
     return formatted
 
 
-def _load_precomputed_p2g_csv(csv_path: Path) -> dict[str, Any]:
+def _load_precomputed_p2g_csv(
+    csv_path: Path,
+    *,
+    min_corr: float | None = None,
+    max_padj: float | None = None,
+) -> dict[str, Any]:
+    import math
+
     links: list[dict[str, Any]] = []
+    n_total = 0
     with open(csv_path, newline="", encoding="utf-8") as fh:
         for r in csv.DictReader(fh):
+            n_total += 1
+            try:
+                corr = float(r["correlation"])
+            except (KeyError, TypeError, ValueError):
+                continue
+            if not math.isfinite(corr):
+                continue
+            padj_val: float | None = None
+            raw_padj = r.get("padj")
+            if raw_padj not in (None, ""):
+                try:
+                    p = float(raw_padj)
+                    if not math.isfinite(p) or p < 0.0 or p > 1.0:
+                        continue
+                    padj_val = p
+                except (TypeError, ValueError):
+                    continue
+            if min_corr is not None and abs(corr) < float(min_corr):
+                continue
+            if max_padj is not None and padj_val is not None and padj_val > float(max_padj):
+                continue
+            try:
+                dist_bp = int(round(float(r["distance_bp"])))
+            except (KeyError, TypeError, ValueError):
+                continue
             links.append(
                 {
                     "gene": str(r["gene"]),
                     "peak": str(r["peak"]),
-                    "correlation": float(r["correlation"]),
-                    "padj": (
-                        float(r["padj"])
-                        if r.get("padj") not in (None, "")
-                        else None
-                    ),
-                    "distance_bp": int(r["distance_bp"]),
+                    "correlation": corr,
+                    "padj": padj_val,
+                    "distance_bp": dist_bp,
                     "region_class": str(r.get("region_class") or "cis"),
                 }
             )
     return {
         "links": links,
-        "n_tested": len(links),
+        "n_tested": n_total,
         "n_fdr_significant": len(links),
         "background_match": "precomputed_csv",
     }
@@ -211,9 +240,19 @@ def _load_atac_adata(atac_files: list[str]):
         if p.suffix == ".h5ad":
             return ad.read_h5ad(str(p)), None
         if p.suffix == ".h5":
-            return sc.read_10x_h5(str(p), gex_only=False), None
+            ad_obj = sc.read_10x_h5(str(p), gex_only=False)
+            if "feature_types" in ad_obj.var.columns:
+                ft = ad_obj.var["feature_types"].astype(str)
+                if (ft == "Peaks").any():
+                    ad_obj = ad_obj[:, ft == "Peaks"].copy()
+            return ad_obj, None
         if p.is_dir():
-            return sc.read_10x_mtx(str(p), cache=False), None
+            ad_obj = sc.read_10x_mtx(str(p), gex_only=False, cache=False)
+            if "feature_types" in ad_obj.var.columns:
+                ft = ad_obj.var["feature_types"].astype(str)
+                if (ft == "Peaks").any():
+                    ad_obj = ad_obj[:, ft == "Peaks"].copy()
+            return ad_obj, None
         low = p.name.lower()
         if low.endswith((".tsv.gz", ".fragments.tsv.gz", ".bed.gz", ".bam")):
             return None, (
@@ -245,12 +284,12 @@ def integration_eregulons(params: dict) -> dict[str, Any]:
             else round(distance_kb_val, 3)
         )
 
-    min_distance_bp = int(params.get("min_distance_bp", 0) or 0)
-    promoter_bp = int(params.get("promoter_bp", 2000) or 2000)
+    min_distance_bp = int(params["min_distance_bp"]) if params.get("min_distance_bp") is not None else 0
+    promoter_bp = int(params["promoter_bp"]) if params.get("promoter_bp") is not None else 2000
     p2g_min_corr = float(params.get("p2g_min_corr", 0.05))
     p2g_max_padj = float(params.get("p2g_max_padj", 0.05))
-    min_shared_cells = int(params.get("min_shared_cells", 50) or 50)
-    min_cells_detected = int(params.get("min_cells_detected", 10) or 10)
+    min_shared_cells = int(params["min_shared_cells"]) if params.get("min_shared_cells") is not None else 50
+    min_cells_detected = int(params["min_cells_detected"]) if params.get("min_cells_detected") is not None else 10
     scan_window_bp = int(params.get("scan_window_bp", 500) or 500)
     motif_pvalue = float(params.get("motif_pvalue", 5e-5))
     scanner_backend = str(params.get("scanner_backend") or "auto")
@@ -373,12 +412,15 @@ def integration_eregulons(params: dict) -> dict[str, Any]:
         }
 
     explicit_fasta = params.get("genome_fasta") or params.get("fasta_path")
-    if explicit_fasta and not Path(str(explicit_fasta)).is_file():
-        return {
-            "status": "error",
-            "error_type": "MissingIndexedFASTA",
-            "details": f"genome_fasta not found: {explicit_fasta}",
-        }
+    if explicit_fasta:
+        explicit_fasta_expanded = str(Path(str(explicit_fasta)).expanduser())
+        if not Path(explicit_fasta_expanded).is_file():
+            return {
+                "status": "error",
+                "error_type": "MissingIndexedFASTA",
+                "details": f"genome_fasta not found: {explicit_fasta}",
+            }
+        explicit_fasta = explicit_fasta_expanded
     fasta_resolved = resolve_indexed_fasta_path(
         str(explicit_fasta) if explicit_fasta else None,
         genome=genome,
@@ -560,7 +602,11 @@ def integration_eregulons(params: dict) -> dict[str, Any]:
     precomputed_p2g: dict[str, Any] | None = None
     p2g_csv = params.get("precomputed_p2g_csv")
     if p2g_csv and Path(str(p2g_csv)).is_file():
-        precomputed_p2g = _load_precomputed_p2g_csv(Path(str(p2g_csv)))
+        precomputed_p2g = _load_precomputed_p2g_csv(
+            Path(str(p2g_csv)),
+            min_corr=p2g_min_corr,
+            max_padj=p2g_max_padj,
+        )
 
     try:
         core_res = compute_candidate_eregulons(

@@ -82,7 +82,9 @@ def rna_trajectory(params: dict) -> dict:
     adata = read_h5ad(data_path)
 
     # Pick grouping column
-    if "leiden" in adata.obs.columns:
+    if params.get("cell_type_col") and cell_type_col in adata.obs.columns:
+        groupby = cell_type_col
+    elif "leiden" in adata.obs.columns:
         groupby = "leiden"
     elif cell_type_col in adata.obs.columns:
         groupby = cell_type_col
@@ -194,6 +196,10 @@ def rna_trajectory(params: dict) -> dict:
 
             sc.tl.dpt(adata)
 
+            disconnected = ~np.isfinite(adata.obs["dpt_pseudotime"].to_numpy(dtype=float))
+            n_disconnected_cells = int(disconnected.sum())
+            adata.obs.loc[disconnected, "dpt_pseudotime"] = np.nan
+
             # Mean pseudotime per group
             col = cell_type_col if cell_type_col in adata.obs.columns else groupby
             pt_by_group = (
@@ -205,7 +211,9 @@ def rna_trajectory(params: dict) -> dict:
             )
             dpt_result = {
                 "computed":             True,
-                "pseudotime_by_group":  pt_by_group,
+                "pseudotime_by_group":  {str(k): float(v) if np.isfinite(v) else None
+                                         for k, v in pt_by_group.items()},
+                "n_disconnected_cells": n_disconnected_cells,
                 "root_used":            root_used,
                 "root_selection_policy": root_policy,
             }

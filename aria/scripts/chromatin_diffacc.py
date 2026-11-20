@@ -74,6 +74,7 @@ Output:
 """
 
 from __future__ import annotations
+import re
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from aria.scripts._base import run_script, mocks_allowed
@@ -150,7 +151,9 @@ def _per_cluster_accessibility(adata, groupby, padj_max, lfc_min, top_n,
                 l_val = float(l)
             except (TypeError, ValueError):
                 continue
-            if (np.isnan(p_val) or np.isnan(l_val)
+            # Finite-only: +/-inf log2FC (zero-accessibility group) or padj
+            # must never reach the per-cluster DA table / JSON.
+            if (not np.isfinite(p_val) or not np.isfinite(l_val)
                     or peak in ("nan", "") or peak not in var_idx):
                 continue
             if p_val >= padj_max or abs(l_val) < lfc_min:
@@ -288,8 +291,11 @@ def _pseudobulk_da(adata, condition_col, replicate_col, comparisons,
     ps_rows = []
     ps_meta = []
     noninvariant_covariates: set = set()
-    for ps, idx in obs.groupby("_ps").groups.items():
-        positions = obs.index.get_indexer(idx)
+    # Integer positions per pseudosample (GroupBy.indices), never label lookups:
+    # merged multi-sample AnnData can carry duplicate barcodes in obs_names,
+    # where `index.get_indexer` raises / misaligns.
+    for ps, positions in obs.groupby("_ps", sort=True).indices.items():
+        positions = np.asarray(positions, dtype=np.int64)
         if len(positions) < min_cells:
             warnings.append(
                 f"Dropped pseudosample '{ps}' with {len(positions)} cells "
@@ -668,10 +674,11 @@ def chromatin_diffacc(params: dict) -> dict:
         comp_rows = rows_by_comp.get(comp_key) or []
         per_comp_csv = None
         if comp_rows:
+            safe_key = re.sub(r"[^A-Za-z0-9._-]+", "_", str(comp_key))
             per_comp_path = str(
-                out_dir / f"chromatin_da_pseudobulk_{comp_key}_full.csv")
+                out_dir / f"chromatin_da_pseudobulk_{safe_key}_full.csv")
             per_comp_csv = persist_csv(
-                per_comp_path, f"chromatin_da_pseudobulk_{comp_key}_full.csv",
+                per_comp_path, f"chromatin_da_pseudobulk_{safe_key}_full.csv",
                 lambda _p=per_comp_path, _r=comp_rows:
                     pd.DataFrame(_r).to_csv(_p, index=False),
                 warnings)

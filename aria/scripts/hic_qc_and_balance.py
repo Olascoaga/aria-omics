@@ -65,7 +65,7 @@ def _resolve_cooler_uri(path: str, resolution: int) -> tuple[str, int]:
         avail = sorted(
             int(p.split("/")[-1])
             for p in cooler.fileops.list_coolers(path)
-            if p.split("/")[-1].isdigit()
+            if "/resolutions/" in p and p.split("/")[-1].isdigit()
         )
         if not avail:
             raise ValueError(f"No resolutions inside .mcool: {path}")
@@ -84,7 +84,8 @@ def _has_valid_weights(clr) -> bool:
     if "weight" not in bins_cols:
         return False
     w = np.asarray(clr.bins()[:]["weight"], dtype=float)
-    return bool(np.isfinite(w).any() and np.nanmax(w) > 0)
+    finite = w[np.isfinite(w)]
+    return bool(finite.size > 0 and float(np.max(finite)) > 0.0)
 
 
 def _measure_cooler_pixels(clr) -> dict[str, Any]:
@@ -156,7 +157,7 @@ def _stage_and_balance_cooler(
         avail = sorted(
             int(p.split("/")[-1])
             for p in cooler.fileops.list_coolers(input_path)
-            if p.split("/")[-1].isdigit()
+            if "/resolutions/" in p and p.split("/")[-1].isdigit()
         )
         for r in avail:
             if r >= 100_000 and r not in resolutions_to_check:
@@ -224,12 +225,23 @@ def _stage_and_balance_cooler(
         n_valid = int(np.isfinite(w).sum())
         balance_meta.setdefault("n_balanced_bins", n_valid)
         balance_meta.setdefault("frac_valid_bins", round(n_valid / max(len(w), 1), 4))
+        if balance_meta.get("converged") is False:
+            warnings.append(
+                f"ICE balancing did not converge for {sample_id} at {chosen_res:,}bp."
+            )
         return str(staged_path), chosen_res, balance_meta
+    warnings.append(
+        f"ICE balancing produced zero valid finite weights for {sample_id} at {chosen_res:,}bp."
+    )
+    balance_meta["converged"] = False
+    balance_meta["n_balanced_bins"] = 0
+    balance_meta["frac_valid_bins"] = 0.0
     return None, chosen_res, balance_meta
 
 
 def _compute_ps_decay(clr, out_tsv: Path) -> dict[str, Any]:
     import numpy as np
+    import pandas as pd
     from cooltools.api import expected
 
     view_df = _nuclear_view_df(clr)
@@ -247,16 +259,45 @@ def _compute_ps_decay(clr, out_tsv: Path) -> dict[str, Any]:
         ignore_diags=ignore_diags,
         nproc=1,
     )
-    val_col = "balanced.avg" if weight_name and "balanced.avg" in exp_df.columns else "count.avg"
-    agg = (
-        exp_df.groupby("dist", as_index=False)
-        .agg(
-            dist_bp=("dist_bp", "first"),
-            n_valid=("n_valid", "sum"),
-            contact_prob=(val_col, "mean"),
+    use_bal_col = bool(weight_name and "balanced.avg" in exp_df.columns)
+    sum_col = "balanced.sum" if use_bal_col else "count.sum"
+    val_col = "balanced.avg" if use_bal_col else "count.avg"
+    denom_col = "n_valid" if "n_valid" in exp_df.columns else "n_total"
+
+    if sum_col in exp_df.columns and denom_col in exp_df.columns:
+        agg = (
+            exp_df.groupby("dist", as_index=False)
+            .agg(
+                dist_bp=("dist_bp", "first"),
+                n_valid=(denom_col, "sum"),
+                _sum_val=(sum_col, "sum"),
+            )
+            .sort_values("dist")
         )
-        .sort_values("dist")
-    )
+        denom = agg["n_valid"].to_numpy(dtype=float)
+        num = agg["_sum_val"].to_numpy(dtype=float)
+        agg["contact_prob"] = np.where(denom > 0.0, num / denom, np.nan)
+        agg = agg.drop(columns=["_sum_val"])
+    else:
+        # Fallback: n_valid-weighted average across chromosomes.
+        work = exp_df.copy()
+        w = pd.to_numeric(work.get(denom_col, 1.0), errors="coerce").fillna(0.0).to_numpy(dtype=float)
+        v = pd.to_numeric(work[val_col], errors="coerce").to_numpy(dtype=float)
+        ok = np.isfinite(w) & (w > 0.0) & np.isfinite(v)
+        work["_w"] = np.where(ok, w, 0.0)
+        work["_wv"] = np.where(ok, w * v, 0.0)
+        agg = (
+            work.groupby("dist", as_index=False)
+            .agg(
+                dist_bp=("dist_bp", "first"),
+                n_valid=("_w", "sum"),
+                _wv=("_wv", "sum"),
+            )
+            .sort_values("dist")
+        )
+        denom = agg["n_valid"].to_numpy(dtype=float)
+        agg["contact_prob"] = np.where(denom > 0.0, agg["_wv"].to_numpy(dtype=float) / denom, np.nan)
+        agg = agg.drop(columns=["_wv"])
     agg.to_csv(out_tsv, sep="\t", index=False)
 
     mask = (
@@ -278,8 +319,12 @@ def _compute_ps_decay(clr, out_tsv: Path) -> dict[str, Any]:
     if len(sub) >= 3:
         x = np.log10(sub["dist_bp"].to_numpy(dtype=float))
         y = np.log10(sub["contact_prob"].to_numpy(dtype=float))
-        if np.ptp(x) > 0:
-            slope = round(float(np.polyfit(x, y, 1)[0]), 4)
+        fin = np.isfinite(x) & np.isfinite(y)
+        x, y = x[fin], y[fin]
+        if x.size >= 3 and np.ptp(x) > 0:
+            s_raw = float(np.polyfit(x, y, 1)[0])
+            if math.isfinite(s_raw):
+                slope = round(s_raw, 4)
 
     return {
         "ps_curve_tsv": str(out_tsv),
@@ -291,11 +336,14 @@ def _compute_ps_decay(clr, out_tsv: Path) -> dict[str, Any]:
 def _compute_hicrep_scc(
     sample_uris: list[tuple[str, str]],
     max_distance_bp: int = 2_000_000,
-) -> tuple[dict[str, dict[str, float]], float | None]:
+) -> tuple[dict[str, dict[str, float | None]], float | None]:
     """HiCRep stratum-adjusted correlation coefficient (Yang et al. 2017) across
-    balanced coolers sharing a bin coordinate grid."""
+    coolers sharing a bin coordinate grid, using sparse banded 2D mean smoothing
+    (no dense N x N OOM) and rank-based vstran stratum weights."""
     import cooler
     import numpy as np
+    import scipy.sparse as sp
+    from scipy.stats import rankdata
 
     if len(sample_uris) < 2:
         return {}, None
@@ -312,29 +360,107 @@ def _compute_hicrep_scc(
             return {}, None
 
     max_diag = max(3, int(max_distance_bp // max(binsize, 1)))
+    nbins_total = int(coolers[0][1].info.get("nbins", len(base_bins)))
+    start_diag = 2 if nbins_total >= 20 else 1
+    if max_diag < start_diag:
+        max_diag = start_diag
+    # Yang et al. (2017) resolution-scaled 2D mean-filter half-window h.
+    if binsize >= 1_000_000 or nbins_total < 20:
+        h_base = 0
+    elif binsize >= 100_000:
+        h_base = 1
+    else:
+        h_base = 2
+
     view_df = _nuclear_view_df(coolers[0][1])
     chroms = list(view_df["chrom"]) if not view_df.empty else list(coolers[0][1].chromnames)
 
-    # Extract cis strata vectors per sample: dict[diag_k -> list of 1D arrays]
+    # Cache 1D sparse box-smoothing operator K by (n, h) across samples.
+    kernel_cache: dict[tuple[int, int], Any] = {}
+
+    def _get_box_kernel(n_dim: int, h_win: int):
+        key = (n_dim, h_win)
+        if key not in kernel_cache:
+            diags = [np.ones(n_dim - abs(d), dtype=float) for d in range(-h_win, h_win + 1)]
+            k_mat = sp.diags(diags, offsets=list(range(-h_win, h_win + 1)), shape=(n_dim, n_dim), format="csr")
+            row_sums = np.asarray(k_mat.sum(axis=1), dtype=float).ravel()
+            inv = np.where(row_sums > 0.0, 1.0 / row_sums, 0.0)
+            kernel_cache[key] = sp.diags(inv) @ k_mat
+        return kernel_cache[key]
+
+    # Extract cis strata vectors per sample out-of-core via sparse COO fetch + banded 2D smoothing.
     strata_by_sample: dict[str, dict[int, np.ndarray]] = {}
     for sid, clr in coolers:
         use_bal = _has_valid_weights(clr)
-        per_diag: dict[int, list[np.ndarray]] = {k: [] for k in range(1, max_diag + 1)}
+        per_diag: dict[int, list[np.ndarray]] = {k: [] for k in range(start_diag, max_diag + 1)}
         for ch in chroms:
-            mat = clr.matrix(balance=use_bal).fetch(ch)
-            n = mat.shape[0]
-            if n < 3:
+            bins_ch = clr.bins().fetch(ch)
+            n = int(len(bins_ch))
+            if n <= start_diag:
                 continue
-            for k in range(1, min(max_diag + 1, n)):
-                d = np.asarray(np.diag(mat, k=k), dtype=float)
-                per_diag[k].append(d)
+            k_hi = min(max_diag, n - 1)
+            h_ch = min(h_base, max(0, (n - start_diag - 1) // 4))
+            bad_bin = (
+                ~np.isfinite(np.asarray(bins_ch["weight"], dtype=float))
+                if (use_bal and "weight" in bins_ch.columns)
+                else np.zeros(n, dtype=bool)
+            )
+            coo = clr.matrix(balance=use_bal, sparse=True).fetch(ch).tocoo()
+            rows = coo.row
+            cols = coo.col
+            vals = np.asarray(coo.data, dtype=float)
+            offs = cols - rows
+            # Exclude k < start_diag before smoothing so uncalibrated ICE diagonals never bleed in.
+            band = (offs >= start_diag) & (offs <= k_hi + 2 * h_ch) & np.isfinite(vals)
+            rows_b = rows[band]
+            cols_b = cols[band]
+            vals_b = vals[band]
+            if rows_b.size > 0 and np.any(bad_bin):
+                ok_in = ~(bad_bin[rows_b] | bad_bin[cols_b])
+                rows_b = rows_b[ok_in]
+                cols_b = cols_b[ok_in]
+                vals_b = vals_b[ok_in]
+
+            if h_ch > 0 and rows_b.size > 0:
+                m_up = sp.coo_matrix((vals_b, (rows_b, cols_b)), shape=(n, n)).tocsr()
+                m_sym = m_up + m_up.T
+                k_op = _get_box_kernel(n, h_ch)
+                sm = (k_op @ m_sym @ k_op).tocoo()
+                sm_offs = sm.col - sm.row
+                sm_mask = (sm_offs >= start_diag) & (sm_offs <= k_hi) & np.isfinite(sm.data)
+                rows_b = sm.row[sm_mask]
+                offs_b = sm_offs[sm_mask]
+                vals_b = np.asarray(sm.data[sm_mask], dtype=float)
+            else:
+                offs_b = cols_b - rows_b
+
+            diag_arrays: dict[int, np.ndarray] = {}
+            for k in range(start_diag, k_hi + 1):
+                arr = np.zeros(n - k, dtype=float)
+                if np.any(bad_bin):
+                    arr[bad_bin[: n - k] | bad_bin[k:]] = np.nan
+                diag_arrays[k] = arr
+            if rows_b.size > 0:
+                for k in range(start_diag, k_hi + 1):
+                    km = offs_b == k
+                    if np.any(km):
+                        rk = rows_b[km]
+                        vk = vals_b[km]
+                        if np.any(bad_bin):
+                            ok_b = ~(bad_bin[rk] | bad_bin[rk + k])
+                            rk = rk[ok_b]
+                            vk = vk[ok_b]
+                        if rk.size > 0:
+                            diag_arrays[k][rk] = vk
+            for k in range(start_diag, k_hi + 1):
+                per_diag[k].append(diag_arrays[k])
         strata_by_sample[sid] = {
             k: np.concatenate(arrs) if arrs else np.empty(0, dtype=float)
             for k, arrs in per_diag.items()
         }
 
     sids = [sid for sid, _ in coolers]
-    matrix: dict[str, dict[str, float]] = {s: {} for s in sids}
+    matrix: dict[str, dict[str, float | None]] = {s: {} for s in sids}
     off_diag_vals: list[float] = []
 
     for i, s1 in enumerate(sids):
@@ -343,32 +469,42 @@ def _compute_hicrep_scc(
             s2 = sids[j]
             num = 0.0
             den = 0.0
-            for k in range(1, max_diag + 1):
+            for k in range(start_diag, max_diag + 1):
                 x = strata_by_sample[s1][k]
                 y = strata_by_sample[s2][k]
                 if x.size < 3:
                     continue
-                valid = np.isfinite(x) & np.isfinite(y)
+                # Yang et al. (2017) Section 2.2: filter both-zero pairs per stratum
+                # before variance-stabilizing rank weighting and Pearson correlation.
+                valid = np.isfinite(x) & np.isfinite(y) & ((x > 0.0) | (y > 0.0))
                 n_k = int(valid.sum())
                 if n_k < 3:
                     continue
                 xv = x[valid]
                 yv = y[valid]
-                # Variance-stabilizing weight N_k * std(r_x) * std(r_y) / N_total_approx
-                sx = float(np.std(xv))
-                sy = float(np.std(yv))
-                if sx <= 1e-12 or sy <= 1e-12:
+                if float(np.std(xv)) <= 1e-12 or float(np.std(yv)) <= 1e-12:
                     continue
                 r_k = float(np.corrcoef(xv, yv)[0, 1])
                 if not math.isfinite(r_k):
                     continue
+                # Yang et al. (2017) vstran rank-normalized variance-stabilizing weights:
+                # w_k = N_k * std(rank(x) / N_k) * std(rank(y) / N_k)
+                rx = rankdata(xv, method="average") / float(n_k)
+                ry = rankdata(yv, method="average") / float(n_k)
+                sx = float(np.std(rx))
+                sy = float(np.std(ry))
+                if sx <= 1e-12 or sy <= 1e-12:
+                    continue
                 w_k = float(n_k) * sx * sy
                 num += w_k * r_k
                 den += w_k
-            scc = round(float(num / den), 4) if den > 0 else 0.0
+            if den > 0.0 and math.isfinite(num / den):
+                scc: float | None = round(float(num / den), 4)
+                off_diag_vals.append(scc)
+            else:
+                scc = None
             matrix[s1][s2] = scc
             matrix[s2][s1] = scc
-            off_diag_vals.append(scc)
 
     mean_scc = (
         round(float(sum(off_diag_vals) / len(off_diag_vals)), 4)
@@ -402,10 +538,27 @@ def hic_qc_and_balance(params: dict) -> dict:
 
     declared_sids = params.get("sample_ids")
     if isinstance(declared_sids, list) and len(declared_sids) == len(valid_files):
-        sample_ids = [str(s) for s in declared_sids]
+        raw_sids = [str(s) for s in declared_sids]
     else:
-        sample_ids = [Path(f).stem.replace(".mcool", "").replace(".cool", "") for f in valid_files]
+        raw_sids = [Path(f).stem.replace(".mcool", "").replace(".cool", "") for f in valid_files]
+    sid_counts: dict[str, int] = {}
+    for s in raw_sids:
+        sid_counts[s] = sid_counts.get(s, 0) + 1
+    seen_sids: set[str] = set()
+    sample_ids: list[str] = []
+    for idx_s, (s, fpath_s) in enumerate(zip(raw_sids, valid_files)):
+        cand = s
+        if sid_counts.get(s, 0) > 1:
+            parent_tag = Path(fpath_s).parent.name.strip()
+            cand = f"{parent_tag}_{s}" if parent_tag else f"{s}_{idx_s + 1}"
+            if cand in seen_sids:
+                cand = f"{s}_{idx_s + 1}"
+        while cand in seen_sids:
+            cand = f"{cand}_{idx_s + 1}"
+        seen_sids.add(cand)
+        sample_ids.append(cand)
 
+    raw_input_files = list(valid_files)
     manifest_params = {
         "genome": genome,
         "resolution": resolution,
@@ -418,7 +571,7 @@ def hic_qc_and_balance(params: dict) -> dict:
             stage="hic_qc_and_balance",
             version=STAGE_VERSION,
             params=manifest_params,
-            inputs=valid_files,
+            inputs=raw_input_files,
         )
         if cached is not None and isinstance(cached.get("result"), dict):
             resumed = dict(cached["result"])
@@ -527,6 +680,17 @@ def hic_qc_and_balance(params: dict) -> dict:
     min_valid_pairs = int(params.get("min_valid_pairs", 1_000_000))
 
     pass_qc = True
+    if len(balanced_files) < len(ok_records):
+        warnings.append(
+            f"ICE balancing failed or produced zero valid weights for "
+            f"{len(ok_records) - len(balanced_files)} of {len(ok_records)} sample(s)."
+        )
+        pass_qc = False
+    if any(
+        isinstance(r.get("balance_info"), dict) and r["balance_info"].get("converged") is False
+        for r in ok_records
+    ):
+        pass_qc = False
     if avg_cis_trans < min_cis_trans:
         warnings.append(
             f"Cis/trans ratio {avg_cis_trans:.2%} < {min_cis_trans:.0%}. "
@@ -579,7 +743,7 @@ def hic_qc_and_balance(params: dict) -> dict:
         stage="hic_qc_and_balance",
         version=STAGE_VERSION,
         params=manifest_params,
-        inputs=valid_files,
+        inputs=raw_input_files,
         outputs=manifest_outputs,
         extra={"result": result},
     )

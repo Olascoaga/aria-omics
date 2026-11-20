@@ -69,7 +69,6 @@ _DEFAULT_MODELS = {
 
 _MOUSE_MODELS = {
     "brain":  "Mouse_Whole_Brain.pkl",
-    "immune": "Mouse_Isocortex_Hippocampus.pkl",
 }
 
 # The catalog fallback when no explicit model and no usable tissue hint exist.
@@ -100,8 +99,8 @@ def _resolve_celltypist_model(model_explicit, organism, tissue_hint):
     if model_explicit:
         return str(model_explicit), "explicit", None
 
-    org = (organism or "").lower()
-    is_mouse = "musculus" in org or org == "mus musculus"
+    org = (organism or "").strip().lower()
+    is_mouse = "musculus" in org or org in {"mouse", "mm", "mm10", "mm39"}
     catalog = _MOUSE_MODELS if is_mouse else _DEFAULT_MODELS
     hint = (tissue_hint or "").lower().strip()
     if hint and hint in catalog:
@@ -345,6 +344,7 @@ def rna_celltypist(params: dict) -> dict:
     from aria.utils.safe_h5ad import read_h5ad
 
     adata = read_h5ad(data_path)
+    original_adata = adata
 
     def _sample_matrix(a):
         n = min(int(a.n_obs), 2000)
@@ -445,7 +445,9 @@ def rna_celltypist(params: dict) -> dict:
     pred_df.to_csv(pred_csv, index=True)
 
     annotated_path = str(out_dir / "annotated.h5ad")
-    adata.write_h5ad(annotated_path)
+    # Keep the original feature axis and layers (including velocity counts).
+    original_adata.obs["cell_type_celltypist"] = adata.obs["cell_type_celltypist"].reindex(original_adata.obs_names)
+    original_adata.write_h5ad(annotated_path)
 
     return {
         "status":           "success",

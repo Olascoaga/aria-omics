@@ -133,8 +133,23 @@ def chromatin_peaks(params: dict) -> dict:
         parameters["idr_threshold"] = idr_threshold
     if target_scale_factors:
         parameters["target_scale_factors"] = list(target_scale_factors)
+    # Every parameter that changes the called peaks must key the stage cache, or
+    # a rerun with different scaling / domain settings reuses stale peaks.
+    if control_scale_factors:
+        parameters["control_scale_factors"] = list(control_scale_factors)
+    if peak_caller == "broad_domain":
+        parameters["domain_bin_size"] = int(params.get("domain_bin_size", 10_000))
+        parameters["domain_min_log2fc"] = float(params.get("domain_min_log2fc", 0.585))
+        parameters["domain_max_gap_bp"] = int(params.get("domain_max_gap_bp", 30_000))
+        parameters["domain_min_bp"] = int(params.get("domain_min_bp", 20_000))
+    if peak_caller == "seacr":
+        parameters["keep_duplicates"] = bool(params.get("keep_duplicates", True))
     if write_bigwig:
         parameters["write_bigwig"] = True
+        parameters["bigwig_normalization"] = str(
+            params.get("bigwig_normalization") or "CPM")
+        if params.get("effective_genome_size"):
+            parameters["effective_genome_size"] = int(params["effective_genome_size"])
     manifest = stage_manifest_path(output_dir, "chromatin_peaks")
     cached = load_valid_stage_result(
         manifest, expected_inputs=inputs, expected_parameters=parameters)
@@ -145,6 +160,10 @@ def chromatin_peaks(params: dict) -> dict:
     Path(manifest).unlink(missing_ok=True)
 
     genome_size = _get_genome_size(genome)
+    if _GENOME_SIZE_ALIASES.get(str(genome or "").strip().lower()) is None:
+        warnings.append(
+            f"Unrecognized genome {genome!r}: MACS3 effective genome size defaults "
+            f"to human ('hs'); pass a known assembly for non-human data.")
     sample_name = Path(valid_files[0]).stem.replace(".bam", "")
     out_dir = Path(output_dir)
 
@@ -261,7 +280,7 @@ def chromatin_peaks(params: dict) -> dict:
     elif n_peaks > 500000:
         warnings.append(
             f"{n_peaks:,} peaks is unusually high. "
-            f"Consider increasing q-value threshold."
+            f"Consider a more stringent (smaller) q-value threshold."
         )
 
     # ── Replicate reproducibility policy (C5 / ADR-081) ──────────────────
@@ -294,12 +313,7 @@ def chromatin_peaks(params: dict) -> dict:
     n_blacklist_filtered += peak_repro.get("n_blacklist_filtered", 0)
     if consensus_path and Path(consensus_path).is_file():
         n_blacklist_filtered += _filter_blacklist(consensus_path, blacklist)
-        overlap = peak_repro.get("overlap") or {}
-        if overlap.get("ran"):
-            overlap["n_reproducible_regions"] = _count_peaks(consensus_path)
-            candidates = overlap.get("n_candidate_regions", 0)
-            overlap["fraction_reproducible"] = (
-                round(overlap["n_reproducible_regions"] / candidates, 4) if candidates else None)
+        _refresh_consensus_counts(peak_repro, consensus_path)
         if _count_peaks(consensus_path) == 0:
             peak_repro["status"] = "unverified"
             peak_repro["reason"] = "no_reproducible_regions_after_blacklist"
@@ -317,6 +331,8 @@ def chromatin_peaks(params: dict) -> dict:
         from aria.utils.seacr_idr import write_normalized_bigwig
 
         bw_dir = out_dir / "bigwig"
+        effective_genome_size = _effective_genome_size_bp(
+            genome, params.get("effective_genome_size"))
         for idx, path in enumerate(valid_files):
             if not str(path).lower().endswith((".bam", ".cram")):
                 continue
@@ -332,6 +348,7 @@ def chromatin_peaks(params: dict) -> dict:
                     bw_dir / f"{sid}.bw",
                     normalization=str(params.get("bigwig_normalization") or "CPM"),
                     spikein_scale_factor=sf,
+                    effective_genome_size=effective_genome_size,
                     reference_fasta=reference,
                 )
                 bigwig_tracks[sid] = bw_info["bigwig_path"]
@@ -363,17 +380,73 @@ def chromatin_peaks(params: dict) -> dict:
 
 # ── Helper functions ──────────────────────────────────────────────────────────
 
+# Case-insensitive assembly -> MACS3 genome-size shorthand (or numeric size).
+_GENOME_SIZE_ALIASES = {
+    "hg38": "hs", "hg19": "hs", "grch38": "hs", "grch37": "hs", "hs": "hs",
+    "human": "hs", "homo_sapiens": "hs",
+    "mm10": "mm", "mm39": "mm", "mm9": "mm", "grcm38": "mm", "grcm39": "mm",
+    "mm": "mm", "mouse": "mm", "mus_musculus": "mm",
+    "dm6": "dm", "dm": "dm",
+    "ce11": "ce", "ce": "ce",
+    "danrer11": "2e9",
+    "saccer3": "1.2e7",
+}
+# MACS3 shorthand -> effective genome size (bp), used for RPGC BigWigs.
+_SHORTHAND_BP = {"hs": 2_700_000_000, "mm": 1_870_000_000,
+                 "ce": 90_000_000, "dm": 120_000_000}
+
+
 def _get_genome_size(genome: str) -> str:
-    """Return MACS3 genome size shorthand."""
-    SIZE_MAP = {
-        "hg38":    "hs", "hg19":    "hs", "GRCh38": "hs",
-        "mm10":    "mm", "mm39":    "mm", "GRCm38": "mm",
-        "dm6":     "dm",
-        "ce11":    "ce",
-        "danRer11": "2e9",
-        "sacCer3":  "1.2e7",
-    }
-    return SIZE_MAP.get(genome, "hs")
+    """Return MACS3 genome size shorthand (case-insensitive, assembly aliases).
+    Unknown assemblies fall back to 'hs' (the caller emits a warning)."""
+    return _GENOME_SIZE_ALIASES.get(str(genome or "").strip().lower(), "hs")
+
+
+def _effective_genome_size_bp(genome, override=None):
+    """Effective genome size in bp for RPGC (explicit override wins)."""
+    if override:
+        try:
+            val = int(float(override))
+            if val > 0:
+                return val
+        except (TypeError, ValueError):
+            pass
+    short = _GENOME_SIZE_ALIASES.get(str(genome or "").strip().lower())
+    if short is None:
+        return None
+    if short in _SHORTHAND_BP:
+        return _SHORTHAND_BP[short]
+    try:
+        return int(float(short))
+    except ValueError:
+        return None
+
+
+def _refresh_consensus_counts(peak_repro: dict, consensus_path: str) -> None:
+    """After blacklist filtering the consensus, refresh ONLY the count of the
+    method that produced it: the IDR count when the consensus is the IDR output,
+    the overlap counts when it is the overlap output. The overlap consensus count
+    is never overwritten with the IDR peak count."""
+    from pathlib import Path
+
+    def _same(a, b) -> bool:
+        if not a or not b:
+            return False
+        try:
+            return Path(a).resolve() == Path(b).resolve()
+        except OSError:
+            return str(a) == str(b)
+
+    n_after = _count_peaks(consensus_path)
+    idr = peak_repro.get("idr") or {}
+    if idr.get("ran") and _same(idr.get("output_path"), consensus_path):
+        idr["n_reproducible_peaks"] = n_after
+    overlap = peak_repro.get("overlap") or {}
+    if overlap.get("ran") and _same(overlap.get("output_path"), consensus_path):
+        overlap["n_reproducible_regions"] = n_after
+        candidates = overlap.get("n_candidate_regions", 0)
+        overlap["fraction_reproducible"] = (
+            round(n_after / candidates, 4) if candidates else None)
 
 
 def _build_macs3_cmd(input_files: list[str],
@@ -713,7 +786,8 @@ def _merge_intervals_with_support(
     tagged.sort(key=lambda item: (item[0], item[1], item[2], item[3]))
     merged: list[tuple[str, int, int, set[int]]] = []
     for chrom, start, end, idx in tagged:
-        if not merged or merged[-1][0] != chrom or start > merged[-1][2]:
+        # Half-open BED: book-ended [100,200) and [200,300) do not overlap.
+        if not merged or merged[-1][0] != chrom or start >= merged[-1][2]:
             merged.append((chrom, start, end, {idx}))
             continue
         prev_chrom, prev_start, prev_end, support = merged[-1]

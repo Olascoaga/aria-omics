@@ -30,15 +30,15 @@ def _run_vst(counts_raw, metadata, warnings: list):
             refit_cooks=False,
             quiet=True,
         )
-        dds.fit_size_factors()
 
         # Try VST first (preferred — fast, handles large datasets).
         # If not available in the installed version, fall back to rlog,
         # then to log2(normalized_counts+1).
         try:
+            dds.fit_size_factors()
             dds.vst_fit(use_design=False)
             vst = dds.vst_transform()
-        except AttributeError:
+        except (AttributeError, ValueError, RuntimeError):
             try:
                 dds.deseq2()
                 vst = np.log2(dds.layers["normed_counts"] + 1)
@@ -60,16 +60,18 @@ def _run_vst(counts_raw, metadata, warnings: list):
         )
         return vst_df
 
-    except ImportError:
+    except (ImportError, AttributeError, ValueError, RuntimeError) as exc:
         warnings.append(
-            "pydeseq2 not available for VST — using log2(counts+1) + lib-size scaling. "
+            f"pydeseq2 VST unavailable ({exc}) — using log2(counts+1) + lib-size scaling. "
             "PCA may be dominated by library size differences."
         )
         import pandas as pd
         import numpy as np
         lib = counts_raw.sum(axis=0)
-        scale_factor = lib.median() / lib
-        normed = counts_raw * scale_factor
+        positive_lib = lib[lib > 0]
+        target = float(positive_lib.median()) if len(positive_lib) else 1.0
+        scale_factor = target / lib.replace(0, np.nan)
+        normed = (counts_raw * scale_factor).fillna(0.0)
         return pd.DataFrame(
             np.log2(normed.astype(float) + 1),
             index=counts_raw.index,
@@ -110,6 +112,7 @@ def _select_variable_genes(matrix, n_top: int = 2000,
                 f"({pc_frac:.0%} of {n_total}). Falling back to all biotypes "
                 f"for DR — results may be affected by pseudogenes/ncRNAs."
             )
+            n_pc = 0
         elif pc_frac < 0.70 and biotype_map:
             warnings.append(
                 f"GTF annotation has unusually low protein_coding fraction "
@@ -161,8 +164,8 @@ def _compute_tpm(counts_raw, gene_lengths: dict, warnings: list):
             clean = str(gid).split(".")[0]
             return gene_lengths.get(clean)
 
-        lengths = counts_raw.index.map(_get_length)
-        has_len = ~pd.isna(lengths)
+        lengths = pd.to_numeric(counts_raw.index.map(_get_length), errors="coerce")
+        has_len = np.isfinite(lengths) & (lengths > 0)
         n_with_len = int(has_len.sum())
 
         if n_with_len < len(counts_raw) * 0.5:
@@ -170,6 +173,10 @@ def _compute_tpm(counts_raw, gene_lengths: dict, warnings: list):
                 f"TPM: only {n_with_len}/{len(counts_raw)} genes have lengths "
                 f"in GTF — TPM table will be incomplete."
             )
+
+        if n_with_len == 0:
+            warnings.append("TPM: no genes have valid positive lengths; no table computed.")
+            return None
 
         # Drop genes without lengths (can't TPM-normalize them)
         mat      = counts_raw.loc[has_len]
@@ -184,7 +191,7 @@ def _compute_tpm(counts_raw, gene_lengths: dict, warnings: list):
         # Scaling factor = sum of RPK per sample / 1e6
         scale = rpk.sum(axis=0) / 1e6
 
-        tpm = rpk.div(scale, axis=1)
+        tpm = rpk.div(scale.replace(0, np.nan), axis=1).fillna(0.0)
         tpm = tpm.round(3)
         return tpm
 
