@@ -214,12 +214,13 @@ def run_ora(query_genes, gene_sets: dict, background_genes,
     padj = bh_correct([t["pvalue"] for t in tested])
     out = []
     for t, q in zip(tested, padj):
-        p = t["pvalue"]
+        p = float(t["pvalue"])
+        q_val = float(q)
         combined = round(-math.log10(max(p, 1e-300)) * max(t["odds_ratio"], 0.0), 1)
         out.append({
             "term": t["term"],
-            "padj": round(float(q), 5),
-            "pvalue": round(float(p), 8),
+            "padj": q_val,
+            "pvalue": p,
             "overlap": f"{t['_k']}/{t['_n']}",
             "odds_ratio": t["odds_ratio"],
             "combined_score": combined,
@@ -227,7 +228,7 @@ def run_ora(query_genes, gene_sets: dict, background_genes,
         })
 
     out = [r for r in out if r["padj"] < padj_max]
-    out.sort(key=lambda r: r["padj"])
+    out.sort(key=lambda r: (r["padj"], r["pvalue"], r["term"]))
     return out[:top]
 
 

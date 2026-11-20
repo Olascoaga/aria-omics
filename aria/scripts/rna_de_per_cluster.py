@@ -150,7 +150,7 @@ def rna_de_per_cluster(params: dict) -> dict:
                 "cluster": cl_str,
                 "gene":    gene,
                 "log2fc":  round(l_val, 3),
-                "padj":    round(p_val, 6),
+                "padj":    float(p_val),
                 "pct_in":  round(pct_in, 3)  if pct_in  is not None else None,
                 "pct_out": round(pct_out, 3) if pct_out is not None else None,
             }

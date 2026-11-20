@@ -458,7 +458,7 @@ def chromatin_bulk_diffacc(params: dict) -> dict:
             top_peaks.append({
                 "peak": str(peak),
                 "log2fc": round(float(row_df["log2FoldChange"]), 3),
-                "padj": round(float(row_df["padj"]), 6),
+                "padj": float(row_df["padj"]),
             })
         try:
             lobo_res = compute_counts_lobo_jackknife(

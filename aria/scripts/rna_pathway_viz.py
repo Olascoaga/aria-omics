@@ -107,12 +107,28 @@ def make_ora_dotplot(pathways_list: list,
         df = df.head(top_n).copy()
 
         # Derived columns matching ORA_mirna.py
-        df["-log10(FDR)"] = -np.log10(df["padj"].clip(lower=1e-300)).round(1)
+        padj_num = pd.to_numeric(df["padj"], errors="coerce")
+        df["-log10(FDR)"] = -np.log10(padj_num.clip(lower=1e-300)).round(2)
 
-        # Genes column: in our schema it's already a list; count length
-        df["Genes"] = df["genes"].apply(
-            lambda g: len(g) if isinstance(g, list) else 1
-        )
+        # Gene count: prefer the true overlap numerator (e.g. "12/134" -> 12)
+        # because the display `genes` list is capped at 10 entries in ORA output.
+        def _gene_count(row) -> int:
+            overlap = row.get("overlap")
+            if isinstance(overlap, str) and "/" in overlap:
+                try:
+                    k = int(overlap.split("/", 1)[0].strip())
+                    if k > 0:
+                        return k
+                except (TypeError, ValueError):
+                    pass
+            genes = row.get("genes")
+            if isinstance(genes, list):
+                return max(1, len(genes))
+            if isinstance(genes, str) and genes.strip():
+                return max(1, len([g for g in genes.split(";") if g.strip()]))
+            return 1
+
+        df["Genes"] = df.apply(_gene_count, axis=1)
 
         # Clean term names (strip GO IDs, Reactome IDs)
         df["Term"] = (df["term"]
@@ -136,11 +152,22 @@ def make_ora_dotplot(pathways_list: list,
         fig.patch.set_facecolor(_DARK_BG)
         ax.set_facecolor(_DARK_PANEL)
 
+        # Color normalization shared between scatter and colorbar
+        vmin = float(df["-log10(FDR)"].min())
+        vmax = float(df["-log10(FDR)"].max())
+        if not np.isfinite(vmin) or not np.isfinite(vmax):
+            vmin, vmax = 0.0, 1.0
+        elif vmin == vmax:
+            vmin = max(0.0, vmin - 0.5)
+            vmax = vmax + 0.5
+        norm = plt.Normalize(vmin, vmax)
+
         scatter = sns.scatterplot(
             data=df,
             x="log2_OR",
             y="Term",
             hue="-log10(FDR)",
+            hue_norm=norm,
             palette="flare_r",
             size="Genes",
             sizes=(80, 500),
@@ -149,7 +176,6 @@ def make_ora_dotplot(pathways_list: list,
         )
 
         # Color bar for FDR
-        norm = plt.Normalize(df["-log10(FDR)"].min(), df["-log10(FDR)"].max())
         sm = plt.cm.ScalarMappable(cmap="flare_r", norm=norm)
         sm.set_array([])
         cbar = plt.colorbar(sm, ax=ax, orientation="vertical",
@@ -158,13 +184,20 @@ def make_ora_dotplot(pathways_list: list,
         cbar.ax.tick_params(colors=_DARK_MUTED)
         cbar.outline.set_edgecolor(_DARK_MUTED)
 
-        # Size legend
-        gene_sizes = sorted(df["Genes"].unique())
-        # Cap legend entries to 5 for readability
+        # Size legend (scaled linearly on exact gene-count value to match scatter)
+        gene_sizes = sorted(int(g) for g in df["Genes"].unique())
+        # Cap legend entries to 5 for readability while preserving min & max
         if len(gene_sizes) > 5:
-            step = max(1, len(gene_sizes) // 5)
-            gene_sizes = gene_sizes[::step][:5]
-        marker_sizes = np.linspace(80, 500, len(gene_sizes))
+            idx = np.linspace(0, len(gene_sizes) - 1, 5).round().astype(int)
+            gene_sizes = sorted({gene_sizes[i] for i in idx})
+        g_min, g_max = min(gene_sizes), max(gene_sizes)
+        if g_max == g_min:
+            marker_sizes = [250.0 for _ in gene_sizes]
+        else:
+            marker_sizes = [
+                80.0 + (g - g_min) / (g_max - g_min) * (500.0 - 80.0)
+                for g in gene_sizes
+            ]
         legend_handles = [
             mlines.Line2D([], [], color=_DARK_TEXT, marker="o",
                           markersize=np.sqrt(s), label=f"{g}",

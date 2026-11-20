@@ -160,7 +160,7 @@ def _per_cluster_accessibility(adata, groupby, padj_max, lfc_min, top_n,
                 "cluster": cl_s,
                 "peak": peak,
                 "log2fc": round(l_val, 3),
-                "padj": round(p_val, 6),
+                "padj": float(p_val),
                 "pct_in": round(_binary_pct(raw_X, mask_in, pi), 3)
                 if mask_in is not None else None,
                 "pct_out": round(_binary_pct(raw_X, mask_out, pi), 3)
@@ -466,7 +466,7 @@ def _pseudobulk_da(adata, condition_col, replicate_col, comparisons,
                 "comparison": comp_key,
                 "peak": str(peak),
                 "log2fc": round(float(r["log2FoldChange"]), 3),
-                "padj": round(float(r["padj"]), 6),
+                "padj": float(r["padj"]),
             }
             top_peaks.append(rec)
             rows_csv.append(rec)

@@ -283,13 +283,13 @@ def compute_lobo_jackknife(
         if max_reported_features is None or rank_i < int(max_reported_features):
             per_feature[fid] = {
                 "full_lfc": round(f_lfc_val, 6),
-                "full_padj": round(f_padj_val, 6),
+                "full_padj": float(f_padj_val),
                 "n_jackknife_folds": len(folds),
                 "sign_consistent_fraction": round(sign_frac, 4),
                 "lfc_min": round(float(np.min(row_lfcs)), 6),
                 "lfc_max": round(float(np.max(row_lfcs)), 6),
                 "lfc_iqr": round(float(q75 - q25), 6),
-                "max_jackknife_padj": round(max_padj, 6),
+                "max_jackknife_padj": float(max_padj),
                 "most_influential_unit": fold_units[worst_idx],
                 "single_unit_driven": single_unit_driven,
             }

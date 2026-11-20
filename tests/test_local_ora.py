@@ -102,7 +102,81 @@ def test_run_ora_enriches_planted_term():
     hit = next(r for r in res if r["term"] == "HIT")
     assert hit["overlap"] == "18/20"
     assert hit["odds_ratio"] > 1
-    assert 0.0 <= hit["padj"] < 0.05
+    assert 0.0 < hit["padj"] < 1e-25
+    assert 0.0 < hit["pvalue"] < 1e-25
+
+
+def test_run_ora_preserves_small_padj_precision_and_ordering():
+    """Regression guard: padj < 5e-6 must never underflow to 0.0 via fixed-decimal rounding.
+
+    Fixed-decimal round(q, 5) previously turned every padj < 5e-6 into 0.0, which
+    collapsed distinct pathways to ties and made -log10(max(padj, 1e-300)) jump to 300.
+    """
+    bg = [f"G{i}" for i in range(20000)]
+    strong_term = [f"G{i}" for i in range(134)]      # 12/134 -> padj ~ 1e-9
+    moderate_term = [f"G{i}" for i in range(34)]     #  6/34  -> padj ~ 1e-6
+    gene_sets = {
+        "MODERATE": moderate_term,
+        "STRONG": strong_term,
+        "DECOY": [f"G{i}" for i in range(5000, 5080)],
+    }
+    # 124 query genes: 6 shared with MODERATE+STRONG, 6 more only in STRONG, 112 background
+    query = (
+        [f"G{i}" for i in range(6)]
+        + [f"G{i}" for i in range(34, 40)]
+        + [f"G{i}" for i in range(10000, 10112)]
+    )
+
+    res = ora.run_ora(query, gene_sets, bg, padj_max=0.05, top=10)
+    by_term = {r["term"]: r for r in res}
+    assert set(by_term) == {"STRONG", "MODERATE"}
+    assert 0.0 < by_term["STRONG"]["padj"] < 1e-7
+    assert 0.0 < by_term["MODERATE"]["padj"] < 5e-6
+    assert 0.0 < by_term["STRONG"]["pvalue"] < 1e-8
+    assert by_term["STRONG"]["padj"] < by_term["MODERATE"]["padj"]
+    # Most significant term must sort first (not tie at 0.0).
+    assert [r["term"] for r in res] == ["STRONG", "MODERATE"]
+
+
+def test_make_ora_dotplot_uses_true_padj_and_overlap_gene_count(tmp_path):
+    """Regression guard: dotplot uses unrounded -log10(FDR) and true overlap k > 10."""
+    pytest.importorskip("matplotlib")
+    pytest.importorskip("seaborn")
+    from aria.scripts.rna_pathway_viz import make_ora_dotplot
+
+    pathways = [
+        {
+            "term": "Cytokine-cytokine receptor interaction",
+            "padj": 4.795e-09,
+            "pvalue": 3.688e-11,
+            "overlap": "12/134",
+            "odds_ratio": 18.12,
+            "combined_score": 189.1,
+            "genes": [f"G{i}" for i in range(10)],  # display preview capped at 10
+        },
+        {
+            "term": "Viral protein interaction with cytokine and cytokine receptor",
+            "padj": 3.576e-06,
+            "pvalue": 5.501e-08,
+            "overlap": "6/34",
+            "odds_ratio": 38.63,
+            "combined_score": 280.5,
+            "genes": [f"G{i}" for i in range(6)],
+        },
+        {
+            "term": "p53 signaling pathway",
+            "padj": 1.784e-04,
+            "pvalue": 4.116e-06,
+            "overlap": "6/69",
+            "odds_ratio": 17.31,
+            "combined_score": 93.2,
+            "genes": [f"G{i}" for i in range(6)],
+        },
+    ]
+    out_png = tmp_path / "kegg_down.png"
+    res = make_ora_dotplot(pathways, "KEGG_down", "REV_ERBa_KO vs WT", str(out_png))
+    assert res == str(out_png)
+    assert out_png.is_file() and out_png.stat().st_size > 1000
 
 
 def test_run_ora_no_significant_returns_empty():

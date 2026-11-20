@@ -52,7 +52,7 @@ def _enrichr_enrichment(sig_symbols: list, db_labels: list, gene_sets: dict,
                     pathways[db] = [
                         {
                             "term":    row["Term"],
-                            "padj":    round(float(row["Adjusted P-value"]), 5),
+                            "padj":    float(row["Adjusted P-value"]),
                             "overlap": row.get("Overlap", ""),
                             "odds_ratio": round(float(row.get("Odds Ratio", 1)), 2),
                             "combined_score": round(float(row.get("Combined Score", 0)), 1),

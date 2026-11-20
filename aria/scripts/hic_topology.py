@@ -856,7 +856,7 @@ def _compute_loops(
                 if "count" in row and row["count"] is not None:
                     item["count"] = int(row["count"])
                 if "la_exp.donut.qval" in row and math.isfinite(float(row["la_exp.donut.qval"])):
-                    item["qval"] = round(float(row["la_exp.donut.qval"]), 6)
+                    item["qval"] = float(row["la_exp.donut.qval"])
                 if "anchor1_genes" in row and str(row["anchor1_genes"]):
                     item["anchor1_genes"] = str(row["anchor1_genes"])
                 if "anchor2_genes" in row and str(row["anchor2_genes"]):
