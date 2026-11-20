@@ -985,6 +985,19 @@ def render_footprint_volcano(
     import matplotlib.pyplot as plt
 
     alpha = float(summary.get("alpha", 0.05))
+    # Wave 2A: data-adaptive display for p == 0 (float64 underflow in BINDetect
+    # site tests / zero-variance replicate tests). Instead of the old hard
+    # 1e-300 -> y=300 clip that flattened the real cloud, zero p-values sit just
+    # above the largest finite -log10(p) and the cap is disclosed.
+    finite_y = [-math.log10(p) for _, p, _ in rows if p > 0]
+    zero_cap = None
+    if any(p <= 0 for _, p, _ in rows):
+        top = max(finite_y) if finite_y else 0.0
+        zero_cap = max(top * 1.12, top + 1.0) if finite_y else 10.0
+
+    def _ycoord(pvalue: float) -> float:
+        return zero_cap if pvalue <= 0 else -math.log10(pvalue)
+
     fig, ax = plt.subplots(figsize=(8, 6))
     try:
         for direction, color, label in (
@@ -995,18 +1008,40 @@ def render_footprint_volcano(
             selected = [r for r in rows if (
                 (1 if r[0] > 0 else -1) if r[1] <= alpha and r[0] != 0 else 0
             ) == direction]
-            if selected:
-                ax.scatter([r[0] for r in selected],
-                           [-math.log10(max(r[1], 1e-300)) for r in selected],
+            finite_sel = [r for r in selected if r[1] > 0]
+            capped_sel = [r for r in selected if r[1] <= 0]
+            if finite_sel:
+                ax.scatter([r[0] for r in finite_sel],
+                           [_ycoord(r[1]) for r in finite_sel],
                            c=color, label=label, s=24, alpha=0.8, edgecolors="none")
+            if capped_sel:
+                ax.scatter([r[0] for r in capped_sel],
+                           [_ycoord(r[1]) for r in capped_sel],
+                           c=color, s=34, alpha=0.9, marker="^",
+                           edgecolors="black", linewidths=0.4,
+                           label=None if finite_sel else label)
             if direction:
-                for effect, pvalue, tf in sorted(selected, key=lambda r: r[1])[:5]:
-                    ax.annotate(tf, (effect, -math.log10(max(pvalue, 1e-300))),
+                # Deterministic labels: smallest p, then LARGEST |effect|, then name
+                # (tied p == 0 rows label the strongest effects, not arbitrary ones).
+                ranked = sorted(selected, key=lambda r: (r[1], -abs(r[0]), r[2]))
+                for effect, pvalue, tf in ranked[:5]:
+                    ax.annotate(tf, (effect, _ycoord(pvalue)),
                                 xytext=(4, 4), textcoords="offset points", fontsize=8)
+        if zero_cap is not None:
+            n_zero = sum(1 for _, p, _ in rows if p <= 0)
+            ax.axhline(zero_cap, color="#999999", linestyle=":", linewidth=0.8)
+            ax.scatter([], [], marker="^", c="#ffffff", edgecolors="black",
+                       linewidths=0.4, s=34,
+                       label=f"p = 0 underflow (n={n_zero}), drawn at cap "
+                             f"{zero_cap:.1f}")
         ax.axhline(-math.log10(alpha), color="#777777", linestyle="--", linewidth=1)
         ax.axvline(0, color="#777777", linewidth=0.8)
         ax.set_xlabel(f"Footprint score change ({group_a} − {group_b})")
-        ax.set_ylabel("−log10(BH-adjusted p)" if inferential else "−log10(uncorrected site p)")
+        ylab = ("−log10(BH-adjusted p)" if inferential
+                else "−log10(uncorrected site p)")
+        if zero_cap is not None:
+            ylab += " [p=0 capped]"
+        ax.set_ylabel(ylab)
         ax.set_title("Differential TF footprinting (replicate inference, BH FDR)"
                      if inferential else
                      "Differential TF footprinting (descriptive — uncorrected site p)")

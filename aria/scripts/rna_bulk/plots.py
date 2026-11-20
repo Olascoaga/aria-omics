@@ -5,8 +5,10 @@ Matplotlib/numpy/pandas are imported lazily inside each function."""
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 
+log = logging.getLogger(__name__)
 
 _P = dict(
     fig     = "white",
@@ -27,7 +29,7 @@ _P = dict(
 
 
 def _plot_pca_mds(vst_variable, metadata, output_dir: str,
-                    warnings: list) -> tuple:
+                    warnings: list, design_factor: str | None = None) -> tuple:
     """
     Generate PCA + MDS plots from a VST-transformed, variable-filtered matrix.
 
@@ -51,9 +53,10 @@ def _plot_pca_mds(vst_variable, metadata, output_dir: str,
         X = vst_variable.T.values
 
         # Identify the condition column
-        condition_col = None
+        metadata = metadata.reindex(vst_variable.columns)
+        condition_col = design_factor if design_factor in metadata.columns else None
         for c in metadata.columns:
-            if c not in ("sample", "batch", "replicate"):
+            if condition_col is None and c not in ("sample", "batch", "replicate"):
                 condition_col = c
                 break
         conditions = (metadata[condition_col].astype(str)
@@ -63,7 +66,11 @@ def _plot_pca_mds(vst_variable, metadata, output_dir: str,
         # ── PCA ──────────────────────────────────────────────────────────
         # NO StandardScaler — VST already stabilizes variance.
         # PCA on genes × samples with centered (not z-scored) values.
-        pca     = PCA(n_components=min(5, X.shape[0] - 1))
+        n_components = min(2, *X.shape)
+        if n_components < 2:
+            warnings.append("PCA/MDS skipped: at least two samples and two genes are required for two PCs.")
+            return None, None, None, []
+        pca     = PCA(n_components=n_components)
         coords  = pca.fit_transform(X)
         var_pct = pca.explained_variance_ratio_ * 100
 
@@ -194,6 +201,7 @@ def _generate_plots(de_result: dict, sample_qc: dict,
         matplotlib.use("Agg")
         import matplotlib.pyplot as plt
         import numpy as np
+        import pandas as pd
 
         results_df = de_result.get("results")
         if results_df is not None and not results_df.empty:
@@ -202,8 +210,21 @@ def _generate_plots(de_result: dict, sample_qc: dict,
             fig.patch.set_facecolor(_P["fig"])
             ax.set_facecolor(_P["ax"])
 
+            lfc_num = pd.to_numeric(results_df["log2FoldChange"], errors="coerce")
+            padj = pd.to_numeric(results_df["padj"], errors="coerce")
+            valid = np.isfinite(lfc_num) & np.isfinite(padj) & padj.between(0, 1)
+            results_df = results_df.loc[valid].copy()
+            results_df["log2FoldChange"] = lfc_num.loc[valid]
+            results_df["padj"] = padj.loc[valid]
             lfc = results_df["log2FoldChange"].clip(-8, 8)
-            neg_log_p = -np.log10(results_df["padj"].clip(1e-300, 1) + 1e-300)
+            padj = results_df["padj"]
+            positive = padj > 0
+            neg_log_p = -np.log10(padj.where(positive))
+            cap = max(1.0, float(neg_log_p[positive].max()) * 1.15) if positive.any() else 10.0
+            neg_log_p = neg_log_p.fillna(cap)
+            if (~positive).any():
+                ax.text(0.02, 0.98, f"padj = 0 (underflow): shown at {cap:.2f}",
+                        transform=ax.transAxes, va="top", fontsize=8, color=_P["muted"])
 
             # Color by significance
             sig_mask = results_df["padj"] < padj_thr
@@ -227,11 +248,17 @@ def _generate_plots(de_result: dict, sample_qc: dict,
 
             # Labels for top genes
             top_sig = results_df[sig_mask].nsmallest(10, "padj")
+            symbol_map = sample_qc.get("_symbol_map") or {}
             for gene, row in top_sig.iterrows():
+                gene_id = str(gene)
+                label = symbol_map.get(gene_id) or symbol_map.get(gene_id.split(".")[0]) or gene_id
+                label = str(label)
+                if len(label) > 40:
+                    label = label[:37] + "…"
                 ax.annotate(
-                    str(gene)[:12],
-                    xy=(float(row["log2FoldChange"]),
-                        float(-np.log10(row["padj"] + 1e-300))),
+                    label,
+                    xy=(float(np.clip(row["log2FoldChange"], -8, 8)),
+                        float(-np.log10(row["padj"])) if row["padj"] > 0 else cap),
                     xytext=(3, 3), textcoords="offset points",
                     fontsize=6, color=_P["annot"], alpha=0.9,
                 )
@@ -408,14 +435,19 @@ def _plot_heatmap(genes: list, vst_matrix, counts_filt,
         return None
 
 def _plot_sample_pca(coords, samples, metadata, var_exp: list,
-                      output_dir: str) -> str | None:
-    """Save sample PCA plot colored by condition."""
+                      output_dir: str, design_factor: str | None = None) -> str | None:
+    """Save sample PCA colored by design factor; var_exp is in percent."""
     try:
         import matplotlib
         matplotlib.use("Agg")
         import matplotlib.pyplot as plt
         import numpy as np
 
+        coords = np.asarray(coords)
+        if coords.ndim != 2 or coords.shape[1] < 2 or len(samples) < 2:
+            log.warning("Sample PCA skipped: fewer than two PCs or samples.")
+            return None
+        metadata = metadata.reindex(samples)
         fig, ax = plt.subplots(figsize=(7, 5))
         fig.patch.set_facecolor(_P["fig"])
         ax.set_facecolor(_P["ax"])
@@ -423,9 +455,9 @@ def _plot_sample_pca(coords, samples, metadata, var_exp: list,
         COLORS = _P["palette"]
 
         # Get condition for each sample
-        condition_col = None
+        condition_col = design_factor if design_factor in metadata.columns else None
         for col in metadata.columns:
-            if col not in ("sample", "batch", "replicate"):
+            if condition_col is None and col not in ("sample", "batch", "replicate"):
                 condition_col = col
                 break
 
@@ -446,8 +478,8 @@ def _plot_sample_pca(coords, samples, metadata, var_exp: list,
                         xytext=(4, 4), textcoords="offset points",
                         fontsize=6, color=_P["muted"])
 
-        pct1 = round(float(var_exp[0]) * 100, 1) if len(var_exp) > 0 else 0
-        pct2 = round(float(var_exp[1]) * 100, 1) if len(var_exp) > 1 else 0
+        pct1 = round(float(var_exp[0]), 1) if len(var_exp) > 0 else 0
+        pct2 = round(float(var_exp[1]), 1) if len(var_exp) > 1 else 0
         ax.set_xlabel(f"PC1 ({pct1}%)", color=_P["muted"])
         ax.set_ylabel(f"PC2 ({pct2}%)", color=_P["muted"])
         ax.set_title("Sample PCA", color=_P["title"], fontweight="bold")

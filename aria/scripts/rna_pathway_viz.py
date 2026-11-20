@@ -36,10 +36,13 @@ def _ranked_signature_frame(de_results_df, symbol_map: Optional[dict] = None):
     Ensembl IDs require a symbol map. Already-symbolic gene IDs are kept when
     no map exists or when a mapped lookup misses a non-Ensembl token.
     """
+    import numpy as np
     import pandas as pd
 
     symbol_map = symbol_map or {}
-    df = de_results_df.dropna(subset=["log2FoldChange"]).copy()
+    df = de_results_df.copy()
+    df["log2FoldChange"] = pd.to_numeric(df["log2FoldChange"], errors="coerce")
+    df = df.loc[np.isfinite(df["log2FoldChange"])].copy()
     df["clean_id"] = df.index.astype(str).str.split(".").str[0]
 
     def resolve_symbol(gene_id: str):
@@ -104,11 +107,20 @@ def make_ora_dotplot(pathways_list: list,
         if df.empty:
             return None
 
-        df = df.head(top_n).copy()
-
         # Derived columns matching ORA_mirna.py
         padj_num = pd.to_numeric(df["padj"], errors="coerce")
-        df["-log10(FDR)"] = -np.log10(padj_num.clip(lower=1e-300)).round(2)
+        odds_num = pd.to_numeric(df["odds_ratio"], errors="coerce")
+        valid = (np.isfinite(padj_num) & padj_num.between(0, 1)
+                 & np.isfinite(odds_num) & (odds_num > 0))
+        df = df.loc[valid].head(top_n).copy()
+        if df.empty:
+            return None
+        padj_num = padj_num.loc[df.index]
+        positive = padj_num > 0
+        neglog = -np.log10(padj_num.where(positive))
+        cap = max(1.0, float(neglog[positive].max()) * 1.15) if positive.any() else 10.0
+        df["-log10(FDR)"] = neglog.fillna(cap)
+        has_underflow = bool((~positive).any())
 
         # Gene count: prefer the true overlap numerator (e.g. "12/134" -> 12)
         # because the display `genes` list is capped at 10 entries in ORA output.
@@ -136,9 +148,20 @@ def make_ora_dotplot(pathways_list: list,
                       .str.replace(r"\s+R-HSA-\d+$", "", regex=True)
                       .str.replace(r"\s+WP\d+$", "", regex=True))
         df["Term"] = df["Term"].str.slice(0, 70)  # truncate very long terms
+        # Keep colliding display names on distinct rows, including exact duplicates.
+        used_labels = set()
+        labels = []
+        for label in df["Term"].fillna("Unnamed term"):
+            candidate = label
+            suffix = 2
+            while candidate in used_labels:
+                candidate = f"{label} [{suffix}]"
+                suffix += 1
+            used_labels.add(candidate)
+            labels.append(candidate)
+        df["Term"] = labels
 
-        # log2 of OR (clip to avoid log(0))
-        df["log2_OR"] = np.log2(df["odds_ratio"].clip(lower=0.01)).round(1)
+        df["log2_OR"] = np.log2(odds_num.loc[df.index]).round(1)
 
         # Sort by Odds Ratio descending (most enriched at top after invert)
         df = df.sort_values("log2_OR", ascending=False)
@@ -180,7 +203,10 @@ def make_ora_dotplot(pathways_list: list,
         sm.set_array([])
         cbar = plt.colorbar(sm, ax=ax, orientation="vertical",
                             fraction=0.025, pad=0.07, anchor=(1.0, 0.65))
-        cbar.set_label("-log10(FDR)", fontsize=12, color=_DARK_TEXT)
+        cbar_label = "-log10(FDR)"
+        if has_underflow:
+            cbar_label += f" (FDR=0 shown at {cap:.2f}; underflow)"
+        cbar.set_label(cbar_label, fontsize=12, color=_DARK_TEXT)
         cbar.ax.tick_params(colors=_DARK_MUTED)
         cbar.outline.set_edgecolor(_DARK_MUTED)
 
@@ -232,6 +258,9 @@ def make_ora_dotplot(pathways_list: list,
         Path(output_path).parent.mkdir(parents=True, exist_ok=True)
         plt.savefig(output_path, dpi=200, bbox_inches="tight",
                     facecolor=fig.get_facecolor())
+        if Path(output_path).suffix.lower() == ".png":
+            fig.savefig(Path(output_path).with_suffix(".svg"), bbox_inches="tight",
+                        facecolor=fig.get_facecolor())
         plt.close(fig)
 
         return str(output_path)
@@ -349,8 +378,11 @@ def _prepare_gsea_signature(signature):
     plus centered score vector and ``{gene: rank_index}`` lookup map matching
     ``blitzgsea.gsea(..., center=True)``."""
     import numpy as np
+    import pandas as pd
 
     sig = signature.copy()
+    sig["score"] = pd.to_numeric(sig["score"], errors="coerce")
+    sig = sig.loc[np.isfinite(sig["score"])].copy()
     sig["gene"] = sig["gene"].astype(str).str.strip().str.upper()
     sig = sig[sig["gene"] != ""]
     sig = sig.sort_values("score", ascending=False, kind="mergesort")
@@ -390,6 +422,17 @@ def _fmt_fdr(val: float) -> str:
     return f"{val:.3f}"
 
 
+def _geneset_size(row, fallback: int) -> int:
+    """Use observed hits when an optional gene-set size is missing/non-finite."""
+    import math
+
+    try:
+        value = float(row.get("geneset_size", fallback))
+        return int(value) if math.isfinite(value) and value >= 0 else fallback
+    except (TypeError, ValueError, OverflowError):
+        return fallback
+
+
 def _render_gsea_running_sum(
     scores_raw,
     scores_centered,
@@ -413,7 +456,7 @@ def _render_gsea_running_sum(
     nes = float(row["nes"])
     fdr = float(row["fdr"])
     es_val = float(row["es"]) if "es" in row and np.isfinite(row["es"]) else es_calc
-    gsize = int(row["geneset_size"]) if "geneset_size" in row else len(hits)
+    gsize = _geneset_size(row, len(hits))
 
     is_pos = nes >= 0
     accent = "#dc2626" if is_pos else "#2563eb"
@@ -618,7 +661,7 @@ def _render_gsea_top_table(
             ax.vlines(hx, ymin=y_bot + 0.11, ymax=y_top - 0.11,
                       color=color, lw=0.75, alpha=0.70, zorder=3)
 
-        gsize = int(row["geneset_size"]) if "geneset_size" in row else len(hits)
+        gsize = _geneset_size(row, len(hits))
         term_str = str(term)
         if len(term_str) > 62:
             term_str = term_str[:59].rstrip() + "…"
@@ -851,7 +894,7 @@ def export_de_table(de_results_df,
 
         df["gene_id"] = df.index.astype(str)
         df["clean_id"] = df["gene_id"].str.split(".").str[0]
-        df["gene_symbol"] = df["clean_id"].map(symbol_map).fillna("")
+        df["gene_symbol"] = df["clean_id"].map(symbol_map or {}).fillna("")
 
         cols = ["gene_id", "gene_symbol"]
         for c in ["baseMean", "log2FoldChange", "lfcSE",

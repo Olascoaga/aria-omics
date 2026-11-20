@@ -8,6 +8,7 @@ from __future__ import annotations
 import base64
 import html
 import logging
+import math
 from pathlib import Path
 from typing import Optional
 
@@ -146,7 +147,7 @@ def render_cellcomm_heatmap(findings: dict,
 def render_cellcomm_top_pairs_bar(findings: dict,
                                     output_path: Path,
                                     top_n: int = 15) -> Optional[str]:
-    """Horizontal barplot of top-N L-R interactions by rank/score."""
+    """Horizontal barplot of actual L-R scores, ordered by score strength."""
     ccc = findings.get("cell_communication") or {}
     top = ccc.get("top_interactions") or []
     if not top:
@@ -157,28 +158,52 @@ def render_cellcomm_top_pairs_bar(findings: dict,
     import matplotlib.pyplot as plt
     import numpy as np
 
-    # Ranks: lower = better for spec/mag. Prefer explicit rank order when
-    # present so tied/underflowed LIANA scores do not render as all-zero bars.
+    method = str(ccc.get("method") or "")
+    metric = ccc.get("rank_metric") or next(
+        (ia.get("rank_metric") for ia in top if ia.get("rank_metric")), None)
+    if not metric:
+        metric = next((name for name in
+                       ("lrscore", "specificity_rank", "magnitude_rank", "pvalue",
+                        "pval", "magnitude", "specificity")
+                       if name in method.lower() or any(name in ia for ia in top)), None)
+    direction = ccc.get("score_direction") or next(
+        (ia.get("score_direction") for ia in top if ia.get("score_direction")), "")
+    if not metric:
+        metric = "specificity_rank" if method.startswith("liana") and "higher" not in direction else "score"
+    metric = str(metric)
+    pvalue_like = (metric.endswith("_rank")
+                   or any(token in metric.lower() for token in ("pval", "p_val", "p-value"))
+                   or (metric == "score" and "lower" in direction))
     rows = []
-    for ia in top[:top_n]:
+    for ia in top:
+        try:
+            score = float(ia.get(metric, ia.get("score")))
+        except (TypeError, ValueError):
+            continue
+        if not np.isfinite(score) or (pvalue_like and not 0 <= score <= 1):
+            continue
         label = (f"{ia.get('source', '?')[:18]} → "
                  f"{ia.get('target', '?')[:18]}  "
                  f"({ia.get('ligand', '?')}-{ia.get('receptor', '?')})")
-        rows.append((label, float(ia.get("rank", ia.get("score", 0)))))
+        rows.append((label, score))
+    rows = sorted(rows, key=lambda row: row[1], reverse=not pvalue_like)[:top_n]
     if not rows:
         return None
     labels = [r[0] for r in rows]
     scores = np.array([r[1] for r in rows], dtype=float)
 
-    is_rank = (ccc.get("method") or "").startswith("liana")
-    if is_rank:
-        # Invert: higher bar = lower rank = better.
-        max_score = scores.max() if scores.max() > 0 else 1.0
-        plot_vals = max_score - scores + (max_score * 0.05)
-        xlabel = f"strength (inverted rank; metric: {ccc.get('method')})"
+    if pvalue_like:
+        positive = scores > 0
+        plot_vals = np.zeros_like(scores)
+        plot_vals[positive] = -np.log10(scores[positive])
+        cap = max(1.0, float(plot_vals[positive].max()) * 1.15) if positive.any() else 10.0
+        plot_vals[~positive] = cap
+        xlabel = f"-log10({metric})"
+        if (~positive).any():
+            xlabel += f" (score=0 shown at {cap:.2f}; underflow)"
     else:
         plot_vals = scores
-        xlabel = "score"
+        xlabel = metric
 
     fig, ax = plt.subplots(figsize=(8, max(3, 0.32 * len(rows) + 1.2)),
                            dpi=160)
@@ -405,16 +430,26 @@ def build_scrna_html_section(findings: dict,
             parts.append('</div>')
 
         # Tables: PAGA top connections + DPT pseudotime by group
-        tables = extract_trajectory_tables(findings)
+        paga_meta = traj.get("paga", {}) or {}
+        try:
+            max_c = float(paga_meta.get("max_connectivity"))
+            max_c_text = f"{max_c:.4f}" if math.isfinite(max_c) else "unavailable"
+        except (TypeError, ValueError):
+            max_c_text = "unavailable"
+        # The table helper also divides by this value; let it infer a finite
+        # maximum from the edges when the optional summary is unavailable.
+        table_findings = findings
+        if max_c_text == "unavailable":
+            table_findings = {**findings, "trajectory": {
+                **traj, "paga": {**paga_meta, "max_connectivity": None}}}
+        tables = extract_trajectory_tables(table_findings)
         if tables["paga_rows"]:
-            paga_meta = traj.get("paga", {}) or {}
-            max_c = paga_meta.get("max_connectivity", 0)
             n_str = paga_meta.get("n_strong", 0)
             thr_  = paga_meta.get("strong_threshold", 0.05)
             note = (
                 f'<p style="color:var(--muted);font-size:0.82em;'
                 f'margin-top:0.4rem;font-style:italic">'
-                f'Max connectivity = {max_c:.4f}. '
+                f'Max connectivity = {max_c_text}. '
                 f'{n_str} edge(s) above the {thr_} threshold. '
                 f'In mature / non-developmental populations, absolute '
                 f'connectivities are typically &lt; 0.01 — interpret '

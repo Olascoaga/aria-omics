@@ -11,8 +11,10 @@ Renders two sample-level panels for the bulk ATAC lane, each saved as a raster
   Raw integer counts are normalised to counts-per-million first; an already-CPM
   matrix (``*cpm*`` file name or non-integer values) is used as-is.
 * ``bulk_atac_qc_summary`` — per-sample (or cohort) bars for the measured QC
-  metrics (FRiP, TSS enrichment, duplicate rate) with the ENCODE reference
-  thresholds drawn as dashed lines (FRiP 0.20, TSSe 5.0).
+  metrics (FRiP, TSS enrichment, duplicate rate) with the modality's reference
+  thresholds drawn as dashed lines (bulk ATAC: FRiP 0.20, TSSe 6.0 — aligned with
+  ``chromatin_qc``; ChIP 0.01 / CUT&RUN 0.05 / CUT&Tag 0.10 FRiP and no TSSe gate),
+  or the run's ``thresholds`` (``qc["thresholds"]``) when supplied.
 
 Zero fabrication: a panel is produced only when its data exists and is not
 degenerate (PCA needs >= 2 samples and >= 2 non-constant peaks; the QC summary
@@ -28,6 +30,8 @@ Params:
                         optionally *_per_sample, mito_frac)
   peaks            dict chromatin_peaks output (frip / frip_per_sample, n_peaks,
                         n_consensus_peaks)
+  data_type        str  bulk_ATAC (default) | ChIP | CUT_AND_RUN | CUT_AND_TAG
+  thresholds       dict qc["thresholds"] (min_frip / min_tss / require_tss)
 """
 
 from __future__ import annotations
@@ -43,8 +47,40 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspa
 from aria.scripts._base import run_script
 
 # ENCODE ATAC-seq reference thresholds (dashed guides, not pass/fail verdicts).
+# TSSe aligned with `chromatin_qc._default_bulk_qc_thresholds("bulk_ATAC")` (6.0).
 ENCODE_FRIP_MIN = 0.20
-ENCODE_TSSE_MIN = 5.0
+ENCODE_TSSE_MIN = 6.0
+
+# Read-only mirror of `chromatin_qc._default_bulk_qc_thresholds`; the run's own
+# `qc["thresholds"]` always wins when supplied.
+_DEFAULT_THRESHOLDS = {
+    "bulk_ATAC": {"min_frip": ENCODE_FRIP_MIN, "min_tss": ENCODE_TSSE_MIN,
+                  "require_tss": True},
+    "ChIP": {"min_frip": 0.01, "require_tss": False},
+    "CUT_AND_RUN": {"min_frip": 0.05, "require_tss": False},
+    "CUT_AND_TAG": {"min_frip": 0.10, "require_tss": False},
+}
+_MODALITY_TITLE = {
+    "bulk_ATAC": "Bulk ATAC", "ChIP": "ChIP-seq",
+    "CUT_AND_RUN": "CUT&RUN", "CUT_AND_TAG": "CUT&Tag",
+}
+
+
+def _resolve_modality(data_type: Any, thresholds: Any) -> tuple[str, dict]:
+    """(data_type, merged thresholds) — unknown modalities fall back to bulk_ATAC."""
+    dt = str(data_type) if data_type in _DEFAULT_THRESHOLDS else "bulk_ATAC"
+    th = dict(_DEFAULT_THRESHOLDS[dt])
+    if isinstance(thresholds, dict):
+        th.update({k: v for k, v in thresholds.items() if v is not None})
+    return dt, th
+
+
+def _as_finite(value: Any) -> Optional[float]:
+    try:
+        out = float(value)
+    except (TypeError, ValueError):
+        return None
+    return out if math.isfinite(out) else None
 
 # Validated categorical palette, assigned in fixed order to the SORTED condition
 # levels so a colour follows the condition, never its rank in a given run.
@@ -166,7 +202,8 @@ def _pca(mat, is_cpm: bool):
 
 
 def render_pca(mat, is_cpm: bool, conditions: dict[str, str],
-               out_path: Path) -> tuple[Optional[str], Optional[str]]:
+               out_path: Path, data_type: str = "bulk_ATAC",
+               ) -> tuple[Optional[str], Optional[str]]:
     if mat is None or mat.shape[1] < 2:
         return None, "fewer than 2 samples"
     res, reason = _pca(mat, is_cpm)
@@ -209,7 +246,8 @@ def render_pca(mat, is_cpm: bool, conditions: dict[str, str],
                   color=_TEXT_PRIMARY)
     ax.set_ylabel(f"PC2 ({pct[1]:.1f}% variance)", fontsize=8,
                   color=_TEXT_PRIMARY)
-    ax.set_title("Bulk ATAC sample PCA (log2 CPM + 1)", fontsize=9,
+    title = _MODALITY_TITLE.get(str(data_type), "Bulk ATAC")
+    ax.set_title(f"{title} sample PCA (log2 CPM + 1)", fontsize=9,
                  fontweight="bold", color=_TEXT_PRIMARY, loc="left")
     ax.margins(0.15)
     out = _save_dual(fig, out_path)
@@ -236,18 +274,30 @@ def _metric_series(qc: dict, peaks: dict, per_sample_keys: tuple[str, ...],
     return {}
 
 
-def render_qc_summary(qc: dict, peaks: dict,
-                      out_path: Path) -> tuple[Optional[str], Optional[str]]:
+def render_qc_summary(qc: dict, peaks: dict, out_path: Path,
+                      data_type: str = "bulk_ATAC",
+                      thresholds: Optional[dict] = None,
+                      ) -> tuple[Optional[str], Optional[str]]:
+    data_type, th = _resolve_modality(data_type, thresholds)
+    title = _MODALITY_TITLE[data_type]
     panels = []
     frip = _metric_series(qc, peaks, ("frip_per_sample",), ("frip",))
     if frip:
-        panels.append(("FRiP", frip, ENCODE_FRIP_MIN,
-                       f"ENCODE ≥ {ENCODE_FRIP_MIN:.2f}"))
+        frip_ref = _as_finite(th.get("min_frip"))
+        panels.append(("FRiP", frip, frip_ref,
+                       f"{title} gate ≥ {frip_ref:.2f}" if frip_ref is not None
+                       else None))
     tsse = _metric_series(qc, peaks, ("tss_enrichment_per_sample",),
                           ("tss_enrichment",))
     if tsse:
-        panels.append(("TSS enrichment", tsse, ENCODE_TSSE_MIN,
-                       f"ENCODE ≥ {ENCODE_TSSE_MIN:.0f}"))
+        # TSSe is a QC gate only where `chromatin_qc` requires it (bulk ATAC);
+        # for ChIP / CUT&RUN / CUT&Tag it is reported without a guide line.
+        tss_ref = (_as_finite(th.get("min_tss"))
+                   if bool(th.get("require_tss", data_type == "bulk_ATAC"))
+                   else None)
+        panels.append(("TSS enrichment", tsse, tss_ref,
+                       f"{title} gate ≥ {tss_ref:g}" if tss_ref is not None
+                       else None))
     dup = _metric_series(qc, peaks, ("dup_rate_per_sample",), ("dup_rate",))
     if dup:
         panels.append(("Duplicate rate", dup, None, None))
@@ -284,10 +334,12 @@ def render_qc_summary(qc: dict, peaks: dict,
         ax.set_title(label, fontsize=8, fontweight="bold",
                      color=_TEXT_PRIMARY, loc="left")
         ax.grid(axis="y", color="#ecebe6", lw=0.5, zorder=0)
-    fig.suptitle("Bulk ATAC library QC (ENCODE reference guides dashed)",
+    fig.suptitle(f"{title} library QC (reference gates dashed)",
                  fontsize=9, fontweight="bold", color=_TEXT_PRIMARY,
                  x=0.01, ha="left")
-    fig.tight_layout()
+    # Reserve the top band for the suptitle so it never collides with the
+    # subplot titles.
+    fig.tight_layout(rect=[0, 0, 1, 0.92])
     out = _save_dual(fig, out_path)
     plt.close(fig)
     return out, None
@@ -307,6 +359,8 @@ def render_bulk_figures(params: dict) -> dict:
     condition_col = str(params.get("condition_col") or "condition")
     qc = params.get("qc") if isinstance(params.get("qc"), dict) else {}
     peaks = params.get("peaks") if isinstance(params.get("peaks"), dict) else {}
+    data_type, thresholds = _resolve_modality(params.get("data_type"),
+                                              params.get("thresholds"))
     counts_path = (params.get("counts_path")
                    or params.get("counts_cpm_path")
                    or params.get("replicate_counts_path")
@@ -324,7 +378,8 @@ def render_bulk_figures(params: dict) -> dict:
                                       condition_col, list(mat.columns))
         try:
             path, reason = render_pca(mat, bool(is_cpm_or_reason), conditions,
-                                      output_dir / "bulk_atac_pca.png")
+                                      output_dir / "bulk_atac_pca.png",
+                                      data_type=data_type)
         except Exception as exc:  # a figure failure never aborts the report
             path, reason = None, f"PCA rendering failed: {str(exc)[:160]}"
             warnings.append(reason)
@@ -335,7 +390,9 @@ def render_bulk_figures(params: dict) -> dict:
 
     try:
         path, reason = render_qc_summary(qc, peaks,
-                                         output_dir / "bulk_atac_qc_summary.png")
+                                         output_dir / "bulk_atac_qc_summary.png",
+                                         data_type=data_type,
+                                         thresholds=thresholds)
     except Exception as exc:
         path, reason = None, f"QC summary rendering failed: {str(exc)[:160]}"
         warnings.append(reason)
@@ -347,7 +404,8 @@ def render_bulk_figures(params: dict) -> dict:
     return {
         "status": "success",
         "validation_level": "production",
-        "data_type": "bulk_ATAC",
+        "data_type": data_type,
+        "thresholds": thresholds,
         "figures": figures,
         "skipped": skipped,
         "warnings": warnings,

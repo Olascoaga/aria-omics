@@ -17,7 +17,8 @@ inside the SVG):
      total R^2 vs additive sum.
   4. ``regulatory_triangulation_summary.{png,svg}`` — Top Signac-faithful
      ``peak_to_gene`` cis links (distance vs Pearson r by region class) paired
-     with top candidate ``eRegulons`` (``pos_tf_pos_p2g`` vs ``neg_tf_pos_p2g``,
+     with top candidate ``eRegulons`` (all four TF x peak2gene sign classes:
+     ``pos_tf_pos_p2g``, ``neg_tf_pos_p2g``, ``pos_tf_neg_p2g``, ``neg_tf_neg_p2g``;
      gene/peak counts, RNA/ATAC AUCell concordance, and paralog/depth badges).
 
 No fabrication: figures render strictly from real pipeline outputs and skip
@@ -37,6 +38,7 @@ from typing import Any
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
 from matplotlib.patches import Patch
 import numpy as np
 
@@ -55,6 +57,107 @@ _GUARDRAIL_COLORS = {
     "degraded": "#dc2626",
     "skipped": "#64748b",
 }
+
+
+# Wave 2A: TF x peak2gene sign classes -> (colour, short tag, legend label).
+_SIGN_CLASS_STYLE = {
+    "pos_tf_pos_p2g": ("#0f766e", "TF+/p2g+", "pos_tf_pos_p2g (concordant activator candidate)"),
+    "neg_tf_pos_p2g": ("#d97706", "TF-/p2g+", "neg_tf_pos_p2g (inverse TF candidate)"),
+    "pos_tf_neg_p2g": ("#7c3aed", "TF+/p2g-", "pos_tf_neg_p2g (repressive-link candidate)"),
+    "neg_tf_neg_p2g": ("#be123c", "TF-/p2g-", "neg_tf_neg_p2g (double-negative candidate)"),
+}
+_SIGN_CLASS_OTHER = ("#64748b", "?", "other / unclassified sign")
+
+_RNA_VIEW_HINTS = ("rna", "gex", "expr")
+_ATAC_VIEW_HINTS = ("atac", "peak", "chrom", "acc")
+
+# Columns that describe donors / batches / QC flags, never cell state.
+_NON_STATE_LABEL_TOKENS = (
+    "donor", "sample", "batch", "library", "lane", "replicate", "barcode",
+    "pass_", "_qc", "subset", "doublet",
+)
+
+
+def _finite_float(value: Any) -> float | None:
+    """``float(value)`` when finite, else ``None`` (no falsy-``0.0`` traps)."""
+    if value is None or (isinstance(value, str) and not value.strip()):
+        return None
+    try:
+        out = float(value)
+    except (TypeError, ValueError):
+        return None
+    return out if math.isfinite(out) else None
+
+
+def _classify_view_kind(name: str, views_meta: Any = None) -> str:
+    """Resolve a MOFA+ view name to ``"rna"`` / ``"atac"`` / ``"other"``.
+
+    Prefers the recorded ``mofa["views"][name]["kind"]``; otherwise mirrors
+    ``integration_mofa._classify_modality_kind`` (case-insensitive hints), so
+    ``"scRNA"``/``"GEX"``/``"RNA"`` and ``"scATAC"``/``"Peaks"``/``"ATAC"`` work."""
+    if isinstance(views_meta, dict):
+        meta = views_meta.get(name)
+        kind = str((meta or {}).get("kind") or "").lower() if isinstance(meta, dict) else ""
+        if kind in {"rna", "atac"}:
+            return kind
+    low = str(name).strip().lower()
+    if any(h in low for h in _RNA_VIEW_HINTS):
+        return "rna"
+    if any(h in low for h in _ATAC_VIEW_HINTS):
+        return "atac"
+    return "other"
+
+
+def _view_value(mapping: Any, kind: str, views_meta: Any = None) -> Any:
+    """Value of the first key in ``mapping`` whose view resolves to ``kind``."""
+    if not isinstance(mapping, dict):
+        return None
+    if kind in mapping:  # canonical lowercase key wins when present
+        return mapping[kind]
+    for key, val in mapping.items():
+        if _classify_view_kind(key, views_meta) == kind:
+            return val
+    return None
+
+
+def _view_key(mofa: dict[str, Any], kind: str) -> str | None:
+    """Original view name (e.g. ``"scRNA"``) resolving to ``kind``, if any."""
+    views_meta = mofa.get("views") if isinstance(mofa.get("views"), dict) else None
+    candidates: list[str] = list(views_meta or {})
+    for src in (mofa.get("variance_explained"), mofa.get("variance_explained_additive")):
+        if isinstance(src, dict):
+            candidates.extend(k for k in src if k not in candidates)
+    for key in candidates:
+        if _classify_view_kind(key, views_meta) == kind:
+            return str(key)
+    return None
+
+
+def _label_str(value: Any) -> str:
+    """Stable string label: ``3``, ``np.int64(3)``, ``3.0`` and ``"3"`` -> ``"3"``."""
+    if isinstance(value, (bytes, bytearray, np.bytes_)):
+        return value.decode("utf-8", errors="replace")
+    if isinstance(value, (float, np.floating)):
+        if not math.isfinite(float(value)):
+            return "NA"
+        if float(value).is_integer():
+            return str(int(value))
+    if isinstance(value, (np.integer,)):
+        return str(int(value))
+    return str(value)
+
+
+def _neglog10_display(pvals: list[float], headroom: float = 1.15,
+                      all_zero_floor: float = 10.0) -> tuple[list[float], float | None]:
+    """Data-adaptive ``-log10(p)``: exact for ``p > 0``; ``p == 0`` underflow is
+    placed at ``max(max_finite * headroom, max_finite + 1)`` (never 300, never
+    shrunk to 0.05). Returns ``(values, cap)`` with ``cap=None`` if none capped."""
+    finite = [-math.log10(p) for p in pvals if p > 0]
+    cap = None
+    if any(p <= 0 for p in pvals):
+        top = max(finite) if finite else None
+        cap = max(top * headroom, top + 1.0) if top is not None else all_zero_floor
+    return [(-math.log10(p) if p > 0 else cap) for p in pvals], cap
 
 
 def _decode_str_array(raw: np.ndarray) -> list[str]:
@@ -242,23 +345,47 @@ def _choose_label_column(obs: dict[str, Any]) -> tuple[str, list[str]]:
             return labels
         return None
 
+    def _is_boolean(vals: Any) -> bool:
+        if isinstance(vals, np.ndarray) and vals.dtype.kind == "b":
+            return True
+        seen = {str(v).strip().lower() for v in
+                (vals.tolist() if isinstance(vals, np.ndarray) else vals)}
+        seen -= {"na", "nan", "none", ""}
+        return bool(seen) and seen <= {"true", "false", "0", "1"}
+
     for key in preferred:
         if key in obs:
             cand = _valid_categorical(obs[key])
             if cand is not None:
                 return key, cand
 
+    # Wave 2A: the biological joint clustering beats any generic obs column —
+    # otherwise multi-donor cohorts were coloured by donor_id / sample_id.
+    if "leiden_wnn" in obs:
+        cand = _valid_categorical(obs["leiden_wnn"])
+        if cand is not None:
+            return "leiden_wnn", [_label_str(v) for v in (
+                obs["leiden_wnn"].tolist() if isinstance(obs["leiden_wnn"], np.ndarray)
+                else obs["leiden_wnn"])]
+
     for key in sorted(obs.keys()):
         low = key.lower()
         if low.startswith(skip_prefixes) or low.endswith("_weight"):
             continue
-        cand = _valid_categorical(obs[key])
+        if low.startswith(("rna_", "atac_")) or any(t in low for t in _NON_STATE_LABEL_TOKENS):
+            continue
+        vals = obs[key]
+        if isinstance(vals, np.ndarray) and vals.dtype.kind in {"i", "u"}:
+            continue  # integer obs columns are counts, not cell states
+        if _is_boolean(vals):
+            continue
+        cand = _valid_categorical(vals)
         if cand is not None:
             return key, cand
 
     if "leiden_wnn" in obs:
         vals = obs["leiden_wnn"]
-        labels = [str(v) for v in (vals.tolist() if isinstance(vals, np.ndarray) else vals)]
+        labels = [_label_str(v) for v in (vals.tolist() if isinstance(vals, np.ndarray) else vals)]
         return "leiden_wnn", labels
 
     n = len(next(iter(obs.values()))) if obs else 0
@@ -346,6 +473,7 @@ def render_wnn_umap_comparison(
             fontsize=7.8,
             title_fontsize=8.5,
             markerscale=2.0,
+            ncol=ncol,
         )
 
     ari_rna = wnn_findings.get("wnn_vs_rna_ari")
@@ -393,9 +521,13 @@ def render_wnn_modality_weights(
             cl_vals = obs.get("leiden_wnn")
             rw_vals = obs.get("rna_weight")
             if cl_vals is not None and isinstance(rw_vals, np.ndarray):
-                cl_arr = np.asarray(cl_vals, dtype=object)
+                # Wave 2A: int64 / float-coded leiden_wnn never equalled the str
+                # per-cluster keys, silently dropping every IQR whisker.
+                cl_list = cl_vals.tolist() if isinstance(cl_vals, np.ndarray) else list(cl_vals)
+                cl_arr = np.asarray([_label_str(x) for x in cl_list], dtype=object)
+                rw_vals = np.asarray(rw_vals, dtype=np.float64)
                 for cl_key in per_cl.keys():
-                    mask = (cl_arr == str(cl_key)) & np.isfinite(rw_vals)
+                    mask = (cl_arr == _label_str(cl_key)) & np.isfinite(rw_vals)
                     if np.any(mask):
                         q25, q50, q75 = np.percentile(rw_vals[mask], [25, 50, 75])
                         iqr_by_cluster[str(cl_key)] = (float(q25), float(q50), float(q75))
@@ -404,15 +536,15 @@ def render_wnn_modality_weights(
     for cl_id, meta in per_cl.items():
         if not isinstance(meta, dict):
             continue
-        rna_w = meta.get("mean_rna_weight")
-        atac_w = meta.get("mean_atac_weight")
+        rna_w = _finite_float(meta.get("mean_rna_weight"))
+        atac_w = _finite_float(meta.get("mean_atac_weight"))
         if rna_w is None or atac_w is None:
             continue
         rows.append({
-            "cluster": str(cl_id),
+            "cluster": _label_str(cl_id),
             "n_cells": int(meta.get("n_cells") or 0),
-            "rna_w": float(rna_w),
-            "atac_w": float(atac_w),
+            "rna_w": rna_w,
+            "atac_w": atac_w,
             "dominant": str(meta.get("dominant_modality") or "balanced"),
         })
     if not rows:
@@ -473,11 +605,48 @@ def render_wnn_modality_weights(
         fontweight="bold",
         color="#0f172a",
     )
-    ax.legend(loc="lower right", fontsize=8.2, frameon=True)
+    handles, leg_labels = ax.get_legend_handles_labels()
+    if iqr_by_cluster:
+        handles.append(Line2D(
+            [0], [0], color="#0f172a", lw=1.8, marker="o", markersize=5,
+            markerfacecolor="white", markeredgecolor="#0f172a",
+        ))
+        leg_labels.append("Median & IQR (cell-level RNA weight)")
+    ax.legend(handles, leg_labels, loc="lower right", fontsize=8.2, frameon=True)
     for spine in ("top", "right"):
         ax.spines[spine].set_visible(False)
 
     return _save_dual(fig, Path(output_dir) / "wnn_modality_weights_by_cluster.png")
+
+
+def _exclusion_label(reasons: list[str]) -> str:
+    """Short, accurate figure label from the real ``exclusion_reasons``.
+
+    ``sequencing_depth_correlated:atac(|r|=0.812)`` -> ``depth |r|=0.81``;
+    ``cell_cycle_correlated(|r|=0.61)`` -> ``cell-cycle |r|=0.61``;
+    ``batch_or_donor_confounded:donor_id(eta2=0.40)`` -> ``batch/donor (donor_id)``.
+    No hardcoded cutoffs and no batch factor mislabelled as depth/cell-cycle."""
+    import re
+
+    parts: list[str] = []
+    for raw in reasons:
+        low = str(raw).lower()
+        r_match = re.search(r"\|r\|\s*=\s*([0-9.]+)", low)
+        r_txt = f" |r|={float(r_match.group(1)):.2f}" if r_match else ""
+        if "batch" in low or "donor" in low:
+            col = re.search(r"confounded:([^(\s]+)", str(raw))
+            tag = f"batch/donor ({col.group(1)})" if col else "batch/donor"
+        elif "depth" in low:
+            tag = f"depth{r_txt}"
+        elif "cycle" in low:
+            tag = f"cell-cycle{r_txt}"
+        else:
+            tag = str(raw)[:32]
+        if tag not in parts:
+            parts.append(tag)
+    if not parts:
+        return "excluded (reason not recorded)"
+    return "excluded: " + " + ".join(parts)
 
 
 def render_mofa_variance_explained(
@@ -493,15 +662,44 @@ def render_mofa_variance_explained(
     active = mofa_findings.get("top_factors") or []
     excluded = mofa_findings.get("excluded_factors") or []
     factor_map: dict[int, dict[str, Any]] = {}
+    # Wave 2A: resolve view keys by recorded kind / case-insensitive hints, so
+    # split-file "scRNA"/"scATAC" or .h5mu "GEX"/"Peaks" views no longer render 0%.
+    views_meta = mofa_findings.get("views") if isinstance(mofa_findings.get("views"), dict) else None
+    rna_key = _view_key(mofa_findings, "rna") or "rna"
+    atac_key = _view_key(mofa_findings, "atac") or "atac"
+
+    def _view_r2(row: dict[str, Any], kind: str) -> float:
+        direct = row.get(f"{kind}_r2")
+        if direct is None:
+            direct = _view_value(row.get("r2_by_view"), kind, views_meta)
+        if direct is None:
+            flat = {k[3:]: v for k, v in row.items()
+                    if isinstance(k, str) and k.startswith("r2_") and k != "r2_by_view"
+                    and k != "r2_raw_by_view"}
+            direct = _view_value(flat, kind, views_meta)
+        val = _finite_float(direct)
+        return (val if val is not None else 0.0) * 100.0
 
     def _extract_fac_r2(row: dict[str, Any]) -> tuple[int | None, float, float]:
         raw_id = row.get("factor_id") if row.get("factor_id") is not None else row.get("factor")
         if raw_id is None:
             return None, 0.0, 0.0
-        r2_view = row.get("r2_by_view") if isinstance(row.get("r2_by_view"), dict) else {}
-        rna_v = row.get("rna_r2") if row.get("rna_r2") is not None else r2_view.get("rna")
-        atac_v = row.get("atac_r2") if row.get("atac_r2") is not None else r2_view.get("atac")
-        return int(raw_id), float(rna_v or 0.0) * 100.0, float(atac_v or 0.0) * 100.0
+        try:
+            fid = int(raw_id)
+        except (TypeError, ValueError):
+            return None, 0.0, 0.0
+        return fid, _view_r2(row, "rna"), _view_r2(row, "atac")
+
+    def _flag_reasons(row: dict[str, Any]) -> list[str]:
+        reasons = [str(r) for r in (row.get("exclusion_reasons") or [])]
+        if not reasons:  # fall back to the boolean flags when reasons are absent
+            if row.get("technical_depth_flag"):
+                reasons.append("sequencing_depth_correlated")
+            if row.get("cell_cycle_flag"):
+                reasons.append("cell_cycle_correlated")
+            if row.get("batch_flag"):
+                reasons.append("batch_or_donor_confounded")
+        return reasons
 
     for row in active:
         if not isinstance(row, dict):
@@ -520,7 +718,7 @@ def render_mofa_variance_explained(
                 else str(row.get("category") or row.get("classification") or "active")
             ),
             "excluded": is_ex_row,
-            "reasons": [str(r) for r in (row.get("exclusion_reasons") or [])],
+            "reasons": _flag_reasons(row),
         }
     for row in excluded:
         if not isinstance(row, dict):
@@ -534,7 +732,7 @@ def render_mofa_variance_explained(
             "atac_pct": a_pct,
             "classification": "excluded_confounder",
             "excluded": True,
-            "reasons": [str(r) for r in (row.get("exclusion_reasons") or [])],
+            "reasons": _flag_reasons(row),
         }
     if not factor_map:
         return None
@@ -542,6 +740,10 @@ def render_mofa_variance_explained(
     ordered = [factor_map[k] for k in sorted(factor_map.keys())]
     n_fac = len(ordered)
     mat = np.array([[r["rna_pct"], r["atac_pct"]] for r in ordered], dtype=np.float64)
+    mat = np.nan_to_num(mat, nan=0.0, posinf=0.0, neginf=0.0)
+    finite_max = float(np.max(mat)) if mat.size else 0.0
+    # Guard degenerate Normalize(0, 0) when every R² is zero.
+    vmax = max(finite_max, 1e-6)
 
     fig_h = max(4.6, 0.42 * n_fac + 1.9)
     fig, (ax_hm, ax_bar) = plt.subplots(
@@ -551,16 +753,18 @@ def render_mofa_variance_explained(
         constrained_layout=True,
     )
 
-    im = ax_hm.imshow(mat, aspect="auto", cmap="YlGnBu", vmin=0.0)
+    im = ax_hm.imshow(mat, aspect="auto", cmap="YlGnBu", vmin=0.0, vmax=vmax)
     ax_hm.set_xticks([0, 1])
-    ax_hm.set_xticklabels(["RNA R² (%)", "ATAC R² (%)"], fontsize=9, fontweight="bold")
+    rna_lab = "RNA" if rna_key.lower() == "rna" else f"RNA [{rna_key}]"
+    atac_lab = "ATAC" if atac_key.lower() == "atac" else f"ATAC [{atac_key}]"
+    ax_hm.set_xticklabels([f"{rna_lab} R² (%)", f"{atac_lab} R² (%)"],
+                          fontsize=9, fontweight="bold")
     y_labels = []
     for r in ordered:
         tag = " [EXCLUDED]" if r["excluded"] else f" [{r['classification']}]"
         y_labels.append(f"Factor {r['factor']}{tag}")
     ax_hm.set_yticks(np.arange(n_fac))
     ax_hm.set_yticklabels(y_labels, fontsize=8.4)
-    vmax = float(np.nanmax(mat)) if mat.size else 1.0
     for i in range(n_fac):
         for j in range(2):
             val = mat[i, j]
@@ -600,14 +804,7 @@ def render_mofa_variance_explained(
             linewidth=0.9 if is_ex else 0.0,
         )
         if is_ex:
-            reason_short = "depth/cell-cycle confounder"
-            joined = " ".join(r["reasons"]).lower()
-            if "depth" in joined and "cycle" in joined:
-                reason_short = "excluded: depth + cell-cycle"
-            elif "depth" in joined:
-                reason_short = "excluded: depth |r|>=0.70"
-            elif "cycle" in joined:
-                reason_short = "excluded: cell-cycle"
+            reason_short = _exclusion_label(r["reasons"])
             x_end = max(r["rna_pct"], r["atac_pct"])
             ax_bar.text(
                 x_end + max(vmax * 0.02, 0.08),
@@ -638,7 +835,7 @@ def render_mofa_variance_explained(
             facecolor="#cbd5e1",
             edgecolor="#b91c1c",
             hatch="///",
-            label="Excluded technical / cell-cycle confounder",
+            label="Excluded confounder (depth / cell-cycle / batch-donor)",
         ),
     ]
     ax_bar.legend(handles=legend_handles, loc="lower right", fontsize=8.0, frameon=True)
@@ -647,10 +844,15 @@ def render_mofa_variance_explained(
 
     ve_non_add = mofa_findings.get("variance_explained") or {}
     ve_add = mofa_findings.get("variance_explained_additive") or {}
-    rna_tot = float(ve_non_add.get("rna") or 0.0) * 100.0
-    atac_tot = float(ve_non_add.get("atac") or 0.0) * 100.0
-    rna_add = float(ve_add.get("rna") or 0.0) * 100.0
-    atac_add = float(ve_add.get("atac") or 0.0) * 100.0
+
+    def _pct(mapping: Any, kind: str) -> float:
+        val = _finite_float(_view_value(mapping, kind, views_meta))
+        return (val if val is not None else 0.0) * 100.0
+
+    rna_tot = _pct(ve_non_add, "rna")
+    atac_tot = _pct(ve_non_add, "atac")
+    rna_add = _pct(ve_add, "rna")
+    atac_add = _pct(ve_add, "atac")
     fig.suptitle(
         "MOFA+ Joint Variance Decomposition "
         f"(non-additive total R²: RNA={rna_tot:.2f}%, ATAC={atac_tot:.2f}% | "
@@ -662,22 +864,92 @@ def render_mofa_variance_explained(
     return _save_dual(fig, Path(output_dir) / "mofa_variance_explained.png")
 
 
-def _load_p2g_rows(p2g_findings: dict[str, Any]) -> list[dict[str, Any]]:
+_P2G_ROW_CAP = 600
+_EREG_ROW_CAP = 12
+
+
+def _load_p2g_rows_with_total(p2g_findings: dict[str, Any]) -> tuple[list[dict[str, Any]], int]:
+    """Rows to plot (capped at ``_P2G_ROW_CAP``) plus the TOTAL row count, so the
+    figure can disclose ``top N of M shown`` instead of silently truncating."""
     csv_path = p2g_findings.get("output_path")
     rows: list[dict[str, Any]] = []
+    total = 0
     if csv_path and Path(csv_path).exists():
         try:
             with open(csv_path, "r", encoding="utf-8", newline="") as fh:
                 reader = csv.DictReader(fh)
-                for i, row in enumerate(reader):
-                    if i >= 600:
-                        break
-                    rows.append(dict(row))
+                for row in reader:
+                    total += 1
+                    if len(rows) < _P2G_ROW_CAP:
+                        rows.append(dict(row))
         except Exception as exc:
             log.warning("Could not read peak_gene_links.csv (%s); using top_links", exc)
+            rows, total = [], 0
     if not rows:
         rows = [dict(r) for r in (p2g_findings.get("top_links") or []) if isinstance(r, dict)]
-    return rows
+        total = len(rows)
+    return rows, total
+
+
+def _load_p2g_rows(p2g_findings: dict[str, Any]) -> list[dict[str, Any]]:
+    return _load_p2g_rows_with_total(p2g_findings)[0]
+
+
+def _first_present(row: dict[str, Any], *keys: str) -> Any:
+    for key in keys:
+        val = row.get(key)
+        if val is not None and not (isinstance(val, str) and not val.strip()):
+            return val
+    return None
+
+
+def _parse_padj(raw: Any, default: float = 0.05) -> float | None:
+    """Explicit padj parsing: ``0.0`` stays ``0.0`` (no ``padj or 0.05`` trap);
+    missing -> ``default``; non-finite / outside [0, 1] -> ``None`` (unplottable)."""
+    if raw is None or (isinstance(raw, str) and not raw.strip()):
+        return default
+    try:
+        val = float(raw)
+    except (TypeError, ValueError):
+        return None
+    if not math.isfinite(val) or val < 0.0 or val > 1.0:
+        return None
+    return val
+
+
+def _collect_p2g_points(p2g_findings: dict[str, Any]) -> tuple[list[dict[str, Any]], int]:
+    rows, total = _load_p2g_rows_with_total(p2g_findings)
+    pts: list[dict[str, Any]] = []
+    for row in rows:
+        corr = _finite_float(_first_present(row, "correlation", "corr"))
+        dist_bp = _finite_float(_first_present(row, "distance_bp", "tss_distance_bp"))
+        if dist_bp is None and _first_present(row, "distance_bp", "tss_distance_bp") is None:
+            dist_bp = 0.0
+        padj = _parse_padj(row.get("padj"))
+        if corr is None or dist_bp is None or padj is None:
+            continue
+        pts.append({
+            "x_kb": dist_bp / 1000.0, "r": corr, "padj": padj,
+            "promoter": "promoter" in str(row.get("region_class") or "distal_cis"),
+            "gene": str(row.get("gene") or ""),
+        })
+    return pts, total
+
+
+def _collect_eregulon_bars(ereg_findings: dict[str, Any]) -> tuple[list[dict[str, Any]], int]:
+    mods_all = [
+        m for m in (ereg_findings.get("top_eregulons") or [])
+        if isinstance(m, dict) and m.get("tf")
+    ]
+    bars: list[dict[str, Any]] = []
+    for m in mods_all:
+        padj = _parse_padj(_first_present(m, "regulon_padj", "padj"))
+        if padj is None:
+            continue  # NaN / inf / out-of-range padj is not plottable
+        bars.append({"m": m, "padj": padj})
+        if len(bars) >= _EREG_ROW_CAP:
+            break
+    return bars, len(mods_all)
 
 
 def render_regulatory_triangulation(
@@ -696,14 +968,25 @@ def render_regulatory_triangulation(
         and str(ereg_findings.get("status") or "").lower() in {"success", "ok", "done"}
         and int(ereg_findings.get("n_eregulons") or 0) > 0
     )
-    if not p2g_ok and not ereg_ok:
+    # Wave 2A: collect plottable data BEFORE allocating panels, so an empty side
+    # never leaves a blank [0, 1] axes box (and no data -> no figure at all).
+    p2g_pts: list[dict[str, Any]] = []
+    p2g_total = 0
+    if p2g_ok and isinstance(p2g_findings, dict):
+        p2g_pts, p2g_total = _collect_p2g_points(p2g_findings)
+    ereg_bars: list[dict[str, Any]] = []
+    ereg_total = 0
+    if ereg_ok and isinstance(ereg_findings, dict):
+        ereg_bars, ereg_total = _collect_eregulon_bars(ereg_findings)
+    has_p2g, has_ereg = bool(p2g_pts), bool(ereg_bars)
+    if not has_p2g and not has_ereg:
         return None
 
-    if p2g_ok and ereg_ok:
+    if has_p2g and has_ereg:
         fig, (ax_p2g, ax_ereg) = plt.subplots(
             1, 2, figsize=(13.6, 5.4), constrained_layout=True
         )
-    elif p2g_ok:
+    elif has_p2g:
         fig, ax_p2g = plt.subplots(1, 1, figsize=(7.6, 5.0), constrained_layout=True)
         ax_ereg = None
     else:
@@ -711,40 +994,24 @@ def render_regulatory_triangulation(
         ax_p2g = None
 
     if ax_p2g is not None and isinstance(p2g_findings, dict):
-        p2g_rows = _load_p2g_rows(p2g_findings)
-        xs_prom, ys_prom, ss_prom = [], [], []
-        xs_dist, ys_dist, ss_dist = [], [], []
-        ranked_annot: list[tuple[float, float, float, str]] = []
-        for row in p2g_rows:
-            try:
-                raw_corr = (
-                    row.get("correlation")
-                    if row.get("correlation") is not None
-                    else row.get("corr")
-                )
-                corr = float(raw_corr)
-                dist_bp = float(row.get("distance_bp") or row.get("tss_distance_bp") or 0.0)
-                padj = max(float(row.get("padj") or 0.05), 1e-300)
-            except (TypeError, ValueError):
-                continue
-            if not (math.isfinite(corr) and math.isfinite(dist_bp)):
-                continue
-            dist_kb = dist_bp / 1000.0
-            neg_log_p = min(-math.log10(padj), 25.0)
-            sz = 18.0 + 4.5 * neg_log_p
-            reg_cls = str(row.get("region_class") or "distal_cis")
-            gene = str(row.get("gene") or "")
-            if "promoter" in reg_cls:
-                xs_prom.append(dist_kb)
-                ys_prom.append(corr)
-                ss_prom.append(sz)
-            else:
-                xs_dist.append(dist_kb)
-                ys_dist.append(corr)
-                ss_dist.append(sz)
-            if gene:
-                ranked_annot.append((abs(corr) * neg_log_p, dist_kb, corr, gene))
+        neg_lps, p_cap = _neglog10_display([p["padj"] for p in p2g_pts])
+        lp_top = max(neg_lps) if neg_lps else 0.0
+        s_min, s_max = 14.0, 140.0
 
+        def _p2g_area(v: float) -> float:
+            return s_min if lp_top <= 0 else s_min + (s_max - s_min) * min(max(v / lp_top, 0.0), 1.0)
+
+        groups = {True: ([], [], []), False: ([], [], [])}
+        ranked_annot: list[tuple[float, float, float, str]] = []
+        for pt, lp in zip(p2g_pts, neg_lps):
+            xs, ys, ss = groups[pt["promoter"]]
+            xs.append(pt["x_kb"])
+            ys.append(pt["r"])
+            ss.append(_p2g_area(lp))
+            if pt["gene"]:
+                ranked_annot.append((abs(pt["r"]) * lp, pt["x_kb"], pt["r"], pt["gene"]))
+        xs_dist, ys_dist, ss_dist = groups[False]
+        xs_prom, ys_prom, ss_prom = groups[True]
         if xs_dist:
             ax_p2g.scatter(
                 xs_dist, ys_dist, s=ss_dist, c="#0d9488", alpha=0.72,
@@ -760,108 +1027,137 @@ def render_regulatory_triangulation(
                 rasterized=len(xs_prom) > 250,
             )
         ax_p2g.axhline(0.0, color="#64748b", ls="--", lw=0.9)
-        ranked_annot.sort(key=lambda t: t[0], reverse=True)
+        # Deterministic ranking (score desc, then gene) + light label staggering.
+        ranked_annot.sort(key=lambda t: (-t[0], t[3]))
+        xs_all = [p["x_kb"] for p in p2g_pts]
+        ys_all = [p["r"] for p in p2g_pts]
+        x_span = (max(xs_all) - min(xs_all)) or 1.0
+        y_span = (max(ys_all) - min(ys_all)) or 1.0
+        offsets = [(4, 4), (4, -11), (-6, 12), (-6, -18), (8, 20), (8, -26)]
+        placed: list[tuple[float, float]] = []
         seen_genes: set[str] = set()
         for _, x_kb, y_r, g_sym in ranked_annot:
             if g_sym in seen_genes:
                 continue
             seen_genes.add(g_sym)
+            n_near = sum(
+                1 for px, py in placed
+                if abs(px - x_kb) < 0.06 * x_span and abs(py - y_r) < 0.08 * y_span
+            )
+            dx, dy = offsets[n_near % len(offsets)]
+            placed.append((x_kb, y_r))
             ax_p2g.annotate(
                 g_sym,
                 (x_kb, y_r),
-                xytext=(4, 4),
+                xytext=(dx, dy),
                 textcoords="offset points",
                 fontsize=7.8,
                 color="#0f172a",
                 fontweight="bold",
+                ha="right" if dx < 0 else "left",
+                arrowprops=(dict(arrowstyle="-", color="#94a3b8", lw=0.5)
+                            if n_near else None),
             )
             if len(seen_genes) >= 6:
                 break
         ax_p2g.set_xlabel("Distance to Canonical TSS (kb)", fontsize=9.2)
         ax_p2g.set_ylabel("Peak-Gene Pearson r (shared cells)", fontsize=9.2)
+        n_links = int(p2g_findings.get("n_links") or 0)
+        total = max(n_links, p2g_total)
+        shown = len(p2g_pts)
+        trunc = f"; top {shown} of {total} shown" if shown < total else ""
         ax_p2g.set_title(
             f"Candidate Cis Peak-to-Gene Links "
-            f"(total BH-FDR={p2g_findings.get('n_links', len(p2g_rows))})",
+            f"(total BH-FDR={n_links or total}{trunc})",
             fontsize=10,
             fontweight="bold",
         )
-        ax_p2g.legend(loc="best", fontsize=8.0, frameon=True)
+        # Single legend (link classes + bubble-size key for -log10(padj)) placed
+        # by matplotlib away from the data, so no point is hidden behind it.
+        cls_handles, cls_labels = ax_p2g.get_legend_handles_labels()
+        if lp_top > 0:
+            levels = sorted({round(v, 1) for v in (lp_top / 4.0, lp_top / 2.0, lp_top) if v > 0})
+        else:
+            levels = [0.0]
+        size_handles = [
+            Line2D([0], [0], marker="o", ls="", markerfacecolor="#cbd5e1",
+                   markeredgecolor="#475569", markersize=math.sqrt(_p2g_area(lv)))
+            for lv in levels
+        ]
+        size_labels = [f"-log10(padj) = {lv:g}" for lv in levels]
+        if p_cap is not None:
+            size_labels[-1] = f"-log10(padj) = {levels[-1]:g} (padj=0 capped)"
+        ax_p2g.legend(cls_handles + size_handles, cls_labels + size_labels,
+                      loc="best", fontsize=7.2, frameon=True, labelspacing=0.9)
         for spine in ("top", "right"):
             ax_p2g.spines[spine].set_visible(False)
 
     if ax_ereg is not None and isinstance(ereg_findings, dict):
-        mods = [
-            m for m in (ereg_findings.get("top_eregulons") or [])
-            if isinstance(m, dict) and m.get("tf")
-        ][:12]
-        if mods:
-            labels_e = []
-            scores_e = []
-            colors_e = []
-            notes_e = []
-            for m in mods:
-                tf = str(m.get("tf"))
-                sc_cls = str(m.get("sign_class") or "pos_tf_pos_p2g")
-                raw_padj = (
-                    m.get("regulon_padj")
-                    if m.get("regulon_padj") is not None
-                    else m.get("padj")
-                )
-                padj = max(float(raw_padj if raw_padj is not None else 0.05), 1e-50)
-                neg_lp = min(-math.log10(padj), 30.0)
-                ng = int(m.get("n_target_genes") or 0)
-                npk = int(m.get("n_enhancer_peaks") or 0)
-                au_r = (
-                    m.get("rna_atac_activity_corr")
-                    if m.get("rna_atac_activity_corr") is not None
-                    else m.get("rna_atac_aucell_corr")
-                )
-                au_txt = f"{float(au_r):.2f}" if isinstance(au_r, (int, float)) else "NA"
-                flags = []
-                if m.get("motif_family_ambiguity"):
-                    flags.append("paralog-motif")
-                if m.get("depth_confounded"):
-                    flags.append("depth-conf")
-                flag_str = f" [{'/'.join(flags)}]" if flags else ""
-                sign_tag = "+" if sc_cls == "pos_tf_pos_p2g" else "-"
-                labels_e.append(f"{tf} ({sign_tag}){flag_str}")
-                scores_e.append(neg_lp)
-                colors_e.append(
-                    "#0f766e" if sc_cls == "pos_tf_pos_p2g" else "#d97706"
-                )
-                notes_e.append(f"{ng}g / {npk}p | AUCell r={au_txt}")
+        scores_e, e_cap = _neglog10_display([b["padj"] for b in ereg_bars])
+        labels_e = []
+        colors_e = []
+        notes_e = []
+        classes_seen: list[str] = []
+        for bar, sc_val in zip(ereg_bars, scores_e):
+            m = bar["m"]
+            tf = str(m.get("tf"))
+            sc_cls = str(m.get("sign_class") or "pos_tf_pos_p2g")
+            color, tag, _ = _SIGN_CLASS_STYLE.get(sc_cls, _SIGN_CLASS_OTHER)
+            key = sc_cls if sc_cls in _SIGN_CLASS_STYLE else "__other__"
+            if key not in classes_seen:
+                classes_seen.append(key)
+            ng = int(_finite_float(m.get("n_target_genes")) or 0)
+            npk = int(_finite_float(m.get("n_enhancer_peaks")) or 0)
+            au_r = _finite_float(_first_present(m, "rna_atac_activity_corr", "rna_atac_aucell_corr"))
+            au_txt = f"{au_r:.2f}" if au_r is not None else "NA"
+            flags = []
+            if m.get("motif_family_ambiguity"):
+                flags.append("paralog-motif")
+            if m.get("depth_confounded"):
+                flags.append("depth-conf")
+            flag_str = f" [{'/'.join(flags)}]" if flags else ""
+            labels_e.append(f"{tf} ({tag}){flag_str}")
+            colors_e.append(color)
+            cap_txt = " | padj=0 (capped)" if bar["padj"] <= 0 else ""
+            notes_e.append(f"{ng}g / {npk}p | AUCell r={au_txt}{cap_txt}")
 
-            y_pos = np.arange(len(mods))
-            ax_ereg.barh(y_pos, scores_e, color=colors_e, alpha=0.86, height=0.64)
-            xmax = max(scores_e) if scores_e else 2.0
-            for idx, (sc_val, note) in enumerate(zip(scores_e, notes_e)):
-                ax_ereg.text(
-                    sc_val + xmax * 0.02,
-                    idx,
-                    note,
-                    va="center",
-                    ha="left",
-                    fontsize=7.6,
-                    color="#334155",
-                )
-            ax_ereg.set_yticks(y_pos)
-            ax_ereg.set_yticklabels(labels_e, fontsize=8.4)
-            ax_ereg.invert_yaxis()
-            ax_ereg.set_xlim(0.0, xmax * 1.48)
-            ax_ereg.set_xlabel("-log10(BH-adjusted p-value)", fontsize=9.2)
-            ax_ereg.set_title(
-                f"Candidate eRegulon Modules "
-                f"(n={ereg_findings.get('n_eregulons', len(mods))}; associative)",
-                fontsize=10,
-                fontweight="bold",
+        y_pos = np.arange(len(ereg_bars))
+        ax_ereg.barh(y_pos, scores_e, color=colors_e, alpha=0.86, height=0.64)
+        xmax = max(max(scores_e) if scores_e else 0.0, 1.0)
+        for idx, (sc_val, note) in enumerate(zip(scores_e, notes_e)):
+            ax_ereg.text(
+                sc_val + xmax * 0.02,
+                idx,
+                note,
+                va="center",
+                ha="left",
+                fontsize=7.6,
+                color="#334155",
             )
-            legend_handles = [
-                Patch(facecolor="#0f766e", label="pos_tf_pos_p2g (concordant candidate)"),
-                Patch(facecolor="#d97706", label="neg_tf_pos_p2g (inverse candidate)"),
-            ]
-            ax_ereg.legend(handles=legend_handles, loc="lower right", fontsize=7.8, frameon=True)
-            for spine in ("top", "right"):
-                ax_ereg.spines[spine].set_visible(False)
+        ax_ereg.set_yticks(y_pos)
+        ax_ereg.set_yticklabels(labels_e, fontsize=8.4)
+        ax_ereg.invert_yaxis()
+        ax_ereg.set_xlim(0.0, xmax * 1.48)
+        ax_ereg.set_xlabel(
+            "-log10(BH-adjusted p-value)" + (" [padj=0 capped]" if e_cap is not None else ""),
+            fontsize=9.2,
+        )
+        n_ereg = int(ereg_findings.get("n_eregulons") or 0) or ereg_total
+        shown = len(ereg_bars)
+        trunc = f"; top {shown} of {n_ereg} shown" if shown < n_ereg else ""
+        ax_ereg.set_title(
+            f"Candidate eRegulon Modules "
+            f"(n={n_ereg}{trunc}; associative)",
+            fontsize=10,
+            fontweight="bold",
+        )
+        legend_handles = []
+        for key in classes_seen:
+            color, _, label = _SIGN_CLASS_STYLE.get(key, _SIGN_CLASS_OTHER)
+            legend_handles.append(Patch(facecolor=color, label=label))
+        ax_ereg.legend(handles=legend_handles, loc="lower right", fontsize=7.8, frameon=True)
+        for spine in ("top", "right"):
+            ax_ereg.spines[spine].set_visible(False)
 
     fig.suptitle(
         "Cross-Modal Regulatory Triangulation (Observational Cis & Motif-Linked Candidates)",

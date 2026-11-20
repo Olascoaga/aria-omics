@@ -76,7 +76,10 @@ def _compute_umap(adata) -> str:
     if "X_pca" not in adata.obsm:
         sc.pp.normalize_total(adata, target_sum=1e4)
         sc.pp.log1p(adata)
-        sc.pp.pca(adata, n_comps=min(50, max(2, adata.n_vars - 1)))
+        n_comps = min(50, min(adata.shape) - 1)
+        if n_comps < 1:
+            raise ValueError("UMAP fallback PCA requires at least two cells and two genes")
+        sc.pp.pca(adata, n_comps=n_comps)
     if "neighbors" not in adata.uns:
         sc.pp.neighbors(adata, n_neighbors=15, use_rep="X_pca")
     sc.tl.umap(adata, random_state=0)
@@ -125,30 +128,46 @@ def _plot_one(coords, values, key: str, out_path: Path,
         or pd.api.types.is_object_dtype(values)
         or pd.api.types.is_string_dtype(values)
         or pd.api.types.is_bool_dtype(values)
+        or (pd.api.types.is_integer_dtype(values)
+            and pd.Series(values).nunique() <= 30)
+        or any(token in key.lower() for token in
+               ("cluster", "leiden", "louvain", "batch", "sample", "group"))
     )
 
     if is_categorical:
-        cats = pd.Series(values).astype(str).fillna("NA")
+        from matplotlib.lines import Line2D
+
+        cats = pd.Series(values).astype("string").fillna("NA")
         unique = sorted(cats.unique())
         colors = _categorical_colors(len(unique))
-        for cat, color in zip(unique, colors):
-            mask = (cats == cat).values
-            ax.scatter(coords[mask, 0], coords[mask, 1],
-                       s=point_size, c=[color], label=cat,
-                       linewidths=0, alpha=0.85)
+        color_map = dict(zip(unique, colors))
+        point_colors = np.asarray([color_map[cat] for cat in cats])
+        order = np.random.default_rng(0).permutation(len(coords))
+        ax.scatter(coords[order, 0], coords[order, 1],
+                   s=point_size, c=point_colors[order], linewidths=0, alpha=0.85)
+        handles = [Line2D([], [], marker="o", color=color, linestyle="None",
+                          label=cat, markersize=np.sqrt(point_size))
+                   for cat, color in zip(unique, colors)]
         # Compact legend outside plot if many categories
         ncol = 1 if len(unique) <= 14 else 2
-        ax.legend(loc="center left", bbox_to_anchor=(1.02, 0.5),
+        ax.legend(handles=handles, loc="center left", bbox_to_anchor=(1.02, 0.5),
                   frameon=False, fontsize=7, ncol=ncol,
                   handletextpad=0.3, columnspacing=0.6,
                   markerscale=2.0)
     else:
         vals = np.asarray(values, dtype=float)
-        sc = ax.scatter(coords[:, 0], coords[:, 1], s=point_size,
-                        c=vals, cmap="viridis",
-                        linewidths=0, alpha=0.9)
-        plt.colorbar(sc, ax=ax, fraction=0.04, pad=0.02,
-                     label=key)
+        finite = np.isfinite(vals)
+        if (~finite).any():
+            ax.scatter(coords[~finite, 0], coords[~finite, 1], s=point_size,
+                       c="lightgray", linewidths=0, alpha=0.9, zorder=1,
+                       label="Non-finite / unavailable")
+            ax.legend(loc="best", frameon=False, fontsize=7)
+        if finite.any():
+            sc = ax.scatter(coords[finite, 0], coords[finite, 1], s=point_size,
+                            c=vals[finite], cmap="viridis",
+                            vmin=float(vals[finite].min()), vmax=float(vals[finite].max()),
+                            linewidths=0, alpha=0.9, zorder=2)
+            plt.colorbar(sc, ax=ax, fraction=0.04, pad=0.02, label=key)
 
     ax.set_xlabel(f"{embedding_label}-1", fontsize=9)
     ax.set_ylabel(f"{embedding_label}-2", fontsize=9)

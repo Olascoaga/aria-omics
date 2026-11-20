@@ -91,6 +91,9 @@ def _draw_paga(conn, cats, sizes, output_path: Path,
     import matplotlib.pyplot as plt
     import numpy as np
 
+    conn = np.array(conn, dtype=float, copy=True)
+    np.fill_diagonal(conn, 0.0)
+    c_max = float(conn.max())
     pos = _spring_layout(conn)
     fig, ax = plt.subplots(figsize=(7, 6.5), dpi=160)
     colors = _categorical_colors(len(cats))
@@ -141,15 +144,16 @@ def _draw_paga(conn, cats, sizes, output_path: Path,
 
     # Edge-width legend
     legend_lines = []
-    if w_max > 0:
+    if c_max > 0:
         from matplotlib.lines import Line2D
         anchors = [0.25, 0.5, 1.0]
         for a in anchors:
             lw = 0.5 + 4.5 * a
-            wv = a * (conn.max() if not use_log else conn.max())
+            wv = ((10 ** (a * w_max) - 1.0) / 1000.0
+                  if use_log else a * c_max)
             legend_lines.append(
                 Line2D([0], [0], color="#475569", linewidth=lw,
-                       label=f"~{wv:.4f}" if conn.max() < 0.1
+                       label=f"~{wv:.4f}" if c_max < 0.1
                              else f"~{wv:.2f}")
             )
         ax.legend(handles=legend_lines, loc="lower left",
@@ -187,7 +191,8 @@ def make_paga_figures(params: dict) -> dict:
     conn = adata.uns["paga"]["connectivities"]
     if hasattr(conn, "toarray"):
         conn = conn.toarray()
-    conn = np.asarray(conn, dtype=float)
+    conn = np.array(conn, dtype=float, copy=True)
+    np.fill_diagonal(conn, 0.0)
 
     if min_conn > 0:
         conn = np.where(conn >= min_conn, conn, 0.0)
@@ -196,7 +201,7 @@ def make_paga_figures(params: dict) -> dict:
             if hasattr(adata.obs[groupby], "cat")
             else sorted(adata.obs[groupby].unique()))
     sizes = [int((adata.obs[groupby] == c).sum()) for c in cats]
-    max_off = float((conn - np.diag(np.diag(conn))).max())
+    max_off = float(conn.max())
 
     out_dir.mkdir(parents=True, exist_ok=True)
     figures: dict = {}

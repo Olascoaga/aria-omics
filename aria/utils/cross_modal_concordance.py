@@ -602,16 +602,28 @@ def summarize_tfs(frame):
            "n_chromatin_shift_rna_unchanged": 0, "n_paralog_ambiguous": 0, "top_concordant_tfs": []}
     if frame.empty:
         return out
-    keys = [x for x in ("contrast_id", "tf") if x in frame]
-    unique = frame.sort_values("chromatin_padj").drop_duplicates(keys)
+    work = frame.copy()
+    work["_tf_key"] = work["tf"].astype(str).str.upper()
+    work["_abs_score"] = pd.to_numeric(work.get("chromatin_score"), errors="coerce").abs().fillna(-1.0)
+    keys = [x for x in ("contrast_id", "_tf_key") if x in work]
+    unique = (
+        work.sort_values(
+            ["chromatin_padj", "_abs_score", "_tf_key"],
+            ascending=[True, False, True],
+            kind="stable",
+        )
+        .drop_duplicates(keys)
+    )
     counts = Counter(unique.classification)
+    drop_cols = ["_tf_key", "_abs_score"]
+    top_df = unique[unique.classification == "concordant"].drop(columns=drop_cols).head(20)
     out.update(n_tfs_evaluated=len(unique), n_concordant_tfs=counts["concordant"], n_discordant_tfs=counts["discordant"],
                n_chromatin_shift_rna_unchanged=counts["chromatin_shift_rna_unchanged"],
-               n_paralog_ambiguous=int(frame.groupby(keys).paralog_motif_ambiguity.any().sum()),
+               n_paralog_ambiguous=int(work.groupby(keys).paralog_motif_ambiguity.any().sum()),
                top_concordant_tfs=[
                    {key: None if isinstance(value, float) and not math.isfinite(value) else value
                     for key, value in row.items()}
-                   for row in unique[unique.classification == "concordant"].head(20).to_dict("records")])
+                   for row in top_df.to_dict("records")])
     return out
 
 
@@ -932,6 +944,23 @@ def sample_matched_layer(rna_cpm, atac_cpm, models, params, warnings):
     return frame, result
 
 
+def _adaptive_neglog10(pvals):
+    """Return (-log10(p) with data-adaptive cap for p==0, cap_value, has_zero_cap)."""
+    arr = np.asarray(pvals, dtype=float)
+    valid = np.isfinite(arr) & (arr >= 0.0) & (arr <= 1.0)
+    pos = arr[valid & (arr > 0.0)]
+    if pos.size > 0:
+        max_fin = float(-np.log10(np.min(pos)))
+        cap = max(max_fin * 1.15, max_fin + 1.0, 5.0)
+    else:
+        cap = 10.0
+    zero_mask = valid & (arr == 0.0)
+    out = np.full(arr.shape, np.nan, dtype=float)
+    out[valid & (arr > 0.0)] = -np.log10(arr[valid & (arr > 0.0)])
+    out[zero_mask] = cap
+    return out, cap, bool(np.any(zero_mask))
+
+
 def render_starburst(de_da, tfs, pathways, summary, output_dir):
     """Render editable, headless publication panels with associative labels."""
     import matplotlib
@@ -951,58 +980,127 @@ def render_starburst(de_da, tfs, pathways, summary, output_dir):
         colors = {"concordant_up": "#bc4934", "concordant_down": "#346da2", "discordant": "#9467a6", "single_modality": "#b9b9b9"}
         if not de_da.empty:
             plot = de_da.dropna(subset=["rna_log2fc", "atac_log2fc"]).copy()
-            plot["plot_group"] = plot.classification.map(lambda x: x if x in ("concordant_up", "concordant_down") else "discordant" if x.startswith("discordant") else "single_modality")
-            for key, color in colors.items():
-                part = plot[plot.plot_group == key]
-                if not part.empty:
-                    a.scatter(part.rna_log2fc, part.atac_log2fc, s=21, alpha=.65, color=color, label=key.replace("_", " "), edgecolors="none")
-            labels = plot[plot.classification.str.startswith(("concordant", "discordant"))].sort_values(["rna_padj", "atac_padj"]).drop_duplicates("gene_key").head(8)
-            for i, row in enumerate(labels.itertuples()):
-                a.annotate(safe_label(row.gene), (row.rna_log2fc, row.atac_log2fc), xytext=(4, 5 + (i % 2) * 7), textcoords="offset points", fontsize=7)
-            if len(plot):
+            r_lfc = pd.to_numeric(plot["rna_log2fc"], errors="coerce").to_numpy(dtype=float)
+            a_lfc = pd.to_numeric(plot["atac_log2fc"], errors="coerce").to_numpy(dtype=float)
+            plot = plot[np.isfinite(r_lfc) & np.isfinite(a_lfc)].copy()
+            if not plot.empty:
+                plot["plot_group"] = plot.classification.map(lambda x: x if x in ("concordant_up", "concordant_down") else "discordant" if str(x).startswith("discordant") else "single_modality")
+                for key, color in colors.items():
+                    part = plot[plot.plot_group == key]
+                    if not part.empty:
+                        a.scatter(part.rna_log2fc, part.atac_log2fc, s=21, alpha=.65, color=color, label=key.replace("_", " "), edgecolors="none")
+                labels = plot[plot.classification.astype(str).str.startswith(("concordant", "discordant"))].sort_values(["rna_padj", "atac_padj", "gene_key"], kind="stable").drop_duplicates("gene_key").head(8)
+                for i, row in enumerate(labels.itertuples()):
+                    a.annotate(safe_label(row.gene), (row.rna_log2fc, row.atac_log2fc), xytext=(4, 5 + (i % 2) * 7), textcoords="offset points", fontsize=7)
                 a.legend(frameon=False, fontsize=7, loc="lower right")
+            else:
+                a.text(.5, .5, "No finite RNA/ATAC log2FC pairs available", ha="center", transform=a.transAxes)
         else:
             a.text(.5, .5, "No DE × DA layer available", ha="center", transform=a.transAxes)
         rho = summary.get("spearman_r")
         fp = summary.get("fisher_pvalue")
         fraction = summary.get("concordance_fraction")
-        box = f"Spearman ρ = {rho:.2f}" if rho is not None else "Spearman ρ unavailable"
-        if fp is not None:
-            box += f"\nFisher p = {fp:.2g}"
-        if fraction is not None:
-            box += f"\nConcordant fraction = {fraction:.2f}"
+        box = f"Spearman ρ = {rho:.2f}" if (rho is not None and math.isfinite(float(rho))) else "Spearman ρ unavailable"
+        if fp is not None and math.isfinite(float(fp)):
+            fp_val = float(fp)
+            box += "\nFisher p < 1e-300" if fp_val == 0.0 else f"\nFisher p = {fp_val:.2g}"
+        if fraction is not None and math.isfinite(float(fraction)):
+            box += f"\nConcordant fraction = {float(fraction):.2f}"
         a.text(.03, .97, box, va="top", transform=a.transAxes, fontsize=8, bbox={"facecolor": "white", "alpha": .85, "edgecolor": "#dddddd"})
         b.set_title("B  TF motif / footprint × TF RNA", loc="left", fontweight="bold")
         if tfs.empty:
             b.text(.5, .5, "No TF motif/footprint layer available", ha="center", va="center", transform=b.transAxes)
             b.set_axis_off()
         else:
-            rows = tfs.sort_values("chromatin_padj").drop_duplicates("tf").head(10).iloc[::-1]
+            tf_work = tfs.copy()
+            tf_work["_tf_key"] = tf_work["tf"].astype(str).str.upper()
+            tf_work["_abs_score"] = pd.to_numeric(tf_work["chromatin_score"], errors="coerce").abs().fillna(-1.0)
+            rows = (
+                tf_work.sort_values(
+                    ["chromatin_padj", "_abs_score", "_tf_key"],
+                    ascending=[True, False, True],
+                    kind="stable",
+                )
+                .drop_duplicates("_tf_key")
+                .head(10)
+                .iloc[::-1]
+                .copy()
+            )
+            c_scores = pd.to_numeric(rows["chromatin_score"], errors="coerce").to_numpy(dtype=float)
+            r_scores = pd.to_numeric(rows["rna_log2fc"], errors="coerce").to_numpy(dtype=float)
+            # Keep chromatin scores visually comparable to RNA log2FC without 300.0 spikes.
+            fin_c = c_scores[np.isfinite(c_scores)]
+            fin_r = r_scores[np.isfinite(r_scores)]
+            ref_scale = max(
+                float(np.percentile(np.abs(fin_r), 95)) if fin_r.size else 2.0,
+                float(np.median(np.abs(fin_c))) if fin_c.size else 2.0,
+                2.0,
+            )
+            score_cap = max(ref_scale * 4.0, 10.0)
+            c_capped = False
+            if np.any(np.isfinite(c_scores) & (np.abs(c_scores) > score_cap)):
+                c_scores = np.clip(c_scores, -score_cap, score_cap)
+                c_capped = True
+            # Fill missing chromatin_score (e.g., motif padj==0 without log2_enrichment) with signed cap.
+            missing_c = ~np.isfinite(c_scores)
+            if np.any(missing_c):
+                fill_mag = min(score_cap, max(float(np.max(np.abs(fin_c))) * 1.15 if fin_c.size else 3.0, 2.0))
+                dirs = np.where(rows["chromatin_direction"].astype(str).to_numpy() == "down", -1.0, 1.0)
+                c_scores = np.where(missing_c, dirs * fill_mag, c_scores)
+                c_capped = True
+
             y = np.arange(len(rows))
-            b.hlines(y, 0, rows.chromatin_score, color="#759c94", lw=2)
-            b.scatter(rows.chromatin_score, y, color="#326e62", label="Chromatin score", s=36)
-            b.scatter(rows.rna_log2fc, y, color="#cf7546", label="RNA log2 fold change", marker="D", s=26)
+            b.hlines(y, 0, c_scores, color="#759c94", lw=2)
+            b.scatter(c_scores, y, color="#326e62", label="Chromatin score", s=36)
+            fin_r_mask = np.isfinite(r_scores)
+            if np.any(fin_r_mask):
+                b.scatter(r_scores[fin_r_mask], y[fin_r_mask], color="#cf7546", label="RNA log2 fold change", marker="D", s=26)
             b.set_yticks(y, [safe_label(x.tf) + (" *" if x.paralog_motif_ambiguity else "") for x in rows.itertuples()])
             b.axvline(0, color="#aaaaaa", lw=.7)
-            b.set_xlabel("Signed chromatin score / RNA log2 fold change")
+            xlabel_b = "Signed chromatin score / RNA log2 fold change"
+            if c_capped:
+                xlabel_b += f" (capped ±{score_cap:.0f})"
+            if bool(rows["paralog_motif_ambiguity"].any()):
+                xlabel_b += "\n* Motif-family or dimer ambiguity"
+            b.set_xlabel(xlabel_b)
             b.legend(frameon=False, fontsize=7)
-            b.text(0, -.2, "* Motif-family or dimer ambiguity", transform=b.transAxes, fontsize=7)
         c.set_title("C  Shared functional pathways", loc="left", fontweight="bold")
         if not pathways.empty:
-            rows = pathways.sort_values("geometric_mean_padj").drop_duplicates("safe_label").head(7).iloc[::-1]
+            rows = (
+                pathways.sort_values(["geometric_mean_padj", "safe_label"], kind="stable")
+                .drop_duplicates("safe_label")
+                .head(7)
+                .iloc[::-1]
+            )
             y = np.arange(len(rows))
-            c.barh(y - .18, -np.log10(np.maximum(rows.rna_padj.to_numpy(), 1e-300)), .34, color="#cf7546", label="RNA ORA")
-            c.barh(y + .18, -np.log10(np.maximum(rows.atac_padj.to_numpy(), 1e-300)), .34, color="#326e62", label="ATAC peak ORA")
+            both_p = np.concatenate([
+                pd.to_numeric(rows.rna_padj, errors="coerce").to_numpy(dtype=float),
+                pd.to_numeric(rows.atac_padj, errors="coerce").to_numpy(dtype=float),
+            ])
+            both_neg, cap_c, capped_c = _adaptive_neglog10(both_p)
+            n_r = len(rows)
+            rna_y = np.nan_to_num(both_neg[:n_r], nan=0.0)
+            atac_y = np.nan_to_num(both_neg[n_r:], nan=0.0)
+            c.barh(y - .18, rna_y, .34, color="#cf7546", label="RNA ORA")
+            c.barh(y + .18, atac_y, .34, color="#326e62", label="ATAC peak ORA")
             import textwrap
             c.set_yticks(y, [textwrap.fill(safe_label(x), 27) for x in rows.safe_label])
-            c.set_xlabel("−log10 adjusted p-value")
+            c_xlab = "−log10 adjusted p-value"
+            if capped_c:
+                c_xlab += f" (padj = 0 capped at {cap_c:.1f})"
+            c.set_xlabel(c_xlab)
             c.legend(frameon=False, fontsize=7)
         else:
             keys = ("concordant_up", "concordant_down", "discordant_rna_up_atac_down", "discordant_rna_down_atac_up", "atac_da_rna_unchanged", "rna_de_atac_unchanged")
-            c.barh(np.arange(len(keys)), [summary.get(f"n_{k}", 0) for k in keys], color=[colors["concordant_up"], colors["concordant_down"], colors["discordant"], colors["discordant"], "#b9b9b9", "#b9b9b9"])
-            c.set_yticks(np.arange(len(keys)), [k.replace("_", " ") for k in keys], fontsize=7)
-            c.set_xlabel("Co-tested gene–peak pairs")
-            c.set_title("C  Cross-modal quadrant counts", loc="left", fontweight="bold")
+            vals = [int(summary.get(f"n_{k}", 0) or 0) for k in keys]
+            if any(v > 0 for v in vals):
+                c.barh(np.arange(len(keys)), vals, color=[colors["concordant_up"], colors["concordant_down"], colors["discordant"], colors["discordant"], "#b9b9b9", "#b9b9b9"])
+                c.set_yticks(np.arange(len(keys)), [k.replace("_", " ") for k in keys], fontsize=7)
+                c.set_xlabel("Co-tested gene–peak pairs")
+                c.set_title("C  Cross-modal quadrant counts", loc="left", fontweight="bold")
+            else:
+                c.text(.5, .5, "No shared pathways or quadrant counts available", ha="center", va="center", transform=c.transAxes)
+                c.set_axis_off()
         fig.suptitle("Cross-modal concordance • associative evidence", fontsize=13, fontweight="bold")
         try:
             fig.savefig(png, dpi=300, facecolor="white")

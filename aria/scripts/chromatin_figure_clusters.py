@@ -112,18 +112,44 @@ def _qc_depth_violin(adata, cluster_key, out_path):
     log_depth = np.log10(np.clip(depth, 1, None))
     clusters = sorted(adata.obs[cluster_key].astype(str).unique())
     obs_cl = adata.obs[cluster_key].astype(str).values
-    data = [log_depth[obs_cl == cl] for cl in clusters]
-    data = [d for d in data if len(d) > 0]
-    if not data:
+    # Pair each cluster with its data so tick labels can never drift from the
+    # plotted positions when an empty cluster is dropped.
+    pairs = [(cl, log_depth[obs_cl == cl]) for cl in clusters]
+    pairs = [(cl, d[np.isfinite(d)]) for cl, d in pairs]
+    pairs = [(cl, d) for cl, d in pairs if len(d) > 0]
+    if not pairs:
         return None
+    labels = [cl for cl, _ in pairs]
+    positions = list(range(1, len(pairs) + 1))
 
-    fig, ax = plt.subplots(figsize=(max(4.0, 0.5 * len(clusters) + 2), 4),
+    def _kde_ok(d) -> bool:
+        # Gaussian KDE needs >= 2 points and non-zero variance (a singleton or a
+        # constant-depth cluster raises LinAlgError / singular covariance).
+        return len(d) >= 2 and float(np.ptp(d)) > 0.0
+
+    fig, ax = plt.subplots(figsize=(max(4.0, 0.5 * len(labels) + 2), 4),
                            dpi=160)
-    parts = ax.violinplot(data, showmedians=True, showextrema=False)
-    for body in parts["bodies"]:
-        body.set_alpha(0.7)
-    ax.set_xticks(range(1, len(clusters) + 1))
-    ax.set_xticklabels(clusters, rotation=45, ha="right", fontsize=7)
+    kde_pos = [p for p, (_, d) in zip(positions, pairs) if _kde_ok(d)]
+    kde_dat = [d for _, d in pairs if _kde_ok(d)]
+    if kde_dat:
+        parts = ax.violinplot(kde_dat, positions=kde_pos, showmedians=True,
+                              showextrema=False)
+        for body in parts["bodies"]:
+            body.set_alpha(0.7)
+    degenerate = [(p, d) for p, (_, d) in zip(positions, pairs) if not _kde_ok(d)]
+    if degenerate:
+        # Honest fallback: raw points + a median tick (no fabricated density).
+        for p, d in degenerate:
+            ax.scatter(np.full(len(d), p), d, s=10, color="#1f77b4",
+                       alpha=0.8, zorder=3, linewidths=0)
+            ax.hlines(float(np.median(d)), p - 0.2, p + 0.2, color="#1f77b4",
+                      lw=1.2, zorder=3)
+        ax.text(0.99, 0.01, "points + median tick: n<2 or zero-variance cluster",
+                transform=ax.transAxes, ha="right", va="bottom", fontsize=6,
+                color="#555555")
+    ax.set_xticks(positions)
+    ax.set_xticklabels(labels, rotation=45, ha="right", fontsize=7)
+    ax.set_xlim(0.4, len(positions) + 0.6)
     ax.set_xlabel(cluster_key, fontsize=9)
     ax.set_ylabel("log10 per-cell peak counts", fontsize=9)
     ax.set_title("Per-cluster accessibility depth", fontsize=10,

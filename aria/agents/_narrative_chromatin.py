@@ -75,6 +75,44 @@ def _save_dual(fig, png_path) -> str:
     return str(png_path)
 
 
+def _neglog10_capped(p, headroom: float = 1.12, all_zero_floor: float = 10.0):
+    """Wave 2A: data-adaptive ``-log10(p)`` for display.
+
+    ``p`` must already be finite and in ``[0, 1]``. Strictly positive values map
+    to their exact ``-log10``. Underflowed ``p == 0.0`` values (float64 tail
+    underflow in DESeq2 / Fisher / site tests) are placed at a *visual cap* just
+    above the largest finite value — ``max(max_finite * headroom, max_finite + 1)``,
+    i.e. at or above one decade beyond the smallest positive p — instead of the old
+    hard ``1e-300 -> 300`` clip that flattened the real cloud. When every value is
+    zero the cap falls back to ``all_zero_floor``. Returns ``(y, zero_mask, cap)``
+    with ``cap = None`` when nothing was capped.
+    """
+    import numpy as np
+
+    p = np.asarray(p, dtype=float)
+    zero = p <= 0.0
+    y = np.zeros_like(p)
+    if (~zero).any():
+        y[~zero] = -np.log10(p[~zero])
+    cap = None
+    if zero.any():
+        if (~zero).any():
+            max_finite = float(np.max(y[~zero]))
+            cap = max(max_finite * headroom, max_finite + 1.0)
+        else:
+            cap = float(all_zero_floor)
+        y[zero] = cap
+    return y, zero, cap
+
+
+def _finite_unit_mask(p):
+    """Boolean mask of finite p-values inside ``[0, 1]``."""
+    import numpy as np
+
+    p = np.asarray(p, dtype=float)
+    return np.isfinite(p) & (p >= 0.0) & (p <= 1.0)
+
+
 def render_da_figures(da_full_csv: str, output_dir: Path,
                       padj_max: float = 0.05) -> dict:
     """W0.3: pseudobulk-DA volcano + MA per comparison, rendered INLINE (matplotlib
@@ -105,47 +143,78 @@ def render_da_figures(da_full_csv: str, output_dir: Path,
 
     for comp, sub in df.groupby("comparison"):
         comp_s = _safe(comp)
-        lfc = sub["log2fc"].to_numpy(dtype=float)
-        padj = sub["padj"].to_numpy(dtype=float)
-        sig = sub["significant"].fillna(False).to_numpy(dtype=bool)
-        neglog = -np.log10(np.clip(padj, 1e-300, None))
+        lfc_all = pd.to_numeric(sub["log2fc"], errors="coerce").to_numpy(dtype=float)
+        padj_all = pd.to_numeric(sub["padj"], errors="coerce").to_numpy(dtype=float)
+        sig_all = (sub["significant"].fillna(False).to_numpy(dtype=bool)
+                   if "significant" in sub.columns
+                   else np.zeros(len(sub), dtype=bool))
+        # Wave 2A: only finite log2FC and finite padj in [0, 1] are drawable;
+        # NaN/inf/negative padj never reach the axes.
+        keep = np.isfinite(lfc_all) & _finite_unit_mask(padj_all)
+        lfc, padj, sig = lfc_all[keep], padj_all[keep], sig_all[keep]
 
         # ── Volcano ───────────────────────────────────────────────────────
-        try:
-            fig, ax = plt.subplots(figsize=(6.5, 6), dpi=160)
-            ax.scatter(lfc[~sig], neglog[~sig], s=4, c="#bdbdbd",
-                       linewidths=0, alpha=0.5, label="not significant")
-            up, down = sig & (lfc > 0), sig & (lfc < 0)
-            ax.scatter(lfc[up], neglog[up], s=7, c="#c0392b", linewidths=0,
-                       alpha=0.85, label="up")
-            ax.scatter(lfc[down], neglog[down], s=7, c="#2c7fb8", linewidths=0,
-                       alpha=0.85, label="down")
-            ax.axhline(-np.log10(padj_max), color="black", lw=0.5, ls="--")
-            ax.axvline(0, color="black", lw=0.4)
-            ax.set_xlabel("log2 fold change (accessibility)", fontsize=9)
-            ax.set_ylabel("-log10 padj", fontsize=9)
-            ax.set_title(f"Differential accessibility — {comp}", fontsize=10,
-                         fontweight="bold")
-            ax.legend(loc="upper right", fontsize=7, frameon=False,
-                      markerscale=2.0)
-            ax.tick_params(labelsize=7)
-            path = output_dir / f"da_volcano_{comp_s}.png"
-            _save_dual(fig, path)
-            plt.close(fig)
-            out[f"da_volcano_{comp_s}"] = str(path)
-        except Exception as e:
-            log.warning("DA volcano failed for %s: %s", comp, e)
+        fig = None
+        if lfc.size:
+            try:
+                # Data-adaptive display: padj == 0 underflow sits just above the
+                # finite cloud (never at y=300), and is disclosed explicitly.
+                neglog, zero, cap = _neglog10_capped(padj)
+                fig, ax = plt.subplots(figsize=(6.5, 6), dpi=160)
+                ns = ~sig & ~zero
+                ax.scatter(lfc[ns], neglog[ns], s=4, c="#bdbdbd",
+                           linewidths=0, alpha=0.5, label="not significant")
+                up, down = sig & (lfc > 0), sig & (lfc < 0)
+                ax.scatter(lfc[up & ~zero], neglog[up & ~zero], s=7, c="#c0392b",
+                           linewidths=0, alpha=0.85, label="up")
+                ax.scatter(lfc[down & ~zero], neglog[down & ~zero], s=7,
+                           c="#2c7fb8", linewidths=0, alpha=0.85, label="down")
+                if cap is not None:
+                    zc = np.where(sig & (lfc > 0), "#c0392b",
+                                  np.where(sig & (lfc < 0), "#2c7fb8", "#7f7f7f"))
+                    ax.scatter(lfc[zero], neglog[zero], s=16, c=list(zc[zero]),
+                               marker="^", linewidths=0.3, edgecolors="black",
+                               alpha=0.9,
+                               label=f"padj = 0 (underflow, n={int(zero.sum())}) "
+                                     f"drawn at cap {cap:.1f}")
+                    ax.axhline(cap, color="#7f7f7f", lw=0.4, ls=":")
+                ax.axhline(-np.log10(padj_max), color="black", lw=0.5, ls="--")
+                ax.axvline(0, color="black", lw=0.4)
+                ax.set_xlabel("log2 fold change (accessibility)", fontsize=9)
+                ax.set_ylabel("-log10 padj" + (" (padj=0 capped)"
+                                               if cap is not None else ""),
+                              fontsize=9)
+                ax.set_title(f"Differential accessibility — {comp}", fontsize=10,
+                             fontweight="bold")
+                ax.legend(loc="upper right", fontsize=7, frameon=False,
+                          markerscale=2.0)
+                ax.tick_params(labelsize=7)
+                path = output_dir / f"da_volcano_{comp_s}.png"
+                _save_dual(fig, path)
+                plt.close(fig)
+                out[f"da_volcano_{comp_s}"] = str(path)
+            except Exception as e:
+                if fig is not None:
+                    plt.close(fig)
+                log.warning("DA volcano failed for %s: %s", comp, e)
 
         # ── MA (needs baseMean) ───────────────────────────────────────────
+        fig = None
         if "base_mean" in sub.columns and not sub["base_mean"].isna().all():
             try:
-                base = sub["base_mean"].to_numpy(dtype=float)
+                base_all = pd.to_numeric(sub["base_mean"],
+                                         errors="coerce").to_numpy(dtype=float)
+                ma_keep = np.isfinite(lfc_all) & np.isfinite(base_all)
+                if not ma_keep.any():
+                    continue
+                base = base_all[ma_keep]
+                lfc_ma, sig_ma = lfc_all[ma_keep], sig_all[ma_keep]
                 x = np.log10(np.clip(base, 1e-3, None))
                 fig, ax = plt.subplots(figsize=(6.5, 5), dpi=160)
-                ax.scatter(x[~sig], lfc[~sig], s=4, c="#bdbdbd",
+                ax.scatter(x[~sig_ma], lfc_ma[~sig_ma], s=4, c="#bdbdbd",
                            linewidths=0, alpha=0.5)
-                ax.scatter(x[sig], lfc[sig], s=7, c="#c0392b", linewidths=0,
-                           alpha=0.85, label="significant")
+                ax.scatter(x[sig_ma], lfc_ma[sig_ma], s=7, c="#c0392b",
+                           linewidths=0, alpha=0.85, label="significant")
                 ax.axhline(0, color="black", lw=0.5)
                 ax.set_xlabel("log10 mean accessibility (baseMean)", fontsize=9)
                 ax.set_ylabel("log2 fold change", fontsize=9)
@@ -158,6 +227,8 @@ def render_da_figures(da_full_csv: str, output_dir: Path,
                 plt.close(fig)
                 out[f"da_ma_{comp_s}"] = str(path)
             except Exception as e:
+                if fig is not None:
+                    plt.close(fig)
                 log.warning("DA MA failed for %s: %s", comp, e)
     return out
 
@@ -189,13 +260,16 @@ def render_sample_correlation(counts_tsv, png_path) -> Optional[str]:
     n = len(samples)
     fig, ax = plt.subplots(figsize=(max(4.5, 0.6 * n + 2.5),
                                     max(4.0, 0.6 * n + 2.0)), dpi=160)
-    im = ax.imshow(corr, cmap="viridis", vmin=min(0.0, float(corr.min())),
-                   vmax=1.0)
+    vmin = min(0.0, float(corr.min()))
+    im = ax.imshow(corr, cmap="viridis", vmin=vmin, vmax=1.0)
     ax.set_xticks(range(n))
     ax.set_yticks(range(n))
     ax.set_xticklabels(samples, rotation=45, ha="right", fontsize=7)
     ax.set_yticklabels(samples, fontsize=7)
-    thresh = (corr.max() + corr.min()) / 2.0
+    # Wave 2A: text contrast follows the COLORMAP midpoint (viridis is dark below
+    # it, bright yellow above), not the data midpoint — otherwise replicates in
+    # 0.90-1.00 got white text on bright-yellow cells.
+    thresh = 0.5 * (vmin + 1.0)
     for i in range(n):
         for j in range(n):
             ax.text(j, i, f"{corr[i, j]:.2f}", ha="center", va="center",
@@ -254,19 +328,42 @@ def render_motif_dotplot(motifs: dict, out_path: Path, top_n: int = 8) -> Option
     log2 enrichment), rendered INLINE from the structured `motifs["per_group"]`
     (top_motifs carry name/log2_enrichment/padj). Returns the path or None when
     there is nothing enriched to plot. A motif id is a DB identifier, not a claim."""
+    import math
+
     per_group = (motifs or {}).get("per_group") or {}
-    rows = []
+    # Wave 2A: keep only genuinely ENRICHED motifs (finite log2_enrichment > 0;
+    # SnapATAC2 depleted rows carry <0 / -inf) with a finite padj in [0, 1].
+    best: dict = {}
     for group, info in per_group.items():
-        for m in (info or {}).get("top_motifs", [])[:top_n]:
-            padj = m.get("padj")
-            if padj is None:
+        for m in (info or {}).get("top_motifs", []) or []:
+            if not isinstance(m, dict):
                 continue
-            rows.append({
-                "group": str(group),
-                "motif": str(m.get("name") or m.get("motif_id") or "?"),
-                "log2_enrichment": m.get("log2_enrichment"),
-                "padj": float(padj),
-            })
+            try:
+                padj = float(m.get("padj"))
+                l2e = float(m.get("log2_enrichment"))
+            except (TypeError, ValueError):
+                continue
+            if not (math.isfinite(padj) and 0.0 <= padj <= 1.0):
+                continue
+            if not (math.isfinite(l2e) and l2e > 0.0):
+                continue
+            row = {"group": str(group),
+                   "motif": str(m.get("name") or m.get("motif_id") or "?"),
+                   "log2_enrichment": l2e, "padj": padj}
+            key = (row["group"], row["motif"])
+            # Duplicate TF names (several JASPAR matrices) overplot at identical
+            # (x, y): keep the strongest (lowest padj, then largest enrichment).
+            prev = best.get(key)
+            if prev is None or (padj, -l2e) < (prev["padj"], -prev["log2_enrichment"]):
+                best[key] = row
+    by_group: dict = {}
+    for row in best.values():
+        by_group.setdefault(row["group"], []).append(row)
+    rows = []
+    for group in by_group:
+        ranked = sorted(by_group[group],
+                        key=lambda r: (r["padj"], -r["log2_enrichment"], r["motif"]))
+        rows.extend(ranked[:top_n])
     if not rows:
         return None
     import matplotlib
@@ -274,49 +371,127 @@ def render_motif_dotplot(motifs: dict, out_path: Path, top_n: int = 8) -> Option
     import matplotlib.pyplot as plt
     import numpy as np
     import pandas as pd
+    from matplotlib.colors import Normalize
 
     df = pd.DataFrame(rows)
     groups = sorted(df["group"].unique())
     motif_order = list(dict.fromkeys(df["motif"]))
     gx = {g: i for i, g in enumerate(groups)}
     my = {m: i for i, m in enumerate(motif_order)}
+    fig = None
     try:
         fig, ax = plt.subplots(
             figsize=(max(4.0, 1.1 * len(groups) + 2),
                      max(3.0, 0.32 * len(motif_order) + 1)), dpi=160)
-        sizes = 12 + 40 * (-np.log10(np.clip(df["padj"].to_numpy(float),
-                                             1e-300, 1.0)))
+        neglog, zero, cap = _neglog10_capped(df["padj"].to_numpy(float),
+                                             headroom=1.15)
+        # Bounded marker AREA: -log10(padj) mapped linearly onto [25, 280] pt²
+        # (the old 12 + 40*300 = 12,012 pt² swallowed neighbouring rows).
+        s_min, s_max = 25.0, 280.0
+        y_top = float(np.max(neglog)) if neglog.size else 0.0
+
+        def _area(v):
+            v = np.asarray(v, dtype=float)
+            if y_top <= 0:
+                return np.full(v.shape, s_min)
+            return s_min + (s_max - s_min) * np.clip(v / y_top, 0.0, 1.0)
+
+        sizes = _area(neglog)
         colors = df["log2_enrichment"].to_numpy(dtype=float)
+        vmin, vmax = float(np.min(colors)), float(np.max(colors))
+        if not vmax > vmin:   # degenerate Normalize(v, v)
+            vmin, vmax = vmin - 0.5, vmax + 0.5
         sc = ax.scatter([gx[g] for g in df["group"]],
                         [my[m] for m in df["motif"]],
                         s=sizes, c=colors, cmap="viridis",
+                        norm=Normalize(vmin=vmin, vmax=vmax),
                         edgecolors="black", linewidths=0.3)
         ax.set_xticks(range(len(groups)))
         ax.set_xticklabels(groups, rotation=45, ha="right", fontsize=7)
         ax.set_yticks(range(len(motif_order)))
         ax.set_yticklabels(motif_order, fontsize=7)
-        ax.set_title("Motif enrichment (size=-log10 padj)", fontsize=10,
-                     fontweight="bold")
+        ax.set_xlim(-0.6, len(groups) - 0.4)
+        ax.set_ylim(len(motif_order) - 0.5, -0.5)
+        ax.set_title("Motif enrichment (size = -log10 padj; enriched only)",
+                     fontsize=10, fontweight="bold")
         plt.colorbar(sc, ax=ax, fraction=0.04, pad=0.02, label="log2 enrichment")
+        # Size legend: three representative -log10(padj) levels.
+        if y_top > 0:
+            levels = sorted({round(v, 1) for v in (y_top / 4.0, y_top / 2.0, y_top)
+                             if v > 0})
+        else:
+            levels = [0.0]
+        handles = [ax.scatter([], [], s=float(_area([lv])[0]), c="#bdbdbd",
+                              edgecolors="black", linewidths=0.3)
+                   for lv in levels]
+        labels = [f"{lv:g}" for lv in levels]
+        title = "-log10 padj"
+        if cap is not None:
+            labels[-1] = f"{levels[-1]:g} (padj=0 cap)"
+            title += f"\n({int(zero.sum())} padj=0 capped at {cap:.1f})"
+        ax.legend(handles, labels, title=title, loc="upper left",
+                  bbox_to_anchor=(1.28, 1.0), frameon=False, fontsize=6,
+                  title_fontsize=6, labelspacing=1.2, borderpad=0.8)
         out_path = Path(out_path)
         out_path.parent.mkdir(parents=True, exist_ok=True)
         out_path = _save_dual(fig, out_path)
         plt.close(fig)
         return out_path
     except Exception as e:
+        if fig is not None:
+            plt.close(fig)
         log.warning("motif dotplot failed: %s", e)
         return None
 
 
-def render_fragment_size_figure(qc: dict, out_path: Path) -> Optional[str]:
+# Fragment-size class bands, mirroring the windows `chromatin_qc` measures
+# (ATAC: NFR <100, mono 180-247, di 315-473 bp; CUT&RUN/CUT&Tag: sub-nucleosomal
+# <120, mono 140-250 bp). ChIP has no nucleosomal banding expectation -> no bands.
+_ATAC_FRAGMENT_BANDS = (
+    (0, 100, "NFR (<100 bp)", "#2ecc71"),
+    (180, 247, "mono-nucleosome (180-247 bp)", "#e67e22"),
+    (315, 473, "di-nucleosome (315-473 bp)", "#8e44ad"),
+)
+_CUTRUN_FRAGMENT_BANDS = (
+    (0, 120, "sub-nucleosomal (<120 bp)", "#2ecc71"),
+    (140, 250, "mono-nucleosome (140-250 bp)", "#e67e22"),
+)
+_MODALITY_LABEL = {
+    "scATAC": "scATAC", "bulk_ATAC": "bulk ATAC", "ChIP": "ChIP-seq",
+    "CUT_AND_RUN": "CUT&RUN", "CUT_AND_TAG": "CUT&Tag",
+}
+# Read-only mirror of `chromatin_qc._default_bulk_qc_thresholds` / the scATAC
+# FRiP gate, used only when the QC payload carries no explicit `thresholds`.
+_DEFAULT_FRIP_GATE = {
+    "scATAC": 0.20, "bulk_ATAC": 0.20, "ChIP": 0.01,
+    "CUT_AND_RUN": 0.05, "CUT_AND_TAG": 0.10,
+}
+
+
+def _fragment_bands(data_type: Optional[str]):
+    if data_type in ("CUT_AND_RUN", "CUT_AND_TAG"):
+        return _CUTRUN_FRAGMENT_BANDS
+    if data_type == "ChIP":
+        return ()
+    # scATAC / bulk_ATAC / legacy payloads without a data_type (scATAC default).
+    return _ATAC_FRAGMENT_BANDS
+
+
+def render_fragment_size_figure(qc: dict, out_path: Path,
+                                data_type: Optional[str] = None) -> Optional[str]:
     """W0.2: fragment-size / nucleosome-banding plot from the QC size histogram
     (`qc["fragment_sizes"]["size_histogram"]`). Rendered INLINE. Returns None when
     no histogram was computed (e.g. a `.h5mu` peak-matrix run with no fragments) —
-    honest absence, never a fabricated distribution."""
-    hist = ((qc or {}).get("fragment_sizes") or {}).get("size_histogram") or {}
-    edges = hist.get("bin_edges") or []
-    counts = hist.get("counts") or []
-    if len(edges) < 2 or not counts or sum(counts) == 0:
+    honest absence, never a fabricated distribution.
+
+    Wave 2A: drawn as a true step histogram, with modality-appropriate size-class
+    bands (ATAC vs CUT&RUN/CUT&Tag; none for ChIP) matching `chromatin_qc`, and the
+    subsample (size-sample cap / truncated scan / per-BAM read cap) disclosed."""
+    fs = (qc or {}).get("fragment_sizes") or {}
+    hist = fs.get("size_histogram") or {}
+    edges = hist.get("bin_edges")
+    counts = hist.get("counts")
+    if edges is None or counts is None or len(edges) < 2 or len(counts) == 0:
         return None
     import matplotlib
     matplotlib.use("Agg")
@@ -325,26 +500,53 @@ def render_fragment_size_figure(qc: dict, out_path: Path) -> Optional[str]:
 
     edges = np.asarray(edges, dtype=float)
     counts = np.asarray(counts, dtype=float)
-    centers = 0.5 * (edges[:-1] + edges[1:])
-    n = min(len(centers), len(counts))
+    n = min(len(edges) - 1, len(counts))
+    counts = np.where(np.isfinite(counts[:n]), counts[:n], 0.0)
+    if n < 1 or float(counts.sum()) <= 0:
+        return None
+    data_type = data_type or (qc or {}).get("data_type")
+    n_plot = int(round(float(counts.sum())))
+    n_total = fs.get("n_fragments")
+    truncated = bool(fs.get("scan_truncated"))
+    if isinstance(n_total, (int, float)) and n_total > n_plot:
+        sample_note = (f"subsample: {n_plot:,} of {int(n_total):,}"
+                       f"{'+' if truncated else ''} fragments")
+    elif truncated:
+        sample_note = f"subsample: {n_plot:,} fragments (scan capped)"
+    elif fs.get("n_fragments_sampled") is not None:
+        sample_note = f"sampled: {n_plot:,} read pairs (per-BAM read cap)"
+    else:
+        sample_note = f"n={n_plot:,} fragments"
+    fig = None
     try:
         fig, ax = plt.subplots(figsize=(6.5, 4), dpi=160)
-        ax.fill_between(centers[:n], counts[:n], step="mid", alpha=0.6,
-                        color="#34699a")
-        ax.plot(centers[:n], counts[:n], lw=0.8, color="#1f4068")
-        for x in (147, 294):   # mono- / di-nucleosome guides
-            ax.axvline(x, color="grey", lw=0.5, ls="--")
+        # Step histogram over the real bin edges (no piecewise-linear overlay that
+        # disagrees with the step fill).
+        step_y = np.append(counts, counts[-1])
+        ax.fill_between(edges[:n + 1], step_y, step="post", alpha=0.6,
+                        color="#34699a", linewidth=0)
+        ax.step(edges[:n + 1], step_y, where="post", lw=0.8, color="#1f4068")
+        for lo, hi, label, color in _fragment_bands(data_type):
+            ax.axvspan(lo, hi, color=color, alpha=0.10, lw=0, label=label)
+        ax.set_xlim(float(edges[0]), float(edges[n]))
         ax.set_xlabel("fragment size (bp)", fontsize=9)
-        ax.set_ylabel("fragment count", fontsize=9)
-        ax.set_title("Fragment-size distribution (nucleosome banding)",
-                     fontsize=10, fontweight="bold")
+        ax.set_ylabel("fragment count (subsample)" if "subsample" in sample_note
+                      or "sampled" in sample_note else "fragment count",
+                      fontsize=9)
+        mod = _MODALITY_LABEL.get(str(data_type), "")
+        ax.set_title(f"{mod + ' ' if mod else ''}fragment-size distribution\n"
+                     f"({sample_note})", fontsize=10, fontweight="bold")
         ax.tick_params(labelsize=7)
+        if _fragment_bands(data_type):
+            ax.legend(fontsize=6.5, frameon=False, loc="upper right")
         out_path = Path(out_path)
         out_path.parent.mkdir(parents=True, exist_ok=True)
         out_path = _save_dual(fig, out_path)
         plt.close(fig)
         return out_path
     except Exception as e:
+        if fig is not None:
+            plt.close(fig)
         log.warning("fragment-size figure failed: %s", e)
         return None
 
@@ -358,7 +560,7 @@ def render_tss_depth_scatter(qc: dict, out_path: Path) -> Optional[str]:
     a 1-D TSSe strip so the gate is still visible."""
     sc = (qc or {}).get("tss_depth_scatter") or {}
     tsse = sc.get("tsse")
-    if not tsse:
+    if tsse is None or len(tsse) == 0:
         return None
     import matplotlib
     matplotlib.use("Agg")
@@ -369,16 +571,25 @@ def render_tss_depth_scatter(qc: dict, out_path: Path) -> Optional[str]:
     depth = sc.get("log10_depth")
     min_tss = sc.get("min_tss")
     warn_tss = sc.get("warn_tss")
+    # Wave 2A: `if depth and ...` raised on a NumPy array (silently dropping the
+    # figure); test identity + length explicitly and mask non-finite points.
+    has_depth = depth is not None and len(depth) == len(tsse)
+    if has_depth:
+        x = np.asarray(depth, dtype=float)
+        keep = np.isfinite(tsse) & np.isfinite(x)
+        x, tsse = x[keep], tsse[keep]
+        xlabel = "log10 fragment depth"
+    else:
+        tsse = tsse[np.isfinite(tsse)]
+        # No per-cell depth — jitter on x so points are separable.
+        rng = np.random.default_rng(0)
+        x = rng.normal(0.0, 0.04, size=tsse.shape[0])
+        xlabel = "(no per-cell depth recorded)"
+    if tsse.size == 0:
+        return None
+    fig = None
     try:
         fig, ax = plt.subplots(figsize=(6.0, 4.5), dpi=160)
-        if depth and len(depth) == len(tsse):
-            x = np.asarray(depth, dtype=float)
-            xlabel = "log10 fragment depth"
-        else:
-            # No per-cell depth — jitter on x so points are separable.
-            rng = np.random.default_rng(0)
-            x = rng.normal(0.0, 0.04, size=tsse.shape[0])
-            xlabel = "(no per-cell depth recorded)"
         ax.scatter(x, tsse, s=4, alpha=0.35, color="#34699a", linewidths=0)
         for gate, c, lab in ((min_tss, "#c0392b", "ENCODE min"),
                              (warn_tss, "#e08e0b", "marginal")):
@@ -398,17 +609,25 @@ def render_tss_depth_scatter(qc: dict, out_path: Path) -> Optional[str]:
         plt.close(fig)
         return out_path
     except Exception as e:
+        if fig is not None:
+            plt.close(fig)
         log.warning("TSS×depth scatter figure failed: %s", e)
         return None
 
 
-def render_frip_distribution(qc: dict, out_path: Path) -> Optional[str]:
-    """P4.1 (2)[B]: per-barcode FRiP distribution histogram with the FRiP quality
-    gate. Reads the additive ``qc["frip_distribution"]`` list (only present when a
-    called-peak BED was supplied, W0.5 path). Returns None when no distribution was
-    computed — honest absence, never a fabricated histogram."""
+def render_frip_distribution(qc: dict, out_path: Path,
+                             data_type: Optional[str] = None,
+                             thresholds: Optional[dict] = None) -> Optional[str]:
+    """P4.1 (2)[B]: FRiP distribution histogram with the FRiP quality gate. Reads
+    the additive ``qc["frip_distribution"]`` list (per-barcode for scATAC; per-sample
+    for bulk ATAC/ChIP/CUT&RUN/CUT&Tag). Returns None when no distribution was
+    computed — honest absence, never a fabricated histogram.
+
+    Wave 2A: the unit ("barcodes" vs "samples") and the gate follow the modality —
+    ``thresholds["min_frip"]`` (``qc["thresholds"]``) when supplied, else the
+    modality default (ChIP 0.01, CUT&RUN 0.05, CUT&Tag 0.10, ATAC 0.20)."""
     dist = (qc or {}).get("frip_distribution")
-    if not dist:
+    if dist is None or len(dist) == 0:
         return None
     import matplotlib
     matplotlib.use("Agg")
@@ -419,13 +638,31 @@ def render_frip_distribution(qc: dict, out_path: Path) -> Optional[str]:
     vals = vals[np.isfinite(vals)]
     if vals.size == 0:
         return None
+    data_type = data_type or (qc or {}).get("data_type")
+    th = thresholds if isinstance(thresholds, dict) else (
+        (qc or {}).get("thresholds") if isinstance((qc or {}).get("thresholds"),
+                                                     dict) else {})
+    gate = th.get("min_frip")
+    try:
+        gate = float(gate) if gate is not None else None
+    except (TypeError, ValueError):
+        gate = None
+    if gate is None or not np.isfinite(gate):
+        gate = _DEFAULT_FRIP_GATE.get(str(data_type), 0.20)
+    is_bulk = data_type in _BULK_CHROMATIN_MODALITIES
+    unit = "samples" if is_bulk else "barcodes"
+    per = "Per-sample" if is_bulk else "Per-barcode"
+    mod = _MODALITY_LABEL.get(str(data_type), "")
+    fig = None
     try:
         fig, ax = plt.subplots(figsize=(6.0, 4.0), dpi=160)
         ax.hist(vals, bins=40, range=(0, 1), color="#34699a", alpha=0.75)
-        ax.axvline(0.2, color="#c0392b", lw=0.8, ls="--", label="FRiP gate (0.20)")
+        ax.axvline(gate, color="#c0392b", lw=0.8, ls="--",
+                   label=f"{mod + ' ' if mod else ''}FRiP gate (≥{gate:.2f})")
         ax.set_xlabel("FRiP (fraction of reads in peaks)", fontsize=9)
-        ax.set_ylabel("barcodes", fontsize=9)
-        ax.set_title(f"Per-barcode FRiP distribution (n={vals.size})",
+        ax.set_ylabel(unit, fontsize=9)
+        ax.set_title(f"{per} FRiP distribution "
+                     f"({mod + ', ' if mod else ''}n={vals.size} {unit})",
                      fontsize=10, fontweight="bold")
         ax.tick_params(labelsize=7)
         ax.legend(fontsize=7, frameon=False)
@@ -435,6 +672,8 @@ def render_frip_distribution(qc: dict, out_path: Path) -> Optional[str]:
         plt.close(fig)
         return out_path
     except Exception as e:
+        if fig is not None:
+            plt.close(fig)
         log.warning("FRiP distribution figure failed: %s", e)
         return None
 
@@ -463,6 +702,20 @@ def _is_bulk_atac_findings(findings: dict) -> bool:
     return any(isinstance(findings.get(k), dict)
                and findings[k].get("data_type") in _BULK_CHROMATIN_MODALITIES
                for k in _BULK_ATAC_SPINE_KEYS)
+
+
+def _findings_data_type(findings: dict) -> Optional[str]:
+    """Resolve the chromatin modality from the measured spine (bulk keys first,
+    then any spine/QC `data_type`, e.g. "scATAC")."""
+    seen = None
+    for k in _BULK_ATAC_SPINE_KEYS:
+        block = findings.get(k)
+        if isinstance(block, dict) and block.get("data_type"):
+            dt = str(block["data_type"])
+            if dt in _BULK_CHROMATIN_MODALITIES:
+                return dt
+            seen = seen or dt
+    return seen
 
 
 def _bulk_figure_params(findings: dict, output_dir: Path) -> dict:
@@ -502,6 +755,12 @@ def _bulk_figure_params(findings: dict, output_dir: Path) -> dict:
             "frip", "frip_per_sample", "tss_enrichment",
             "tss_enrichment_per_sample", "dup_rate", "dup_rate_per_sample",
             "mito_frac", "mito_fraction")}
+        # Wave 2A: modality-specific gates (ChIP FRiP 0.01, CUT&RUN 0.05, ...).
+        if isinstance(qc.get("thresholds"), dict) and qc["thresholds"]:
+            params["thresholds"] = dict(qc["thresholds"])
+    data_type = _findings_data_type(findings)
+    if data_type in _BULK_CHROMATIN_MODALITIES:
+        params["data_type"] = data_type
     peaks = findings.get("peaks")
     if isinstance(peaks, dict):
         params["peaks"] = {k: v for k, v in peaks.items() if k in (
@@ -602,21 +861,29 @@ def generate_figures(findings: dict, h5ad_path: Optional[str], output_dir,
                 figs["bulk_atac_sample_correlation"] = path
         except Exception as e:
             log.warning("bulk ATAC sample-correlation figure failed: %s", e)
-        # Genomic peak-annotation distribution (B2): feature class bar chart.
-        try:
-            path = render_peak_annotation(
-                findings.get("peak_annotation"),
-                output_dir / "bulk_atac_peak_annotation.png")
-            if path:
-                figs["bulk_atac_peak_annotation"] = path
-        except Exception as e:
-            log.warning("bulk ATAC peak-annotation figure failed: %s", e)
-        # Functional ORA dotplots (B3): rendered in the rna stack by the ORA script
-        # (seaborn lives there); surface the returned paths.
-        ora = findings.get("peak_ora") or {}
-        for key, path in (ora.get("figures") or {}).items():
-            if isinstance(path, str):
-                figs[key] = path
+
+    # Genomic peak-annotation distribution (B2) + functional ORA dotplots (B3).
+    # Wave 2A: `chromatin_peak_annotation` / `chromatin_peak_ora` also run for
+    # scATAC, so surface them for every chromatin modality (not bulk-only).
+    data_type = _findings_data_type(findings)
+    ann = findings.get("peak_annotation")
+    ann_dt = (ann.get("data_type") if isinstance(ann, dict) else None) or data_type
+    ann_prefix = ("bulk_atac" if ann_dt in _BULK_CHROMATIN_MODALITIES
+                  else "scatac")
+    try:
+        path = render_peak_annotation(
+            ann, output_dir / f"{ann_prefix}_peak_annotation.png")
+        if path:
+            figs[f"{ann_prefix}_peak_annotation"] = path
+    except Exception as e:
+        log.warning("peak-annotation figure failed: %s", e)
+    # ORA dotplots are rendered in the rna stack by the ORA script (seaborn lives
+    # there); surface the returned paths.
+    ora = findings.get("peak_ora") or {}
+    for key, path in ((ora.get("figures") or {}) if isinstance(ora, dict)
+                      else {}).items():
+        if isinstance(path, str):
+            figs[key] = path
 
     # 2b. Bulk ATAC sample PCA + ENCODE QC summary (ADR-077), rendered by
     # `chromatin_figure_bulk` in the rna stack (or in-process without an env
@@ -637,7 +904,9 @@ def generate_figures(findings: dict, h5ad_path: Optional[str], output_dir,
 
     # 4. Fragment-size / nucleosome banding (inline) from the QC size histogram.
     qc = findings.get("qc") or {}
-    path = render_fragment_size_figure(qc, output_dir / "fragment_size.png")
+    qc_data_type = qc.get("data_type") or data_type
+    path = render_fragment_size_figure(qc, output_dir / "fragment_size.png",
+                                       data_type=qc_data_type)
     if path:
         figs["fragment_size"] = path
 
@@ -647,7 +916,10 @@ def generate_figures(findings: dict, h5ad_path: Optional[str], output_dir,
     path = render_tss_depth_scatter(qc, output_dir / "qc_tss_depth.png")
     if path:
         figs["qc_tss_depth"] = path
-    path = render_frip_distribution(qc, output_dir / "qc_frip_distribution.png")
+    path = render_frip_distribution(
+        qc, output_dir / "qc_frip_distribution.png", data_type=qc_data_type,
+        thresholds=qc.get("thresholds") if isinstance(qc.get("thresholds"),
+                                                      dict) else None)
     if path:
         figs["qc_frip_distribution"] = path
 
