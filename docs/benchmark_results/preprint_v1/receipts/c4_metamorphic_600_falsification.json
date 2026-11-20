@@ -1,5 +1,5 @@
 {
-  "aria_version": "4.9.0",
+  "aria_version": "4.9.1",
   "artifacts": [
     {
       "path": "claim_4/metamorphic_600/metamorphic_600_falsification.json",
@@ -11,18 +11,18 @@
     "claim_4"
   ],
   "command": "conda run -n aria-env python scripts/run_metamorphic_report_falsification.py --output-dir docs/benchmark_results/preprint_v1/claim_4/metamorphic_600 --manifest-name metamorphic_600_falsification.json",
-  "completed_utc": "2026-11-18T20:07:19.098841+00:00",
+  "completed_utc": "2026-11-20T14:25:49.759117+00:00",
   "environment": "aria-env",
-  "git_commit": "b573b7070868c31911f2d4a2e17701663bb9ec54",
-  "git_tree_sha": "c1a59bdf1cf3a49631834cf5d6982bc2cf211280",
+  "git_commit": "96a5da597db81ef39943099292253b62c0f1d6af",
+  "git_tree_sha": "449afad8f878b18190cc8218fc9aaec6c729bc32",
   "lane_id": "c4_metamorphic_600_falsification",
   "returncode": 0,
   "schema_version": "aria.preprint_freeze.receipt.v1",
-  "source_snapshot_hash": "9e4ea9f4c25587ed832015efedaad6914cd915c5539f85e6deb500c5d94c32bc",
-  "started_utc": "2026-11-18T20:07:16.734271+00:00",
+  "source_snapshot_hash": "825724af7451878932180768e2f7ce3341cd9cf3f09b544e67096aa944c10988",
+  "started_utc": "2026-11-20T14:25:46.707568+00:00",
   "status": "pass",
   "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
   "stdout_sha256": "a9d2e9589fbe3cdabc4b35ecdbba835e27d06d9966dd86fd9ac5712be29e0bfc",
   "test_summary": null,
-  "workflow_hash": "a6f56213ef6170014208f85b9727bb5ec5176c8b0fa4caa7606d57f9ef57dbdb"
+  "workflow_hash": "4dc331900233aa2b1574f4ca856e204a1570d1926fa7b66b36e5ad040712e113"
 }

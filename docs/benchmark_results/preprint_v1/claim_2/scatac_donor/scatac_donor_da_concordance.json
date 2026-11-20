@@ -1,7 +1,7 @@
 {
   "aria_n_sig": 2052,
   "aria_n_tested": 134276,
-  "aria_version": "4.9.0",
+  "aria_version": "4.9.1",
   "benchmark": "P3_multisample_DA_concordance",
   "caveats": [
     "Validates the pseudobulk CONDITION-DA path (donor-level, biological replication, min_replicates_per_condition>=3). NOT the per-cluster wilcoxon marker path (single-sample fragile).",
@@ -81,7 +81,7 @@
     }
   },
   "provenance": {
-    "aria_version": "4.9.0",
+    "aria_version": "4.9.1",
     "environment": {
       "conda_prefix": null,
       "env_lock_file": "envs/aria-rna-env.linux-64.lock",
@@ -89,11 +89,11 @@
       "env_name": "aria-rna-env",
       "source": "conda_lock"
     },
-    "git_commit": "b573b7070868c31911f2d4a2e17701663bb9ec54",
-    "git_describe": "v4.8.0-21-gb573b70-dirty",
+    "git_commit": "96a5da597db81ef39943099292253b62c0f1d6af",
+    "git_describe": "v4.9.0-15-g96a5da5-dirty",
     "git_dirty": true,
-    "git_sha": "b573b7070868c31911f2d4a2e17701663bb9ec54",
-    "git_tree_sha": "c1a59bdf1cf3a49631834cf5d6982bc2cf211280",
+    "git_sha": "96a5da597db81ef39943099292253b62c0f1d6af",
+    "git_tree_sha": "449afad8f878b18190cc8218fc9aaec6c729bc32",
     "image": {
       "containerized": false,
       "digest": null,
@@ -103,9 +103,9 @@
       "revision": null,
       "validation": null
     },
-    "version": "4.9.0",
+    "version": "4.9.1",
     "version_source": "aria.version.__version__",
-    "workflow_hash": "0d8574a4da6e4be2a867f4249b039cfd756a9d4cbb36d2755579e7f8099e1aa9",
+    "workflow_hash": "6e55140220026f2dd67ffed35dcac0c998f828fa4fe99a5f5a1efa00f4b0e6b9",
     "workflow_hash_algorithm": "sha256(version+git_sha+git_tree_sha+git_dirty+git_status+git_diff)"
   },
   "scope": "external_DE_framework_concordance_on_multireplicate_pseudobulk"

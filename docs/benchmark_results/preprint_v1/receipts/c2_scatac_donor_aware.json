@@ -1,9 +1,9 @@
 {
-  "aria_version": "4.9.0",
+  "aria_version": "4.9.1",
   "artifacts": [
     {
       "path": "claim_2/scatac_donor/scatac_donor_da_concordance.json",
-      "sha256": "96e7f0c201ce04a99fafab8e3f686c2ecae62c86abfdfcdb1cd87d5ba9789101",
+      "sha256": "2a4fce3d0a08c9591bb42272ffa51b4ee12da4755fb7ff8652e53be469befad5",
       "size_bytes": 3661
     }
   ],
@@ -11,18 +11,18 @@
     "claim_2"
   ],
   "command": "conda run -n aria-rna-env python scripts/run_scatac_multisample_da_concordance.py --data-dir ~/Samael/Oligos/data/interim/paired --young hc937,hc5579,hc13344,hc935,hc5614 --old hc26,hc98,hc35,hc40,hc73 --rna-env aria-rna-env --bench-env aria-bench-env --output-dir docs/benchmark_results/preprint_v1/claim_2/scatac_donor --manifest-name scatac_donor_da_concordance.json --work-dir /tmp/c2_scatac_donor",
-  "completed_utc": "2026-11-18T20:16:50.163319+00:00",
+  "completed_utc": "2026-11-20T14:34:20.088081+00:00",
   "environment": "aria-rna-env + aria-bench-env",
-  "git_commit": "b573b7070868c31911f2d4a2e17701663bb9ec54",
-  "git_tree_sha": "c1a59bdf1cf3a49631834cf5d6982bc2cf211280",
+  "git_commit": "96a5da597db81ef39943099292253b62c0f1d6af",
+  "git_tree_sha": "449afad8f878b18190cc8218fc9aaec6c729bc32",
   "lane_id": "c2_scatac_donor_aware",
   "returncode": 0,
   "schema_version": "aria.preprint_freeze.receipt.v1",
-  "source_snapshot_hash": "9e4ea9f4c25587ed832015efedaad6914cd915c5539f85e6deb500c5d94c32bc",
-  "started_utc": "2026-11-18T20:08:58.753312+00:00",
+  "source_snapshot_hash": "825724af7451878932180768e2f7ce3341cd9cf3f09b544e67096aa944c10988",
+  "started_utc": "2026-11-20T14:29:18.104847+00:00",
   "status": "pass",
   "stderr_sha256": "49f24f01bc49707c6225635842e0a7fb4ca2be0e7f865c82d6faa796b96d9c30",
   "stdout_sha256": "8a9351a9059b374bfa933292526f250d6e6cb5eb389f2527552ada26cd7eabff",
   "test_summary": null,
-  "workflow_hash": "a6f56213ef6170014208f85b9727bb5ec5176c8b0fa4caa7606d57f9ef57dbdb"
+  "workflow_hash": "4dc331900233aa2b1574f4ca856e204a1570d1926fa7b66b36e5ad040712e113"
 }

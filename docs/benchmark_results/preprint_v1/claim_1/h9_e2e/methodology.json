@@ -4,7 +4,7 @@
     "fork_changes": [],
     "fork_index": 0,
     "is_exact_spec_replay": true,
-    "ledger_runs_observed": 2,
+    "ledger_runs_observed": 3,
     "manifest_sha256": "7d7bb79dc0002130121a31f2dda3088a5cb0bc5edbb531914b3615eb264b26b3",
     "parent_manifest_sha256": null,
     "schema_version": "aria.fork_ledger.v1",
@@ -52,7 +52,7 @@
           "label": "narrative blocks summarized",
           "path": null,
           "source": "narrative_registry",
-          "value": 13
+          "value": 14
         },
         {
           "label": "allowed confidence labels",
@@ -135,7 +135,7 @@
               "path": null,
               "ref_id": "executive_summary:evidence:3",
               "source": "narrative_registry",
-              "value": 13
+              "value": 14
             },
             {
               "kind": "evidence",
@@ -161,7 +161,7 @@
               "kind": "metric",
               "label": "n_narrative_blocks_summarized",
               "ref_id": "executive_summary:metric:n_narrative_blocks_summarized",
-              "value": 13
+              "value": 14
             }
           ],
           "semantic_facts": []
@@ -625,8 +625,7 @@
       "figures": [
         "volcano.svg",
         "heatmap_padj.svg",
-        "heatmap_lfc.svg",
-        "heatmap_padj.svg"
+        "heatmap_lfc.svg"
       ],
       "language_violation": null,
       "ledger_linked": true,
@@ -658,7 +657,7 @@
         "checked_sentences": 3,
         "evidence_card": {
           "evidence_card_id": "bulk.contrast.B_vs_WT#evidence",
-          "n_refs": 20,
+          "n_refs": 19,
           "node_type": "evidence_card",
           "provenance": {
             "analysis": "differential_expression",
@@ -800,12 +799,6 @@
               "label": "B vs WT heatmap_lfc",
               "path": "heatmap_lfc.svg",
               "ref_id": "bulk.contrast.B_vs_WT:figure:2"
-            },
-            {
-              "kind": "figure",
-              "label": "B vs WT heatmap",
-              "path": "heatmap_padj.svg",
-              "ref_id": "bulk.contrast.B_vs_WT:figure:3"
             }
           ],
           "semantic_facts": [
@@ -903,16 +896,22 @@
           "value": "nervous system development (GO:0007399)"
         },
         {
+          "label": "nervous system development (GO:0007399) FDR",
+          "path": null,
+          "source": "bulk_pathways",
+          "value": 2.5826928743559174e-06
+        },
+        {
           "label": "GO_BP term",
           "path": null,
           "source": "bulk_pathways",
           "value": "positive regulation of cell differentiation (GO:0045597)"
         },
         {
-          "label": "GO_BP term",
+          "label": "positive regulation of cell differentiation (GO:0045597) FDR",
           "path": null,
           "source": "bulk_pathways",
-          "value": "cellular response to growth factor stimulus (GO:0071363)"
+          "value": 4.4721269950620804e-06
         },
         {
           "label": "GO_BP term",
@@ -921,10 +920,34 @@
           "value": "positive regulation of cell population proliferation (GO:0008284)"
         },
         {
+          "label": "positive regulation of cell population proliferation (GO:0008284) FDR",
+          "path": null,
+          "source": "bulk_pathways",
+          "value": 1.248005449381902e-05
+        },
+        {
+          "label": "GO_BP term",
+          "path": null,
+          "source": "bulk_pathways",
+          "value": "cellular response to growth factor stimulus (GO:0071363)"
+        },
+        {
+          "label": "cellular response to growth factor stimulus (GO:0071363) FDR",
+          "path": null,
+          "source": "bulk_pathways",
+          "value": 1.248005449381902e-05
+        },
+        {
           "label": "GO_BP term",
           "path": null,
           "source": "bulk_pathways",
           "value": "regulation of cell population proliferation (GO:0042127)"
+        },
+        {
+          "label": "regulation of cell population proliferation (GO:0042127) FDR",
+          "path": null,
+          "source": "bulk_pathways",
+          "value": 1.731666831203351e-05
         }
       ],
       "evidence_card_id": "bulk.pathway.B_vs_WT#evidence",
@@ -968,7 +991,7 @@
         "checked_sentences": 4,
         "evidence_card": {
           "evidence_card_id": "bulk.pathway.B_vs_WT#evidence",
-          "n_refs": 16,
+          "n_refs": 21,
           "node_type": "evidence_card",
           "provenance": {
             "analysis": "pathway_enrichment",
@@ -997,11 +1020,11 @@
             },
             {
               "kind": "evidence",
-              "label": "GO_BP term",
+              "label": "nervous system development (GO:0007399) FDR",
               "path": null,
               "ref_id": "bulk.pathway.B_vs_WT:evidence:2",
               "source": "bulk_pathways",
-              "value": "positive regulation of cell differentiation (GO:0045597)"
+              "value": 2.5826928743559174e-06
             },
             {
               "kind": "evidence",
@@ -1009,15 +1032,15 @@
               "path": null,
               "ref_id": "bulk.pathway.B_vs_WT:evidence:3",
               "source": "bulk_pathways",
-              "value": "cellular response to growth factor stimulus (GO:0071363)"
+              "value": "positive regulation of cell differentiation (GO:0045597)"
             },
             {
               "kind": "evidence",
-              "label": "GO_BP term",
+              "label": "positive regulation of cell differentiation (GO:0045597) FDR",
               "path": null,
               "ref_id": "bulk.pathway.B_vs_WT:evidence:4",
               "source": "bulk_pathways",
-              "value": "positive regulation of cell population proliferation (GO:0008284)"
+              "value": 4.4721269950620804e-06
             },
             {
               "kind": "evidence",
@@ -1025,7 +1048,47 @@
               "path": null,
               "ref_id": "bulk.pathway.B_vs_WT:evidence:5",
               "source": "bulk_pathways",
+              "value": "positive regulation of cell population proliferation (GO:0008284)"
+            },
+            {
+              "kind": "evidence",
+              "label": "positive regulation of cell population proliferation (GO:0008284) FDR",
+              "path": null,
+              "ref_id": "bulk.pathway.B_vs_WT:evidence:6",
+              "source": "bulk_pathways",
+              "value": 1.248005449381902e-05
+            },
+            {
+              "kind": "evidence",
+              "label": "GO_BP term",
+              "path": null,
+              "ref_id": "bulk.pathway.B_vs_WT:evidence:7",
+              "source": "bulk_pathways",
+              "value": "cellular response to growth factor stimulus (GO:0071363)"
+            },
+            {
+              "kind": "evidence",
+              "label": "cellular response to growth factor stimulus (GO:0071363) FDR",
+              "path": null,
+              "ref_id": "bulk.pathway.B_vs_WT:evidence:8",
+              "source": "bulk_pathways",
+              "value": 1.248005449381902e-05
+            },
+            {
+              "kind": "evidence",
+              "label": "GO_BP term",
+              "path": null,
+              "ref_id": "bulk.pathway.B_vs_WT:evidence:9",
+              "source": "bulk_pathways",
               "value": "regulation of cell population proliferation (GO:0042127)"
+            },
+            {
+              "kind": "evidence",
+              "label": "regulation of cell population proliferation (GO:0042127) FDR",
+              "path": null,
+              "ref_id": "bulk.pathway.B_vs_WT:evidence:10",
+              "source": "bulk_pathways",
+              "value": 1.731666831203351e-05
             },
             {
               "kind": "metric",
@@ -1119,7 +1182,7 @@
           "label": "FDR<0.25 pathways",
           "path": "gsea_results.csv",
           "source": "gsea_preranked",
-          "value": 105
+          "value": 126
         },
         {
           "label": "running-sum plots",
@@ -1131,13 +1194,13 @@
           "label": "GSEA term Nervous System Development (GO:0007399)",
           "path": "gsea_results.csv",
           "source": "gsea_preranked",
-          "value": 8.2941
+          "value": 8.3563
         },
         {
           "label": "GSEA term Positive Regulation Of Cellular Process (GO:0048522)",
           "path": "gsea_results.csv",
           "source": "gsea_preranked",
-          "value": 7.042
+          "value": 7.0668
         },
         {
           "label": "GSEA term Central Nervous System Development (GO:0007417)",
@@ -1204,7 +1267,7 @@
               "path": "gsea_results.csv",
               "ref_id": "bulk.gsea.B_vs_WT:evidence:0",
               "source": "gsea_preranked",
-              "value": 105
+              "value": 126
             },
             {
               "kind": "evidence",
@@ -1220,7 +1283,7 @@
               "path": "gsea_results.csv",
               "ref_id": "bulk.gsea.B_vs_WT:evidence:2",
               "source": "gsea_preranked",
-              "value": 8.2941
+              "value": 8.3563
             },
             {
               "kind": "evidence",
@@ -1228,7 +1291,7 @@
               "path": "gsea_results.csv",
               "ref_id": "bulk.gsea.B_vs_WT:evidence:3",
               "source": "gsea_preranked",
-              "value": 7.042
+              "value": 7.0668
             },
             {
               "kind": "evidence",
@@ -1242,7 +1305,7 @@
               "kind": "metric",
               "label": "n_pathways",
               "ref_id": "bulk.gsea.B_vs_WT:metric:n_pathways",
-              "value": 105
+              "value": 126
             },
             {
               "kind": "metric",
@@ -1254,13 +1317,13 @@
               "kind": "metric",
               "label": "top_pathways.0.nes",
               "ref_id": "bulk.gsea.B_vs_WT:metric:top_pathways.0.nes",
-              "value": 8.2941
+              "value": 8.3563
             },
             {
               "kind": "metric",
               "label": "top_pathways.0.fdr",
               "ref_id": "bulk.gsea.B_vs_WT:metric:top_pathways.0.fdr",
-              "value": 0.0
+              "value": 1.5052727189103367e-13
             },
             {
               "kind": "metric",
@@ -1278,13 +1341,13 @@
               "kind": "metric",
               "label": "top_pathways.1.nes",
               "ref_id": "bulk.gsea.B_vs_WT:metric:top_pathways.1.nes",
-              "value": 7.042
+              "value": 7.0668
             },
             {
               "kind": "metric",
               "label": "top_pathways.1.fdr",
               "ref_id": "bulk.gsea.B_vs_WT:metric:top_pathways.1.fdr",
-              "value": 0.0
+              "value": 1.8432931022843005e-09
             },
             {
               "kind": "metric",
@@ -1308,7 +1371,7 @@
               "kind": "metric",
               "label": "top_pathways.2.fdr",
               "ref_id": "bulk.gsea.B_vs_WT:metric:top_pathways.2.fdr",
-              "value": 0.0
+              "value": 3.1159820265637755e-09
             },
             {
               "kind": "metric",
@@ -1332,7 +1395,7 @@
               "kind": "metric",
               "label": "top_pathways.3.fdr",
               "ref_id": "bulk.gsea.B_vs_WT:metric:top_pathways.3.fdr",
-              "value": 0.0
+              "value": 3.4107004224874736e-09
             },
             {
               "kind": "metric",
@@ -1344,19 +1407,19 @@
               "kind": "metric",
               "label": "top_pathways.4.term",
               "ref_id": "bulk.gsea.B_vs_WT:metric:top_pathways.4.term",
-              "value": "Regulation Of Cell Population Proliferation (GO:0042127)"
+              "value": "Positive Regulation Of Cell Differentiation (GO:0045597)"
             },
             {
               "kind": "metric",
               "label": "top_pathways.4.nes",
               "ref_id": "bulk.gsea.B_vs_WT:metric:top_pathways.4.nes",
-              "value": 6.6584
+              "value": 6.6524
             },
             {
               "kind": "metric",
               "label": "top_pathways.4.fdr",
               "ref_id": "bulk.gsea.B_vs_WT:metric:top_pathways.4.fdr",
-              "value": 0.0
+              "value": 1.3417011363575463e-08
             },
             {
               "kind": "metric",
@@ -1482,8 +1545,7 @@
       "figures": [
         "volcano.svg",
         "heatmap_padj.svg",
-        "heatmap_lfc.svg",
-        "heatmap_padj.svg"
+        "heatmap_lfc.svg"
       ],
       "language_violation": null,
       "ledger_linked": true,
@@ -1515,7 +1577,7 @@
         "checked_sentences": 3,
         "evidence_card": {
           "evidence_card_id": "bulk.contrast.R_vs_WT#evidence",
-          "n_refs": 20,
+          "n_refs": 19,
           "node_type": "evidence_card",
           "provenance": {
             "analysis": "differential_expression",
@@ -1657,12 +1719,6 @@
               "label": "R vs WT heatmap_lfc",
               "path": "heatmap_lfc.svg",
               "ref_id": "bulk.contrast.R_vs_WT:figure:2"
-            },
-            {
-              "kind": "figure",
-              "label": "R vs WT heatmap",
-              "path": "heatmap_padj.svg",
-              "ref_id": "bulk.contrast.R_vs_WT:figure:3"
             }
           ],
           "semantic_facts": [
@@ -1760,10 +1816,22 @@
           "value": "Cytokine-cytokine receptor interaction"
         },
         {
+          "label": "Cytokine-cytokine receptor interaction FDR",
+          "path": null,
+          "source": "bulk_pathways",
+          "value": 1.6024227346453947e-07
+        },
+        {
           "label": "KEGG term",
           "path": null,
           "source": "bulk_pathways",
           "value": "Viral protein interaction with cytokine and cytokine receptor"
+        },
+        {
+          "label": "Viral protein interaction with cytokine and cytokine receptor FDR",
+          "path": null,
+          "source": "bulk_pathways",
+          "value": 2.6276547370689445e-05
         },
         {
           "label": "KEGG term",
@@ -1772,16 +1840,34 @@
           "value": "p53 signaling pathway"
         },
         {
+          "label": "p53 signaling pathway FDR",
+          "path": null,
+          "source": "bulk_pathways",
+          "value": 7.258743310580965e-05
+        },
+        {
           "label": "Reactome term",
           "path": null,
           "source": "bulk_pathways",
           "value": "GPCR Ligand Binding R-HSA-500792"
         },
         {
+          "label": "GPCR Ligand Binding R-HSA-500792 FDR",
+          "path": null,
+          "source": "bulk_pathways",
+          "value": 0.032988572937412926
+        },
+        {
           "label": "Reactome term",
           "path": null,
           "source": "bulk_pathways",
           "value": "Chemokine Receptors Bind Chemokines R-HSA-380108"
+        },
+        {
+          "label": "Chemokine Receptors Bind Chemokines R-HSA-380108 FDR",
+          "path": null,
+          "source": "bulk_pathways",
+          "value": 0.044015353267940906
         }
       ],
       "evidence_card_id": "bulk.pathway.R_vs_WT#evidence",
@@ -1824,7 +1910,7 @@
         "checked_sentences": 4,
         "evidence_card": {
           "evidence_card_id": "bulk.pathway.R_vs_WT#evidence",
-          "n_refs": 15,
+          "n_refs": 20,
           "node_type": "evidence_card",
           "provenance": {
             "analysis": "pathway_enrichment",
@@ -1853,11 +1939,11 @@
             },
             {
               "kind": "evidence",
-              "label": "KEGG term",
+              "label": "Cytokine-cytokine receptor interaction FDR",
               "path": null,
               "ref_id": "bulk.pathway.R_vs_WT:evidence:2",
               "source": "bulk_pathways",
-              "value": "Viral protein interaction with cytokine and cytokine receptor"
+              "value": 1.6024227346453947e-07
             },
             {
               "kind": "evidence",
@@ -1865,23 +1951,63 @@
               "path": null,
               "ref_id": "bulk.pathway.R_vs_WT:evidence:3",
               "source": "bulk_pathways",
+              "value": "Viral protein interaction with cytokine and cytokine receptor"
+            },
+            {
+              "kind": "evidence",
+              "label": "Viral protein interaction with cytokine and cytokine receptor FDR",
+              "path": null,
+              "ref_id": "bulk.pathway.R_vs_WT:evidence:4",
+              "source": "bulk_pathways",
+              "value": 2.6276547370689445e-05
+            },
+            {
+              "kind": "evidence",
+              "label": "KEGG term",
+              "path": null,
+              "ref_id": "bulk.pathway.R_vs_WT:evidence:5",
+              "source": "bulk_pathways",
               "value": "p53 signaling pathway"
+            },
+            {
+              "kind": "evidence",
+              "label": "p53 signaling pathway FDR",
+              "path": null,
+              "ref_id": "bulk.pathway.R_vs_WT:evidence:6",
+              "source": "bulk_pathways",
+              "value": 7.258743310580965e-05
             },
             {
               "kind": "evidence",
               "label": "Reactome term",
               "path": null,
-              "ref_id": "bulk.pathway.R_vs_WT:evidence:4",
+              "ref_id": "bulk.pathway.R_vs_WT:evidence:7",
               "source": "bulk_pathways",
               "value": "GPCR Ligand Binding R-HSA-500792"
             },
             {
               "kind": "evidence",
+              "label": "GPCR Ligand Binding R-HSA-500792 FDR",
+              "path": null,
+              "ref_id": "bulk.pathway.R_vs_WT:evidence:8",
+              "source": "bulk_pathways",
+              "value": 0.032988572937412926
+            },
+            {
+              "kind": "evidence",
               "label": "Reactome term",
               "path": null,
-              "ref_id": "bulk.pathway.R_vs_WT:evidence:5",
+              "ref_id": "bulk.pathway.R_vs_WT:evidence:9",
               "source": "bulk_pathways",
               "value": "Chemokine Receptors Bind Chemokines R-HSA-380108"
+            },
+            {
+              "kind": "evidence",
+              "label": "Chemokine Receptors Bind Chemokines R-HSA-380108 FDR",
+              "path": null,
+              "ref_id": "bulk.pathway.R_vs_WT:evidence:10",
+              "source": "bulk_pathways",
+              "value": 0.044015353267940906
             },
             {
               "kind": "metric",
@@ -1969,7 +2095,7 @@
           "label": "FDR<0.25 pathways",
           "path": "gsea_results.csv",
           "source": "gsea_preranked",
-          "value": 211
+          "value": 296
         },
         {
           "label": "running-sum plots",
@@ -1978,22 +2104,22 @@
           "value": 3
         },
         {
-          "label": "GSEA term Ribosomal Large Subunit Biogenesis (GO:0042273)",
+          "label": "GSEA term mRNA Metabolic Process (GO:0016071)",
           "path": "gsea_results.csv",
           "source": "gsea_preranked",
-          "value": 6.3069
+          "value": 5.9591
         },
         {
           "label": "GSEA term post-Golgi Vesicle-Mediated Transport (GO:0006892)",
           "path": "gsea_results.csv",
           "source": "gsea_preranked",
-          "value": 6.0444
+          "value": 5.3455
         },
         {
-          "label": "GSEA term protein-DNA Complex Assembly (GO:0065004)",
+          "label": "GSEA term Establishment Of Protein Localization To Organelle (GO:0072594)",
           "path": "gsea_results.csv",
           "source": "gsea_preranked",
-          "value": 6.0361
+          "value": 5.316
         }
       ],
       "evidence_card_id": "bulk.gsea.R_vs_WT#evidence",
@@ -2054,7 +2180,7 @@
               "path": "gsea_results.csv",
               "ref_id": "bulk.gsea.R_vs_WT:evidence:0",
               "source": "gsea_preranked",
-              "value": 211
+              "value": 296
             },
             {
               "kind": "evidence",
@@ -2066,11 +2192,11 @@
             },
             {
               "kind": "evidence",
-              "label": "GSEA term Ribosomal Large Subunit Biogenesis (GO:0042273)",
+              "label": "GSEA term mRNA Metabolic Process (GO:0016071)",
               "path": "gsea_results.csv",
               "ref_id": "bulk.gsea.R_vs_WT:evidence:2",
               "source": "gsea_preranked",
-              "value": 6.3069
+              "value": 5.9591
             },
             {
               "kind": "evidence",
@@ -2078,39 +2204,39 @@
               "path": "gsea_results.csv",
               "ref_id": "bulk.gsea.R_vs_WT:evidence:3",
               "source": "gsea_preranked",
-              "value": 6.0444
+              "value": 5.3455
             },
             {
               "kind": "evidence",
-              "label": "GSEA term protein-DNA Complex Assembly (GO:0065004)",
+              "label": "GSEA term Establishment Of Protein Localization To Organelle (GO:0072594)",
               "path": "gsea_results.csv",
               "ref_id": "bulk.gsea.R_vs_WT:evidence:4",
               "source": "gsea_preranked",
-              "value": 6.0361
+              "value": 5.316
             },
             {
               "kind": "metric",
               "label": "n_pathways",
               "ref_id": "bulk.gsea.R_vs_WT:metric:n_pathways",
-              "value": 211
+              "value": 296
             },
             {
               "kind": "metric",
               "label": "top_pathways.0.term",
               "ref_id": "bulk.gsea.R_vs_WT:metric:top_pathways.0.term",
-              "value": "Ribosomal Large Subunit Biogenesis (GO:0042273)"
+              "value": "mRNA Metabolic Process (GO:0016071)"
             },
             {
               "kind": "metric",
               "label": "top_pathways.0.nes",
               "ref_id": "bulk.gsea.R_vs_WT:metric:top_pathways.0.nes",
-              "value": 6.3069
+              "value": 5.9591
             },
             {
               "kind": "metric",
               "label": "top_pathways.0.fdr",
               "ref_id": "bulk.gsea.R_vs_WT:metric:top_pathways.0.fdr",
-              "value": 0.0
+              "value": 5.718376852037466e-06
             },
             {
               "kind": "metric",
@@ -2128,13 +2254,13 @@
               "kind": "metric",
               "label": "top_pathways.1.nes",
               "ref_id": "bulk.gsea.R_vs_WT:metric:top_pathways.1.nes",
-              "value": 6.0444
+              "value": 5.3455
             },
             {
               "kind": "metric",
               "label": "top_pathways.1.fdr",
               "ref_id": "bulk.gsea.R_vs_WT:metric:top_pathways.1.fdr",
-              "value": 0.0
+              "value": 7.967607049093792e-05
             },
             {
               "kind": "metric",
@@ -2146,19 +2272,19 @@
               "kind": "metric",
               "label": "top_pathways.2.term",
               "ref_id": "bulk.gsea.R_vs_WT:metric:top_pathways.2.term",
-              "value": "protein-DNA Complex Assembly (GO:0065004)"
+              "value": "Establishment Of Protein Localization To Organelle (GO:0072594)"
             },
             {
               "kind": "metric",
               "label": "top_pathways.2.nes",
               "ref_id": "bulk.gsea.R_vs_WT:metric:top_pathways.2.nes",
-              "value": 6.0361
+              "value": 5.316
             },
             {
               "kind": "metric",
               "label": "top_pathways.2.fdr",
               "ref_id": "bulk.gsea.R_vs_WT:metric:top_pathways.2.fdr",
-              "value": 0.0
+              "value": 7.967607049093792e-05
             },
             {
               "kind": "metric",
@@ -2170,19 +2296,19 @@
               "kind": "metric",
               "label": "top_pathways.3.term",
               "ref_id": "bulk.gsea.R_vs_WT:metric:top_pathways.3.term",
-              "value": "Positive Regulation Of Transcription Initiation By RNA Polymerase II (GO:0060261)"
+              "value": "Ribosome Biogenesis (GO:0042254)"
             },
             {
               "kind": "metric",
               "label": "top_pathways.3.nes",
               "ref_id": "bulk.gsea.R_vs_WT:metric:top_pathways.3.nes",
-              "value": 5.9785
+              "value": 4.9359
             },
             {
               "kind": "metric",
               "label": "top_pathways.3.fdr",
               "ref_id": "bulk.gsea.R_vs_WT:metric:top_pathways.3.fdr",
-              "value": 0.0
+              "value": 0.00044953084240617613
             },
             {
               "kind": "metric",
@@ -2194,19 +2320,19 @@
               "kind": "metric",
               "label": "top_pathways.4.term",
               "ref_id": "bulk.gsea.R_vs_WT:metric:top_pathways.4.term",
-              "value": "mRNA Metabolic Process (GO:0016071)"
+              "value": "DNA-templated Transcription Initiation (GO:0006352)"
             },
             {
               "kind": "metric",
               "label": "top_pathways.4.nes",
               "ref_id": "bulk.gsea.R_vs_WT:metric:top_pathways.4.nes",
-              "value": 5.9609
+              "value": 4.6609
             },
             {
               "kind": "metric",
               "label": "top_pathways.4.fdr",
               "ref_id": "bulk.gsea.R_vs_WT:metric:top_pathways.4.fdr",
-              "value": 0.0
+              "value": 0.0013194738672592798
             },
             {
               "kind": "metric",
@@ -2765,7 +2891,7 @@
           "label": "R vs WT specific processes",
           "path": null,
           "source": "biological_synthesis",
-          "value": "Chemokine Receptors Bind Chemokines R-HSA-380108; G Alpha (I) Signaling Events R-HSA-418594"
+          "value": "Chemokine Receptors Bind Chemokines R-HSA-380108; Peptide Ligand-Binding Receptors R-HSA-375276"
         }
       ],
       "evidence_card_id": "integration.divergent.B_vs_WT__R_vs_WT#evidence",
@@ -2797,7 +2923,7 @@
       "rationale": "Correlative contrast (expression/abundance/communication) without independent mechanistic or perturbation evidence.",
       "status": "success",
       "tables": [],
-      "text": "B vs WT additionally shows 137 contrast-specific differentially expressed gene(s) and R vs WT shows 86, indicating partially distinct programs. B vs WT uniquely engages nervous system development and positive regulation of cell differentiation; R vs WT uniquely engages Chemokine Receptors Bind Chemokines R-HSA-380108 and G Alpha (I) Signaling Events R-HSA-418594. 1 shared gene(s) move in opposite directions (discordant evidence).",
+      "text": "B vs WT additionally shows 137 contrast-specific differentially expressed gene(s) and R vs WT shows 86, indicating partially distinct programs. B vs WT uniquely engages nervous system development and positive regulation of cell differentiation; R vs WT uniquely engages Chemokine Receptors Bind Chemokines R-HSA-380108 and Peptide Ligand-Binding Receptors R-HSA-375276. 1 shared gene(s) move in opposite directions (discordant evidence).",
       "tier": "associative",
       "verification": {
         "checked_sentences": 3,
@@ -2860,7 +2986,7 @@
               "path": null,
               "ref_id": "integration.divergent.B_vs_WT__R_vs_WT:evidence:5",
               "source": "biological_synthesis",
-              "value": "Chemokine Receptors Bind Chemokines R-HSA-380108; G Alpha (I) Signaling Events R-HSA-418594"
+              "value": "Chemokine Receptors Bind Chemokines R-HSA-380108; Peptide Ligand-Binding Receptors R-HSA-375276"
             },
             {
               "kind": "metric",
@@ -3249,13 +3375,13 @@
         "WT": 3
       }
     },
-    "experiment_id": "ece2b9d6-753",
+    "experiment_id": "b3e99d66-0e3",
     "fork_ledger_summary": {
       "commitment_status": "locked_before_execution",
       "fork_changes": [],
       "fork_index": 0,
       "is_exact_spec_replay": true,
-      "ledger_runs_observed": 2,
+      "ledger_runs_observed": 3,
       "manifest_sha256": "7d7bb79dc0002130121a31f2dda3088a5cb0bc5edbb531914b3615eb264b26b3",
       "parent_manifest_sha256": null,
       "schema_version": "aria.fork_ledger.v1",
@@ -3289,152 +3415,152 @@
     {
       "checkpoint": "1",
       "decision": "Confirm and continue",
-      "id": "7a9ab7927ed642d5aa1b3c8159147687",
-      "made_at": "2026-11-18T14:10:46.080063",
+      "id": "039f31d4ea644c5082c24a8b24cdeb37",
+      "made_at": "2026-11-20T08:26:47.229437",
       "made_by": "user",
       "question": "\ud83d\udcc1 ARIA found the following data:\n\n  \ud83e\uddec bulk_RNA_raw: 18 file(s)\n\n  \ud83c\udf0d Organism: Homo sapiens\n  \ud83d\uddfa\ufe0f  Genome:   hg38 \u2713\n\n  \u26a0\ufe0f  Warnings:\n     \u2022 Ambiguous library type: generic paired-end FASTQ with no modality signal (R1_1.fq.gz, B2_1.fq.gz, B3_1.fq.gz, WT1_2.fq.gz, B3_2.fq.gz, ...) \u2014 hinted as bulk_RNA_raw but NOT bound. Declare the library type (assay manifest / library_type) or confirm the modality at CHECKPOINT 1; filenames are only a hint.\n\nIs this correct?\n\n\u2014 Data sensitivity (ELEVATED): Input appears to be human data with no obvious PHI fields. Consider air-gapped mode if the data are not de-identified.\n  To block ALL network egress (cloud LLM, Enrichr ORA, GEO/SRA), choose 'Confirm and enable air-gapped mode'.",
       "rationale": "User confirmed data audit results",
-      "wing_id": "ece2b9d6-753"
+      "wing_id": "b3e99d66-0e3"
     },
     {
       "checkpoint": "2",
       "decision": "{\n  \"organism\": \"Homo sapiens\",\n  \"genome\": \"hg38\",\n  \"groups\": {\n    \"B\": [\n      \"B1\",\n      \"B2\",\n      \"B3\"\n    ],\n    \"R\": [\n      \"R1\",\n      \"R2\",\n      \"R3\"\n    ],\n    \"WT\": [\n      \"WT1\",\n      \"WT2\",\n      \"WT3\"\n    ]\n  },\n  \"analysis_groups\": {\n    \"B\": [\n      \"B::B1\",\n      \"B::B2\",\n      \"B::B3\"\n    ],\n    \"R\": [\n      \"R::R1\",\n      \"R::R2\",\n      \"R::R3\"\n    ],\n    \"WT\": [\n      \"WT::WT1\",\n      \"WT::WT2\",\n      \"WT::WT3\"\n    ]\n  },\n  \"main_factor\": \"condition\",\n  \"design_formula\": \"~ condition\",\n  \"batch_covariate\": null,\n  \"pseudobulk\": {},\n  \"source\": null,\n  \"sample_aliases\": {},\n  \"replicate_handling\": {\n    \"mode\": \"independent_biological\",\n    \"source\": \"cp2.5_independent\",\n    \"aggregation\": \"none\",\n    \"units\": [\n      {\n        \"id\": \"B::B1\",\n        \"group\": \"B\",\n        \"root\": \"B1\",\n        \"members\": [\n          \"B1\"\n        ]\n      },\n      {\n        \"id\": \"B::B2\",\n        \"group\": \"B\",\n        \"root\": \"B2\",\n        \"members\": [\n          \"B2\"\n        ]\n      },\n      {\n        \"id\": \"B::B3\",\n        \"group\": \"B\",\n        \"root\": \"B3\",\n        \"members\": [\n          \"B3\"\n        ]\n      },\n      {\n        \"id\": \"R::R1\",\n        \"group\": \"R\",\n        \"root\": \"R1\",\n        \"members\": [\n          \"R1\"\n        ]\n      },\n      {\n        \"id\": \"R::R2\",\n        \"group\": \"R\",\n        \"root\": \"R2\",\n        \"members\": [\n          \"R2\"\n        ]\n      },\n      {\n        \"id\": \"R::R3\",\n        \"group\": \"R\",\n        \"root\": \"R3\",\n        \"members\": [\n          \"R3\"\n        ]\n      },\n      {\n        \"id\": \"WT::WT1\",\n        \"group\": \"WT\",\n        \"root\": \"WT1\",\n        \"members\": [\n          \"WT1\"\n        ]\n      },\n      {\n        \"id\": \"WT::WT2\",\n        \"group\": \"WT\",\n        \"root\": \"WT2\",\n        \"members\": [\n          \"WT2\"\n        ]\n      },\n      {\n        \"id\": \"WT::WT3\",\n        \"group\": \"WT\",\n        \"root\": \"WT3\",\n        \"members\": [\n          \"WT3\"\n        ]\n      }\n    ],\n    \"sample_to_unit\": {\n      \"B1\": \"B::B1\",\n      \"B2\": \"B::B2\",\n      \"B3\": \"B::B3\",\n      \"R1\": \"R::R1\",\n      \"R2\": \"R::R2\",\n      \"R3\": \"R::R3\",\n      \"WT1\": \"WT::WT1\",\n      \"WT2\": \"WT::WT2\",\n      \"WT3\": \"WT::WT3\"\n    },\n    \"conflicts\": []\n  },\n  \"experimental_unit\": \"sample\",\n  \"analysis_design_formula\": \"~ condition\",\n  \"replicates\": {\n    \"B\": 3,\n    \"R\": 3,\n    \"WT\": 3\n  },\n  \"n_input_libraries\": 9,\n  \"n_total_samples\": 9,\n  \"nominal_residual_df\": 6,\n  \"design_status\": \"ready\",\n  \"blocking_groups\": {},\n  \"blocking_reasons\": [],\n  \"confounded_covariates\": []\n}",
-      "id": "dc2a5b2b",
-      "made_at": "2026-11-18T14:10:46.313416",
+      "id": "87446939",
+      "made_at": "2026-11-20T08:26:47.437110",
       "made_by": "user",
       "question": "Experimental design (organism, groups, factor, formula)",
       "rationale": "User confirmed design interactively",
-      "wing_id": "ece2b9d6-753"
+      "wing_id": "b3e99d66-0e3"
     },
     {
       "checkpoint": "2.pre",
       "decision": "2 recommended, 1 optional, 1 unsupported/not recommended, 0 warning(s).",
-      "id": "ece2b9d6-753_design_intelligence",
-      "made_at": "2026-11-18T14:10:47.075376",
+      "id": "b3e99d66-0e3_design_intelligence",
+      "made_at": "2026-11-20T08:26:47.597731",
       "made_by": "design_intelligence",
       "question": "Design Intelligence assessment",
       "rationale": "ARIA evaluated modality feasibility, recommended analyses, optional analyses, unsupported analyses, covariates, and design limitations before compute.",
-      "wing_id": "ece2b9d6-753"
+      "wing_id": "b3e99d66-0e3"
     },
     {
       "checkpoint": "2",
       "decision": "Run recommended plan only",
-      "id": "0e1913bd27dc4cb6bbd41c7d3c460272",
-      "made_at": "2026-11-18T14:10:47.129603",
+      "id": "d2c92adc78b449cfbe33bc24d08e0dc2",
+      "made_at": "2026-11-20T08:26:47.649269",
       "made_by": "user",
       "question": "Analysis plan confirmed",
       "rationale": "User approved analysis plan directly. Optional supported analyses were not added.",
-      "wing_id": "ece2b9d6-753"
+      "wing_id": "b3e99d66-0e3"
     },
     {
       "checkpoint": "2",
       "decision": "~ condition",
-      "id": "ece2b9d6-design-01",
-      "made_at": "2026-11-18T14:14:17.493376",
+      "id": "b3e99d66-design-01",
+      "made_at": "2026-11-20T08:27:09.987872",
       "made_by": "user",
       "question": "Experimental design (source: DesignAgent)",
       "rationale": "User confirmed design interactively.",
-      "wing_id": "ece2b9d6-753"
+      "wing_id": "b3e99d66-0e3"
     },
     {
       "checkpoint": "1",
       "decision": "Raw integer counts | DESeq2 median-of-ratios (internal) | \u226510 counts in \u22652 samples",
-      "id": "ece2b9d6-auto-01",
-      "made_at": "2026-11-18T14:14:50.908352",
+      "id": "b3e99d66-auto-01",
+      "made_at": "2026-11-20T08:28:08.430452",
       "made_by": "bulk_rna_agent (auto)",
       "question": "Differential expression (DESeq2)",
       "rationale": "DESeq2 handles library-size normalization internally; external normalization would break the negative-binomial model assumptions.",
-      "wing_id": "ece2b9d6-753"
+      "wing_id": "b3e99d66-0e3"
     },
     {
       "checkpoint": "0",
       "decision": "All count-matrix samples | Primary DE retains all samples | Design-safe removal is evaluated only as sensitivity",
-      "id": "ece2b9d6-auto-00",
-      "made_at": "2026-11-18T14:14:50.908442",
+      "id": "b3e99d66-auto-00",
+      "made_at": "2026-11-20T08:28:08.430630",
       "made_by": "bulk_rna_agent (auto)",
       "question": "Sample outliers",
       "rationale": "Automatic pre-DE pruning can turn a null primary result into a significant result; ARIA reports primary and outlier-removal sensitivity separately.",
-      "wing_id": "ece2b9d6-753"
+      "wing_id": "b3e99d66-0e3"
     },
     {
       "checkpoint": "2",
       "decision": "VST-transformed counts | Variance-Stabilizing Transformation (pydeseq2) | Top 2000 most-variable protein_coding genes",
-      "id": "ece2b9d6-auto-02",
-      "made_at": "2026-11-18T14:14:50.908465",
+      "id": "b3e99d66-auto-02",
+      "made_at": "2026-11-20T08:28:08.430665",
       "made_by": "bulk_rna_agent (auto)",
       "question": "PCA + MDS (sample-level structure)",
       "rationale": "VST produces homoscedastic values suitable for Euclidean-based methods (DESeq2 authors' recommendation). Protein-coding filter removes pseudogene/ncRNA noise. Variable-gene filter focuses on informative signal.",
-      "wing_id": "ece2b9d6-753"
+      "wing_id": "b3e99d66-0e3"
     },
     {
       "checkpoint": "3",
       "decision": "VST (or log2(counts+1) fallback) | Row z-score | 50 most significant DE genes (sorted by padj)",
-      "id": "ece2b9d6-auto-03",
-      "made_at": "2026-11-18T14:14:50.908486",
+      "id": "b3e99d66-auto-03",
+      "made_at": "2026-11-20T08:28:08.430700",
       "made_by": "bulk_rna_agent (auto)",
       "question": "Heatmap (padj top 50)",
       "rationale": "Statistically confident signal; symbol-annotated rows.",
-      "wing_id": "ece2b9d6-753"
+      "wing_id": "b3e99d66-0e3"
     },
     {
       "checkpoint": "4",
       "decision": "VST (or log2(counts+1) fallback) | Row z-score | 50 DE genes with largest effect sizes",
-      "id": "ece2b9d6-auto-04",
-      "made_at": "2026-11-18T14:14:50.908506",
+      "id": "b3e99d66-auto-04",
+      "made_at": "2026-11-20T08:28:08.430728",
       "made_by": "bulk_rna_agent (auto)",
       "question": "Heatmap (|log2FC| top 50)",
       "rationale": "Complementary view \u2014 surfaces largest effect sizes, which may not have smallest padj for low-count genes.",
-      "wing_id": "ece2b9d6-753"
+      "wing_id": "b3e99d66-0e3"
     },
     {
       "checkpoint": "5",
       "decision": "DE gene symbols | Local hypergeometric test against versioned GMT libraries (Enrichr is opt-in) | padj<0.05 from Wald lfcThreshold test; ORA universe = genes retained after expression filtering",
-      "id": "ece2b9d6-auto-05",
-      "made_at": "2026-11-18T14:14:50.908525",
+      "id": "b3e99d66-auto-05",
+      "made_at": "2026-11-20T08:28:08.430756",
       "made_by": "bulk_rna_agent (auto)",
       "question": "Pathway enrichment (ORA)",
       "rationale": "Standard over-representation for discrete gene lists, computed locally against the dataset-expressed background so the gene list never leaves the machine (W-PRIV); the exact gene-set release is recorded in pathway_ora.gene_set_versions.",
-      "wing_id": "ece2b9d6-753"
+      "wing_id": "b3e99d66-0e3"
     },
     {
       "checkpoint": "6",
       "decision": "All DE-tested genes ranked by log2FC | blitzgsea running sum | None (uses full ranking)",
-      "id": "ece2b9d6-auto-06",
-      "made_at": "2026-11-18T14:14:50.908545",
+      "id": "b3e99d66-auto-06",
+      "made_at": "2026-11-20T08:28:08.430785",
       "made_by": "bulk_rna_agent (auto)",
       "question": "GSEA (pre-ranked)",
       "rationale": "More sensitive than ORA to coordinated small effects; complementary to cutoff-based enrichment.",
-      "wing_id": "ece2b9d6-753"
+      "wing_id": "b3e99d66-0e3"
     },
     {
       "checkpoint": "7",
       "decision": "Raw counts + exon-union gene lengths | TPM (transcripts per million) | Genes with length annotation in GTF",
-      "id": "ece2b9d6-auto-07",
-      "made_at": "2026-11-18T14:14:50.908567",
+      "id": "b3e99d66-auto-07",
+      "made_at": "2026-11-20T08:28:08.430817",
       "made_by": "bulk_rna_agent (auto)",
       "question": "TPM (supplementary export)",
       "rationale": "Supplementary table for downstream tools that require TPM (ssGSEA, deconvolution). NOT used by ARIA for DE or PCA \u2014 both use more appropriate methods.",
-      "wing_id": "ece2b9d6-753"
+      "wing_id": "b3e99d66-0e3"
     },
     {
       "checkpoint": "0",
       "decision": "padj < 0.05, |log2FC| > 1.0",
-      "id": "ece2b9d6-auto-00-thr",
-      "made_at": "2026-11-18T14:14:50.908587",
+      "id": "b3e99d66-auto-00-thr",
+      "made_at": "2026-11-20T08:28:08.430850",
       "made_by": "User / bulk_rna_agent",
       "question": "Statistical thresholds for DE significance",
       "rationale": "|log2FC| threshold provenance: default. The default (1.0) is fixed and prompt-independent; it changes only via an explicit User Checkpoint 3 profile or a versioned global_lfc override (never inferred from the question text).",
-      "wing_id": "ece2b9d6-753"
+      "wing_id": "b3e99d66-0e3"
     },
     {
       "checkpoint": "0",
       "decision": "~condition",
-      "id": "ece2b9d6-auto-00-design",
-      "made_at": "2026-11-18T14:14:50.908606",
+      "id": "b3e99d66-auto-00-design",
+      "made_at": "2026-11-20T08:28:08.430876",
       "made_by": "bulk_rna_agent (auto)",
       "question": "DESeq2 design formula",
       "rationale": "Single-factor design inferred from sample labels. No batch or covariate adjustment applied.",
-      "wing_id": "ece2b9d6-753"
+      "wing_id": "b3e99d66-0e3"
     }
   ],
   "design": {
@@ -3913,9 +4039,9 @@
         "lobo_biological_unit_jackknife": {
           "biological_unit": "biological_replicate",
           "lobo_stable_fraction": 1.0,
-          "n_contrasts_measured": 2,
-          "n_features_evaluated": 357,
-          "n_features_lobo_stable": 357,
+          "n_contrasts_measured": 1,
+          "n_features_evaluated": 204,
+          "n_features_lobo_stable": 204,
           "n_jackknife_folds": 6,
           "n_single_unit_driven": 0,
           "status": "measured"
@@ -3996,9 +4122,9 @@
         "lobo_biological_unit_jackknife": {
           "biological_unit": "biological_replicate",
           "lobo_stable_fraction": 1.0,
-          "n_contrasts_measured": 2,
-          "n_features_evaluated": 357,
-          "n_features_lobo_stable": 357,
+          "n_contrasts_measured": 1,
+          "n_features_evaluated": 153,
+          "n_features_lobo_stable": 153,
           "n_jackknife_folds": 6,
           "n_single_unit_driven": 0,
           "status": "measured"
@@ -4366,7 +4492,7 @@
           "label": "narrative blocks summarized",
           "path": null,
           "source": "narrative_registry",
-          "value": 13
+          "value": 14
         },
         {
           "facts": [],
@@ -4445,7 +4571,7 @@
                 "path": null,
                 "ref_id": "executive_summary:evidence:3",
                 "source": "narrative_registry",
-                "value": 13
+                "value": 14
               },
               {
                 "kind": "evidence",
@@ -4471,7 +4597,7 @@
                 "kind": "metric",
                 "label": "n_narrative_blocks_summarized",
                 "ref_id": "executive_summary:metric:n_narrative_blocks_summarized",
-                "value": 13
+                "value": 14
               }
             ],
             "semantic_facts": []
@@ -4486,7 +4612,7 @@
       "metrics": {
         "n_findings": 17,
         "n_high_confidence": 0,
-        "n_narrative_blocks_summarized": 13
+        "n_narrative_blocks_summarized": 14
       },
       "modality": "report",
       "status": "success",
@@ -5057,11 +5183,6 @@
           "caption": "B vs WT heatmap_lfc",
           "id": "heatmap_lfc",
           "path": "heatmap_lfc.svg"
-        },
-        {
-          "caption": "B vs WT heatmap",
-          "id": "heatmap",
-          "path": "heatmap_padj.svg"
         }
       ],
       "id": "bulk.contrast.B_vs_WT",
@@ -5090,7 +5211,7 @@
           "checked_sentences": 3,
           "evidence_card": {
             "evidence_card_id": "bulk.contrast.B_vs_WT#evidence",
-            "n_refs": 20,
+            "n_refs": 19,
             "node_type": "evidence_card",
             "provenance": {
               "analysis": "differential_expression",
@@ -5232,12 +5353,6 @@
                 "label": "B vs WT heatmap_lfc",
                 "path": "heatmap_lfc.svg",
                 "ref_id": "bulk.contrast.B_vs_WT:figure:2"
-              },
-              {
-                "kind": "figure",
-                "label": "B vs WT heatmap",
-                "path": "heatmap_padj.svg",
-                "ref_id": "bulk.contrast.B_vs_WT:figure:3"
               }
             ],
             "semantic_facts": [
@@ -5394,6 +5509,13 @@
         },
         {
           "facts": [],
+          "label": "nervous system development (GO:0007399) FDR",
+          "path": null,
+          "source": "bulk_pathways",
+          "value": 2.5826928743559174e-06
+        },
+        {
+          "facts": [],
           "label": "GO_BP term",
           "path": null,
           "source": "bulk_pathways",
@@ -5401,10 +5523,10 @@
         },
         {
           "facts": [],
-          "label": "GO_BP term",
+          "label": "positive regulation of cell differentiation (GO:0045597) FDR",
           "path": null,
           "source": "bulk_pathways",
-          "value": "cellular response to growth factor stimulus (GO:0071363)"
+          "value": 4.4721269950620804e-06
         },
         {
           "facts": [],
@@ -5415,10 +5537,38 @@
         },
         {
           "facts": [],
+          "label": "positive regulation of cell population proliferation (GO:0008284) FDR",
+          "path": null,
+          "source": "bulk_pathways",
+          "value": 1.248005449381902e-05
+        },
+        {
+          "facts": [],
+          "label": "GO_BP term",
+          "path": null,
+          "source": "bulk_pathways",
+          "value": "cellular response to growth factor stimulus (GO:0071363)"
+        },
+        {
+          "facts": [],
+          "label": "cellular response to growth factor stimulus (GO:0071363) FDR",
+          "path": null,
+          "source": "bulk_pathways",
+          "value": 1.248005449381902e-05
+        },
+        {
+          "facts": [],
           "label": "GO_BP term",
           "path": null,
           "source": "bulk_pathways",
           "value": "regulation of cell population proliferation (GO:0042127)"
+        },
+        {
+          "facts": [],
+          "label": "regulation of cell population proliferation (GO:0042127) FDR",
+          "path": null,
+          "source": "bulk_pathways",
+          "value": 1.731666831203351e-05
         }
       ],
       "figures": [
@@ -5476,7 +5626,7 @@
           "checked_sentences": 4,
           "evidence_card": {
             "evidence_card_id": "bulk.pathway.B_vs_WT#evidence",
-            "n_refs": 16,
+            "n_refs": 21,
             "node_type": "evidence_card",
             "provenance": {
               "analysis": "pathway_enrichment",
@@ -5505,11 +5655,11 @@
               },
               {
                 "kind": "evidence",
-                "label": "GO_BP term",
+                "label": "nervous system development (GO:0007399) FDR",
                 "path": null,
                 "ref_id": "bulk.pathway.B_vs_WT:evidence:2",
                 "source": "bulk_pathways",
-                "value": "positive regulation of cell differentiation (GO:0045597)"
+                "value": 2.5826928743559174e-06
               },
               {
                 "kind": "evidence",
@@ -5517,15 +5667,15 @@
                 "path": null,
                 "ref_id": "bulk.pathway.B_vs_WT:evidence:3",
                 "source": "bulk_pathways",
-                "value": "cellular response to growth factor stimulus (GO:0071363)"
+                "value": "positive regulation of cell differentiation (GO:0045597)"
               },
               {
                 "kind": "evidence",
-                "label": "GO_BP term",
+                "label": "positive regulation of cell differentiation (GO:0045597) FDR",
                 "path": null,
                 "ref_id": "bulk.pathway.B_vs_WT:evidence:4",
                 "source": "bulk_pathways",
-                "value": "positive regulation of cell population proliferation (GO:0008284)"
+                "value": 4.4721269950620804e-06
               },
               {
                 "kind": "evidence",
@@ -5533,7 +5683,47 @@
                 "path": null,
                 "ref_id": "bulk.pathway.B_vs_WT:evidence:5",
                 "source": "bulk_pathways",
+                "value": "positive regulation of cell population proliferation (GO:0008284)"
+              },
+              {
+                "kind": "evidence",
+                "label": "positive regulation of cell population proliferation (GO:0008284) FDR",
+                "path": null,
+                "ref_id": "bulk.pathway.B_vs_WT:evidence:6",
+                "source": "bulk_pathways",
+                "value": 1.248005449381902e-05
+              },
+              {
+                "kind": "evidence",
+                "label": "GO_BP term",
+                "path": null,
+                "ref_id": "bulk.pathway.B_vs_WT:evidence:7",
+                "source": "bulk_pathways",
+                "value": "cellular response to growth factor stimulus (GO:0071363)"
+              },
+              {
+                "kind": "evidence",
+                "label": "cellular response to growth factor stimulus (GO:0071363) FDR",
+                "path": null,
+                "ref_id": "bulk.pathway.B_vs_WT:evidence:8",
+                "source": "bulk_pathways",
+                "value": 1.248005449381902e-05
+              },
+              {
+                "kind": "evidence",
+                "label": "GO_BP term",
+                "path": null,
+                "ref_id": "bulk.pathway.B_vs_WT:evidence:9",
+                "source": "bulk_pathways",
                 "value": "regulation of cell population proliferation (GO:0042127)"
+              },
+              {
+                "kind": "evidence",
+                "label": "regulation of cell population proliferation (GO:0042127) FDR",
+                "path": null,
+                "ref_id": "bulk.pathway.B_vs_WT:evidence:10",
+                "source": "bulk_pathways",
+                "value": 1.731666831203351e-05
               },
               {
                 "kind": "metric",
@@ -5676,7 +5866,7 @@
           "label": "FDR<0.25 pathways",
           "path": "gsea_results.csv",
           "source": "gsea_preranked",
-          "value": 105
+          "value": 126
         },
         {
           "facts": [],
@@ -5690,14 +5880,14 @@
           "label": "GSEA term Nervous System Development (GO:0007399)",
           "path": "gsea_results.csv",
           "source": "gsea_preranked",
-          "value": 8.2941
+          "value": 8.3563
         },
         {
           "facts": [],
           "label": "GSEA term Positive Regulation Of Cellular Process (GO:0048522)",
           "path": "gsea_results.csv",
           "source": "gsea_preranked",
-          "value": 7.042
+          "value": 7.0668
         },
         {
           "facts": [],
@@ -5773,7 +5963,7 @@
                 "path": "gsea_results.csv",
                 "ref_id": "bulk.gsea.B_vs_WT:evidence:0",
                 "source": "gsea_preranked",
-                "value": 105
+                "value": 126
               },
               {
                 "kind": "evidence",
@@ -5789,7 +5979,7 @@
                 "path": "gsea_results.csv",
                 "ref_id": "bulk.gsea.B_vs_WT:evidence:2",
                 "source": "gsea_preranked",
-                "value": 8.2941
+                "value": 8.3563
               },
               {
                 "kind": "evidence",
@@ -5797,7 +5987,7 @@
                 "path": "gsea_results.csv",
                 "ref_id": "bulk.gsea.B_vs_WT:evidence:3",
                 "source": "gsea_preranked",
-                "value": 7.042
+                "value": 7.0668
               },
               {
                 "kind": "evidence",
@@ -5811,7 +6001,7 @@
                 "kind": "metric",
                 "label": "n_pathways",
                 "ref_id": "bulk.gsea.B_vs_WT:metric:n_pathways",
-                "value": 105
+                "value": 126
               },
               {
                 "kind": "metric",
@@ -5823,13 +6013,13 @@
                 "kind": "metric",
                 "label": "top_pathways.0.nes",
                 "ref_id": "bulk.gsea.B_vs_WT:metric:top_pathways.0.nes",
-                "value": 8.2941
+                "value": 8.3563
               },
               {
                 "kind": "metric",
                 "label": "top_pathways.0.fdr",
                 "ref_id": "bulk.gsea.B_vs_WT:metric:top_pathways.0.fdr",
-                "value": 0.0
+                "value": 1.5052727189103367e-13
               },
               {
                 "kind": "metric",
@@ -5847,13 +6037,13 @@
                 "kind": "metric",
                 "label": "top_pathways.1.nes",
                 "ref_id": "bulk.gsea.B_vs_WT:metric:top_pathways.1.nes",
-                "value": 7.042
+                "value": 7.0668
               },
               {
                 "kind": "metric",
                 "label": "top_pathways.1.fdr",
                 "ref_id": "bulk.gsea.B_vs_WT:metric:top_pathways.1.fdr",
-                "value": 0.0
+                "value": 1.8432931022843005e-09
               },
               {
                 "kind": "metric",
@@ -5877,7 +6067,7 @@
                 "kind": "metric",
                 "label": "top_pathways.2.fdr",
                 "ref_id": "bulk.gsea.B_vs_WT:metric:top_pathways.2.fdr",
-                "value": 0.0
+                "value": 3.1159820265637755e-09
               },
               {
                 "kind": "metric",
@@ -5901,7 +6091,7 @@
                 "kind": "metric",
                 "label": "top_pathways.3.fdr",
                 "ref_id": "bulk.gsea.B_vs_WT:metric:top_pathways.3.fdr",
-                "value": 0.0
+                "value": 3.4107004224874736e-09
               },
               {
                 "kind": "metric",
@@ -5913,19 +6103,19 @@
                 "kind": "metric",
                 "label": "top_pathways.4.term",
                 "ref_id": "bulk.gsea.B_vs_WT:metric:top_pathways.4.term",
-                "value": "Regulation Of Cell Population Proliferation (GO:0042127)"
+                "value": "Positive Regulation Of Cell Differentiation (GO:0045597)"
               },
               {
                 "kind": "metric",
                 "label": "top_pathways.4.nes",
                 "ref_id": "bulk.gsea.B_vs_WT:metric:top_pathways.4.nes",
-                "value": 6.6584
+                "value": 6.6524
               },
               {
                 "kind": "metric",
                 "label": "top_pathways.4.fdr",
                 "ref_id": "bulk.gsea.B_vs_WT:metric:top_pathways.4.fdr",
-                "value": 0.0
+                "value": 1.3417011363575463e-08
               },
               {
                 "kind": "metric",
@@ -5998,37 +6188,37 @@
       "methods": [],
       "metrics": {
         "n_numeric_unstable": 0,
-        "n_pathways": 105,
+        "n_pathways": 126,
         "top_pathways": [
           {
-            "fdr": 0.0,
-            "nes": 8.2941,
+            "fdr": 1.5052727189103367e-13,
+            "nes": 8.3563,
             "numeric_unstable": false,
             "term": "Nervous System Development (GO:0007399)"
           },
           {
-            "fdr": 0.0,
-            "nes": 7.042,
+            "fdr": 1.8432931022843005e-09,
+            "nes": 7.0668,
             "numeric_unstable": false,
             "term": "Positive Regulation Of Cellular Process (GO:0048522)"
           },
           {
-            "fdr": 0.0,
+            "fdr": 3.1159820265637755e-09,
             "nes": 6.9365,
             "numeric_unstable": false,
             "term": "Central Nervous System Development (GO:0007417)"
           },
           {
-            "fdr": 0.0,
+            "fdr": 3.4107004224874736e-09,
             "nes": 6.8829,
             "numeric_unstable": false,
             "term": "Negative Regulation Of Nucleic Acid-Templated Transcription (GO:1903507)"
           },
           {
-            "fdr": 0.0,
-            "nes": 6.6584,
+            "fdr": 1.3417011363575463e-08,
+            "nes": 6.6524,
             "numeric_unstable": false,
-            "term": "Regulation Of Cell Population Proliferation (GO:0042127)"
+            "term": "Positive Regulation Of Cell Differentiation (GO:0045597)"
           }
         ]
       },
@@ -6198,11 +6388,6 @@
           "caption": "R vs WT heatmap_lfc",
           "id": "heatmap_lfc",
           "path": "heatmap_lfc.svg"
-        },
-        {
-          "caption": "R vs WT heatmap",
-          "id": "heatmap",
-          "path": "heatmap_padj.svg"
         }
       ],
       "id": "bulk.contrast.R_vs_WT",
@@ -6231,7 +6416,7 @@
           "checked_sentences": 3,
           "evidence_card": {
             "evidence_card_id": "bulk.contrast.R_vs_WT#evidence",
-            "n_refs": 20,
+            "n_refs": 19,
             "node_type": "evidence_card",
             "provenance": {
               "analysis": "differential_expression",
@@ -6373,12 +6558,6 @@
                 "label": "R vs WT heatmap_lfc",
                 "path": "heatmap_lfc.svg",
                 "ref_id": "bulk.contrast.R_vs_WT:figure:2"
-              },
-              {
-                "kind": "figure",
-                "label": "R vs WT heatmap",
-                "path": "heatmap_padj.svg",
-                "ref_id": "bulk.contrast.R_vs_WT:figure:3"
               }
             ],
             "semantic_facts": [
@@ -6535,10 +6714,24 @@
         },
         {
           "facts": [],
+          "label": "Cytokine-cytokine receptor interaction FDR",
+          "path": null,
+          "source": "bulk_pathways",
+          "value": 1.6024227346453947e-07
+        },
+        {
+          "facts": [],
           "label": "KEGG term",
           "path": null,
           "source": "bulk_pathways",
           "value": "Viral protein interaction with cytokine and cytokine receptor"
+        },
+        {
+          "facts": [],
+          "label": "Viral protein interaction with cytokine and cytokine receptor FDR",
+          "path": null,
+          "source": "bulk_pathways",
+          "value": 2.6276547370689445e-05
         },
         {
           "facts": [],
@@ -6549,6 +6742,13 @@
         },
         {
           "facts": [],
+          "label": "p53 signaling pathway FDR",
+          "path": null,
+          "source": "bulk_pathways",
+          "value": 7.258743310580965e-05
+        },
+        {
+          "facts": [],
           "label": "Reactome term",
           "path": null,
           "source": "bulk_pathways",
@@ -6556,10 +6756,24 @@
         },
         {
           "facts": [],
+          "label": "GPCR Ligand Binding R-HSA-500792 FDR",
+          "path": null,
+          "source": "bulk_pathways",
+          "value": 0.032988572937412926
+        },
+        {
+          "facts": [],
           "label": "Reactome term",
           "path": null,
           "source": "bulk_pathways",
           "value": "Chemokine Receptors Bind Chemokines R-HSA-380108"
+        },
+        {
+          "facts": [],
+          "label": "Chemokine Receptors Bind Chemokines R-HSA-380108 FDR",
+          "path": null,
+          "source": "bulk_pathways",
+          "value": 0.044015353267940906
         }
       ],
       "figures": [
@@ -6612,7 +6826,7 @@
           "checked_sentences": 4,
           "evidence_card": {
             "evidence_card_id": "bulk.pathway.R_vs_WT#evidence",
-            "n_refs": 15,
+            "n_refs": 20,
             "node_type": "evidence_card",
             "provenance": {
               "analysis": "pathway_enrichment",
@@ -6641,11 +6855,11 @@
               },
               {
                 "kind": "evidence",
-                "label": "KEGG term",
+                "label": "Cytokine-cytokine receptor interaction FDR",
                 "path": null,
                 "ref_id": "bulk.pathway.R_vs_WT:evidence:2",
                 "source": "bulk_pathways",
-                "value": "Viral protein interaction with cytokine and cytokine receptor"
+                "value": 1.6024227346453947e-07
               },
               {
                 "kind": "evidence",
@@ -6653,23 +6867,63 @@
                 "path": null,
                 "ref_id": "bulk.pathway.R_vs_WT:evidence:3",
                 "source": "bulk_pathways",
+                "value": "Viral protein interaction with cytokine and cytokine receptor"
+              },
+              {
+                "kind": "evidence",
+                "label": "Viral protein interaction with cytokine and cytokine receptor FDR",
+                "path": null,
+                "ref_id": "bulk.pathway.R_vs_WT:evidence:4",
+                "source": "bulk_pathways",
+                "value": 2.6276547370689445e-05
+              },
+              {
+                "kind": "evidence",
+                "label": "KEGG term",
+                "path": null,
+                "ref_id": "bulk.pathway.R_vs_WT:evidence:5",
+                "source": "bulk_pathways",
                 "value": "p53 signaling pathway"
+              },
+              {
+                "kind": "evidence",
+                "label": "p53 signaling pathway FDR",
+                "path": null,
+                "ref_id": "bulk.pathway.R_vs_WT:evidence:6",
+                "source": "bulk_pathways",
+                "value": 7.258743310580965e-05
               },
               {
                 "kind": "evidence",
                 "label": "Reactome term",
                 "path": null,
-                "ref_id": "bulk.pathway.R_vs_WT:evidence:4",
+                "ref_id": "bulk.pathway.R_vs_WT:evidence:7",
                 "source": "bulk_pathways",
                 "value": "GPCR Ligand Binding R-HSA-500792"
               },
               {
                 "kind": "evidence",
+                "label": "GPCR Ligand Binding R-HSA-500792 FDR",
+                "path": null,
+                "ref_id": "bulk.pathway.R_vs_WT:evidence:8",
+                "source": "bulk_pathways",
+                "value": 0.032988572937412926
+              },
+              {
+                "kind": "evidence",
                 "label": "Reactome term",
                 "path": null,
-                "ref_id": "bulk.pathway.R_vs_WT:evidence:5",
+                "ref_id": "bulk.pathway.R_vs_WT:evidence:9",
                 "source": "bulk_pathways",
                 "value": "Chemokine Receptors Bind Chemokines R-HSA-380108"
+              },
+              {
+                "kind": "evidence",
+                "label": "Chemokine Receptors Bind Chemokines R-HSA-380108 FDR",
+                "path": null,
+                "ref_id": "bulk.pathway.R_vs_WT:evidence:10",
+                "source": "bulk_pathways",
+                "value": 0.044015353267940906
               },
               {
                 "kind": "metric",
@@ -6806,7 +7060,7 @@
           "label": "FDR<0.25 pathways",
           "path": "gsea_results.csv",
           "source": "gsea_preranked",
-          "value": 211
+          "value": 296
         },
         {
           "facts": [],
@@ -6817,24 +7071,24 @@
         },
         {
           "facts": [],
-          "label": "GSEA term Ribosomal Large Subunit Biogenesis (GO:0042273)",
+          "label": "GSEA term mRNA Metabolic Process (GO:0016071)",
           "path": "gsea_results.csv",
           "source": "gsea_preranked",
-          "value": 6.3069
+          "value": 5.9591
         },
         {
           "facts": [],
           "label": "GSEA term post-Golgi Vesicle-Mediated Transport (GO:0006892)",
           "path": "gsea_results.csv",
           "source": "gsea_preranked",
-          "value": 6.0444
+          "value": 5.3455
         },
         {
           "facts": [],
-          "label": "GSEA term protein-DNA Complex Assembly (GO:0065004)",
+          "label": "GSEA term Establishment Of Protein Localization To Organelle (GO:0072594)",
           "path": "gsea_results.csv",
           "source": "gsea_preranked",
-          "value": 6.0361
+          "value": 5.316
         }
       ],
       "figures": [
@@ -6903,7 +7157,7 @@
                 "path": "gsea_results.csv",
                 "ref_id": "bulk.gsea.R_vs_WT:evidence:0",
                 "source": "gsea_preranked",
-                "value": 211
+                "value": 296
               },
               {
                 "kind": "evidence",
@@ -6915,11 +7169,11 @@
               },
               {
                 "kind": "evidence",
-                "label": "GSEA term Ribosomal Large Subunit Biogenesis (GO:0042273)",
+                "label": "GSEA term mRNA Metabolic Process (GO:0016071)",
                 "path": "gsea_results.csv",
                 "ref_id": "bulk.gsea.R_vs_WT:evidence:2",
                 "source": "gsea_preranked",
-                "value": 6.3069
+                "value": 5.9591
               },
               {
                 "kind": "evidence",
@@ -6927,39 +7181,39 @@
                 "path": "gsea_results.csv",
                 "ref_id": "bulk.gsea.R_vs_WT:evidence:3",
                 "source": "gsea_preranked",
-                "value": 6.0444
+                "value": 5.3455
               },
               {
                 "kind": "evidence",
-                "label": "GSEA term protein-DNA Complex Assembly (GO:0065004)",
+                "label": "GSEA term Establishment Of Protein Localization To Organelle (GO:0072594)",
                 "path": "gsea_results.csv",
                 "ref_id": "bulk.gsea.R_vs_WT:evidence:4",
                 "source": "gsea_preranked",
-                "value": 6.0361
+                "value": 5.316
               },
               {
                 "kind": "metric",
                 "label": "n_pathways",
                 "ref_id": "bulk.gsea.R_vs_WT:metric:n_pathways",
-                "value": 211
+                "value": 296
               },
               {
                 "kind": "metric",
                 "label": "top_pathways.0.term",
                 "ref_id": "bulk.gsea.R_vs_WT:metric:top_pathways.0.term",
-                "value": "Ribosomal Large Subunit Biogenesis (GO:0042273)"
+                "value": "mRNA Metabolic Process (GO:0016071)"
               },
               {
                 "kind": "metric",
                 "label": "top_pathways.0.nes",
                 "ref_id": "bulk.gsea.R_vs_WT:metric:top_pathways.0.nes",
-                "value": 6.3069
+                "value": 5.9591
               },
               {
                 "kind": "metric",
                 "label": "top_pathways.0.fdr",
                 "ref_id": "bulk.gsea.R_vs_WT:metric:top_pathways.0.fdr",
-                "value": 0.0
+                "value": 5.718376852037466e-06
               },
               {
                 "kind": "metric",
@@ -6977,13 +7231,13 @@
                 "kind": "metric",
                 "label": "top_pathways.1.nes",
                 "ref_id": "bulk.gsea.R_vs_WT:metric:top_pathways.1.nes",
-                "value": 6.0444
+                "value": 5.3455
               },
               {
                 "kind": "metric",
                 "label": "top_pathways.1.fdr",
                 "ref_id": "bulk.gsea.R_vs_WT:metric:top_pathways.1.fdr",
-                "value": 0.0
+                "value": 7.967607049093792e-05
               },
               {
                 "kind": "metric",
@@ -6995,19 +7249,19 @@
                 "kind": "metric",
                 "label": "top_pathways.2.term",
                 "ref_id": "bulk.gsea.R_vs_WT:metric:top_pathways.2.term",
-                "value": "protein-DNA Complex Assembly (GO:0065004)"
+                "value": "Establishment Of Protein Localization To Organelle (GO:0072594)"
               },
               {
                 "kind": "metric",
                 "label": "top_pathways.2.nes",
                 "ref_id": "bulk.gsea.R_vs_WT:metric:top_pathways.2.nes",
-                "value": 6.0361
+                "value": 5.316
               },
               {
                 "kind": "metric",
                 "label": "top_pathways.2.fdr",
                 "ref_id": "bulk.gsea.R_vs_WT:metric:top_pathways.2.fdr",
-                "value": 0.0
+                "value": 7.967607049093792e-05
               },
               {
                 "kind": "metric",
@@ -7019,19 +7273,19 @@
                 "kind": "metric",
                 "label": "top_pathways.3.term",
                 "ref_id": "bulk.gsea.R_vs_WT:metric:top_pathways.3.term",
-                "value": "Positive Regulation Of Transcription Initiation By RNA Polymerase II (GO:0060261)"
+                "value": "Ribosome Biogenesis (GO:0042254)"
               },
               {
                 "kind": "metric",
                 "label": "top_pathways.3.nes",
                 "ref_id": "bulk.gsea.R_vs_WT:metric:top_pathways.3.nes",
-                "value": 5.9785
+                "value": 4.9359
               },
               {
                 "kind": "metric",
                 "label": "top_pathways.3.fdr",
                 "ref_id": "bulk.gsea.R_vs_WT:metric:top_pathways.3.fdr",
-                "value": 0.0
+                "value": 0.00044953084240617613
               },
               {
                 "kind": "metric",
@@ -7043,19 +7297,19 @@
                 "kind": "metric",
                 "label": "top_pathways.4.term",
                 "ref_id": "bulk.gsea.R_vs_WT:metric:top_pathways.4.term",
-                "value": "mRNA Metabolic Process (GO:0016071)"
+                "value": "DNA-templated Transcription Initiation (GO:0006352)"
               },
               {
                 "kind": "metric",
                 "label": "top_pathways.4.nes",
                 "ref_id": "bulk.gsea.R_vs_WT:metric:top_pathways.4.nes",
-                "value": 5.9609
+                "value": 4.6609
               },
               {
                 "kind": "metric",
                 "label": "top_pathways.4.fdr",
                 "ref_id": "bulk.gsea.R_vs_WT:metric:top_pathways.4.fdr",
-                "value": 0.0
+                "value": 0.0013194738672592798
               },
               {
                 "kind": "metric",
@@ -7128,37 +7382,37 @@
       "methods": [],
       "metrics": {
         "n_numeric_unstable": 0,
-        "n_pathways": 211,
+        "n_pathways": 296,
         "top_pathways": [
           {
-            "fdr": 0.0,
-            "nes": 6.3069,
+            "fdr": 5.718376852037466e-06,
+            "nes": 5.9591,
             "numeric_unstable": false,
-            "term": "Ribosomal Large Subunit Biogenesis (GO:0042273)"
+            "term": "mRNA Metabolic Process (GO:0016071)"
           },
           {
-            "fdr": 0.0,
-            "nes": 6.0444,
+            "fdr": 7.967607049093792e-05,
+            "nes": 5.3455,
             "numeric_unstable": false,
             "term": "post-Golgi Vesicle-Mediated Transport (GO:0006892)"
           },
           {
-            "fdr": 0.0,
-            "nes": 6.0361,
+            "fdr": 7.967607049093792e-05,
+            "nes": 5.316,
             "numeric_unstable": false,
-            "term": "protein-DNA Complex Assembly (GO:0065004)"
+            "term": "Establishment Of Protein Localization To Organelle (GO:0072594)"
           },
           {
-            "fdr": 0.0,
-            "nes": 5.9785,
+            "fdr": 0.00044953084240617613,
+            "nes": 4.9359,
             "numeric_unstable": false,
-            "term": "Positive Regulation Of Transcription Initiation By RNA Polymerase II (GO:0060261)"
+            "term": "Ribosome Biogenesis (GO:0042254)"
           },
           {
-            "fdr": 0.0,
-            "nes": 5.9609,
+            "fdr": 0.0013194738672592798,
+            "nes": 4.6609,
             "numeric_unstable": false,
-            "term": "mRNA Metabolic Process (GO:0016071)"
+            "term": "DNA-templated Transcription Initiation (GO:0006352)"
           }
         ]
       },
@@ -7316,6 +7570,70 @@
       "tables": [],
       "title": "Bulk RNA power",
       "warnings": []
+    },
+    {
+      "analysis": "paired_qc",
+      "block_type": "qc",
+      "caveats": [
+        {
+          "severity": "blocking",
+          "text": "Same-cell multiome integration requires verified shared cell barcodes across RNA and ATAC; cross-sample pseudo-pairing is disallowed."
+        }
+      ],
+      "claim": "",
+      "confidence": "insufficient",
+      "error": "multiome_same_cell_gate_blocked",
+      "evidence": [],
+      "figures": [],
+      "id": "multiome.gate",
+      "metadata": {
+        "claim": {
+          "causal_license": {
+            "contrast": null,
+            "estimand_id": null,
+            "licensed": false,
+            "reason": "missing_block_estimand"
+          },
+          "evidence_categories": [
+            "descriptive"
+          ],
+          "language_violation": null,
+          "licensed_language": "descriptive",
+          "limitations": [
+            "Same-cell multiome integration requires verified shared cell barcodes across RNA and ATAC; cross-sample pseudo-pairing is disallowed."
+          ],
+          "rationale": "Descriptive summary (QC/counts); no between-condition claim.",
+          "tier": "descriptive"
+        },
+        "claim_verification": {
+          "checked_sentences": 0,
+          "evidence_card": {
+            "evidence_card_id": "multiome.gate#evidence",
+            "n_refs": 0,
+            "node_type": "evidence_card",
+            "provenance": {
+              "analysis": "paired_qc",
+              "block_id": "multiome.gate",
+              "modality": "integration",
+              "sources": []
+            },
+            "refs": [],
+            "semantic_facts": []
+          },
+          "policy": "Non-success block: diagnostic message, not a verified claim.",
+          "status": "supported",
+          "unsupported": []
+        }
+      },
+      "methods": [],
+      "metrics": {},
+      "modality": "integration",
+      "status": "skipped",
+      "tables": [],
+      "title": "Same-cell multiome pairing gate",
+      "warnings": [
+        "LOW/INSUFFICIENT confidence finding must remain visible in the limitations section."
+      ]
     },
     {
       "analysis": "integrated_signal",
@@ -7726,7 +8044,7 @@
           "text": "Alternative technical explanations not ruled out: batch_effect. Interpret the association with these confounders in mind."
         }
       ],
-      "claim": "B vs WT additionally shows 137 contrast-specific differentially expressed gene(s) and R vs WT shows 86, indicating partially distinct programs. B vs WT uniquely engages nervous system development and positive regulation of cell differentiation; R vs WT uniquely engages Chemokine Receptors Bind Chemokines R-HSA-380108 and G Alpha (I) Signaling Events R-HSA-418594. 1 shared gene(s) move in opposite directions (discordant evidence).",
+      "claim": "B vs WT additionally shows 137 contrast-specific differentially expressed gene(s) and R vs WT shows 86, indicating partially distinct programs. B vs WT uniquely engages nervous system development and positive regulation of cell differentiation; R vs WT uniquely engages Chemokine Receptors Bind Chemokines R-HSA-380108 and Peptide Ligand-Binding Receptors R-HSA-375276. 1 shared gene(s) move in opposite directions (discordant evidence).",
       "confidence": "medium",
       "error": null,
       "evidence": [
@@ -7770,7 +8088,7 @@
           "label": "R vs WT specific processes",
           "path": null,
           "source": "biological_synthesis",
-          "value": "Chemokine Receptors Bind Chemokines R-HSA-380108; G Alpha (I) Signaling Events R-HSA-418594"
+          "value": "Chemokine Receptors Bind Chemokines R-HSA-380108; Peptide Ligand-Binding Receptors R-HSA-375276"
         }
       ],
       "figures": [],
@@ -7857,7 +8175,7 @@
                 "path": null,
                 "ref_id": "integration.divergent.B_vs_WT__R_vs_WT:evidence:5",
                 "source": "biological_synthesis",
-                "value": "Chemokine Receptors Bind Chemokines R-HSA-380108; G Alpha (I) Signaling Events R-HSA-418594"
+                "value": "Chemokine Receptors Bind Chemokines R-HSA-380108; Peptide Ligand-Binding Receptors R-HSA-375276"
               },
               {
                 "kind": "metric",
@@ -8028,7 +8346,7 @@
     }
   ],
   "provenance": {
-    "aria_version": "4.9.0",
+    "aria_version": "4.9.1",
     "conda_env": "aria-env",
     "environment": {
       "conda_prefix": null,
@@ -8037,11 +8355,11 @@
       "env_name": "aria-env",
       "source": "no_lock"
     },
-    "git_commit": "b573b7070868c31911f2d4a2e17701663bb9ec54",
-    "git_describe": "v4.8.0-21-gb573b70-dirty",
+    "git_commit": "96a5da597db81ef39943099292253b62c0f1d6af",
+    "git_describe": "v4.9.0-15-g96a5da5-dirty",
     "git_dirty": true,
-    "git_sha": "b573b7070868c31911f2d4a2e17701663bb9ec54",
-    "git_tree_sha": "c1a59bdf1cf3a49631834cf5d6982bc2cf211280",
+    "git_sha": "96a5da597db81ef39943099292253b62c0f1d6af",
+    "git_tree_sha": "449afad8f878b18190cc8218fc9aaec6c729bc32",
     "image": {
       "containerized": false,
       "digest": null,
@@ -8054,9 +8372,9 @@
     "platform": "Linux-5.15.167.4-microsoft-standard-WSL2-x86_64-with-glibc2.39",
     "python_version": "3.11.15 | packaged by conda-forge | (main, Mar  5 2026, 16:45:40) [GCC 14.3.0]",
     "timestamp_utc": "<timestamp redacted for byte-identity>",
-    "version": "4.9.0",
+    "version": "4.9.1",
     "version_source": "aria.version.__version__",
-    "workflow_hash": "fa2af2f42ebbf8125211cc24dedc634206ab868cd774204c391e4d5f0386d110",
+    "workflow_hash": "c75c72d01bcf570e97f01c7f98b0c642be47b42ae6c03b64d5a8fefd1a1c6189",
     "workflow_hash_algorithm": "sha256(version+git_sha+git_tree_sha+git_dirty+git_status+git_diff)"
   },
   "raw_ingestion": [],
