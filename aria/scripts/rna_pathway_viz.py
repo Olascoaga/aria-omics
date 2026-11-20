@@ -279,6 +279,389 @@ def _partition_gsea_results(result):
     return stable, unstable
 
 
+def _load_gsea_library(gene_set_library: str, blitz_mod) -> tuple[Optional[dict], str]:
+    """Load a gene-set library for GSEA, honoring local GMTs and air-gap mode.
+
+    Resolution order:
+      1. Local versioned GMT matching ``gene_set_library`` (offline, deterministic).
+      2. ``blitzgsea.enrichr.get_library(gene_set_library)`` when egress is allowed.
+      3. Local ``GO_Biological_Process_2021`` fallback when air-gapped or offline
+         and a GO Biological Process library was requested.
+
+    All gene symbols are upper-cased so both human and mouse signatures match.
+    """
+    try:
+        from aria.utils import ora as _ora
+        loaded = _ora.load_local_library(gene_set_library)
+        if loaded is not None:
+            gene_sets, _ = loaded
+            return (
+                {k: [str(g).strip().upper() for g in v if str(g).strip()]
+                 for k, v in gene_sets.items() if v},
+                gene_set_library,
+            )
+    except Exception:
+        pass
+
+    egress_ok = True
+    try:
+        from aria.utils.privacy import egress_allowed
+        egress_ok = bool(egress_allowed())
+    except Exception:
+        egress_ok = True
+
+    if egress_ok:
+        try:
+            lib = blitz_mod.enrichr.get_library(gene_set_library)
+            if lib:
+                return (
+                    {k: [str(g).strip().upper() for g in v if str(g).strip()]
+                     for k, v in lib.items() if v},
+                    gene_set_library,
+                )
+        except Exception as e:
+            log.warning(f"GSEA library fetch failed for {gene_set_library}: {e}")
+
+    # Offline / air-gapped fallback to staged local GO_Biological_Process_2021
+    if gene_set_library.startswith("GO_Biological_Process"):
+        try:
+            from aria.utils import ora as _ora
+            fallback_name = "GO_Biological_Process_2021"
+            loaded = _ora.load_local_library(fallback_name)
+            if loaded is not None:
+                gene_sets, _ = loaded
+                log.info(
+                    f"GSEA using local offline fallback library {fallback_name}"
+                )
+                return (
+                    {k: [str(g).strip().upper() for g in v if str(g).strip()]
+                     for k, v in gene_sets.items() if v},
+                    fallback_name,
+                )
+        except Exception:
+            pass
+
+    return None, gene_set_library
+
+
+def _prepare_gsea_signature(signature):
+    """Return a descending-ranked, deduplicated, upper-cased signature frame
+    plus centered score vector and ``{gene: rank_index}`` lookup map matching
+    ``blitzgsea.gsea(..., center=True)``."""
+    import numpy as np
+
+    sig = signature.copy()
+    sig["gene"] = sig["gene"].astype(str).str.strip().str.upper()
+    sig = sig[sig["gene"] != ""]
+    sig = sig.sort_values("score", ascending=False, kind="mergesort")
+    sig = sig.drop_duplicates(subset=["gene"], keep="first").reset_index(drop=True)
+    scores_raw = sig["score"].to_numpy(dtype=float)
+    scores_centered = scores_raw - float(np.mean(scores_raw)) if len(scores_raw) else scores_raw
+    gene_to_rank = {g: idx for idx, g in enumerate(sig["gene"].tolist())}
+    return sig, scores_raw, scores_centered, gene_to_rank
+
+
+def _compute_running_sum(abs_scores, gene_to_rank: dict, gene_set) -> tuple:
+    """Exact weighted GSEA running-sum curve matching ``blitzgsea.enrichment_score``."""
+    import numpy as np
+
+    n_total = len(abs_scores)
+    hits = sorted({gene_to_rank[g] for g in gene_set if g in gene_to_rank})
+    if not hits or len(hits) >= n_total:
+        return np.zeros(n_total, dtype=float), 0.0, hits
+    hit_ind = np.zeros(n_total, dtype=float)
+    hit_ind[hits] = 1.0
+    no_hit_ind = 1.0 - hit_ind
+    sum_hits = float(np.sum(abs_scores[hits]))
+    if sum_hits <= 0.0:
+        return np.zeros(n_total, dtype=float), 0.0, hits
+    norm_hit = 1.0 / sum_hits
+    norm_miss = 1.0 / float(n_total - len(hits))
+    rs = np.cumsum(hit_ind * abs_scores * norm_hit - no_hit_ind * norm_miss)
+    peak_idx = int(np.argmax(np.abs(rs)))
+    return rs, float(rs[peak_idx]), hits
+
+
+def _fmt_fdr(val: float) -> str:
+    if val < 1e-3:
+        return f"{val:.1e}"
+    if val < 0.01:
+        return f"{val:.4f}"
+    return f"{val:.3f}"
+
+
+def _render_gsea_running_sum(
+    scores_raw,
+    scores_centered,
+    gene_to_rank: dict,
+    term: str,
+    gene_set,
+    row,
+    contrast_name: str,
+    output_png: Path,
+) -> str:
+    """Render a publication-grade 3-panel GSEA running sum (300-DPI PNG + SVG)."""
+    import textwrap
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    abs_scores = np.abs(scores_centered)
+    rs, es_calc, hits = _compute_running_sum(abs_scores, gene_to_rank, gene_set)
+    n_genes = len(scores_raw)
+    nes = float(row["nes"])
+    fdr = float(row["fdr"])
+    es_val = float(row["es"]) if "es" in row and np.isfinite(row["es"]) else es_calc
+    gsize = int(row["geneset_size"]) if "geneset_size" in row else len(hits)
+
+    is_pos = nes >= 0
+    accent = "#dc2626" if is_pos else "#2563eb"
+    peak_idx = int(np.argmax(np.abs(rs))) if len(rs) else 0
+
+    fig = plt.figure(figsize=(8.2, 5.6), facecolor="white")
+    gs = fig.add_gridspec(3, 1, height_ratios=[4.0, 0.75, 1.9], hspace=0.06)
+    ax_es = fig.add_subplot(gs[0])
+    ax_hit = fig.add_subplot(gs[1], sharex=ax_es)
+    ax_rank = fig.add_subplot(gs[2], sharex=ax_es)
+
+    # Panel 1: Running enrichment score
+    x = np.arange(n_genes)
+    ax_es.axhline(0.0, color="#94a3b8", lw=0.9, ls="-", zorder=1)
+    ax_es.plot(x, rs, color=accent, lw=2.3, zorder=3)
+    ax_es.fill_between(x, 0.0, rs, color=accent, alpha=0.10, zorder=2)
+    ax_es.axvline(peak_idx, color=accent, lw=1.1, ls="--", alpha=0.75, zorder=2)
+    ax_es.scatter([peak_idx], [rs[peak_idx]], color=accent, s=36, zorder=4)
+
+    # Place stats badge in the corner opposite the peak so it never covers the curve
+    badge_x = 0.98 if peak_idx < n_genes * 0.5 else 0.02
+    badge_ha = "right" if badge_x > 0.5 else "left"
+    badge_y = 0.94 if is_pos else 0.08
+    badge_va = "top" if is_pos else "bottom"
+    badge_txt = (
+        f"NES = {nes:+.2f}   |   ES = {es_val:+.2f}\n"
+        f"FDR = {_fmt_fdr(fdr)}   |   n = {gsize} genes"
+    )
+    ax_es.text(
+        badge_x, badge_y, badge_txt,
+        transform=ax_es.transAxes, ha=badge_ha, va=badge_va,
+        fontsize=9.5, fontweight="bold", color=_DARK_TEXT,
+        bbox={
+            "boxstyle": "round,pad=0.45",
+            "facecolor": "white",
+            "edgecolor": "#cbd5e1",
+            "alpha": 0.94,
+            "linewidth": 0.9,
+        },
+        zorder=10,
+    )
+    ax_es.set_ylabel("Enrichment Score (ES)", fontsize=10.5, color=_DARK_TEXT)
+    ax_es.grid(True, axis="y", color="#e2e8f0", lw=0.7)
+    ax_es.tick_params(axis="x", labelbottom=False, length=0)
+    ax_es.tick_params(axis="y", colors=_DARK_MUTED, labelsize=9.5)
+    for sp in ("top", "right"):
+        ax_es.spines[sp].set_visible(False)
+    for sp in ("left", "bottom"):
+        ax_es.spines[sp].set_edgecolor("#cbd5e1")
+
+    title_wrapped = textwrap.fill(str(term), width=64)
+    ax_es.set_title(
+        f"{title_wrapped}\n{contrast_name} · Pre-ranked GSEA (log₂FC)",
+        fontsize=11.5, fontweight="bold", color="#0f172a", pad=10,
+    )
+
+    # Panel 2: Gene-hit barcode track
+    ax_hit.set_facecolor("#f8fafc")
+    if hits:
+        ax_hit.vlines(hits, ymin=0.08, ymax=0.92, color=accent, lw=0.95, alpha=0.85)
+    ax_hit.set_ylim(0, 1)
+    ax_hit.set_yticks([])
+    ax_hit.tick_params(axis="x", labelbottom=False, length=0)
+    ax_hit.set_ylabel("Hits", fontsize=9, color=_DARK_MUTED, rotation=0,
+                      labelpad=18, va="center")
+    for sp in ax_hit.spines.values():
+        sp.set_edgecolor("#cbd5e1")
+        sp.set_linewidth(0.8)
+
+    # Panel 3: Ranked list metric (log2FC)
+    pos_mask = scores_raw >= 0
+    neg_mask = scores_raw < 0
+    ax_rank.axhline(0.0, color="#64748b", lw=0.8)
+    ax_rank.fill_between(x, 0.0, scores_raw, where=pos_mask,
+                         color="#fca5a5", alpha=0.55, interpolate=True)
+    ax_rank.fill_between(x, 0.0, scores_raw, where=neg_mask,
+                         color="#93c5fd", alpha=0.55, interpolate=True)
+    ax_rank.plot(x, scores_raw, color="#334155", lw=0.9)
+
+    zero_idx = int(np.argmin(np.abs(scores_raw))) if n_genes else 0
+    ax_rank.axvline(zero_idx, color="#64748b", lw=0.9, ls=":")
+    ax_rank.text(
+        zero_idx, 0.88, f"Zero cross @ {zero_idx:,}",
+        transform=ax_rank.get_xaxis_transform(),
+        ha="center", va="top", fontsize=8.5, color=_DARK_MUTED,
+        bbox={"facecolor": "white", "edgecolor": "none", "alpha": 0.75, "pad": 1.2},
+    )
+    ax_rank.set_xlim(0, max(1, n_genes - 1))
+    ax_rank.set_xlabel("Rank in Ordered Dataset (high → low log₂FC)",
+                       fontsize=10.5, color=_DARK_TEXT)
+    ax_rank.set_ylabel("log₂FC", fontsize=10, color=_DARK_TEXT)
+    ax_rank.grid(True, axis="y", color="#e2e8f0", lw=0.6)
+    ax_rank.tick_params(colors=_DARK_MUTED, labelsize=9.5)
+    for sp in ("top", "right"):
+        ax_rank.spines[sp].set_visible(False)
+    for sp in ("left", "bottom"):
+        ax_rank.spines[sp].set_edgecolor("#cbd5e1")
+
+    fig.subplots_adjust(left=0.12, right=0.97, top=0.86, bottom=0.11)
+    output_png.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(output_png, dpi=300, bbox_inches="tight", facecolor="white")
+    try:
+        fig.savefig(
+            output_png.with_suffix(".svg"), format="svg",
+            bbox_inches="tight", facecolor="white", metadata={"Date": None},
+        )
+    except Exception:
+        pass
+    plt.close(fig)
+    return str(output_png)
+
+
+def _render_gsea_top_table(
+    scores_raw,
+    gene_to_rank: dict,
+    library: dict,
+    result_stable,
+    contrast_name: str,
+    library_label: str,
+    n_sig_fdr25: int,
+    output_png: Path,
+    n: int = 15,
+) -> str:
+    """Render a full-width publication GSEA top-pathways table with hit barcodes
+    for both positive (red) and negative (blue) NES (300-DPI PNG + SVG)."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    import matplotlib.patches as mpatches
+    import numpy as np
+
+    top = result_stable.head(n)
+    n_rows = len(top)
+    n_genes = max(1, len(scores_raw))
+    zero_frac = (
+        float(np.argmin(np.abs(scores_raw))) / float(n_genes)
+        if len(scores_raw) else 0.5
+    )
+
+    fig_h = max(3.6, 1.35 + 0.42 * n_rows)
+    fig, ax = plt.subplots(figsize=(11.5, fig_h), facecolor="white")
+    ax.set_facecolor("white")
+    ax.axis("off")
+
+    # Coordinate layout across x in [0.0, 1.0]:
+    # [0.00..0.09] NES | [0.09..0.18] FDR | [0.19..0.46] Barcode | [0.48..1.00] Gene Set
+    x_nes = 0.08
+    x_fdr = 0.17
+    bar_x0, bar_x1 = 0.195, 0.465
+    bar_w = bar_x1 - bar_x0
+    x_term = 0.485
+
+    # Y coordinates: header at y = n_rows + 0.35, rows at y = n_rows-1 .. 0
+    ax.set_xlim(0.0, 1.0)
+    ax.set_ylim(-0.75, n_rows + 1.05)
+
+    # Column headers
+    hdr_y = n_rows + 0.35
+    ax.text(x_nes, hdr_y, "NES", ha="right", va="center",
+            fontsize=10.5, fontweight="bold", color="#0f172a")
+    ax.text(x_fdr, hdr_y, "FDR", ha="right", va="center",
+            fontsize=10.5, fontweight="bold", color="#0f172a")
+    ax.text((bar_x0 + bar_x1) / 2.0, hdr_y, "Ranked Gene Hits",
+            ha="center", va="center",
+            fontsize=10.5, fontweight="bold", color="#0f172a")
+    ax.text(x_term, hdr_y, "Gene Set (size)", ha="left", va="center",
+            fontsize=10.5, fontweight="bold", color="#0f172a")
+    ax.hlines(n_rows - 0.02, 0.0, 1.0, color="#334155", lw=1.3)
+
+    # Zero-crossing dashed guide down the barcode column
+    zx = bar_x0 + zero_frac * bar_w
+    ax.vlines(zx, ymin=-0.05, ymax=n_rows - 0.05,
+              color="#94a3b8", lw=0.8, ls=":", zorder=2)
+
+    for idx, (term, row) in enumerate(top.iterrows()):
+        y_center = (n_rows - 1 - idx) + 0.45
+        y_bot = (n_rows - 1 - idx)
+        y_top = y_bot + 0.92
+
+        # Subtle alternating zebra shading
+        if idx % 2 == 1:
+            ax.add_patch(mpatches.Rectangle(
+                (0.0, y_bot), 1.0, 0.96,
+                facecolor="#f8fafc", edgecolor="none", zorder=0,
+            ))
+
+        nes = float(row["nes"])
+        fdr = float(row["fdr"])
+        is_pos = nes >= 0
+        color = "#dc2626" if is_pos else "#2563eb"
+
+        # Barcode track background box
+        ax.add_patch(mpatches.Rectangle(
+            (bar_x0, y_bot + 0.08), bar_w, 0.76,
+            facecolor="white", edgecolor="#cbd5e1", linewidth=0.6, zorder=1,
+        ))
+
+        gs = library.get(term, ())
+        hits = [gene_to_rank[g] for g in gs if g in gene_to_rank]
+        if hits:
+            hx = bar_x0 + (np.asarray(hits, dtype=float) / float(n_genes)) * bar_w
+            ax.vlines(hx, ymin=y_bot + 0.11, ymax=y_top - 0.11,
+                      color=color, lw=0.75, alpha=0.70, zorder=3)
+
+        gsize = int(row["geneset_size"]) if "geneset_size" in row else len(hits)
+        term_str = str(term)
+        if len(term_str) > 62:
+            term_str = term_str[:59].rstrip() + "…"
+
+        ax.text(x_nes, y_center, f"{nes:+.2f}", ha="right", va="center",
+                fontsize=9.5, fontweight="bold", color=color, zorder=4)
+        ax.text(x_fdr, y_center, _fmt_fdr(fdr), ha="right", va="center",
+                fontsize=9.0, color=_DARK_MUTED, zorder=4)
+        ax.text(x_term, y_center, f"{term_str}  (n={gsize})",
+                ha="left", va="center", fontsize=9.5, color=_DARK_TEXT, zorder=4)
+
+        ax.hlines(y_bot, 0.0, 1.0, color="#e2e8f0", lw=0.6, zorder=1)
+
+    # Bottom axis annotations under the barcode column
+    ax.hlines(0.0, 0.0, 1.0, color="#334155", lw=1.0, zorder=2)
+    ax.text(bar_x0, -0.35, "↑ High log₂FC", ha="left", va="center",
+            fontsize=8.5, color="#dc2626", fontweight="bold")
+    ax.text(zx, -0.35, "0", ha="center", va="center",
+            fontsize=8.5, color="#64748b")
+    ax.text(bar_x1, -0.35, "Low log₂FC ↓", ha="right", va="center",
+            fontsize=8.5, color="#2563eb", fontweight="bold")
+
+    ax.set_title(
+        f"GSEA Top {n_rows} Enriched Pathways — {contrast_name}\n"
+        f"{library_label} · {n_sig_fdr25} significant pathways (FDR < 0.25) · "
+        f"Red: NES > 0   Blue: NES < 0",
+        fontsize=11.5, fontweight="bold", color="#0f172a", pad=12, loc="left",
+    )
+
+    plt.tight_layout()
+    output_png.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(output_png, dpi=300, bbox_inches="tight", facecolor="white")
+    try:
+        fig.savefig(
+            output_png.with_suffix(".svg"), format="svg",
+            bbox_inches="tight", facecolor="white", metadata={"Date": None},
+        )
+    except Exception:
+        pass
+    plt.close(fig)
+    return str(output_png)
+
+
 def make_gsea_running_sums(de_results_df,
                               symbol_map: dict,
                               contrast_name: str,
@@ -291,7 +674,8 @@ def make_gsea_running_sums(de_results_df,
                               seed: int = 0) -> dict:
     """
     Run GSEA via blitzgsea on a ranked gene list (log2FC), then plot the
-    top N enriched pathways as running sum plots.
+    top N enriched pathways as running sum plots and a summary top-table
+    with hit barcodes.
 
     Pattern from user's gsea_results.py and gsea_graph.py.
 
@@ -301,7 +685,7 @@ def make_gsea_running_sums(de_results_df,
         symbol_map:    {ensembl_id (no version): hgnc_symbol}
         contrast_name: e.g. "treated vs control"
         output_dir:    figures dir for this contrast
-        gene_set_library: blitzgsea library name
+        gene_set_library: blitzgsea / GMT library name
         organism:      "human" or "mouse" (matches gseapy convention)
         top_n_plots:   how many running sum plots to make
         min_size:      minimum gene-set size (Broad GSEA standard = 15)
@@ -328,39 +712,44 @@ def make_gsea_running_sums(de_results_df,
 
     try:
         import blitzgsea as blitz
-        import matplotlib
-        matplotlib.use("Agg")
-        import matplotlib.pyplot as plt
         import pandas as pd
 
         # ── Build the ranked signature ───────────────────────────────────
         # blitzgsea expects DataFrame with columns [gene, score], where score
-        # is log2FC (positive = upregulated).
+        # is log2FC (positive = upregulated). Upper-case symbols for mouse/human
+        # library matching while preserving descending rank order.
         signature = _ranked_signature_frame(de_results_df, symbol_map)
         if signature.empty:
             log.warning(f"GSEA[{contrast_name}]: no genes after symbol mapping")
             return out
 
-        log.info(f"GSEA[{contrast_name}]: {len(signature)} ranked genes")
+        sig_gsea, scores_raw, scores_centered, gene_to_rank = (
+            _prepare_gsea_signature(signature)
+        )
+        if sig_gsea.empty:
+            return out
 
-        # ── Fetch gene set library ───────────────────────────────────────
-        try:
-            library = blitz.enrichr.get_library(gene_set_library)
-        except Exception as e:
-            log.warning(f"GSEA[{contrast_name}]: library fetch failed: {e}")
+        log.info(f"GSEA[{contrast_name}]: {len(sig_gsea)} ranked genes")
+
+        # ── Load gene set library (local GMT first; respects air-gap) ────
+        library, library_label = _load_gsea_library(gene_set_library, blitz)
+        if not library:
+            log.warning(
+                f"GSEA[{contrast_name}]: gene set library '{gene_set_library}' unavailable"
+            )
             return out
 
         # ── Run GSEA ─────────────────────────────────────────────────────
         try:
             result = blitz.gsea(
-                signature, library,
+                sig_gsea, library,
                 min_size=min_size,
                 max_size=max_size,
                 seed=seed,
             )
         except TypeError:
             # Compatibility fallback for minimal test doubles / older signatures
-            result = blitz.gsea(signature, library)
+            result = blitz.gsea(sig_gsea, library)
         except Exception as e:
             log.warning(f"GSEA[{contrast_name}]: gsea() failed: {e}")
             return out
@@ -391,21 +780,25 @@ def make_gsea_running_sums(de_results_df,
         if result_stable.empty:
             return out
 
-        out["n_pathways"] = int((result_stable["fdr"] < 0.25).sum())
+        n_sig_fdr25 = int((result_stable["fdr"] < 0.25).sum())
+        out["n_pathways"] = n_sig_fdr25
 
         # ── Top-N running sum plots (strictly finite pathways) ───────────
         top = result_stable.head(top_n_plots)
-        for i, (term, _) in enumerate(top.iterrows()):
+        for i, (term, row) in enumerate(top.iterrows()):
             try:
-                fig = blitz.plot.running_sum(
-                    signature, term, library,
-                    result=result_stable, compact=False,
-                )
                 rank_path = Path(output_dir) / f"gsea_running_sum_{i+1}.png"
-                fig.savefig(rank_path, dpi=200, bbox_inches="tight",
-                            facecolor="white")
-                plt.close(fig)
-                out["running_sums"].append(str(rank_path))
+                saved = _render_gsea_running_sum(
+                    scores_raw=scores_raw,
+                    scores_centered=scores_centered,
+                    gene_to_rank=gene_to_rank,
+                    term=str(term),
+                    gene_set=library.get(term, ()),
+                    row=row,
+                    contrast_name=contrast_name,
+                    output_png=rank_path,
+                )
+                out["running_sums"].append(saved)
             except Exception as e:
                 log.warning(f"GSEA running_sum {i+1} failed: {e}")
                 continue
@@ -413,19 +806,18 @@ def make_gsea_running_sums(de_results_df,
         # ── Top table figure (summary; strictly finite pathways) ─────────
         try:
             n_table = min(15, len(result_stable))
-            # blitzgsea.plot.top_table passes `signature` (not `sig`) to
-            # `clean_library`, which intersects against `signature.index`.
-            # Indexing by gene symbol while keeping both [gene, score] columns
-            # restores the red/blue hit barcodes in the middle column.
-            sig_for_table = signature.set_index("gene", drop=False)
-            fig_table = blitz.plot.top_table(
-                sig_for_table, library, result_stable, n=n_table,
-            )
             tt_path = Path(output_dir) / "gsea_top_table.png"
-            fig_table.savefig(tt_path, dpi=200, bbox_inches="tight",
-                              facecolor="white")
-            plt.close(fig_table)
-            out["top_table_fig"] = str(tt_path)
+            out["top_table_fig"] = _render_gsea_top_table(
+                scores_raw=scores_raw,
+                gene_to_rank=gene_to_rank,
+                library=library,
+                result_stable=result_stable,
+                contrast_name=contrast_name,
+                library_label=library_label,
+                n_sig_fdr25=n_sig_fdr25,
+                output_png=tt_path,
+                n=n_table,
+            )
         except Exception as e:
             log.warning(f"GSEA top_table failed: {e}")
 
