@@ -241,13 +241,54 @@ def make_ora_dotplot(pathways_list: list,
         return None
 
 
+def _partition_gsea_results(result):
+    """Split a blitzgsea result frame into (stable_sorted, unstable).
+
+    ``blitzgsea`` estimates p-values and NES via parametric Gamma anchor
+    interpolation, which can occasionally emit ``NES = ±inf`` (and ``fdr = 0.0``)
+    for oversized or tail-saturated gene sets. Keeping non-finite rows out of
+    counts, running-sum plots, and ``top_table`` prevents ``NES=inf`` from
+    taking rank #1 while preserving those rows at the tail of
+    ``gsea_results.csv`` so ``BulkRnaNarrator`` can honestly disclose them.
+    """
+    import numpy as np
+    import pandas as pd
+
+    df = result.copy()
+    finite_mask = pd.Series(True, index=df.index)
+    for col in ("nes", "fdr", "es", "pval"):
+        if col in df.columns:
+            vals = pd.to_numeric(df[col], errors="coerce")
+            finite_mask &= np.isfinite(vals)
+
+    stable = df.loc[finite_mask].copy()
+    unstable = df.loc[~finite_mask].copy()
+
+    if not stable.empty:
+        stable["_sort_fdr"] = pd.to_numeric(stable["fdr"], errors="coerce")
+        stable["_sort_abs_nes"] = -pd.to_numeric(
+            stable["nes"], errors="coerce"
+        ).abs()
+        stable["_sort_term"] = stable.index.astype(str)
+        stable = stable.sort_values(
+            ["_sort_fdr", "_sort_abs_nes", "_sort_term"],
+            ascending=[True, True, True],
+            kind="mergesort",
+        ).drop(columns=["_sort_fdr", "_sort_abs_nes", "_sort_term"])
+
+    return stable, unstable
+
+
 def make_gsea_running_sums(de_results_df,
                               symbol_map: dict,
                               contrast_name: str,
                               output_dir: str,
                               gene_set_library: str = "GO_Biological_Process_2023",
                               organism: str = "human",
-                              top_n_plots: int = 3) -> dict:
+                              top_n_plots: int = 3,
+                              min_size: int = 15,
+                              max_size: int = 500,
+                              seed: int = 0) -> dict:
     """
     Run GSEA via blitzgsea on a ranked gene list (log2FC), then plot the
     top N enriched pathways as running sum plots.
@@ -263,19 +304,26 @@ def make_gsea_running_sums(de_results_df,
         gene_set_library: blitzgsea library name
         organism:      "human" or "mouse" (matches gseapy convention)
         top_n_plots:   how many running sum plots to make
+        min_size:      minimum gene-set size (Broad GSEA standard = 15)
+        max_size:      maximum gene-set size (Broad GSEA standard = 500;
+                       avoids mega-generic >500-gene GO terms whose Gamma
+                       anchor extrapolation destabilizes blitzgsea NES)
+        seed:          deterministic RNG seed for blitzgsea permutations
 
     Returns:
         dict with:
-          'gsea_table':    path to GSEA results CSV (sorted by NES)
-          'top_table_fig': path to summary table figure
-          'running_sums':  list of paths to running sum plots
-          'n_pathways':    number of significant pathways (FDR<0.25 standard)
+          'gsea_table':         path to GSEA results CSV (stable rows first)
+          'top_table_fig':      path to summary table figure
+          'running_sums':       list of paths to running sum plots
+          'n_pathways':         number of significant finite pathways (FDR<0.25)
+          'n_numeric_unstable': count of rows dropped from plots due to non-finite NES/FDR
     """
     out = {
-        "gsea_table":    None,
-        "top_table_fig": None,
-        "running_sums":  [],
-        "n_pathways":    0,
+        "gsea_table":         None,
+        "top_table_fig":      None,
+        "running_sums":       [],
+        "n_pathways":         0,
+        "n_numeric_unstable": 0,
     }
 
     try:
@@ -283,6 +331,7 @@ def make_gsea_running_sums(de_results_df,
         import matplotlib
         matplotlib.use("Agg")
         import matplotlib.pyplot as plt
+        import pandas as pd
 
         # ── Build the ranked signature ───────────────────────────────────
         # blitzgsea expects DataFrame with columns [gene, score], where score
@@ -303,6 +352,14 @@ def make_gsea_running_sums(de_results_df,
 
         # ── Run GSEA ─────────────────────────────────────────────────────
         try:
+            result = blitz.gsea(
+                signature, library,
+                min_size=min_size,
+                max_size=max_size,
+                seed=seed,
+            )
+        except TypeError:
+            # Compatibility fallback for minimal test doubles / older signatures
             result = blitz.gsea(signature, library)
         except Exception as e:
             log.warning(f"GSEA[{contrast_name}]: gsea() failed: {e}")
@@ -311,21 +368,38 @@ def make_gsea_running_sums(de_results_df,
         if result is None or len(result) == 0:
             return out
 
-        # Save the full GSEA table
+        result_stable, result_unstable = _partition_gsea_results(result)
+        n_unstable = int(len(result_unstable))
+        out["n_numeric_unstable"] = n_unstable
+        if n_unstable:
+            log.warning(
+                f"GSEA[{contrast_name}]: excluded {n_unstable} term(s) with "
+                "non-finite NES/FDR from plots and significance counts."
+            )
+
+        # Save the full GSEA table (finite rows sorted first; any non-finite
+        # rows preserved at the bottom for transparent narrator disclosure).
         Path(output_dir).mkdir(parents=True, exist_ok=True)
         table_path = Path(output_dir) / "gsea_results.csv"
-        result_sorted = result.sort_values("fdr").copy()
-        result_sorted.to_csv(table_path)
+        result_export = (
+            pd.concat([result_stable, result_unstable])
+            if n_unstable
+            else result_stable
+        )
+        result_export.to_csv(table_path)
         out["gsea_table"] = str(table_path)
-        out["n_pathways"] = int((result_sorted["fdr"] < 0.25).sum())
+        if result_stable.empty:
+            return out
 
-        # ── Top-N running sum plots ──────────────────────────────────────
-        top = result_sorted.head(top_n_plots)
+        out["n_pathways"] = int((result_stable["fdr"] < 0.25).sum())
+
+        # ── Top-N running sum plots (strictly finite pathways) ───────────
+        top = result_stable.head(top_n_plots)
         for i, (term, _) in enumerate(top.iterrows()):
             try:
                 fig = blitz.plot.running_sum(
                     signature, term, library,
-                    result=result, compact=False,
+                    result=result_stable, compact=False,
                 )
                 rank_path = Path(output_dir) / f"gsea_running_sum_{i+1}.png"
                 fig.savefig(rank_path, dpi=200, bbox_inches="tight",
@@ -336,9 +410,17 @@ def make_gsea_running_sums(de_results_df,
                 log.warning(f"GSEA running_sum {i+1} failed: {e}")
                 continue
 
-        # ── Top table figure (summary) ───────────────────────────────────
+        # ── Top table figure (summary; strictly finite pathways) ─────────
         try:
-            fig_table = blitz.plot.top_table(signature, library, result, n=15)
+            n_table = min(15, len(result_stable))
+            # blitzgsea.plot.top_table passes `signature` (not `sig`) to
+            # `clean_library`, which intersects against `signature.index`.
+            # Indexing by gene symbol while keeping both [gene, score] columns
+            # restores the red/blue hit barcodes in the middle column.
+            sig_for_table = signature.set_index("gene", drop=False)
+            fig_table = blitz.plot.top_table(
+                sig_for_table, library, result_stable, n=n_table,
+            )
             tt_path = Path(output_dir) / "gsea_top_table.png"
             fig_table.savefig(tt_path, dpi=200, bbox_inches="tight",
                               facecolor="white")
