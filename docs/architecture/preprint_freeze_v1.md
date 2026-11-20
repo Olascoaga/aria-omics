@@ -66,7 +66,7 @@ evidence.
 
 ## Current closure boundary
 
-On `v4.9.0` (`ADR-083`), all **19 of 19** machine-verifiable freeze lanes under
+On `v4.9.1` (`ADR-083`), all **19 of 19** machine-verifiable freeze lanes under
 `automated_v1_gate` are verified (`Claims 1–7` machine lanes complete, including
 `c4_metamorphic_600_falsification`). The remaining **3 of 22** lanes require
 independent human annotation and adjudication and are recorded verbatim as

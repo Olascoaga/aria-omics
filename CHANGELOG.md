@@ -8,9 +8,24 @@ current `main`.
 
 ---
 
-## [v4.9.0] — 2026-11-18 (Current Release)
+## [v4.9.1] — 2026-11-20 (Current Release)
 
-Full release notes: [`docs/release_notes_v4.9.0.md`](docs/release_notes_v4.9.0.md)
+Full release notes: [`docs/release_notes_v4.9.1.md`](docs/release_notes_v4.9.1.md)
+
+### Highlights
+- **ORA Precision Fix & Native Publication GSEA Upgrade (`fb70a27`, `ef06804`, `2f4eaf4`):** Preserved full float precision for `padj`/`pvalue`/`qval` across ORA, DE/DA, Hi-C, and LOBO scripts (eliminating `-log10(FDR) = 300` rounding-to-zero artifacts), fixed ORA dotplot overlap counts (`k/n`) and colorbar `hue_norm`, resolved `NES=inf` on large GO sets (`min_size=15, max_size=500, seed=0`) with air-gap local GMT + mouse/human case-insensitive support, and shipped native 300-DPI PNG + SVG GSEA running-sum and multi-pathway top-table renderers with full red/blue hit barcodes.
+- **Full-Modality 4-Wave Audit Remediation (`edb079a`, `55df872`, `2407348`, `bbb7b6b`, 11 new regression suites):**
+  - **Wave 1 (`edb079a`):** Hardened core statistics, NaN/Inf-safe BH-FDR, scientific-notation C2/C4 verification, deterministic `compose_prose.py` fallback, falsification certificates, LOBO, sensitivity, power, `reporting/*`, `cross_modal_triangulation`, and full-precision Hi-C hypothesis q-values.
+  - **Wave 2 (`55df872`):** Hardened visualization scales across all modalities (data-adaptive `p == 0` caps, case-insensitive MOFA+ views, mouse `mm10`/`mm39` telocentric N-gap window selection in Hi-C contact maps, unphased E1 track labels, finite volcano/PAGA/UMAP/LIANA/TOBIAS plots, and dual PNG + SVG parity).
+  - **Wave 3 (`2407348`):** Hardened 38 Chromatin/Epigenomics, Bulk/scRNA, Multiome, and Hi-C scientific engines — including finite `log2_enrichment > 0` motif filtering, sign-pure TOBIAS rankings, post-doublet LSI sketching, full-file scATAC mito streaming, fail-closed spike-in normalization, `Promoter > Exonic > Intronic > Distal` priority, eRegulon FASTA contig aliasing & CMH skipped-stratum exclusion, WNN/MOFA+ NaN guards, out-of-core sparse banded 2D-smoothed **Yang et al. (2017) HiCRep SCC** (`vstran` rank weights), snapped insulation windows, Micro-C `< 4 kb` loop guard, and ICE convergence QC gating.
+  - **Wave 4 (`bbb7b6b`):** Aligned all five narrators (`bulk_rna`, `scrna`, `chromatin`, `integration`, `hic`), added `batch_factor_ids` / `batch_flag` quarantine to `hypothesis/adapters/integration.py`, unified mouse/human species & assembly normalization across ORA/GTF/peak ORA, wired two-pass global BH-FDR + `run_pathways` + `design_factor` in `rna_bulk_de.py`, fixed Multiome `barcode_namespace`/`barcode_map`/fragment translation & exact `regulon_padj == 0.0` tunnel retention, and restricted `GenomeArchAgent` Micro-C loop resolution selection to `[4 kb, 25 kb]` with `figures_svg` + `pc1_validated` propagation.
+- **CI, Docker & Fresh `19 / 19` Preprint `v1` Freeze:** Green `ARIA CI` + Python 3.11-compatible Dockerfiles for tag-triggered `release-repro` + CycloneDX SBOM, fresh `19 / 19` `automated_v1_gate` receipts bound to `v4.9.1`, and **`0` diff against `v4.9.0`** on `aria/scripts/rna_bulk/deseq2.py`, `aria/utils/stage_manifest.py`, and `docs/benchmark_results/preprint_v1/human/*.csv`.
+
+---
+
+## [v4.9.0] — 2026-11-18
+
+Full release notes: [`docs/releases/release_notes_v4.9.0.md`](docs/releases/release_notes_v4.9.0.md)
 
 ### Highlights
 - **v4.9 Release — Committed `DecisionManifest`, Forking-Path Ledger, Four-Layer Determinism, Walk-Away FASTQ Auto-Provisioning, Live `In-Silico Reviewer #2` Falsification Certificates, 40-Capsule Comparative Benchmark & `ADR-083` Automated Preprint Gate (`ADR-083`, `ADR-084`):**
