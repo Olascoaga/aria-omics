@@ -13,7 +13,11 @@ ARG ARIA_BASE_IMAGE=aria-base:local
 FROM ${ARIA_BASE_IMAGE}
 
 ARG MAMBA_DOCKERFILE_ACTIVATE=1
-RUN micromamba install -y -n base -f /opt/aria/envs/aria-chromatin-env.yml && \
+# Pre-install bioconda macs3=3.0.4 (and conda-forge cykhash) so pip does not
+# attempt to compile MACS3 / cykhash from source without gcc in the base image.
+RUN micromamba install -y -n base -c conda-forge -c bioconda \
+      "python=3.11" "numpy>=1.24,<2.0.0" "macs3=3.0.4" && \
+    micromamba install -y -n base -f /opt/aria/envs/aria-chromatin-env.yml && \
     micromamba clean --all --yes
 RUN python -m pip install --no-deps -e /opt/aria
 

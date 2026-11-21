@@ -1,10 +1,10 @@
 <p align="center">
-  <img src="docs/assets/aria_hero_banner.svg" alt="ARIA v4.9.2 — Agentic Research Intelligence for Supervised Omics Analysis" width="100%"/>
+  <img src="docs/assets/aria_hero_banner.svg" alt="ARIA v4.9.3 — Agentic Research Intelligence for Supervised Omics Analysis" width="100%"/>
 </p>
 
 <div align="center">
 
-![Version](https://img.shields.io/badge/version-4.9.2-blue)
+![Version](https://img.shields.io/badge/version-4.9.3-blue)
 [![ARIA CI](https://github.com/Olascoaga/aria-omics/actions/workflows/ci.yml/badge.svg)](https://github.com/Olascoaga/aria-omics/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/python-3.11-blue)
 ![Platform](https://img.shields.io/badge/platform-linux--64%20%7C%20WSL2-informational)
@@ -23,7 +23,7 @@
   <a href="#interactive-control-center--audited-reports">Control Center &amp; Reports</a> &nbsp;&middot;&nbsp;
   <a href="#multi-omics-output-gallery">Multi-Omics Gallery</a> &nbsp;&middot;&nbsp;
   <a href="#system-architecture">Architecture</a> &nbsp;&middot;&nbsp;
-  <a href="#capability--readiness-matrix-v492">Modalities</a> &nbsp;&middot;&nbsp;
+  <a href="#capability--readiness-matrix-v493">Modalities</a> &nbsp;&middot;&nbsp;
   <a href="#quick-start">Quick Start</a> &nbsp;&middot;&nbsp;
   <a href="#documentation-map">Docs</a>
 </p>
@@ -36,14 +36,14 @@
 
 General-purpose coding agents (`CodeAct`) routinely improvise statistical tests on the fly, ignore batch confounding or technical-replicate pseudoreplication, guess answers on out-of-scope data, and blend real statistics with unsupported prose. ARIA replaces free-form script improvisation with a strict four-layer separation:
 
-| Dimension | Unconstrained CodeAct Agent | ARIA `v4.9.2` Governed Control Plane |
+| Dimension | Unconstrained CodeAct Agent | ARIA `v4.9.3` Governed Control Plane |
 | :--- | :--- | :--- |
 | **Experimental Design** | Infers groups/covariates silently from filenames or ad-hoc prompts | **Design before compute (`CP1–CP3.5`)**: validates contrasts, biological units, batch confounding, and rank deficiency before dispatch |
 | **Statistical Compute** | Writes fragile one-off Python scripts in a shared environment | **9 lock-pinned Conda stacks** over JSON IPC; calibrated to `r = 1.000` vs R `DESeq2`, `TOBIAS`, and `cooltools` |
 | **Epistemic Safety** | Mixes real numbers with hallucinated caveats or causal overclaims | **Claim Compiler (`C1–C4`)**: every public number, entity, direction, and associative tier is compiled from `EvidenceCard` + `RunLedger` |
 | **Reproducibility** | Non-deterministic multi-turn loops; expensive to audit | **Zero-LLM `DecisionManifest` replay**, `W3C RO-Crate 1.1`, and atomic SHA-256 `capsule.zip` verification |
 
-Every report bundle stamps the package version (**`4.9.2`**), exact Git commit, dirty state, workflow hash, input SHA-256 digests, Conda/PyPI lockfile hashes, and LLM determinism provenance — so package version alone is never treated as a complete reproducibility pin.
+Every report bundle stamps the package version (**`4.9.3`**), exact Git commit, dirty state, workflow hash, input SHA-256 digests, Conda/PyPI lockfile hashes, and LLM determinism provenance — so package version alone is never treated as a complete reproducibility pin.
 
 ---
 
@@ -129,7 +129,7 @@ flowchart LR
 
 ---
 
-## Capability & Readiness Matrix (`v4.9.2`)
+## Capability & Readiness Matrix (`v4.9.3`)
 
 `aria/agents/orchestrator_agent.py` (`MODALITY_VALIDATION`, `INTEGRATION_VALIDATION`, and `CROSS_MODAL_CONCORDANCE_VALIDATION`) is the single runtime source of truth, guarded against documentation drift in CI ([Validation Status](docs/validation_status.md)):
 
@@ -287,7 +287,7 @@ aria_<timestamp>_<slug>_<id>/
 | **Public Atlas Vignettes** | [13 Reproducible Public Vignettes](docs/vignettes/README.md) (`Bulk RNA`, `scRNA`, `scATAC`, `Bulk ATAC + TOBIAS`, `ChIP`, `CUT&RUN`, `CUT&TAG`, `Hi-C`, `Paired Multiome`, `Cross-Modal`, `Cross-Model`, `Benchmarks`) |
 | **Architecture & Governance** | [Architecture Overview](docs/architecture/overview.md) · [Code Dependency Graph](docs/architecture/code_graph.md) · [Reporting & Claim Governance](docs/architecture/reporting_and_outputs.md) · [Biological Synthesis](docs/architecture/biological_synthesis.md) · [HypothesisAgent Quarantine](docs/architecture/hypothesis_agent.md) |
 | **Validation & Benchmarks** | [Validation Status](docs/validation_status.md) · [Preprint-v1 Evidence Freeze](docs/architecture/preprint_freeze_v1.md) · [Benchmark Hub](docs/benchmark_results/README.md) · [External Benchmarks (`v4.9.0`)](docs/benchmark_results/external_benchmarks_v49/README.md) |
-| **Workflow Guides & Releases** | [Bulk RNA](docs/workflows/bulk_rna.md) · [scRNA](docs/workflows/scrna.md) · [Pseudobulk](docs/workflows/pseudobulk_scrna.md) · [Chromatin](docs/workflows/chromatin_roadmap.md) · [Paired Multiome](docs/workflows/integration_roadmap.md) · [Changelog](CHANGELOG.md) · [v4.9.2 Release Notes](docs/release_notes_v4.9.2.md) |
+| **Workflow Guides & Releases** | [Bulk RNA](docs/workflows/bulk_rna.md) · [scRNA](docs/workflows/scrna.md) · [Pseudobulk](docs/workflows/pseudobulk_scrna.md) · [Chromatin](docs/workflows/chromatin_roadmap.md) · [Paired Multiome](docs/workflows/integration_roadmap.md) · [Changelog](CHANGELOG.md) · [v4.9.3 Release Notes](docs/release_notes_v4.9.3.md) |
 
 ---
 
@@ -303,7 +303,7 @@ python -m pytest -q \
   tests/test_registry_integrity.py
 ```
 
-Consult [`docs/architecture/code_graph.md`](docs/architecture/code_graph.md) before modifying shared paths. Note that [`docs/benchmark_results/preprint_v1/`](docs/benchmark_results/preprint_v1/inventory.json) binds receipts to the clean indexed Git tree (`v4.9.2` is the current package release), so any tracked code or documentation edit requires refreshing machine freeze receipts before cutting a frozen preprint snapshot.
+Consult [`docs/architecture/code_graph.md`](docs/architecture/code_graph.md) before modifying shared paths. Note that [`docs/benchmark_results/preprint_v1/`](docs/benchmark_results/preprint_v1/inventory.json) binds receipts to the clean indexed Git tree (`v4.9.3` is the current package release), so any tracked code or documentation edit requires refreshing machine freeze receipts before cutting a frozen preprint snapshot.
 
 ---
 
@@ -312,10 +312,10 @@ Consult [`docs/architecture/code_graph.md`](docs/architecture/code_graph.md) bef
 If you use ARIA in academic work, please cite:
 
 ```bibtex
-@software{olascoaga_aria_v492,
+@software{olascoaga_aria_v493,
   title   = {ARIA: Agentic Research Intelligence for Supervised Multi-Omics Analysis},
   author  = {Olascoaga and ARIA Contributors},
-  version = {4.9.2},
+  version = {4.9.3},
   year    = {2026},
   url     = {https://github.com/Olascoaga/aria-omics},
   license = {MIT}

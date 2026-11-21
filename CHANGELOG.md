@@ -8,9 +8,19 @@ current `main`.
 
 ---
 
-## [v4.9.2] — 2026-11-20 (Current Release)
+## [v4.9.3] — 2026-11-20 (Current Release)
 
-Full release notes: [`docs/release_notes_v4.9.2.md`](docs/release_notes_v4.9.2.md)
+Full release notes: [`docs/release_notes_v4.9.3.md`](docs/release_notes_v4.9.3.md)
+
+### Highlights
+- **100% Green `release-repro` Docker & CycloneDX SBOM Supply-Chain Fix (`docker/Dockerfile.chromatin`):** Pre-installed prebuilt `bioconda::macs3=3.0.4` (and `conda-forge::cykhash`) before solving `envs/aria-chromatin-env.yml` in `docker/Dockerfile.chromatin` so `pip` does not attempt to compile `MACS3`/`cykhash` from source without `gcc`, turning the full tag-triggered `release-repro` pipeline (`Dockerfile.base`, `Dockerfile.rna`, `Dockerfile.atacseq`, `Dockerfile.chromatin`, `Dockerfile.tobias`, in-container `test_benchmark_synthetic_de.py`, and CycloneDX SBOM) 100% green.
+- **Fresh `19 / 19` Preprint `v1` Freeze Bound to `v4.9.3`:** Zero analytical code changes vs `v4.9.2`; regenerated all `19 / 19` `automated_v1_gate` receipts bound to `v4.9.3` with **`0` diff against `v4.9.0`** on `aria/utils/stage_manifest.py` and `docs/benchmark_results/preprint_v1/human/*.csv`.
+
+---
+
+## [v4.9.2] — 2026-11-20
+
+Full release notes: [`docs/releases/release_notes_v4.9.2.md`](docs/releases/release_notes_v4.9.2.md)
 
 ### Highlights
 - **Tripartite Blind Post-Wave-4 Re-Audit Remediation (`f215667`, `4899f8c`, 8 new regression suites):**
