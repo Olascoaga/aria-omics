@@ -1,10 +1,10 @@
 {
-  "aria_version": "4.9.1",
+  "aria_version": "4.9.2",
   "artifacts": [
     {
       "path": "claim_1/ercc/a1_ercc_dose_response_v4.5.5.json",
-      "sha256": "5def0d6b5862b2d43a7c858c0758a63ed7439517c12e33e7aadc5d70a4fe09c6",
-      "size_bytes": 3865
+      "sha256": "6d130aba5b07379b82211729692f5332329ea06b75d1bfc09d5afe5d9d9b0f62",
+      "size_bytes": 3864
     },
     {
       "path": "claim_1/ercc/fig1_a1_ercc_dose_response_v4.5.5.svg",
@@ -16,18 +16,18 @@
     "claim_1"
   ],
   "command": "conda run -n aria-rna-env python scripts/run_a1_ercc_dose_response.py --bundle ~/.aria/benchmarks/seqc_maqc_BGI --output-dir docs/benchmark_results/preprint_v1/claim_1/ercc",
-  "completed_utc": "2026-11-20T14:26:53.503184+00:00",
+  "completed_utc": "2026-11-21T00:01:25.187126+00:00",
   "environment": "aria-rna-env",
-  "git_commit": "96a5da597db81ef39943099292253b62c0f1d6af",
-  "git_tree_sha": "449afad8f878b18190cc8218fc9aaec6c729bc32",
+  "git_commit": "36e736fbd56b9657902c31eeb44d70f44b039a13",
+  "git_tree_sha": "2c94eab67718b777fd104f639422a1f477b8faaa",
   "lane_id": "c1_ercc_dose_response",
   "returncode": 0,
   "schema_version": "aria.preprint_freeze.receipt.v1",
-  "source_snapshot_hash": "825724af7451878932180768e2f7ce3341cd9cf3f09b544e67096aa944c10988",
-  "started_utc": "2026-11-20T14:26:52.453997+00:00",
+  "source_snapshot_hash": "8ca58c854284004d0cda12681a6bac1ef08e21976f199a9eb5bddbcbe5c7e273",
+  "started_utc": "2026-11-21T00:01:24.883295+00:00",
   "status": "pass",
   "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
   "stdout_sha256": "f791c7ccdd1ca6b0519fe9221d557854352a52c6a795cea955725c3e98897a37",
   "test_summary": null,
-  "workflow_hash": "4dc331900233aa2b1574f4ca856e204a1570d1926fa7b66b36e5ad040712e113"
+  "workflow_hash": "ec115d9cb18c76e0d4c590c02cbf26720eb03fa239f2fa0e05edf48a6f83297d"
 }

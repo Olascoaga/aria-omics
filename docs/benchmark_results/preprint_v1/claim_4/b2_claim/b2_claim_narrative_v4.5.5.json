@@ -1,5 +1,5 @@
 {
-  "aria_version": "4.9.1",
+  "aria_version": "4.9.2",
   "arms": {
     "governed": {
       "causal_overreach_rate": 0.0,
@@ -622,7 +622,7 @@
     }
   ],
   "provenance": {
-    "aria_version": "4.9.1",
+    "aria_version": "4.9.2",
     "environment": {
       "conda_prefix": null,
       "env_lock_file": null,
@@ -630,11 +630,11 @@
       "env_name": "aria-env",
       "source": "no_lock"
     },
-    "git_commit": "96a5da597db81ef39943099292253b62c0f1d6af",
-    "git_describe": "v4.9.0-15-g96a5da5-dirty",
+    "git_commit": "36e736fbd56b9657902c31eeb44d70f44b039a13",
+    "git_describe": "v4.9.1-3-g36e736f-dirty",
     "git_dirty": true,
-    "git_sha": "96a5da597db81ef39943099292253b62c0f1d6af",
-    "git_tree_sha": "449afad8f878b18190cc8218fc9aaec6c729bc32",
+    "git_sha": "36e736fbd56b9657902c31eeb44d70f44b039a13",
+    "git_tree_sha": "2c94eab67718b777fd104f639422a1f477b8faaa",
     "image": {
       "containerized": false,
       "digest": null,
@@ -644,9 +644,9 @@
       "revision": null,
       "validation": null
     },
-    "version": "4.9.1",
+    "version": "4.9.2",
     "version_source": "aria.version.__version__",
-    "workflow_hash": "f030a61de027c964b7549ae22706c16eb721c1b30d7b7ce8144c7af87b1c6dc9",
+    "workflow_hash": "01c5536eebf408dc984eed104e0970a5873c8324992a39677b7f63ae7588bbdc",
     "workflow_hash_algorithm": "sha256(version+git_sha+git_tree_sha+git_dirty+git_status+git_diff)"
   },
   "scope": "governance_claim_ablation_4arm",

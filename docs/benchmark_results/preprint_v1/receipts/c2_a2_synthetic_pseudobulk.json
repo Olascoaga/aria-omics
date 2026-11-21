@@ -1,9 +1,9 @@
 {
-  "aria_version": "4.9.1",
+  "aria_version": "4.9.2",
   "artifacts": [
     {
       "path": "claim_2/a2_synthetic/a2_pseudobulk.json",
-      "sha256": "f307ffab56271a1514d81d141801ee034bf333798e7d53be17ef032ccf9db0be",
+      "sha256": "3f92436d7576be7a738eb0b0d96269089c1df9e068c7ae35c9d50f567865fd5f",
       "size_bytes": 3917
     },
     {
@@ -16,18 +16,18 @@
     "claim_2"
   ],
   "command": "conda run -n aria-rna-env python scripts/run_a2_pseudobulk_benchmark.py --output-dir docs/benchmark_results/preprint_v1/claim_2/a2_synthetic --manifest-name a2_pseudobulk.json --figure-name fig2_a2_pseudobulk.svg --artifact-version preprint_v1",
-  "completed_utc": "2026-11-20T14:28:19.545967+00:00",
+  "completed_utc": "2026-11-21T00:00:21.704340+00:00",
   "environment": "aria-rna-env",
-  "git_commit": "96a5da597db81ef39943099292253b62c0f1d6af",
-  "git_tree_sha": "449afad8f878b18190cc8218fc9aaec6c729bc32",
+  "git_commit": "36e736fbd56b9657902c31eeb44d70f44b039a13",
+  "git_tree_sha": "2c94eab67718b777fd104f639422a1f477b8faaa",
   "lane_id": "c2_a2_synthetic_pseudobulk",
   "returncode": 0,
   "schema_version": "aria.preprint_freeze.receipt.v1",
-  "source_snapshot_hash": "825724af7451878932180768e2f7ce3341cd9cf3f09b544e67096aa944c10988",
-  "started_utc": "2026-11-20T14:28:10.437547+00:00",
+  "source_snapshot_hash": "8ca58c854284004d0cda12681a6bac1ef08e21976f199a9eb5bddbcbe5c7e273",
+  "started_utc": "2026-11-21T00:00:13.102260+00:00",
   "status": "pass",
-  "stderr_sha256": "18d43338707c29b1b24bd723831245c75d6df9a761e5338b1ea664c01a820c63",
-  "stdout_sha256": "f13f9d9e66a7b34ae44961820c3557737fa3c2620a397151fa2422ca7f51600c",
-  "test_summary": "Using None as control genes, passed at DeseqDataSet initialization",
-  "workflow_hash": "4dc331900233aa2b1574f4ca856e204a1570d1926fa7b66b36e5ad040712e113"
+  "stderr_sha256": "f159f991f62373a8ebaeb0f9eb649e0bf901633f8717fff98b539dd437ba3247",
+  "stdout_sha256": "f0b6993ede4ea823cfdef966602dfa18169b328ff2a733e126ec39c42a5f9378",
+  "test_summary": null,
+  "workflow_hash": "ec115d9cb18c76e0d4c590c02cbf26720eb03fa239f2fa0e05edf48a6f83297d"
 }

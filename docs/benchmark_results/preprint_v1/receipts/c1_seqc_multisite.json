@@ -1,14 +1,14 @@
 {
-  "aria_version": "4.9.1",
+  "aria_version": "4.9.2",
   "artifacts": [
     {
       "path": "claim_1/seqc_multisite/a1_seqc_multisite_v4.5.5.json",
-      "sha256": "8a8d36087444dd74aee2da19e88763061d1c1da405cdcf5f4f28fe5076a47353",
+      "sha256": "3a2895b1d9cd304bc5da7933ad022c8454624d22c39526963198744b5c70b75c",
       "size_bytes": 4869
     },
     {
       "path": "claim_1/seqc_multisite/fig1_a1_seqc_multisite_v4.5.5.svg",
-      "sha256": "742b6c00c46dd7a80c2eb8be9f03254c72265bce04bb1d8e756df08d4ffa177d",
+      "sha256": "6bf09be178a86c31650c87fab34d63898a24453ce09ccd3ff94a10343b868678",
       "size_bytes": 2026
     }
   ],
@@ -16,18 +16,18 @@
     "claim_1"
   ],
   "command": "conda run -n aria-rna-env python scripts/run_a1_seqc_multisite_benchmark.py --output-dir docs/benchmark_results/preprint_v1/claim_1/seqc_multisite",
-  "completed_utc": "2026-11-20T14:26:52.321299+00:00",
+  "completed_utc": "2026-11-21T00:01:23.964679+00:00",
   "environment": "aria-rna-env",
-  "git_commit": "96a5da597db81ef39943099292253b62c0f1d6af",
-  "git_tree_sha": "449afad8f878b18190cc8218fc9aaec6c729bc32",
+  "git_commit": "36e736fbd56b9657902c31eeb44d70f44b039a13",
+  "git_tree_sha": "2c94eab67718b777fd104f639422a1f477b8faaa",
   "lane_id": "c1_seqc_multisite",
   "returncode": 0,
   "schema_version": "aria.preprint_freeze.receipt.v1",
-  "source_snapshot_hash": "825724af7451878932180768e2f7ce3341cd9cf3f09b544e67096aa944c10988",
-  "started_utc": "2026-11-20T14:26:13.409326+00:00",
+  "source_snapshot_hash": "8ca58c854284004d0cda12681a6bac1ef08e21976f199a9eb5bddbcbe5c7e273",
+  "started_utc": "2026-11-21T00:00:49.486610+00:00",
   "status": "pass",
-  "stderr_sha256": "f3b26c446cda4b54b43efc3289c3a3376d78cce31e9b9b559a42e073d9a612bd",
-  "stdout_sha256": "b056b956177cccb418a011408554c0ff20a7fe3e9524da747c9858ed01b68617",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_sha256": "31a85f5ce637c941497327a0f95da4f23367f741d5dafebfc0be0d6d558797bc",
   "test_summary": null,
-  "workflow_hash": "4dc331900233aa2b1574f4ca856e204a1570d1926fa7b66b36e5ad040712e113"
+  "workflow_hash": "ec115d9cb18c76e0d4c590c02cbf26720eb03fa239f2fa0e05edf48a6f83297d"
 }

@@ -1,5 +1,5 @@
 {
-  "aria_version": "4.9.1",
+  "aria_version": "4.9.2",
   "artifacts": {
     "figure_svg": "docs/benchmark_results/preprint_v1/claim_1/a1_synthetic/fig1_a1_bulk_de.svg",
     "manifest_json": "docs/benchmark_results/preprint_v1/claim_1/a1_synthetic/a1_bulk_de.json"
@@ -125,7 +125,7 @@
   ],
   "method_under_test": "ARIA bulk RNA DESeq2 path (_run_deseq2, apeGLM-enabled)",
   "provenance": {
-    "aria_version": "4.9.1",
+    "aria_version": "4.9.2",
     "environment": {
       "conda_prefix": null,
       "env_lock_file": "envs/aria-rna-env.linux-64.lock",
@@ -133,11 +133,11 @@
       "env_name": "aria-rna-env",
       "source": "conda_lock"
     },
-    "git_commit": "96a5da597db81ef39943099292253b62c0f1d6af",
-    "git_describe": "v4.9.0-15-g96a5da5-dirty",
+    "git_commit": "36e736fbd56b9657902c31eeb44d70f44b039a13",
+    "git_describe": "v4.9.1-3-g36e736f-dirty",
     "git_dirty": true,
-    "git_sha": "96a5da597db81ef39943099292253b62c0f1d6af",
-    "git_tree_sha": "449afad8f878b18190cc8218fc9aaec6c729bc32",
+    "git_sha": "36e736fbd56b9657902c31eeb44d70f44b039a13",
+    "git_tree_sha": "2c94eab67718b777fd104f639422a1f477b8faaa",
     "image": {
       "containerized": false,
       "digest": null,
@@ -147,9 +147,9 @@
       "revision": null,
       "validation": null
     },
-    "version": "4.9.1",
+    "version": "4.9.2",
     "version_source": "aria.version.__version__",
-    "workflow_hash": "d8522c5d27e1393f4012cd8a4e3763b8983aade7890fd9e7ce501abf458e19ee",
+    "workflow_hash": "d3cf7fa68d46c3fd8d77bd2df65fc122c858d4f617b7405912e2f096d6013b92",
     "workflow_hash_algorithm": "sha256(version+git_sha+git_tree_sha+git_dirty+git_status+git_diff)"
   },
   "scope": "preliminary_synthetic_truth",

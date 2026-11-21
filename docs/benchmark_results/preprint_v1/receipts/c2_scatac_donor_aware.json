@@ -1,28 +1,28 @@
 {
-  "aria_version": "4.9.1",
+  "aria_version": "4.9.2",
   "artifacts": [
     {
       "path": "claim_2/scatac_donor/scatac_donor_da_concordance.json",
-      "sha256": "2a4fce3d0a08c9591bb42272ffa51b4ee12da4755fb7ff8652e53be469befad5",
-      "size_bytes": 3661
+      "sha256": "99b6f4af28bd386f9e1b04f097fa35fe117130021b0e6c600f48ebc51402582d",
+      "size_bytes": 3660
     }
   ],
   "claims": [
     "claim_2"
   ],
   "command": "conda run -n aria-rna-env python scripts/run_scatac_multisample_da_concordance.py --data-dir ~/Samael/Oligos/data/interim/paired --young hc937,hc5579,hc13344,hc935,hc5614 --old hc26,hc98,hc35,hc40,hc73 --rna-env aria-rna-env --bench-env aria-bench-env --output-dir docs/benchmark_results/preprint_v1/claim_2/scatac_donor --manifest-name scatac_donor_da_concordance.json --work-dir /tmp/c2_scatac_donor",
-  "completed_utc": "2026-11-20T14:34:20.088081+00:00",
+  "completed_utc": "2026-11-21T00:06:18.484825+00:00",
   "environment": "aria-rna-env + aria-bench-env",
-  "git_commit": "96a5da597db81ef39943099292253b62c0f1d6af",
-  "git_tree_sha": "449afad8f878b18190cc8218fc9aaec6c729bc32",
+  "git_commit": "36e736fbd56b9657902c31eeb44d70f44b039a13",
+  "git_tree_sha": "2c94eab67718b777fd104f639422a1f477b8faaa",
   "lane_id": "c2_scatac_donor_aware",
   "returncode": 0,
   "schema_version": "aria.preprint_freeze.receipt.v1",
-  "source_snapshot_hash": "825724af7451878932180768e2f7ce3341cd9cf3f09b544e67096aa944c10988",
-  "started_utc": "2026-11-20T14:29:18.104847+00:00",
+  "source_snapshot_hash": "8ca58c854284004d0cda12681a6bac1ef08e21976f199a9eb5bddbcbe5c7e273",
+  "started_utc": "2026-11-21T00:01:09.175814+00:00",
   "status": "pass",
-  "stderr_sha256": "49f24f01bc49707c6225635842e0a7fb4ca2be0e7f865c82d6faa796b96d9c30",
+  "stderr_sha256": "3036b9573c140c6a0a9926528f5fa7df7c40ab2ad80d00ea4076761ab287fd55",
   "stdout_sha256": "8a9351a9059b374bfa933292526f250d6e6cb5eb389f2527552ada26cd7eabff",
   "test_summary": null,
-  "workflow_hash": "4dc331900233aa2b1574f4ca856e204a1570d1926fa7b66b36e5ad040712e113"
+  "workflow_hash": "ec115d9cb18c76e0d4c590c02cbf26720eb03fa239f2fa0e05edf48a6f83297d"
 }

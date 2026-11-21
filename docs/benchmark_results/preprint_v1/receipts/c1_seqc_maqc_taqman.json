@@ -1,10 +1,10 @@
 {
-  "aria_version": "4.9.1",
+  "aria_version": "4.9.2",
   "artifacts": [
     {
       "path": "claim_1/seqc/a1_seqc_maqc_v4.5.5.json",
-      "sha256": "b6b5f5c730097167d8740ec03e4db7f43e6022742cf475d3d34a271266a60570",
-      "size_bytes": 3729
+      "sha256": "df53d2bb0b9940ab8b12dac8c191e54f56a8395c576852b3fd60e1d948faeb95",
+      "size_bytes": 3728
     },
     {
       "path": "claim_1/seqc/fig1_a1_seqc_maqc_v4.5.5.svg",
@@ -16,18 +16,18 @@
     "claim_1"
   ],
   "command": "conda run -n aria-rna-env python scripts/run_a1_seqc_maqc_benchmark.py --bundle ~/.aria/benchmarks/seqc_maqc_BGI --output-dir docs/benchmark_results/preprint_v1/claim_1/seqc",
-  "completed_utc": "2026-11-20T14:26:13.284449+00:00",
+  "completed_utc": "2026-11-21T00:00:48.493283+00:00",
   "environment": "aria-rna-env",
-  "git_commit": "96a5da597db81ef39943099292253b62c0f1d6af",
-  "git_tree_sha": "449afad8f878b18190cc8218fc9aaec6c729bc32",
+  "git_commit": "36e736fbd56b9657902c31eeb44d70f44b039a13",
+  "git_tree_sha": "2c94eab67718b777fd104f639422a1f477b8faaa",
   "lane_id": "c1_seqc_maqc_taqman",
   "returncode": 0,
   "schema_version": "aria.preprint_freeze.receipt.v1",
-  "source_snapshot_hash": "825724af7451878932180768e2f7ce3341cd9cf3f09b544e67096aa944c10988",
-  "started_utc": "2026-11-20T14:26:00.946866+00:00",
+  "source_snapshot_hash": "8ca58c854284004d0cda12681a6bac1ef08e21976f199a9eb5bddbcbe5c7e273",
+  "started_utc": "2026-11-21T00:00:35.710180+00:00",
   "status": "pass",
-  "stderr_sha256": "e625727c27baad5d3ab0ae117c921c8bac6dda1392a2df6ca97e706a36e106a4",
-  "stdout_sha256": "be07862a521bae489e1b3a84f91536028e4243fd3714a42c1e4201973fb9f10e",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_sha256": "75b58e7f9ab41cc1114a1edeac4164460bd251b314c0e4d7d3f2571ddedc581a",
   "test_summary": null,
-  "workflow_hash": "4dc331900233aa2b1574f4ca856e204a1570d1926fa7b66b36e5ad040712e113"
+  "workflow_hash": "ec115d9cb18c76e0d4c590c02cbf26720eb03fa239f2fa0e05edf48a6f83297d"
 }
