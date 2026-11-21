@@ -1,22 +1,22 @@
 {
-  "aria_version": "4.9.2",
+  "aria_version": "4.9.3",
   "artifacts": [],
   "claims": [
     "claim_6"
   ],
   "command": "ARIA_B3_E2E_DATA=~/aria-data/pbmc3k_test conda run -n aria-env python -m pytest tests/test_preprint_audit_b3_multi_provider_e2e.py -q",
-  "completed_utc": "2026-11-21T00:04:20.527205+00:00",
+  "completed_utc": "2026-11-21T01:18:05.377297+00:00",
   "environment": "aria-env",
-  "git_commit": "36e736fbd56b9657902c31eeb44d70f44b039a13",
-  "git_tree_sha": "2c94eab67718b777fd104f639422a1f477b8faaa",
+  "git_commit": "1b7a0f1bc7f5f7c291415d3c4b409a669d2c89ee",
+  "git_tree_sha": "c2fd418b5ee69fd5c3e7f897a237141960b27093",
   "lane_id": "c6_b3_real_e2e",
   "returncode": 0,
   "schema_version": "aria.preprint_freeze.receipt.v1",
-  "source_snapshot_hash": "8ca58c854284004d0cda12681a6bac1ef08e21976f199a9eb5bddbcbe5c7e273",
-  "started_utc": "2026-11-21T00:02:44.361416+00:00",
+  "source_snapshot_hash": "32d9fd177823b23e1452ad6542dacc2ea0d5e39b850ca45b0f039a5d3173ebb0",
+  "started_utc": "2026-11-21T01:16:29.591715+00:00",
   "status": "pass",
   "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-  "stdout_sha256": "f901bc826fcec981ad1eda2410466bb60601ccb64bd0663bf1ccf3f0c8595307",
+  "stdout_sha256": "953677659e4288fbfc598afe4f32497c515735f479f4d17ae7e5b98b870d986a",
   "test_summary": null,
-  "workflow_hash": "ec115d9cb18c76e0d4c590c02cbf26720eb03fa239f2fa0e05edf48a6f83297d"
+  "workflow_hash": "ade1b346cc321433dc65b606faff787a6dee23b32e7fbfedf78fdbc32e12f75f"
 }

@@ -1,9 +1,9 @@
 {
-  "aria_version": "4.9.2",
+  "aria_version": "4.9.3",
   "artifacts": [
     {
       "path": "claim_2/scatac_donor/scatac_donor_da_concordance.json",
-      "sha256": "99b6f4af28bd386f9e1b04f097fa35fe117130021b0e6c600f48ebc51402582d",
+      "sha256": "88e0db955efa7e32c7fdaa9b496cdb265c4fa0888fc986511e7f2491415fba39",
       "size_bytes": 3660
     }
   ],
@@ -11,18 +11,18 @@
     "claim_2"
   ],
   "command": "conda run -n aria-rna-env python scripts/run_scatac_multisample_da_concordance.py --data-dir ~/Samael/Oligos/data/interim/paired --young hc937,hc5579,hc13344,hc935,hc5614 --old hc26,hc98,hc35,hc40,hc73 --rna-env aria-rna-env --bench-env aria-bench-env --output-dir docs/benchmark_results/preprint_v1/claim_2/scatac_donor --manifest-name scatac_donor_da_concordance.json --work-dir /tmp/c2_scatac_donor",
-  "completed_utc": "2026-11-21T00:06:18.484825+00:00",
+  "completed_utc": "2026-11-21T01:20:13.802152+00:00",
   "environment": "aria-rna-env + aria-bench-env",
-  "git_commit": "36e736fbd56b9657902c31eeb44d70f44b039a13",
-  "git_tree_sha": "2c94eab67718b777fd104f639422a1f477b8faaa",
+  "git_commit": "1b7a0f1bc7f5f7c291415d3c4b409a669d2c89ee",
+  "git_tree_sha": "c2fd418b5ee69fd5c3e7f897a237141960b27093",
   "lane_id": "c2_scatac_donor_aware",
   "returncode": 0,
   "schema_version": "aria.preprint_freeze.receipt.v1",
-  "source_snapshot_hash": "8ca58c854284004d0cda12681a6bac1ef08e21976f199a9eb5bddbcbe5c7e273",
-  "started_utc": "2026-11-21T00:01:09.175814+00:00",
+  "source_snapshot_hash": "32d9fd177823b23e1452ad6542dacc2ea0d5e39b850ca45b0f039a5d3173ebb0",
+  "started_utc": "2026-11-21T01:14:51.678726+00:00",
   "status": "pass",
   "stderr_sha256": "3036b9573c140c6a0a9926528f5fa7df7c40ab2ad80d00ea4076761ab287fd55",
   "stdout_sha256": "8a9351a9059b374bfa933292526f250d6e6cb5eb389f2527552ada26cd7eabff",
   "test_summary": null,
-  "workflow_hash": "ec115d9cb18c76e0d4c590c02cbf26720eb03fa239f2fa0e05edf48a6f83297d"
+  "workflow_hash": "ade1b346cc321433dc65b606faff787a6dee23b32e7fbfedf78fdbc32e12f75f"
 }
