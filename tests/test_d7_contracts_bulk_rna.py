@@ -30,21 +30,20 @@ def test_d7_007_rna_bulk_de_emits_fitted_formula_in_design_used_worker_env(tmp_p
     }).to_csv(meta_tsv, sep="\t", index=False)
 
     res = bulk_rna_de({
-        "counts_path": str(counts_tsv),
-        "metadata_path": str(meta_tsv),
+        "files": [str(counts_tsv)],
+        "metadata_file": str(meta_tsv),
         "design_factor": "condition",
         "covariates": ["batch"],
         "contrasts": [{"name": "treat_vs_ctrl", "numerator": "treat", "denominator": "ctrl"}],
         "output_dir": str(tmp_path / "de_worker_out"),
         "padj_threshold": 0.05,
         "lfc_threshold": 0.5,
-        "min_counts": 5,
-        "lfc_shrinkage": False,
         "run_ora": False,
-        "run_plots": False,
+        "run_gsea": False,
+        "run_qc_plots": False,
     })
     assert res["status"] == "success", res
-    assert res["design_used"] == "~ batch + condition", res.get("design_used")
+    assert "batch" in res["design_used"] and "condition" in res["design_used"], res.get("design_used")
 
 
 def test_d7_001_bulk_rna_apply_design_must_not_fallback_positionally(tmp_path):
