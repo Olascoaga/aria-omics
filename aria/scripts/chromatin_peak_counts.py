@@ -303,7 +303,7 @@ def _genome_sizes_from_bam(file_path: str | Path,
     except Exception:
         return None
     if refs and lens and len(refs) == len(lens):
-        return [(str(c), int(l)) for c, l in zip(refs, lens)]
+        return [(str(c), int(l)) for c, l in zip(refs, lens, strict=True)]
     return None
 
 
@@ -455,7 +455,7 @@ def chromatin_peak_counts(params: dict) -> dict:
             }
         excluded_controls: list[str] = []
         filtered_pairs: list[tuple[str, str]] = []
-        for sid, fp in zip(sample_ids, files):
+        for sid, fp in zip(sample_ids, files, strict=True):
             resolved_fp = str(Path(fp).expanduser().resolve())
             if resolved_fp in control_set or _is_control_meta(meta_lookup.get(sid)):
                 excluded_controls.append(sid)
@@ -525,7 +525,7 @@ def chromatin_peak_counts(params: dict) -> dict:
             )
         peak_ids = _read_peak_ids(count_peaks_path)
         sample_counts = {}
-        for sample_id, file_path in zip(sample_ids, files):
+        for sample_id, file_path in zip(sample_ids, files, strict=True):
             if file_path.lower().endswith(".cram"):
                 sample_counts[sample_id] = _count_cram(
                     count_peaks_path, file_path, reference_fasta)

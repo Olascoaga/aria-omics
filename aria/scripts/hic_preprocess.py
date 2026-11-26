@@ -473,7 +473,7 @@ def hic_preprocess(params: dict) -> dict:
         sid_counts[s] = sid_counts.get(s, 0) + 1
     seen_sids: set[str] = set()
     sample_ids: list[str] = []
-    for idx_s, (s, fpath_s) in enumerate(zip(raw_sids, files)):
+    for idx_s, (s, fpath_s) in enumerate(zip(raw_sids, files, strict=True)):
         cand = s
         if sid_counts.get(s, 0) > 1:
             parent_tag = Path(fpath_s).parent.name.strip()
@@ -538,7 +538,7 @@ def hic_preprocess(params: dict) -> dict:
     processed_samples: list[dict[str, Any]] = []
     cooler_files: list[str] = []
 
-    for sid, src_str in zip(sample_ids, files):
+    for sid, src_str in zip(sample_ids, files, strict=True):
         src = Path(src_str)
         low = src.name.lower()
         sdir = out_dir / sid

@@ -230,7 +230,7 @@ def make_ora_dotplot(pathways_list: list,
             mlines.Line2D([], [], color=_DARK_TEXT, marker="o",
                           markersize=np.sqrt(s), label=f"{g}",
                           linestyle="None")
-            for g, s in zip(gene_sizes, marker_sizes)
+            for g, s in zip(gene_sizes, marker_sizes, strict=True)
         ]
         leg = ax.legend(
             handles=legend_handles,

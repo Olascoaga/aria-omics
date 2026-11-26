@@ -161,7 +161,7 @@ def pooled_bh_across_groups(group_pvalues: dict) -> dict:
     if not pvals:
         return out
     adj = bh_correct(pvals)
-    for (grp, gene), a in zip(keys, adj):
+    for (grp, gene), a in zip(keys, adj, strict=True):
         out[grp][gene] = float(a)
     return out
 

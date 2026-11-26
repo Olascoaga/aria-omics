@@ -386,7 +386,7 @@ def rna_diff_abundance(params: dict) -> dict:
                 r["padj"] = None
                 r["significant"] = False
                 r["direction"] = "none"
-            for r, padj in zip(primary_rows, padj_arr):
+            for r, padj in zip(primary_rows, padj_arr, strict=True):
                 r["padj"] = float(padj)
                 r["significant"] = bool(r["padj"] < alpha)
                 if r["significant"]:

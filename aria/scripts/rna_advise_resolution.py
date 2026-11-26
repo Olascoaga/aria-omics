@@ -279,13 +279,13 @@ def _graph_modularity(adata, labels) -> float | None:
 
         if sparse.issparse(graph):
             coo = sparse.triu(graph, k=1).tocoo()
-            edges = list(zip(coo.row.tolist(), coo.col.tolist()))
+            edges = list(zip(coo.row.tolist(), coo.col.tolist(), strict=True))
             weights = coo.data.astype(float).tolist()
         else:
             arr = np.asarray(graph)
             rows, cols = np.triu_indices_from(arr, k=1)
             mask = arr[rows, cols] > 0
-            edges = list(zip(rows[mask].tolist(), cols[mask].tolist()))
+            edges = list(zip(rows[mask].tolist(), cols[mask].tolist(), strict=True))
             weights = arr[rows[mask], cols[mask]].astype(float).tolist()
         if not edges:
             return None

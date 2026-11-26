@@ -110,11 +110,11 @@ def detect_atac_doublets(
     z_features = _robust_z(log_features)
     scores = [
         max(0.0, zd) + max(0.0, zf)
-        for zd, zf in zip(z_depth, z_features)
+        for zd, zf in zip(z_depth, z_features, strict=True)
     ]
     candidates = [
         zd >= depth_z and zf >= feature_z
-        for zd, zf in zip(z_depth, z_features)
+        for zd, zf in zip(z_depth, z_features, strict=True)
     ]
 
     # max_rate <= 0 means "flag nobody" (max_n = 0), not a forced minimum of 1.

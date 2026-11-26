@@ -147,7 +147,7 @@ def merge_scatac_matrices(
         var = pd.DataFrame(consensus, columns=["chrom", "start", "end"],
                            index=[f"{chrom}:{start}-{end}" for chrom, start, end in consensus])
         projected = []
-        for sample, (adata, counts, intervals) in zip(samples, datasets):
+        for sample, (adata, counts, intervals) in zip(samples, datasets, strict=True):
             columns = []
             for chrom, start, end in intervals:
                 starts, targets = chrom_index[chrom]

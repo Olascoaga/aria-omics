@@ -1369,7 +1369,7 @@ def compute_candidate_eregulons(
             var_sum = 0.0
             mc_sums = np.zeros(int(n_null_permutations), dtype=np.float64)
 
-            for b_id_raw, k_raw in zip(uniq_b, counts_b):
+            for b_id_raw, k_raw in zip(uniq_b, counts_b, strict=True):
                 b_id = int(b_id_raw)
                 k_b = int(k_raw)
                 pool = bin_pools[b_id]
@@ -1490,7 +1490,7 @@ def compute_candidate_eregulons(
     # ── Step 6: Module-level BH-FDR BEFORE collapsing multiple motifs per TF ──
     raw_pvals = [m["module_pvalue"] for m in candidate_modules]
     mod_padjs = bh_correct(raw_pvals)
-    for m, padj in zip(candidate_modules, mod_padjs):
+    for m, padj in zip(candidate_modules, mod_padjs, strict=True):
         m["regulon_padj"] = float(padj)
 
     # Count how many motifs were tested per `(tf_gene, sign_class)`

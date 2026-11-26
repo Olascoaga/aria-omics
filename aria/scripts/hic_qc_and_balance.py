@@ -654,7 +654,7 @@ def hic_qc_and_balance(params: dict) -> dict:
         sid_counts[s] = sid_counts.get(s, 0) + 1
     seen_sids: set[str] = set()
     sample_ids: list[str] = []
-    for idx_s, (s, fpath_s) in enumerate(zip(raw_sids, valid_files)):
+    for idx_s, (s, fpath_s) in enumerate(zip(raw_sids, valid_files, strict=True)):
         cand = s
         if sid_counts.get(s, 0) > 1:
             parent_tag = Path(fpath_s).parent.name.strip()

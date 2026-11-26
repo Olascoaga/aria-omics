@@ -80,7 +80,7 @@ def bam_to_fragment_bedgraph(
     n_single = 0
 
     with _open_alignment(bam_path, reference_fasta) as bam:
-        for ref, length in zip(bam.header.references, bam.header.lengths):
+        for ref, length in zip(bam.header.references, bam.header.lengths, strict=True):
             chrom_lengths[str(ref)] = int(length)
 
         for read in bam.fetch(until_eof=True):
@@ -1024,7 +1024,7 @@ def call_broad_domains(
             sample_bins: dict[str, np.ndarray] = {}
             total_mapped = 0
             with _open_alignment(p, reference_fasta) as bam:
-                for ref, length in zip(bam.header.references, bam.header.lengths):
+                for ref, length in zip(bam.header.references, bam.header.lengths, strict=True):
                     if ref.lower() in mito or ref.lower().startswith("chrm"):
                         continue
                     chrom_sizes[str(ref)] = int(length)

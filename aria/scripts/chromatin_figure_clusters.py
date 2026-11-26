@@ -129,14 +129,14 @@ def _qc_depth_violin(adata, cluster_key, out_path):
 
     fig, ax = plt.subplots(figsize=(max(4.0, 0.5 * len(labels) + 2), 4),
                            dpi=160)
-    kde_pos = [p for p, (_, d) in zip(positions, pairs) if _kde_ok(d)]
+    kde_pos = [p for p, (_, d) in zip(positions, pairs, strict=True) if _kde_ok(d)]
     kde_dat = [d for _, d in pairs if _kde_ok(d)]
     if kde_dat:
         parts = ax.violinplot(kde_dat, positions=kde_pos, showmedians=True,
                               showextrema=False)
         for body in parts["bodies"]:
             body.set_alpha(0.7)
-    degenerate = [(p, d) for p, (_, d) in zip(positions, pairs) if not _kde_ok(d)]
+    degenerate = [(p, d) for p, (_, d) in zip(positions, pairs, strict=True) if not _kde_ok(d)]
     if degenerate:
         # Honest fallback: raw points + a median tick (no fabricated density).
         for p, d in degenerate:

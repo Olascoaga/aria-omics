@@ -1336,7 +1336,7 @@ def integration_wnn(params: dict) -> dict:
         joint_clusters_map: dict[str, str] = {}
         if n_cells <= 50_000:
             joint_clusters_map = {
-                str(bc): str(lbl) for bc, lbl in zip(common_cells, wnn_labels)
+                str(bc): str(lbl) for bc, lbl in zip(common_cells, wnn_labels, strict=True)
             }
         else:
             warnings.append(

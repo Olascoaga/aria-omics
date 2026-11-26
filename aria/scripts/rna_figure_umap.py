@@ -158,14 +158,14 @@ def _plot_one(coords, values, key: str, out_path: Path,
         cats = pd.Series(values).astype("string").fillna("NA")
         unique = sorted(cats.unique())
         colors = _categorical_colors(len(unique))
-        color_map = dict(zip(unique, colors))
+        color_map = dict(zip(unique, colors, strict=True))
         point_colors = np.asarray([color_map[cat] for cat in cats])
         order = np.random.default_rng(0).permutation(len(coords))
         ax.scatter(coords[order, 0], coords[order, 1],
                    s=point_size, c=point_colors[order], linewidths=0, alpha=0.85)
         handles = [Line2D([], [], marker="o", color=color, linestyle="None",
                           label=cat, markersize=np.sqrt(point_size))
-                   for cat, color in zip(unique, colors)]
+                   for cat, color in zip(unique, colors, strict=True)]
         # Compact legend outside plot if many categories
         ncol = 1 if len(unique) <= 14 else 2
         ax.legend(handles=handles, loc="center left", bbox_to_anchor=(1.02, 0.5),

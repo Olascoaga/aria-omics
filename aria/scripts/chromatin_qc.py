@@ -704,7 +704,7 @@ def _compute_ip_control_jsd(
     try:
         chrom_order: list[tuple[str, int]] = []
         with _open_alignment(ip_bams[0], reference_fasta) as bam:
-            for ref, length in zip(bam.header.references, bam.header.lengths):
+            for ref, length in zip(bam.header.references, bam.header.lengths, strict=True):
                 if ref.lower() in {"chrm", "mt", "m"} or ref.lower().startswith("chrm"):
                     continue
                 n_b = max(1, int(length) // bin_size)

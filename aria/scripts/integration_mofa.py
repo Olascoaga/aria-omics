@@ -156,7 +156,7 @@ def _compute_categorical_eta2(
         return None, None
     z = z[fin]
     w = w[fin]
-    group_labels = [lbl for lbl, ok in zip(group_labels, fin.tolist()) if ok]
+    group_labels = [lbl for lbl, ok in zip(group_labels, fin.tolist(), strict=True) if ok]
     n = int(len(z))
     uniq = sorted(set(group_labels))
     b = len(uniq)
@@ -1268,7 +1268,7 @@ def integration_mofa(params: dict) -> dict:
         batch_condition_confounded = False
         if batch_labels_train is not None and cond_labels_train is not None:
             cond_to_batches: dict[str, set[str]] = {}
-            for b_lbl, c_lbl in zip(batch_labels_train, cond_labels_train):
+            for b_lbl, c_lbl in zip(batch_labels_train, cond_labels_train, strict=True):
                 cond_to_batches.setdefault(c_lbl, set()).add(b_lbl)
             if cond_to_batches and max(len(bs) for bs in cond_to_batches.values()) <= 1:
                 batch_condition_confounded = True
@@ -1636,7 +1636,7 @@ def integration_mofa(params: dict) -> dict:
 
             # Build clean aligned MuData preserving modalities and writing X_mofa + LFs.
             mod_Copies: dict[str, Any] = {}
-            for v, (rv, pv) in enumerate(zip(raw_views, prepared_views)):
+            for v, (rv, pv) in enumerate(zip(raw_views, prepared_views, strict=True)):
                 m_key = rv["name"]
                 orig_ad = src_mdata.mod[m_key]
                 bc_map = {str(bc): i for i, bc in enumerate(orig_ad.obs_names)}

@@ -380,12 +380,12 @@ def _within_batch_null_controls(
     counts = [sum(i < n_a for i in stratum) for stratum in strata]
     observed = tuple(range(n_a))
     complement = tuple(range(n_a, len(batches)))
-    total = math.prod(math.comb(len(s), k) for s, k in zip(strata, counts))
+    total = math.prod(math.comb(len(s), k) for s, k in zip(strata, counts, strict=True))
     limit = max(0, max_permutations)
     candidates: list[tuple[int, ...]] = []
     rng = random.Random(random_seed)
     if total <= limit + 2:
-        choices = [itertools.combinations(s, k) for s, k in zip(strata, counts)]
+        choices = [itertools.combinations(s, k) for s, k in zip(strata, counts, strict=True)]
         for assignment in itertools.product(*choices):
             combo = tuple(sorted(itertools.chain.from_iterable(assignment)))
             if combo not in (observed, complement):
@@ -395,7 +395,7 @@ def _within_batch_null_controls(
     else:
         seen = {observed, complement}
         for _ in range(limit * 50):
-            combo = tuple(sorted(i for s, k in zip(strata, counts)
+            combo = tuple(sorted(i for s, k in zip(strata, counts, strict=True)
                                  for i in rng.sample(s, k)))
             if combo not in seen:
                 seen.add(combo)
@@ -582,7 +582,7 @@ def infer_replicate_footprints(
     adjusted = _bh_adjust(pvalues)
     results = []
     for row_idx, ((motif, record, values), pvalue, padj) in enumerate(
-            zip(complete, pvalues, adjusted)):
+            zip(complete, pvalues, adjusted, strict=True)):
         mean_a = float(np.mean(matrix[row_idx, :len(reps_a)]))
         mean_b = float(np.mean(matrix[row_idx, len(reps_a):]))
         effect_val = float(effects[row_idx]) if batch_adjusted else float(mean_a - mean_b)
@@ -740,7 +740,7 @@ def _write_group_bams(frag_file: str | list[str], barcode_groups: dict[str, str]
                for g, p in unsorted.items()}
     counts = {g: 0 for g in targets}
     try:
-        fragments = ((sample, fragment) for path, sample in zip(frag_files, samples)
+        fragments = ((sample, fragment) for path, sample in zip(frag_files, samples, strict=True)
                      for fragment in _iter_fragments(path))
         for sample, (chrom, start, end, bc) in fragments:
             candidates = [bc]

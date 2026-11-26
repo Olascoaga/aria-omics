@@ -432,7 +432,7 @@ def _build_phasing_track(
                             ch_idx = np.flatnonzero(bins_df["chrom"].to_numpy() == ch)
                             starts = bins_df["start"].to_numpy(dtype=int)[ch_idx]
                             ends = bins_df["end"].to_numpy(dtype=int)[ch_idx]
-                            for idx_pos, s, e in zip(ch_idx, starts, ends):
+                            for idx_pos, s, e in zip(ch_idx, starts, ends, strict=True):
                                 sub = seq[max(0, s):min(ch_len, e)]
                                 if not sub:
                                     continue
@@ -806,7 +806,7 @@ def _compute_tads(
             st_map: dict[int, float] = {}
             if strength_col in b_df.columns:
                 raw_st = b_df[strength_col].to_numpy(dtype=float)
-                for pos_i, sval in zip(positions, raw_st):
+                for pos_i, sval in zip(positions, raw_st, strict=True):
                     if math.isfinite(float(sval)):
                         fv = float(sval)
                         strengths.append(fv)
@@ -922,7 +922,7 @@ def _calibrate_insulation(
         )
 
         boundary_strengths: dict[str, float] = {}
-        for orig_w, eff_w in zip(windows, valid_windows):
+        for orig_w, eff_w in zip(windows, valid_windows, strict=True):
             bound_col = f"is_boundary_{eff_w}"
             st_col = f"boundary_strength_{eff_w}"
             sc_col = f"log2_insulation_score_{eff_w}"
@@ -1514,7 +1514,7 @@ def _compute_differential_3d(params: dict, out_dir: str) -> dict:
         sid_counts[s] = sid_counts.get(s, 0) + 1
     seen_sids: set[str] = set()
     sample_ids: list[str] = []
-    for idx_s, (s, fpath_s) in enumerate(zip(raw_sids, files)):
+    for idx_s, (s, fpath_s) in enumerate(zip(raw_sids, files, strict=True)):
         cand = s
         if sid_counts.get(s, 0) > 1:
             parent_tag = Path(fpath_s).parent.name.strip()
@@ -1566,7 +1566,7 @@ def _compute_differential_3d(params: dict, out_dir: str) -> dict:
     phasing_method = "unphased_arbitrary_sign"
     phasing_fallback_reasons: list[str] = []
 
-    for sid, fpath in zip(sample_ids, files):
+    for sid, fpath in zip(sample_ids, files, strict=True):
         if sid not in meta_by_sid:
             continue
         clr_c, actual_comp_res = _ensure_balanced_cooler(fpath, comp_res, out_path / sid)

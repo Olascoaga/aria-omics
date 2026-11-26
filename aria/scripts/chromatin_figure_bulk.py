@@ -314,7 +314,7 @@ def render_qc_summary(qc: dict, peaks: dict, out_path: Path,
                              figsize=(width * len(panels), 3.4), dpi=200,
                              squeeze=False)
     fig.patch.set_facecolor(_SURFACE)
-    for ax, (label, series, ref, ref_label) in zip(axes[0], panels):
+    for ax, (label, series, ref, ref_label) in zip(axes[0], panels, strict=True):
         _style_axis(ax)
         names = list(series)
         vals = [series[n] for n in names]

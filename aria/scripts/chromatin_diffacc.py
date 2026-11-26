@@ -144,7 +144,7 @@ def _per_cluster_accessibility(adata, groupby, padj_max, lfc_min, top_n,
         padj = rgg["pvals_adj"][cl]
 
         sig = []
-        for peak, l, p in zip(names, lfc, padj):
+        for peak, l, p in zip(names, lfc, padj, strict=True):
             peak = str(peak)
             try:
                 p_val = float(p)

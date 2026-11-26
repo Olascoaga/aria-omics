@@ -767,7 +767,7 @@ def rna_pseudobulk_de(params: dict) -> dict:
         gene_keep = counts_mat.sum(axis=1) > 0
         counts_df = pd.DataFrame(
             counts_mat[gene_keep],
-            index=[g for g, keep in zip(gene_names, gene_keep) if keep],
+            index=[g for g, keep in zip(gene_names, gene_keep, strict=True) if keep],
             columns=sample_order,
         )
 

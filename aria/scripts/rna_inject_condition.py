@@ -131,7 +131,7 @@ def inject(params: dict) -> dict:
         unit_mapped = pd.Series(matched_sample_values).map(replicate_units)
         missing_units = sorted({
             str(sample)
-            for sample, unit in zip(matched_sample_values, unit_mapped)
+            for sample, unit in zip(matched_sample_values, unit_mapped, strict=True)
             if pd.isna(unit)
         })
         if missing_units:

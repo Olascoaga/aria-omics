@@ -227,7 +227,7 @@ def run_ora(query_genes, gene_sets: dict, background_genes,
     padj = bh_correct(all_pvalues)
     effective_min_overlap = max(1, int(min_overlap))
     out = []
-    for t, q in zip(tested, padj[:len(tested)]):
+    for t, q in zip(tested, padj[:len(tested)], strict=True):
         if t["_k"] < effective_min_overlap:
             continue
         p = float(t["pvalue"])

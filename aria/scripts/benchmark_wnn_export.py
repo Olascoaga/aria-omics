@@ -193,7 +193,7 @@ def main(argv: list[str] | None = None) -> int:
     with (out / "aria_wnn_knn.tsv").open("w", newline="", encoding="utf-8") as fh:
         writer = csv.writer(fh, delimiter="\t")
         writer.writerow(["barcode", "neighbors"])
-        for bc, nbs in zip(barcodes, knn_lists):
+        for bc, nbs in zip(barcodes, knn_lists, strict=True):
             writer.writerow([bc, ",".join(nbs)])
 
     umap_max_diff = float(

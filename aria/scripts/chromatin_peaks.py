@@ -380,7 +380,7 @@ def chromatin_peaks(params: dict) -> dict:
         sample_ids_for_files.append(sid)
 
     frip_per_sample = {}
-    for path, sid in zip(valid_files, sample_ids_for_files):
+    for path, sid in zip(valid_files, sample_ids_for_files, strict=True):
         value = _compute_frip(path, str(peaks_file), reference_fasta=reference)
         if value is not None:
             frip_per_sample[sid] = value
@@ -395,7 +395,7 @@ def chromatin_peaks(params: dict) -> dict:
         bw_dir = out_dir / "bigwig"
         effective_genome_size = _effective_genome_size_bp(
             genome, params.get("effective_genome_size"))
-        for idx, (path, sid) in enumerate(zip(valid_files, sample_ids_for_files)):
+        for idx, (path, sid) in enumerate(zip(valid_files, sample_ids_for_files, strict=True)):
             if not str(path).lower().endswith((".bam", ".cram")):
                 continue
             sf = float(target_scale_factors[idx]) if target_scale_factors else None
