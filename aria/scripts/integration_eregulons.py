@@ -228,40 +228,18 @@ def _load_precomputed_p2g_csv(
 
 
 def _load_rna_adata(rna_path: str):
-    import scanpy as sc
+    from aria.utils.mudata_io import load_modality_matrix
 
-    p = Path(rna_path)
-    if p.suffix == ".h5ad":
-        return sc.read_h5ad(str(p))
-    if p.suffix == ".h5":
-        return sc.read_10x_h5(str(p))
-    if p.is_dir():
-        return sc.read_10x_mtx(str(p), var_names="gene_symbols", cache=False)
-    return None
+    return load_modality_matrix(rna_path, modality="rna")
 
 
 def _load_atac_adata(atac_files: list[str]):
-    import anndata as ad
-    import scanpy as sc
+    from aria.utils.mudata_io import load_modality_matrix
 
     for f in atac_files:
         p = Path(f)
-        if p.suffix == ".h5ad":
-            return ad.read_h5ad(str(p)), None
-        if p.suffix == ".h5":
-            ad_obj = sc.read_10x_h5(str(p), gex_only=False)
-            if "feature_types" in ad_obj.var.columns:
-                ft = ad_obj.var["feature_types"].astype(str)
-                if (ft == "Peaks").any():
-                    ad_obj = ad_obj[:, ft == "Peaks"].copy()
-            return ad_obj, None
-        if p.is_dir():
-            ad_obj = sc.read_10x_mtx(str(p), gex_only=False, cache=False)
-            if "feature_types" in ad_obj.var.columns:
-                ft = ad_obj.var["feature_types"].astype(str)
-                if (ft == "Peaks").any():
-                    ad_obj = ad_obj[:, ft == "Peaks"].copy()
-            return ad_obj, None
+        if p.suffix.lower() in {".h5ad", ".h5"} or p.is_dir():
+            return load_modality_matrix(p, modality="atac"), None
         low = p.name.lower()
         if low.endswith((".tsv.gz", ".fragments.tsv.gz", ".bed.gz", ".bam")):
             return None, (

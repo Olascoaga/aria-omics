@@ -1465,28 +1465,21 @@ def integration_wnn(params: dict) -> dict:
 def _load_rna(path: str):
     """Load scRNA-seq count matrix from .h5ad, 10x .h5, or 10x MEX directory."""
     try:
-        import scanpy as sc
+        from aria.utils.mudata_io import load_modality_matrix
 
-        p = Path(path)
-        if p.suffix.lower() == ".h5ad":
-            return sc.read_h5ad(str(p))
-        if p.suffix.lower() == ".h5":
-            return sc.read_10x_h5(str(p))
-        if p.is_dir():
-            return sc.read_10x_mtx(str(p), var_names="gene_symbols", cache=True)
+        return load_modality_matrix(path, modality="rna")
     except Exception:
         return None
-    return None
 
 
 def _load_atac(files: list, genome: str, organism: str):
-    """Load scATAC peak-count matrix (.h5ad) or raise explicit blocker on fragments.
+    """Load scATAC peak-count matrix (.h5ad, 10x .h5, or MEX) or raise on raw fragments.
 
     P0-8 (ADR-002/ADR-025): raw fragment peak-matrix construction
     (`count_fragments_in_peaks`) is not implemented here; ARIA raises an explicit
     `NotImplementedError` rather than fabricating a placeholder peak matrix.
-    Precomputed peak-by-cell `.h5ad` matrices are loaded directly and verified
-    for raw counts upstream.
+    Precomputed peak-by-cell `.h5ad` and 10x Multiome `.h5`/MEX matrices are
+    loaded via canonical `mudata_io.load_modality_matrix`.
     """
     frag_files = [
         str(f) for f in files
@@ -1500,14 +1493,18 @@ def _load_atac(files: list, genome: str, organism: str):
             "fabricate a peak matrix."
         )
 
-    h5ad_files = [str(f) for f in files if Path(str(f)).suffix.lower() == ".h5ad"]
-    if h5ad_files:
-        try:
-            import scanpy as sc
+    from aria.utils.mudata_io import load_modality_matrix
 
-            return sc.read_h5ad(h5ad_files[0])
+    for f in files:
+        p = Path(str(f))
+        if p.suffix.lower() not in {".h5ad", ".h5"} and not p.is_dir():
+            continue
+        try:
+            ad_obj = load_modality_matrix(p, modality="atac")
+            if ad_obj is not None:
+                return ad_obj
         except Exception:
-            return None
+            continue
     return None
 
 

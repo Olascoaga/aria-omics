@@ -657,6 +657,55 @@ def _tenx_modality(data, feature_type):
     return result
 
 
+def load_modality_matrix(path: str | Path, modality: str = "rna"):
+    """Load a single-modality AnnData matrix from ``.h5ad``, 10x ``.h5``, or 10x MEX dir.
+
+    Canonical multiome matrix loader shared across WNN, MOFA+, Peak2Gene, and
+    eRegulons. Uses case-insensitive suffix matching, ``cache=False`` for MEX
+    reads, and 10x Cell Ranger ARC ``feature_type`` slicing (``"Gene Expression"``
+    for RNA, ``"Peaks"`` for ATAC).
+    """
+    import anndata as ad
+
+    p = Path(str(path))
+    suffix = p.suffix.lower()
+    if suffix == ".h5ad":
+        return ad.read_h5ad(str(p))
+
+    low = str(modality or "").strip().lower()
+    if any(k in low for k in ("atac", "peak", "chrom", "acc")):
+        kind, feature_type = "atac", "Peaks"
+    elif any(k in low for k in ("rna", "gex", "expr")):
+        kind, feature_type = "rna", "Gene Expression"
+    else:
+        kind, feature_type = "other", None
+
+    if suffix == ".h5" or p.is_dir():
+        if feature_type is not None:
+            try:
+                data = _read_10x_matrix(str(p), require_paired=False)
+                if feature_type in data[4]:
+                    return _tenx_modality(data, feature_type)
+            except MultiomeInputError:
+                pass
+        import scanpy as sc
+
+        if suffix == ".h5":
+            ad_obj = sc.read_10x_h5(str(p), gex_only=False)
+        else:
+            ad_obj = sc.read_10x_mtx(
+                str(p), var_names="gene_symbols", gex_only=False, cache=False
+            )
+        if ad_obj is not None and "feature_types" in ad_obj.var.columns:
+            ft = ad_obj.var["feature_types"].astype(str)
+            if kind == "atac" and (ft == "Peaks").any():
+                ad_obj = ad_obj[:, ft == "Peaks"].copy()
+            elif kind == "rna" and (ft == "Gene Expression").any():
+                ad_obj = ad_obj[:, ft == "Gene Expression"].copy()
+        return ad_obj
+    return None
+
+
 def _write_paired_atomic(mdata, output_path):
     import os
     import tempfile

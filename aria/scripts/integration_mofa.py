@@ -1828,24 +1828,9 @@ def integration_mofa(params: dict) -> dict:
 
 def _load_modality(mod_name: str, path: str):
     """Load a single-modality matrix from `.h5ad`, `.h5`, or 10x `.mtx` dir."""
-    import scanpy as sc
+    from aria.utils.mudata_io import load_modality_matrix
 
-    p = Path(path)
-    if p.suffix == ".h5ad":
-        return sc.read_h5ad(str(p))
-    ad_obj = None
-    if p.suffix == ".h5":
-        ad_obj = sc.read_10x_h5(str(p), gex_only=False)
-    elif p.is_dir():
-        ad_obj = sc.read_10x_mtx(str(p), var_names="gene_symbols", gex_only=False, cache=False)
-    if ad_obj is not None and "feature_types" in ad_obj.var.columns:
-        kind = _classify_modality_kind(mod_name)
-        ft = ad_obj.var["feature_types"].astype(str)
-        if kind == "atac" and (ft == "Peaks").any():
-            ad_obj = ad_obj[:, ft == "Peaks"].copy()
-        elif kind == "rna" and (ft == "Gene Expression").any():
-            ad_obj = ad_obj[:, ft == "Gene Expression"].copy()
-    return ad_obj
+    return load_modality_matrix(path, modality=_classify_modality_kind(mod_name))
 
 
 def _mock_mofa(n_factors: int, reason: str) -> dict:
