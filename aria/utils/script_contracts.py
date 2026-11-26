@@ -246,6 +246,27 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
             )
         ),
     ),
+    "aria/scripts/rna_advise_resolution.py": ScriptContract(
+        script_path="aria/scripts/rna_advise_resolution.py",
+        validation_level="production",
+        inputs=(
+            _f("data_path", "path", allow_empty=False, path_must_exist=True),
+            _f("resolutions", "list", required=False),
+            _f("rep", "str", required=False),
+            _f("seed", "int", required=False),
+            _f("n_hvg", "int", required=False),
+            _f("n_pcs", "int", required=False),
+            _f("max_cells", "int", required=False),
+            _f("resume", "bool", required=False),
+        ),
+        success_outputs=(
+            _f("rep_used", "str", allow_empty=False),
+            _f("candidates", "list", allow_empty=False),
+            _f("sketch_used", "bool", required=False),
+            _f("n_cells_total", "int", required=False),
+            _f("n_cells_used", "int", required=False),
+        ),
+    ),
     "aria/scripts/rna_qc.py": ScriptContract(
         script_path="aria/scripts/rna_qc.py",
         validation_level="production",

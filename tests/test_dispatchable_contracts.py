@@ -13,7 +13,7 @@ import pathlib
 from aria.utils.script_contracts import SCRIPT_CONTRACTS, contract_for_script
 
 REPO = pathlib.Path(__file__).resolve().parents[1]
-AGENTS = REPO / "aria" / "agents"
+ARIA_PKG = REPO / "aria"
 
 
 def _script_path_of(call: ast.Call) -> str | None:
@@ -34,7 +34,7 @@ def _script_path_of(call: ast.Call) -> str | None:
 
 def _discover_dispatched_scripts() -> set[str]:
     found: set[str] = set()
-    for path in AGENTS.rglob("*.py"):
+    for path in ARIA_PKG.rglob("*.py"):
         tree = ast.parse(path.read_text(encoding="utf-8"))
         for node in ast.walk(tree):
             if (isinstance(node, ast.Call)
