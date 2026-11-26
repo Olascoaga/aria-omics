@@ -39,7 +39,7 @@ log = logging.getLogger("aria.synthesis")
 def _synthesis_error_block(slice_key: str, label: str, exc: Exception) -> NarrativeBlock:
     err_msg = f"{type(exc).__name__}: {exc}"
     return NarrativeBlock(
-        id=f"integration.{slice_key}_error",
+        id=f"integration.synthesis_error.{slice_key}",
         modality="integrated",
         analysis="integration_limitations",
         block_type="error",
