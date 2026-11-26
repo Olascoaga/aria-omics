@@ -64,3 +64,82 @@ def test_d7_006_cross_modal_triangulation_reads_scatac_da_peaks_by_cluster():
     assert len(atac_edges) > 0, (
         f"Expected atac_da_association edges for {peaks[0]}, got 0 (da_peaks_by_cluster ignored)"
     )
+
+
+def test_d7_009_chromatin_tobias_forwards_paired_replicates_from_design_agent(tmp_path):
+    """D7-009: DesignAgent._build_design encodes paired designs in
+    replicate_handling['mode'] == 'paired_biological_block'.
+    ChromatinAgent._run_bulk_atac_footprinting must forward paired_replicates=True
+    to chromatin_footprint_tobias.py."""
+    import pytest
+
+    pytest.importorskip("litellm")
+    from aria.agents.chromatin_agent import ChromatinAgent
+    from aria.agents.design_agent import DesignAgent
+    from aria.memory.memory import ARIAMemory
+
+    da = DesignAgent(ARIAMemory(":memory:"), llm=None)
+    da._organism = "Homo sapiens"
+    da._genome = "hg38"
+    da._confirmed_groups = {
+        "ctrl": ["D1_ctrl", "D2_ctrl", "D3_ctrl"],
+        "treat": ["D1_treat", "D2_treat", "D3_treat"],
+    }
+    da._main_factor = "condition"
+    da._batch_covariate = "donor"
+    da._paired_covariate_values = {
+        "donor": {
+            "D1_ctrl": "D1", "D1_treat": "D1",
+            "D2_ctrl": "D2", "D2_treat": "D2",
+            "D3_ctrl": "D3", "D3_treat": "D3",
+        }
+    }
+    da._replicate_handling = da._build_replicate_handling(
+        technical=False,
+        paired_covariate="donor",
+        sample_to_pair=da._paired_covariate_values["donor"],
+    )
+    da._inferred_design = {"source": "sample_sheet"}
+    design = da._build_design()
+    assert design["replicate_handling"]["mode"] == "paired_biological_block"
+
+    bams = []
+    for name in ["D1_ctrl", "D2_ctrl", "D3_ctrl", "D1_treat", "D2_treat", "D3_treat"]:
+        p = tmp_path / f"{name}.bam"
+        p.write_bytes(b"")
+        bams.append(str(p))
+    fa = tmp_path / "ref.fa"
+    fa.write_text(">chr1\nACGT\n")
+    bed = tmp_path / "peaks.bed"
+    bed.write_text("chr1\t0\t100\n")
+    meme = tmp_path / "m.meme"
+    meme.write_text("MEME version 4\n")
+
+    captured = {}
+
+    class _CapEnv:
+        def run_in_stack(self, stack, script_path, params):
+            captured["params"] = dict(params)
+            return {"status": "success", "ran": False, "reason": "captured"}
+
+    agent = ChromatinAgent(ARIAMemory(":memory:"), llm=None)
+    agent.env = _CapEnv()
+    exp_ctx = {
+        "design": design,
+        "genome": "hg38",
+        "genome_fasta": str(fa),
+        "peaks_bed": str(bed),
+        "motif_meme": str(meme),
+        "comparisons": [{"test": "treat", "reference": "ctrl"}],
+    }
+    agent._run_bulk_atac_footprinting(
+        "exp1",
+        exp_ctx,
+        da_result={"comparisons": [{"test": "treat", "reference": "ctrl"}]},
+        peaks_result={},
+        files=bams,
+    )
+    assert captured["params"].get("paired_replicates") is True, (
+        f"Paired design ({design['replicate_handling']['mode']}) was silently dropped: "
+        f"paired_replicates={captured['params'].get('paired_replicates')!r}"
+    )

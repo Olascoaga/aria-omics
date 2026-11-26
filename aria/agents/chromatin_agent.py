@@ -2313,8 +2313,7 @@ class ChromatinAgent(BaseAgent):
                 batch_col=(contract.get("batch_covariate")
                            or (contract.get("covariates") or [None])[0])),
         }
-        if bool(exp_ctx.get("paired_replicates")
-                or (exp_ctx.get("design") or {}).get("paired")):
+        if contract.get("is_paired"):
             params["paired_replicates"] = True
         motif_source = params.pop("_motif_source", None)
         if any(str(f).lower().endswith(".cram") for f in files):
