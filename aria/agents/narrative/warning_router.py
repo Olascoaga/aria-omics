@@ -205,6 +205,9 @@ def _extract_signals(scope: str, stage: dict[str, Any], id_hint: str | None) -> 
         _emit("pairing_status", "warning", f"Partial paired design: {det}.", True, ex_names)
     if stage.get("batch_condition_confounded") is True:
         _emit("batch_condition_confounded", "warning", "Batch/donor covariate is 1:1 confounded with experimental condition (batch_condition_confounded=True); donor-specific technical effects cannot be disentangled from condition.")
+    if _pos_int(n_nc := stage.get("n_nonconverged_excluded")):
+        cmp_lbl = f" in {stage['test']} vs {stage['reference']}" if (stage.get("test") and stage.get("reference")) else ""
+        _emit("n_nonconverged_excluded", "warning", f"Excluded {n_nc} non-converged apeGLM fit peak(s){cmp_lbl} (n_nonconverged_excluded={n_nc}).")
     if (items := _str_items(stage.get("metrics_not_computed"))):
         _emit("metrics_not_computed", "info", "Metrics not computed: " + ", ".join(items) + ".", True, items)
     for w in (stage.get("warnings") if isinstance(stage.get("warnings"), (list, tuple)) else ()):

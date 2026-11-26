@@ -290,3 +290,111 @@ def test_d7_019_scatac_fragment_sizes_standardized_fraction_keys_reach_narrator(
     assert sub_vals == [0.6], f"Expected subnucleosomal evidence 0.6, got {ev_by_label}"
     assert mono_vals == [0.4], f"Expected mononucleosomal evidence 0.4, got {ev_by_label}"
 
+
+def test_d7_020_warning_router_surfaces_nonconverged_excluded_da_peaks():
+    """D7-020: _gate_da_by_convergence emits n_nonconverged_excluded > 0 per
+    comparison. Through NarrativeRegistry.collect_blocks, warning_router must
+    attach a structured warning caveat on both scATAC pseudobulk DA and bulk DA
+    blocks (and stay silent when n_nonconverged_excluded == 0)."""
+    import pandas as pd
+
+    from aria.agents.narrative.narrators.chromatin import ChromatinNarrator
+    from aria.agents.narrative.registry import registry_with
+    from aria.scripts.chromatin_diffacc import _gate_da_by_convergence
+
+    results_df = pd.DataFrame(
+        {
+            "log2FoldChange": [1.8, -1.5, 0.01, 0.02, 0.03],
+            "padj": [1e-5, 1e-4, 1e-6, 1e-6, 1e-6],
+            "lfc_converged": [True, True, False, False, False],
+        },
+        index=["chr1:1-500", "chr1:600-1100", "chr1:1200-1700", "chr1:1800-2300", "chr1:2400-2900"],
+    )
+    sig_df, conv_info = _gate_da_by_convergence(results_df, padj_max=0.05)
+    assert len(sig_df) == 2
+    assert conv_info["convergence_available"] is True
+    assert conv_info["n_nonconverged_excluded"] == 3
+
+    reg = registry_with((ChromatinNarrator(),))
+    scatac_findings = {
+        "differential_accessibility": {
+            "status": "success",
+            "data_type": "scATAC",
+            "pseudobulk": {
+                "ran": True,
+                "comparisons": [{
+                    "test": "treat",
+                    "reference": "ctrl",
+                    "status": "success",
+                    "n_sig": len(sig_df),
+                    "convergence_available": conv_info["convergence_available"],
+                    "n_nonconverged_excluded": conv_info["n_nonconverged_excluded"],
+                }],
+            },
+        }
+    }
+    blocks = reg.collect_blocks({"chromatin_agent": {"status": "done", "findings": scatac_findings}})
+    pb_block = next(b for b in blocks if b.id == "chromatin.differential_accessibility.pseudobulk")
+    warn_caveats = [c for c in pb_block.caveats if c.severity == "warning"]
+    assert any("non-converged" in c.text.lower() and "3" in c.text for c in warn_caveats), (
+        f"Expected structured n_nonconverged_excluded warning on scATAC pseudobulk DA, got {pb_block.caveats}"
+    )
+    assert any(
+        s["field"] == "n_nonconverged_excluded"
+        for s in pb_block.metadata.get("degradation_signals", [])
+    )
+
+    # Also verified on bulk ATAC DA (no free-text warnings) — caps high -> medium:
+    bulk_findings = {
+        "differential_accessibility": {
+            "status": "success",
+            "ran": True,
+            "data_type": "bulk_ATAC",
+            "n_sig_total": len(sig_df),
+            "comparisons": [{
+                "test": "treat",
+                "reference": "ctrl",
+                "status": "success",
+                "n_sig": len(sig_df),
+                "n_up": 1,
+                "n_down": 1,
+                "n_replicates": {"treat": 4, "ctrl": 4},
+                "convergence_available": True,
+                "n_nonconverged_excluded": 3,
+            }],
+        }
+    }
+    bulk_blocks = reg.collect_blocks({"chromatin_agent": {"status": "done", "findings": bulk_findings}})
+    bulk_da = next(b for b in bulk_blocks if b.analysis == "differential_accessibility")
+    assert bulk_da.confidence == "medium"
+    assert any(
+        s["field"] == "n_nonconverged_excluded"
+        for s in bulk_da.metadata.get("degradation_signals", [])
+    )
+
+    # Negative control: n_nonconverged_excluded == 0 emits no structured warning.
+    clean_findings = {
+        "differential_accessibility": {
+            "status": "success",
+            "data_type": "scATAC",
+            "pseudobulk": {
+                "ran": True,
+                "comparisons": [{
+                    "test": "treat",
+                    "reference": "ctrl",
+                    "status": "success",
+                    "n_sig": 2,
+                    "convergence_available": True,
+                    "n_nonconverged_excluded": 0,
+                }],
+            },
+        }
+    }
+    clean_blocks = reg.collect_blocks({"chromatin_agent": {"status": "done", "findings": clean_findings}})
+    clean_pb = next(b for b in clean_blocks if b.id == "chromatin.differential_accessibility.pseudobulk")
+    assert not any(
+        s["field"] == "n_nonconverged_excluded"
+        for s in clean_pb.metadata.get("degradation_signals", [])
+    )
+
+
