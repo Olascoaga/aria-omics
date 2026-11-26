@@ -27,7 +27,7 @@ import uuid
 from pathlib import Path
 
 from aria.agents.base_agent import BaseAgent
-from aria.bus.message_bus import Message, MessageType, Confidence
+from aria.bus.message_bus import Message, MessageType, Confidence, bus
 from aria.llm.provider import LLMProvider
 from aria.llm.prompt_boundary import (
     PromptDataField,

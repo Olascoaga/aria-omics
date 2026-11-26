@@ -19,7 +19,7 @@ S9; this gate is the binary adversarial check.
 
 from __future__ import annotations
 
-from typing import Mapping
+from typing import Any, Mapping
 
 from .caveats import CAVEAT_CODES, is_caveat_code
 from .gates import GateResult
