@@ -59,7 +59,7 @@ def _load_counts(files: list, allow_nonraw: bool = False) -> tuple:
         except Exception as e:
             return None, [f"Failed to load {count_files[0]}: {e}"], {}
     else:
-        # Multiple per-sample files — merge by gene ID
+        # Multiple per-sample files — merge by gene ID (fail closed if any sample fails)
         frames = []
         for f in count_files:
             sep = "," if str(f).lower().endswith(".csv") else "\t"
@@ -67,11 +67,13 @@ def _load_counts(files: list, allow_nonraw: bool = False) -> tuple:
                 df = pd.read_csv(f, sep=sep, index_col=0, comment="#",
                                   header=None)
                 df.columns = [Path(f).stem]
-                frames.append(df.select_dtypes(include="number"))
-            except Exception as e:
-                warnings.append(f"Skipping {f}: {e}")
-        if not frames:
-            return None, ["Could not load any count files."], {}
+                num_df = df.select_dtypes(include="number")
+                if num_df.empty:
+                    return None, [f"Count file {f} has no numeric columns."], {}
+                frames.append(num_df)
+            except (OSError, ValueError, UnicodeDecodeError,
+                    pd.errors.ParserError, pd.errors.EmptyDataError) as e:
+                return None, [f"Failed to load count file {f}: {e}"], {}
         counts = pd.concat(frames, axis=1).fillna(0)
 
     # Ensure genes × samples (more genes than samples in typical experiments)

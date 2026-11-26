@@ -824,6 +824,7 @@ def _bulk_chromatin_qc(files: list, data_type: str,
     usable_peaks = bool(peaks and Path(peaks).is_file() and _read_peak_intervals(str(peaks)))
     compute_cc = (data_type == "ChIP")
     seen_sids: dict[str, int] = {}
+    failed_samples: list[str] = []
     for path in bam_files:
         try:
             row, fragments = _scan_bam_metrics(
@@ -867,11 +868,22 @@ def _bulk_chromatin_qc(files: list, data_type: str,
                 warnings.append(f"{path}: high mito fraction ({row['mito_frac']:.1%})")
             if row["dup_rate"] is not None and row["dup_rate"] > 0.5:
                 warnings.append(f"{path}: high duplicate rate ({row['dup_rate']:.1%})")
-        except Exception as e:
-            warnings.append(f"Could not QC {path}: {str(e)[:160]}")
-    if not metrics:
-        return {"status": "error", "error_type": "QCFailed",
-                "details": "Could not compute QC metrics for any sample.", "warnings": warnings}
+        except (OSError, ValueError, RuntimeError, ImportError) as e:
+            msg = f"Could not QC {path}: {str(e)[:160]}"
+            failed_samples.append(msg)
+            warnings.append(msg)
+    if failed_samples or not metrics:
+        return {
+            "status": "error",
+            "error_type": "QCFailed",
+            "details": (
+                f"Could not compute QC metrics for {len(failed_samples)} of "
+                f"{len(bam_files)} sample(s): {'; '.join(failed_samples)}"
+                if failed_samples
+                else "Could not compute QC metrics for any sample."
+            ),
+            "warnings": warnings,
+        }
     mean = lambda values: float(np.mean(list(values))) if values else None
     frip = mean(frip_per_sample.values())
     enrichment = mean(tss_per_sample.values())

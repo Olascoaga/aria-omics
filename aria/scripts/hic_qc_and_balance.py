@@ -782,7 +782,7 @@ def hic_qc_and_balance(params: dict) -> dict:
                 if scc_res_used is None:
                     scc_res_used = scc_res_cur
                 sample_uris_for_scc.append((sid, scc_uri))
-        except Exception as exc:
+        except (OSError, ValueError, RuntimeError, KeyError) as exc:
             results_per_file.append({
                 "sample_id": sid,
                 "file": fpath,
@@ -790,13 +790,19 @@ def hic_qc_and_balance(params: dict) -> dict:
                 "error": str(exc)[:300],
             })
 
-    ok_records = [r for r in results_per_file if r.get("status") == "success"]
-    if not ok_records:
+    failed_records = [r for r in results_per_file if r.get("status") != "success"]
+    if failed_records or not results_per_file:
         return {
             "status": "error",
             "error_type": "ProcessingFailed",
-            "details": f"Could not QC/balance any Hi-C file: {results_per_file}",
+            "details": (
+                f"Could not QC/balance {len(failed_records)} of {len(valid_files)} "
+                f"Hi-C file(s): {failed_records or results_per_file}"
+            ),
+            "per_file": results_per_file,
+            "warnings": warnings,
         }
+    ok_records = results_per_file
 
     all_valid_pairs = int(sum(r.get("n_valid_pairs", 0) for r in ok_records))
     avg_cis_trans = float(np.mean([r["cis_trans_ratio"] for r in ok_records]))

@@ -56,3 +56,25 @@ def test_d1_022_count_peaks_unreadable_must_raise(tmp_path):
 
     with pytest.raises(OSError):
         _count_peaks(str(tmp_path / "missing.narrowPeak"))
+
+
+def test_d1_018_bulk_chromatin_qc_must_fail_closed_on_corrupt_bam(tmp_path):
+    """D1-018: Corrupt BAM in a bulk chromatin cohort must fail closed instead of averaging a subset."""
+    pysam = pytest.importorskip("pysam")
+    from aria.scripts.chromatin_qc import _bulk_chromatin_qc
+
+    good_bam = tmp_path / "rep1.bam"
+    header = {"HD": {"VN": "1.6"}, "SQ": [{"LN": 100000, "SN": "chr1"}]}
+    with pysam.AlignmentFile(str(good_bam), "wb", header=header) as outf:
+        for i in range(10):
+            a = pysam.AlignedSegment()
+            a.query_name, a.query_sequence, a.flag = f"r{i}", "A" * 50, 0
+            a.reference_id, a.reference_start, a.mapping_quality = 0, 1000 + i * 100, 60
+            a.cigar, a.query_qualities = [(0, 50)], pysam.qualitystring_to_array("I" * 50)
+            outf.write(a)
+    bad_bam = tmp_path / "rep2_corrupt.bam"
+    bad_bam.write_bytes(b"NOT_A_BAM_FILE")
+    res = _bulk_chromatin_qc(
+        [str(good_bam), str(bad_bam)], "bulk_ATAC", "hg38", "open_chromatin", [], params={}
+    )
+    assert res["status"] == "error"
