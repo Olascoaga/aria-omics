@@ -456,11 +456,36 @@ class ReportRenderMixin:
         # Raw MessageBus findings and legacy prose are not inputs: only typed,
         # evidence-bearing NarrativeBlocks can enter. Unsupported blocks are
         # withheld without exposing their text.
-        from aria.agents.narrative.claim_compiler import compile_public_claims
-        public_compilation = compile_public_claims(
-            narrative_blocks, exp_ctx, run_ledger=run_ledger,
-            report_dir=report_dir,
+        from aria.agents.narrative.claim_compiler import (
+            PublicClaimCompilation,
+            compile_public_claims,
         )
+        try:
+            public_compilation = compile_public_claims(
+                narrative_blocks, exp_ctx, run_ledger=run_ledger,
+                report_dir=report_dir,
+            )
+        except Exception as exc:  # aria: allow-broad-except surface failed claim-compiler governance pass with withheld count
+            log.warning(f"Public claim compilation failed: {exc}", exc_info=True)
+            cc_err = f"{type(exc).__name__}: {exc}"
+            candidates = list(narrative_blocks or [])
+            public_compilation = PublicClaimCompilation(
+                blocks=[],
+                claims=[],
+                withheld=[
+                    {
+                        "claim_id": str(getattr(b, "id", "unknown")),
+                        "status": "withheld",
+                        "reason": f"claim compiler governance pass failed: {cc_err}",
+                    }
+                    for b in candidates
+                ],
+                error=cc_err,
+            )
+            governance_alerts.append(
+                f"Claim Compiler governance pass failed ({cc_err}); "
+                f"{len(candidates)} candidate claim(s) withheld."
+            )
         narrative_blocks = public_compilation.blocks
         public_claims = public_compilation.claims
         findings_html = self._build_findings_section(

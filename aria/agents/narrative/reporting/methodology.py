@@ -110,17 +110,30 @@ class MethodologyMixin:
                 claims = compilation.claims
                 claim_compilation = compilation.summary()
                 narrative_blocks = compilation.blocks
-            except Exception as exc:
+            except Exception as exc:  # aria: allow-broad-except surface failed claim-compiler governance pass and redact blocks
                 log.warning(
                     f"Public claim compilation failed: {exc}", exc_info=True
                 )
+                err_msg = f"{type(exc).__name__}: {exc}"
+                candidates = list(narrative_blocks or [])
                 claims = []
+                withheld_list = [
+                    {
+                        "claim_id": str(getattr(b, "id", "unknown")),
+                        "status": "withheld",
+                        "reason": f"claim compiler governance pass failed: {err_msg}",
+                    }
+                    for b in candidates
+                ]
                 claim_compilation = {
                     "compiler": "compile_public_claims",
+                    "status": "error",
+                    "error": err_msg,
                     "n_published": 0,
-                    "n_withheld": len(narrative_blocks or []),
-                    "withheld": [],
+                    "n_withheld": len(withheld_list),
+                    "withheld": withheld_list,
                 }
+                narrative_blocks = []
         else:
             claims = compiled_claims
         # ADR-057 rail #6: the active non-promotion wall. A machine hypothesis

@@ -1085,39 +1085,13 @@ for small-effect genes.""",
 
     @staticmethod
     def _drop_unverifiable_synthesis_blocks(blocks: list) -> list:
-        """Keep only `integration.*` blocks the renderer would accept.
+        """Retain synthesis blocks for single-boundary verification in compile_public_claims.
 
-        Runs the same verification the strict renderer runs (block.claim +
-        `compose_block_prose`); a synthesis block that fails is dropped with a loud
-        log instead of aborting the whole report. Non-integration blocks are left
-        untouched (their failures are real report bugs, surfaced as before)."""
-        try:
-            from aria.agents.narrative.compose_prose import compose_block_prose
-            from aria.agents.narrative.evidence_verifier import (
-                verify_block_claim_support,
-            )
-        except Exception:
-            return blocks
-        kept = []
-        for b in blocks:
-            if not str(getattr(b, "id", "")).startswith("integration."):
-                kept.append(b)
-                continue
-            try:
-                prose = compose_block_prose(b) or b.claim or ""
-                manifest = verify_block_claim_support(b, prose, strict=False)
-                if manifest.get("status") == "supported":
-                    kept.append(b)
-                else:
-                    reason = (manifest.get("unsupported") or [{}])[0]
-                    log.warning(
-                        "Dropping unverifiable synthesis block %s: %s",
-                        b.id, reason.get("reason", "unsupported"),
-                    )
-            except Exception as exc:
-                log.warning("Dropping synthesis block %s (verify error): %s",
-                            getattr(b, "id", "?"), exc)
-        return kept
+        D5-011: pre-compiler silent deletion hid dropped synthesis blocks from
+        ``claim_compilation.withheld`` and ``report.html``; all verification and
+        withholding now happens once at ``compile_public_claims``.
+        """
+        return list(blocks or [])
 
     def _narrative_prefixes_for(self, agent_results: dict,
                                 exp_ctx: dict | None = None) -> set[str]:
