@@ -1,0 +1,451 @@
+{
+  "dataset": {
+    "accession": "GEO GSE96583 / Bioconductor EH2259",
+    "doi": "10.1038/nbt.4042",
+    "eligible_cell_types": [
+      "B cells",
+      "CD14+ Monocytes",
+      "CD4 T cells",
+      "CD8 T cells",
+      "FCGR3A+ Monocytes",
+      "NK cells"
+    ],
+    "input_ref": "public-atlas://03_scrna_multidonor/inputs/kang2018_pbmc_8donors_ifnb.h5ad",
+    "n_control_cells_total": 3200,
+    "n_donors": 8,
+    "n_eligible_cell_types": 6,
+    "name": "Kang et al. 2018 Human Lupus PBMC (unstimulated control arm)"
+  },
+  "design": {
+    "alpha_bh_fdr": 0.05,
+    "min_cells_per_donor": 10,
+    "min_donors_detected": 3,
+    "min_total_counts": 20,
+    "n_splits": 35,
+    "null_construction": "all_unique_balanced_4v4_donor_splits_on_unstimulated_control_pbmcs",
+    "total_celltype_split_runs": 210
+  },
+  "overall": {
+    "aria_pseudobulk_deseq2": {
+      "fwer_any_fp_rate": 0.3095,
+      "iqr_false_positives": [
+        0.0,
+        1.0
+      ],
+      "max_false_positives": 9,
+      "mean_false_positives": 0.53,
+      "median_false_positives": 0.0,
+      "min_false_positives": 0,
+      "n_splits_with_ge1_fp": 65,
+      "n_tests": 210,
+      "per_gene_false_discovery_fraction": 0.000184,
+      "total_false_positives": 112
+    },
+    "naive_cell_welch": {
+      "fwer_any_fp_rate": 0.8333,
+      "iqr_false_positives": [
+        1.0,
+        19.0
+      ],
+      "max_false_positives": 170,
+      "mean_false_positives": 19.99,
+      "median_false_positives": 5.0,
+      "min_false_positives": 0,
+      "n_splits_with_ge1_fp": 175,
+      "n_tests": 210,
+      "per_gene_false_discovery_fraction": 0.006885,
+      "total_false_positives": 4198
+    },
+    "naive_cell_wilcoxon": {
+      "fwer_any_fp_rate": 0.8571,
+      "iqr_false_positives": [
+        1.0,
+        20.75
+      ],
+      "max_false_positives": 183,
+      "mean_false_positives": 20.23,
+      "median_false_positives": 4.5,
+      "min_false_positives": 0,
+      "n_splits_with_ge1_fp": 180,
+      "n_tests": 210,
+      "per_gene_false_discovery_fraction": 0.006967,
+      "total_false_positives": 4248
+    },
+    "reduction_factor_vs_welch": 37.5,
+    "reduction_factor_vs_wilcoxon": 37.9,
+    "total_gene_tests": 609735
+  },
+  "per_cell_type": {
+    "B cells": {
+      "aria_pseudobulk_deseq2": {
+        "fwer_any_fp_rate": 0.4857,
+        "iqr_false_positives": [
+          0.0,
+          1.0
+        ],
+        "max_false_positives": 3,
+        "mean_false_positives": 0.54,
+        "median_false_positives": 0.0,
+        "min_false_positives": 0,
+        "n_splits_with_ge1_fp": 17,
+        "n_tests": 35,
+        "total_false_positives": 19
+      },
+      "donor_cell_counts": {
+        "donor_101": 53,
+        "donor_1015": 52,
+        "donor_1016": 32,
+        "donor_1039": 21,
+        "donor_107": 32,
+        "donor_1244": 29,
+        "donor_1256": 48,
+        "donor_1488": 44
+      },
+      "n_cells": 311,
+      "n_donors": 8,
+      "n_genes_tested": 2252,
+      "naive_cell_welch": {
+        "fwer_any_fp_rate": 0.7429,
+        "iqr_false_positives": [
+          0.5,
+          2.0
+        ],
+        "max_false_positives": 6,
+        "mean_false_positives": 1.34,
+        "median_false_positives": 1.0,
+        "min_false_positives": 0,
+        "n_splits_with_ge1_fp": 26,
+        "n_tests": 35,
+        "total_false_positives": 47
+      },
+      "naive_cell_wilcoxon": {
+        "fwer_any_fp_rate": 0.7714,
+        "iqr_false_positives": [
+          1.0,
+          2.5
+        ],
+        "max_false_positives": 6,
+        "mean_false_positives": 1.49,
+        "median_false_positives": 1.0,
+        "min_false_positives": 0,
+        "n_splits_with_ge1_fp": 27,
+        "n_tests": 35,
+        "total_false_positives": 52
+      }
+    },
+    "CD14+ Monocytes": {
+      "aria_pseudobulk_deseq2": {
+        "fwer_any_fp_rate": 0.4,
+        "iqr_false_positives": [
+          0.0,
+          1.0
+        ],
+        "max_false_positives": 9,
+        "mean_false_positives": 0.94,
+        "median_false_positives": 0.0,
+        "min_false_positives": 0,
+        "n_splits_with_ge1_fp": 14,
+        "n_tests": 35,
+        "total_false_positives": 33
+      },
+      "donor_cell_counts": {
+        "donor_101": 90,
+        "donor_1015": 117,
+        "donor_1016": 100,
+        "donor_1039": 111,
+        "donor_107": 158,
+        "donor_1244": 78,
+        "donor_1256": 68,
+        "donor_1488": 60
+      },
+      "n_cells": 782,
+      "n_donors": 8,
+      "n_genes_tested": 4530,
+      "naive_cell_welch": {
+        "fwer_any_fp_rate": 1.0,
+        "iqr_false_positives": [
+          35.0,
+          106.5
+        ],
+        "max_false_positives": 170,
+        "mean_false_positives": 73.26,
+        "median_false_positives": 63.0,
+        "min_false_positives": 14,
+        "n_splits_with_ge1_fp": 35,
+        "n_tests": 35,
+        "total_false_positives": 2564
+      },
+      "naive_cell_wilcoxon": {
+        "fwer_any_fp_rate": 1.0,
+        "iqr_false_positives": [
+          35.5,
+          106.5
+        ],
+        "max_false_positives": 183,
+        "mean_false_positives": 75.06,
+        "median_false_positives": 71.0,
+        "min_false_positives": 14,
+        "n_splits_with_ge1_fp": 35,
+        "n_tests": 35,
+        "total_false_positives": 2627
+      }
+    },
+    "CD4 T cells": {
+      "aria_pseudobulk_deseq2": {
+        "fwer_any_fp_rate": 0.2571,
+        "iqr_false_positives": [
+          0.0,
+          0.5
+        ],
+        "max_false_positives": 8,
+        "mean_false_positives": 0.6,
+        "median_false_positives": 0.0,
+        "min_false_positives": 0,
+        "n_splits_with_ge1_fp": 9,
+        "n_tests": 35,
+        "total_false_positives": 21
+      },
+      "donor_cell_counts": {
+        "donor_101": 142,
+        "donor_1015": 120,
+        "donor_1016": 91,
+        "donor_1039": 163,
+        "donor_107": 131,
+        "donor_1244": 234,
+        "donor_1256": 192,
+        "donor_1488": 229
+      },
+      "n_cells": 1302,
+      "n_donors": 8,
+      "n_genes_tested": 5268,
+      "naive_cell_welch": {
+        "fwer_any_fp_rate": 1.0,
+        "iqr_false_positives": [
+          9.0,
+          24.5
+        ],
+        "max_false_positives": 137,
+        "mean_false_positives": 27.66,
+        "median_false_positives": 15.0,
+        "min_false_positives": 2,
+        "n_splits_with_ge1_fp": 35,
+        "n_tests": 35,
+        "total_false_positives": 968
+      },
+      "naive_cell_wilcoxon": {
+        "fwer_any_fp_rate": 1.0,
+        "iqr_false_positives": [
+          11.5,
+          25.5
+        ],
+        "max_false_positives": 113,
+        "mean_false_positives": 28.11,
+        "median_false_positives": 18.0,
+        "min_false_positives": 5,
+        "n_splits_with_ge1_fp": 35,
+        "n_tests": 35,
+        "total_false_positives": 984
+      }
+    },
+    "CD8 T cells": {
+      "aria_pseudobulk_deseq2": {
+        "fwer_any_fp_rate": 0.1429,
+        "iqr_false_positives": [
+          0.0,
+          0.0
+        ],
+        "max_false_positives": 3,
+        "mean_false_positives": 0.23,
+        "median_false_positives": 0.0,
+        "min_false_positives": 0,
+        "n_splits_with_ge1_fp": 5,
+        "n_tests": 35,
+        "total_false_positives": 8
+      },
+      "donor_cell_counts": {
+        "donor_101": 34,
+        "donor_1015": 26,
+        "donor_1016": 120,
+        "donor_1039": 24,
+        "donor_107": 12,
+        "donor_1244": 15,
+        "donor_1256": 23,
+        "donor_1488": 11
+      },
+      "n_cells": 265,
+      "n_donors": 8,
+      "n_genes_tested": 1648,
+      "naive_cell_welch": {
+        "fwer_any_fp_rate": 0.8571,
+        "iqr_false_positives": [
+          4.0,
+          19.0
+        ],
+        "max_false_positives": 39,
+        "mean_false_positives": 12.51,
+        "median_false_positives": 12.0,
+        "min_false_positives": 0,
+        "n_splits_with_ge1_fp": 30,
+        "n_tests": 35,
+        "total_false_positives": 438
+      },
+      "naive_cell_wilcoxon": {
+        "fwer_any_fp_rate": 0.8286,
+        "iqr_false_positives": [
+          2.0,
+          19.0
+        ],
+        "max_false_positives": 36,
+        "mean_false_positives": 10.89,
+        "median_false_positives": 9.0,
+        "min_false_positives": 0,
+        "n_splits_with_ge1_fp": 29,
+        "n_tests": 35,
+        "total_false_positives": 381
+      }
+    },
+    "FCGR3A+ Monocytes": {
+      "aria_pseudobulk_deseq2": {
+        "fwer_any_fp_rate": 0.4857,
+        "iqr_false_positives": [
+          0.0,
+          1.0
+        ],
+        "max_false_positives": 5,
+        "mean_false_positives": 0.8,
+        "median_false_positives": 0.0,
+        "min_false_positives": 0,
+        "n_splits_with_ge1_fp": 17,
+        "n_tests": 35,
+        "total_false_positives": 28
+      },
+      "donor_cell_counts": {
+        "donor_101": 35,
+        "donor_1015": 45,
+        "donor_1016": 25,
+        "donor_1039": 31,
+        "donor_107": 25,
+        "donor_1244": 15,
+        "donor_1256": 11,
+        "donor_1488": 25
+      },
+      "n_cells": 212,
+      "n_donors": 8,
+      "n_genes_tested": 2276,
+      "naive_cell_welch": {
+        "fwer_any_fp_rate": 0.9429,
+        "iqr_false_positives": [
+          2.0,
+          4.0
+        ],
+        "max_false_positives": 23,
+        "mean_false_positives": 4.2,
+        "median_false_positives": 3.0,
+        "min_false_positives": 0,
+        "n_splits_with_ge1_fp": 33,
+        "n_tests": 35,
+        "total_false_positives": 147
+      },
+      "naive_cell_wilcoxon": {
+        "fwer_any_fp_rate": 0.9429,
+        "iqr_false_positives": [
+          2.0,
+          5.0
+        ],
+        "max_false_positives": 28,
+        "mean_false_positives": 4.31,
+        "median_false_positives": 3.0,
+        "min_false_positives": 0,
+        "n_splits_with_ge1_fp": 33,
+        "n_tests": 35,
+        "total_false_positives": 151
+      }
+    },
+    "NK cells": {
+      "aria_pseudobulk_deseq2": {
+        "fwer_any_fp_rate": 0.0857,
+        "iqr_false_positives": [
+          0.0,
+          0.0
+        ],
+        "max_false_positives": 1,
+        "mean_false_positives": 0.09,
+        "median_false_positives": 0.0,
+        "min_false_positives": 0,
+        "n_splits_with_ge1_fp": 3,
+        "n_tests": 35,
+        "total_false_positives": 3
+      },
+      "donor_cell_counts": {
+        "donor_101": 33,
+        "donor_1015": 28,
+        "donor_1016": 25,
+        "donor_1039": 15,
+        "donor_107": 34,
+        "donor_1244": 20,
+        "donor_1256": 52,
+        "donor_1488": 22
+      },
+      "n_cells": 229,
+      "n_donors": 8,
+      "n_genes_tested": 1447,
+      "naive_cell_welch": {
+        "fwer_any_fp_rate": 0.4571,
+        "iqr_false_positives": [
+          0.0,
+          1.0
+        ],
+        "max_false_positives": 6,
+        "mean_false_positives": 0.97,
+        "median_false_positives": 0.0,
+        "min_false_positives": 0,
+        "n_splits_with_ge1_fp": 16,
+        "n_tests": 35,
+        "total_false_positives": 34
+      },
+      "naive_cell_wilcoxon": {
+        "fwer_any_fp_rate": 0.6,
+        "iqr_false_positives": [
+          0.0,
+          2.0
+        ],
+        "max_false_positives": 8,
+        "mean_false_positives": 1.51,
+        "median_false_positives": 1.0,
+        "min_false_positives": 0,
+        "n_splits_with_ge1_fp": 21,
+        "n_tests": 35,
+        "total_false_positives": 53
+      }
+    }
+  },
+  "provenance": {
+    "aria_version": "4.9.4",
+    "environment": {
+      "conda_prefix": null,
+      "env_lock_file": null,
+      "env_lock_sha256": null,
+      "env_name": "anaconda3",
+      "source": "no_lock"
+    },
+    "git_commit": "8a0cb68e59359fbe31b42bd51c10c075c51a41d2",
+    "git_describe": "v4.9.3-2-g8a0cb68",
+    "git_dirty": false,
+    "git_sha": "8a0cb68e59359fbe31b42bd51c10c075c51a41d2",
+    "git_tree_sha": "284fa20d75e7c18a813fd9f87df35df4fca132c4",
+    "image": {
+      "containerized": false,
+      "digest": null,
+      "env_lock_sha256": null,
+      "kind": null,
+      "reference": null,
+      "revision": null,
+      "validation": null
+    },
+    "version": "4.9.4",
+    "version_source": "aria.version.__version__",
+    "workflow_hash": "d7b383d550a0ebcabc090e6465569101dedcb4487a120e5d3ae46344bbf70fbf",
+    "workflow_hash_algorithm": "sha256(version+git_sha+git_tree_sha+git_dirty+git_status+git_diff)"
+  },
+  "schema_version": "aria.benchmark.kang_real_pseudoreplication_null.v1"
+}
