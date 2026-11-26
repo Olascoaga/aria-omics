@@ -267,3 +267,159 @@ def test_d1_011_plot_failure_must_not_disable_pca_outlier_detection(tmp_path):
     bad_dir = tmp_path / "not_a_dir"
     bad_dir.write_text("x")
     assert "a_out" in _sample_qc(counts, meta, str(bad_dir), [], design_factor="condition")["outliers"]
+
+
+def test_r2_lobo_index_error_does_not_abort_rna_bulk_de(tmp_path, monkeypatch):
+    """R2: Unexpected LOBO IndexError must record lobo_jackknife error without aborting bulk DE."""
+    pytest.importorskip("pydeseq2")
+    import numpy as np
+    import pandas as pd
+    import aria.scripts.rna_bulk_de as rbd
+
+    rng = np.random.default_rng(11)
+    genes = [f"G{i}" for i in range(40)]
+    units = ["ctrl_1", "ctrl_2", "ctrl_3", "trt_1", "trt_2", "trt_3"]
+    mat = rng.poisson(60, size=(40, 6))
+    mat[:8, 3:] *= 5
+    counts_p = tmp_path / "counts.tsv"
+    meta_p = tmp_path / "meta.tsv"
+    pd.DataFrame(mat, index=genes, columns=units).to_csv(counts_p, sep="\t", index_label="gene_id")
+    pd.DataFrame({"condition": ["ctrl"] * 3 + ["treat"] * 3}, index=units).to_csv(
+        meta_p, sep="\t", index_label="sample"
+    )
+    monkeypatch.setattr(
+        rbd, "compute_counts_lobo_jackknife",
+        lambda *a, **kw: (_ for _ in ()).throw(IndexError("lobo fold index out of bounds")),
+    )
+    res = rbd.bulk_rna_de({
+        "files": [str(counts_p)],
+        "metadata_file": str(meta_p),
+        "design_factor": "condition",
+        "comparison": {"numerator": "treat", "denominator": "ctrl"},
+        "run_pathways": False,
+        "lfc_shrink": False,
+        "n_cpus": 1,
+        "output_dir": str(tmp_path / "out"),
+    })
+    assert res["status"] == "success"
+    assert res["contrasts"][0]["status"] == "success"
+    assert res["contrasts"][0]["lobo_jackknife"]["status"] == "error"
+    assert "index out of bounds" in res["contrasts"][0]["lobo_jackknife"]["details"]
+
+
+def test_r2_lobo_index_error_does_not_abort_rna_pseudobulk_de(tmp_path, monkeypatch):
+    """R2: Unexpected LOBO IndexError must record lobo_jackknife error without aborting pseudobulk DE."""
+    pytest.importorskip("pydeseq2")
+    ad = pytest.importorskip("anndata")
+    import numpy as np
+    import pandas as pd
+    import aria.scripts.rna_pseudobulk_de as rpb
+
+    rng = np.random.default_rng(12)
+    donors = ["d1", "d2", "d3", "d4", "d5", "d6"]
+    conds = ["ctrl", "ctrl", "ctrl", "treat", "treat", "treat"]
+    X_rows, obs_rows = [], []
+    for d, c in zip(donors, conds):
+        base = rng.poisson(30, size=(8, 25))
+        if c == "treat":
+            base[:, :5] = rng.poisson(120, size=(8, 5))
+        X_rows.append(base)
+        obs_rows.extend({"cell_type": "Tcell", "condition": c, "donor": d} for _ in range(8))
+    h5 = tmp_path / "pb.h5ad"
+    ad.AnnData(
+        X=np.vstack(X_rows).astype(np.int32),
+        obs=pd.DataFrame(obs_rows, index=[f"c{i}" for i in range(48)]),
+        var=pd.DataFrame(index=[f"G{i}" for i in range(25)]),
+    ).write_h5ad(h5)
+    monkeypatch.setattr(
+        rpb, "compute_counts_lobo_jackknife",
+        lambda *a, **kw: (_ for _ in ()).throw(IndexError("lobo fold index out of bounds")),
+    )
+    res = rpb.rna_pseudobulk_de({
+        "data_path": str(h5),
+        "groupby": "cell_type",
+        "condition_col": "condition",
+        "replicate_col": "donor",
+        "comparisons": [["treat", "ctrl"]],
+        "min_cells_per_pseudosample": 4,
+        "min_replicates_per_condition": 2,
+        "lfc_shrink": False,
+        "output_dir": str(tmp_path / "out"),
+    })
+    assert res["status"] == "success"
+    comp = res["per_group"]["Tcell"]["per_comparison"]["treat_vs_ctrl"]
+    assert comp["status"] == "success"
+    assert comp["lobo_jackknife"]["status"] == "error"
+    assert "index out of bounds" in comp["lobo_jackknife"]["details"]
+
+
+def test_r2_plot_render_attribute_error_preserves_pca_coords(tmp_path, monkeypatch):
+    """R2: Unexpected AttributeError during PCA/MDS plot render must record warning and preserve coords."""
+    pytest.importorskip("sklearn")
+    matplotlib = pytest.importorskip("matplotlib")
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    import numpy as np
+    import pandas as pd
+    from aria.scripts.rna_bulk.plots import _plot_pca_mds
+
+    rng = np.random.default_rng(13)
+    vst = pd.DataFrame(
+        rng.normal(size=(30, 6)),
+        index=[f"G{i}" for i in range(30)],
+        columns=["s1", "s2", "s3", "s4", "s5", "s6"],
+    )
+    meta = pd.DataFrame({"condition": ["A"] * 3 + ["B"] * 3}, index=vst.columns)
+    monkeypatch.setattr(
+        plt, "subplots", lambda *a, **kw: (_ for _ in ()).throw(AttributeError("mpl backend attr error"))
+    )
+    warns: list[str] = []
+    pca_p, mds_p, coords, var_exp = _plot_pca_mds(vst, meta, str(tmp_path), warns, design_factor="condition")
+    assert pca_p is None and mds_p is None
+    assert coords is not None and coords.shape == (6, 2)
+    assert len(var_exp) == 2
+    assert any("mpl backend attr error" in w for w in warns)
+
+
+def test_r2_vst_deseq2_key_error_reaches_lib_size_fallback(monkeypatch):
+    """R2: Unexpected KeyError from dds.deseq2() in _run_vst must reach library-size-normalized fallback."""
+    pytest.importorskip("pydeseq2")
+    import numpy as np
+    import pandas as pd
+    from pydeseq2.dds import DeseqDataSet
+    from aria.scripts.rna_bulk.transforms import _run_vst
+
+    counts = pd.DataFrame(
+        {"s1": [10, 20, 30, 40], "s2": [100, 200, 300, 400], "s3": [10, 20, 30, 40], "s4": [100, 200, 300, 400]},
+        index=["G1", "G2", "G3", "G4"],
+    )
+    meta = pd.DataFrame({"condition": ["A", "A", "B", "B"]}, index=counts.columns)
+    monkeypatch.setattr(
+        DeseqDataSet, "vst_fit", lambda self, **kw: (_ for _ in ()).throw(RuntimeError("vst fail"))
+    )
+    monkeypatch.setattr(
+        DeseqDataSet, "deseq2", lambda self, **kw: (_ for _ in ()).throw(KeyError("normed_counts"))
+    )
+    warns: list[str] = []
+    vst_df = _run_vst(counts, meta, warns)
+    assert np.allclose(vst_df["s1"].values, vst_df["s2"].values, atol=0.1)
+    assert any("lib-size scaling" in w for w in warns)
+
+
+def test_r2_sample_qc_index_error_returns_recorded_error(tmp_path, monkeypatch):
+    """R2: Unexpected IndexError inside _sample_qc must return status='error', outliers=None without aborting."""
+    import pandas as pd
+    import aria.scripts.rna_bulk.qc as qc_mod
+
+    counts = pd.DataFrame(
+        {"s1": [10, 20, 30], "s2": [15, 25, 35], "s3": [12, 22, 32], "s4": [14, 24, 34]},
+        index=["G1", "G2", "G3"],
+    )
+    meta = pd.DataFrame({"condition": ["A", "A", "B", "B"]}, index=["s1", "s2", "s3", "s4"])
+    monkeypatch.setattr(
+        qc_mod, "_run_vst", lambda *a, **kw: (_ for _ in ()).throw(IndexError("unexpected index error"))
+    )
+    warns: list[str] = []
+    sqc = qc_mod._sample_qc(counts, meta, str(tmp_path), warns, design_factor="condition")
+    assert sqc["status"] == "error" and sqc["outliers"] is None
+    assert "unexpected index error" in sqc["error"]

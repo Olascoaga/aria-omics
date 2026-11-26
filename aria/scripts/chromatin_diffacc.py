@@ -538,7 +538,7 @@ def _pseudobulk_da(adata, condition_col, replicate_col, comparisons,
                 paired_unit_col=(replicate_col if paired_block_modeled else None),
                 max_reported_features=200,
             )
-        except (ValueError, RuntimeError, TypeError, KeyError) as exc:
+        except Exception as exc:  # aria: allow-broad-except auxiliary LOBO diagnostic must not abort primary DA
             lobo_res = {"status": "error", "details": str(exc)[:200]}
 
         comp_results.append({

@@ -682,7 +682,7 @@ def bulk_rna_de(params: dict) -> dict:
                 primary_significant_features=[str(g) for g in all_sig],
                 max_reported_features=200,
             )
-        except (ValueError, RuntimeError, TypeError, KeyError) as exc:
+        except Exception as exc:  # aria: allow-broad-except auxiliary LOBO diagnostic must not abort primary DE
             lobo_res = {"status": "error", "details": str(exc)[:200]}
 
         contrast_results.append({

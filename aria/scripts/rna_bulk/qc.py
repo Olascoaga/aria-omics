@@ -207,7 +207,7 @@ def _sample_qc(counts, metadata, output_dir: str,
             "n_protein_coding":    int(n_pc),
         }
 
-    except (ValueError, RuntimeError, TypeError, KeyError, OSError, ZeroDivisionError) as e:
+    except Exception as e:  # aria: allow-broad-except auxiliary sample QC diagnostic must not abort primary DE
         warnings.append(f"Sample QC failed: {e}")
         err_payload = {
             "status": "error",

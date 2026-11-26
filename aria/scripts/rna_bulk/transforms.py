@@ -40,7 +40,7 @@ def _run_vst(counts_raw, metadata, warnings: list):
             dds.fit_size_factors()
             dds.vst_fit(use_design=False)
             vst = dds.vst_transform()
-        except (AttributeError, ValueError, RuntimeError):
+        except Exception:  # aria: allow-broad-except auxiliary VST fit falls back to DESeq2 normalized counts
             dds.deseq2()
             vst = np.log2(dds.layers["normed_counts"] + 1)
             warnings.append(
@@ -55,7 +55,7 @@ def _run_vst(counts_raw, metadata, warnings: list):
         )
         return vst_df
 
-    except (ImportError, AttributeError, ValueError, RuntimeError) as exc:
+    except Exception as exc:  # aria: allow-broad-except auxiliary VST transform falls back to library-size-normalized log2
         warnings.append(
             f"pydeseq2 VST unavailable ({exc}) — using log2(counts+1) + lib-size scaling. "
             "PCA may be dominated by library size differences."

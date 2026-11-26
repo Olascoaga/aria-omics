@@ -96,3 +96,90 @@ def test_d1_016_h5ad_atac_qc_frag_parse_error_must_not_skip_mito(tmp_path):
     res = _h5ad_atac_qc(str(p), "hg38", "Homo sapiens", [])
     assert res["median_mito_obs"] == pytest.approx(0.06)
     assert any("median_fragments_per_cell" in m for m in res["metrics_not_computed"])
+
+
+def test_r2_lobo_index_error_does_not_abort_chromatin_bulk_diffacc(tmp_path, monkeypatch):
+    """R2: Unexpected LOBO IndexError must record lobo_jackknife error without aborting bulk chromatin DA."""
+    pytest.importorskip("pydeseq2")
+    import numpy as np
+    import pandas as pd
+    import aria.scripts.chromatin_bulk_diffacc as cbd
+
+    rng = np.random.default_rng(14)
+    peaks = [f"chr1:{i * 200}-{i * 200 + 100}" for i in range(40)]
+    units = ["ctrl_1", "ctrl_2", "ctrl_3", "trt_1", "trt_2", "trt_3"]
+    mat = rng.poisson(60, size=(40, 6))
+    mat[:8, 3:] *= 5
+    counts_p = tmp_path / "peaks.tsv"
+    meta_p = tmp_path / "meta.tsv"
+    pd.DataFrame(mat, index=peaks, columns=units).to_csv(counts_p, sep="\t", index_label="peak_id")
+    pd.DataFrame(
+        {"condition": ["ctrl"] * 3 + ["treat"] * 3, "replicate": [f"r{i}" for i in range(6)]},
+        index=units,
+    ).to_csv(meta_p, sep="\t", index_label="sample_id")
+    monkeypatch.setattr(
+        cbd, "compute_counts_lobo_jackknife",
+        lambda *a, **kw: (_ for _ in ()).throw(IndexError("lobo fold index out of bounds")),
+    )
+    res = cbd.chromatin_bulk_diffacc({
+        "counts_matrix_path": str(counts_p),
+        "sample_metadata_path": str(meta_p),
+        "comparisons": [["treat", "ctrl"]],
+        "lfc_min": 0.0,
+        "n_cpus": 1,
+        "output_dir": str(tmp_path / "out"),
+    })
+    assert res["status"] == "success"
+    assert res["comparisons"][0]["status"] == "success"
+    assert res["comparisons"][0]["lobo_jackknife"]["status"] == "error"
+    assert "index out of bounds" in res["comparisons"][0]["lobo_jackknife"]["details"]
+
+
+def test_r2_lobo_index_error_does_not_abort_chromatin_diffacc(tmp_path, monkeypatch):
+    """R2: Unexpected LOBO IndexError must record lobo_jackknife error without aborting scATAC pseudobulk DA."""
+    pytest.importorskip("pydeseq2")
+    ad = pytest.importorskip("anndata")
+    import numpy as np
+    import pandas as pd
+    from scipy import sparse
+    import aria.scripts.chromatin_diffacc as cd
+
+    rng = np.random.default_rng(15)
+    peaks = [f"chr1:{i * 200}-{i * 200 + 100}" for i in range(40)]
+    donors = ["d1", "d2", "d3", "d4", "d5", "d6"]
+    conds = ["ctrl", "ctrl", "ctrl", "treat", "treat", "treat"]
+    X_rows, obs_rows = [], []
+    for d, c in zip(donors, conds):
+        base = rng.poisson(30, size=(4, 40))
+        if c == "treat":
+            base[:, :6] = rng.poisson(140, size=(4, 6))
+        X_rows.append(base)
+        obs_rows.extend({"leiden": "0", "condition": c, "donor": d} for _ in range(4))
+    h5 = tmp_path / "scatac.h5ad"
+    ad.AnnData(
+        X=sparse.csr_matrix(np.vstack(X_rows).astype(np.int32)),
+        obs=pd.DataFrame(obs_rows, index=[f"c{i}" for i in range(24)]),
+        var=pd.DataFrame(index=peaks),
+    ).write_h5ad(h5)
+    monkeypatch.setattr(
+        cd, "compute_counts_lobo_jackknife",
+        lambda *a, **kw: (_ for _ in ()).throw(IndexError("lobo fold index out of bounds")),
+    )
+    res = cd.chromatin_diffacc({
+        "data_path": str(h5),
+        "groupby": "leiden",
+        "condition_col": "condition",
+        "replicate_col": "donor",
+        "comparisons": [["treat", "ctrl"]],
+        "skip_per_cluster": True,
+        "min_cells_per_pseudosample": 2,
+        "min_replicates_per_condition": 2,
+        "lfc_min": 0.0,
+        "n_cpus": 1,
+        "output_dir": str(tmp_path / "out"),
+    })
+    assert res["status"] == "success"
+    comp = res["pseudobulk"]["comparisons"][0]
+    assert comp["status"] == "success"
+    assert comp["lobo_jackknife"]["status"] == "error"
+    assert "index out of bounds" in comp["lobo_jackknife"]["details"]

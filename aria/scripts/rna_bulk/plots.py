@@ -55,7 +55,7 @@ def _plot_pca_mds(vst_variable, metadata, output_dir: str,
         coords  = pca.fit_transform(X)
         var_pct = pca.explained_variance_ratio_ * 100
         var_exp = [round(float(v), 3) for v in var_pct[:2]]
-    except (ImportError, ValueError, RuntimeError) as e:
+    except Exception as e:  # aria: allow-broad-except auxiliary PCA diagnostic must not abort primary DE
         warnings.append(f"PCA computation failed: {e}")
         return None, None, None, []
 
@@ -150,7 +150,7 @@ def _plot_pca_mds(vst_variable, metadata, output_dir: str,
 
         return pca_path, mds_path, coords, var_exp
 
-    except (ImportError, OSError, ValueError, RuntimeError) as e:
+    except Exception as e:  # aria: allow-broad-except auxiliary PCA/MDS plot render must not abort primary DE
         warnings.append(f"PCA/MDS plotting failed: {e}")
         return None, None, coords, var_exp
 

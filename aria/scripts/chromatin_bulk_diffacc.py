@@ -515,7 +515,7 @@ def chromatin_bulk_diffacc(params: dict) -> dict:
                 size_factors=spikein_sf,
                 max_reported_features=200,
             )
-        except (ValueError, RuntimeError, TypeError, KeyError) as exc:
+        except Exception as exc:  # aria: allow-broad-except auxiliary LOBO diagnostic must not abort primary DA
             lobo_res = {"status": "error", "details": str(exc)[:200]}
 
         result_row = {
