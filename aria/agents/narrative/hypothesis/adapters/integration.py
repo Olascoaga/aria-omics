@@ -81,14 +81,7 @@ _PEAK_COORD_RE = re.compile(
 _COMPOSITE_TF_MARKERS = ("::", ",", "/", ";", "(", ")", " ")
 
 
-def _finite_float(value: Any) -> float | None:
-    if value is None or isinstance(value, bool):
-        return None
-    try:
-        out = float(value)
-    except (TypeError, ValueError):
-        return None
-    return out if math.isfinite(out) else None
+from aria.utils.stats import finite_float as _finite_float
 
 
 def _finite_corr(value: Any) -> float | None:

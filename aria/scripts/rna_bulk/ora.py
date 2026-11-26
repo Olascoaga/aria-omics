@@ -7,15 +7,7 @@ from __future__ import annotations
 import math
 
 from aria.scripts.rna_bulk.gtf_io import _normalize_species, _to_symbols
-
-
-def _finite_float(value, default=None):
-    """Coerce external numeric fields without emitting JSON NaN/Infinity."""
-    try:
-        value = float(value)
-        return value if math.isfinite(value) else default
-    except (TypeError, ValueError):
-        return default
+from aria.utils.stats import finite_float as _finite_float
 
 
 def _enrichr_entries(results, padj_max=0.05, top=20):

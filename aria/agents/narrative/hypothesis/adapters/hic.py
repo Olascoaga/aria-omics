@@ -50,14 +50,7 @@ _SKIP_TOKENS = {
 }
 
 
-def _finite_float(val: Any) -> float | None:
-    if val is None or isinstance(val, bool):
-        return None
-    try:
-        f = float(val)
-    except (TypeError, ValueError):
-        return None
-    return f if math.isfinite(f) else None
+from aria.utils.stats import finite_float as _finite_float
 
 
 def _split_gene_field(raw: Any) -> list[str]:

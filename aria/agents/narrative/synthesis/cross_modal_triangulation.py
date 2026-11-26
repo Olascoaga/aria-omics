@@ -56,14 +56,7 @@ def _is_executed_stage(stage: Any) -> bool:
     return bool(stage)
 
 
-def _finite_float(val: Any) -> float | None:
-    if val is None or isinstance(val, bool):
-        return None
-    try:
-        out = float(val)
-    except (TypeError, ValueError):
-        return None
-    return out if math.isfinite(out) else None
+from aria.utils.stats import finite_float as _finite_float
 
 
 def _round_num(val: Any, digits: int = 4) -> float | None:

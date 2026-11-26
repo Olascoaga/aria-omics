@@ -124,3 +124,41 @@ def test_d8_015_cpm_and_logcpm_zero_depth_converges(tmp_path):
     assert any("treat_2" in f.get("message", "") for f in rep_findings)
     assert isinstance(pca_findings, list)
     assert any("treat_2" in f.get("message", "") for f in pca_findings)
+
+
+def test_d8_024_finite_float_coercion_converges():
+    """D8-024: all 10 finite-float helpers must reject bool/np.bool_ and return None on None/NaN/Inf."""
+    import pytest
+
+    pytest.importorskip("litellm")
+    from aria.agents._narrative_integration import _finite_float as int_ff
+    from aria.agents.narrative.hypothesis.adapters.hic import _finite_float as hic_ff
+    from aria.agents.narrative.hypothesis.adapters.integration import _finite_float as hint_ff
+    from aria.agents.narrative.narrators.bulk_rna import _to_float as bulk_ff
+    from aria.agents.narrative.synthesis.cross_modal_triangulation import _finite_float as tri_ff
+    from aria.benchmarks.reference_seqc import _finite_float as seqc_ff
+    from aria.benchmarks.synthetic_de import _finite_float as synth_ff
+    from aria.scripts.rna_bulk.ora import _finite_float as ora_ff
+    from aria.utils.cross_modal_concordance import finite as xm_ff
+
+    helpers = {
+        "cross_modal.finite": xm_ff,
+        "hic_adapter._finite_float": hic_ff,
+        "integration_adapter._finite_float": hint_ff,
+        "triangulation._finite_float": tri_ff,
+        "_narrative_integration._finite_float": int_ff,
+        "bulk_rna._to_float": bulk_ff,
+        "rna_bulk.ora._finite_float": ora_ff,
+        "reference_seqc._finite_float": seqc_ff,
+        "synthetic_de._finite_float": synth_ff,
+    }
+    for bad in (True, False, np.bool_(True), None, "", "   ", float("nan"), float("inf")):
+        for name, fn in helpers.items():
+            assert fn(bad) is None, f"{name}({bad!r}) returned {fn(bad)!r}, expected None"
+    for name, fn in helpers.items():
+        assert fn("3.25") == pytest.approx(3.25)
+
+    from aria.utils.stats import finite_float
+
+    for name, fn in helpers.items():
+        assert fn is finite_float, f"{name} is not stats.finite_float"

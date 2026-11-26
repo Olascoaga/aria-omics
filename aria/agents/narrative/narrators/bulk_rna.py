@@ -983,20 +983,21 @@ def _parse_gsea_row(row: dict) -> dict:
     }
 
 
-def _to_float(value):
-    parsed, unstable = _to_float_checked(value)
-    return None if unstable else parsed
+from aria.utils.stats import finite_float as _to_float
 
 
 def _to_float_checked(value, digits: int | None = None):
-    """Parse ``value`` to a finite float.
+    """Parse ``value`` to a finite float, flagging non-finite numeric values.
 
     Full precision is preserved unless ``digits`` is given (used only for
     effect sizes such as NES — never for p-values / FDRs).
     """
+    if value in (None, "") or isinstance(value, bool):
+        return None, False
+    val_type = type(value)
+    if val_type.__name__ in ("bool", "bool_") and val_type.__module__.startswith("numpy"):
+        return None, False
     try:
-        if value in (None, ""):
-            return None, False
         parsed = float(value)
         if not math.isfinite(parsed):
             return None, True

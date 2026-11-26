@@ -78,15 +78,7 @@ _NON_STATE_LABEL_TOKENS = (
 )
 
 
-def _finite_float(value: Any) -> float | None:
-    """``float(value)`` when finite, else ``None`` (no falsy-``0.0`` traps)."""
-    if value is None or (isinstance(value, str) and not value.strip()):
-        return None
-    try:
-        out = float(value)
-    except (TypeError, ValueError):
-        return None
-    return out if math.isfinite(out) else None
+from aria.utils.stats import finite_float as _finite_float
 
 
 def _classify_view_kind(name: str, views_meta: Any = None) -> str:

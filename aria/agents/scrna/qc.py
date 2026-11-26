@@ -287,11 +287,7 @@ class QCClusteringMixin:
         )
 
         if result.get("status") == "success":
-            def _finite_float(val):
-                if isinstance(val, bool) or not isinstance(val, (int, float)):
-                    return None
-                fval = float(val)
-                return fval if math.isfinite(fval) else None
+            from aria.utils.stats import finite_float as _finite_float
 
             delta = _finite_float(result.get("batch_correction_delta"))
             sil_before = _finite_float(result.get("silhouette_before"))

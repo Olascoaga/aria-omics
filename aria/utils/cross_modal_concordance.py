@@ -54,15 +54,7 @@ CATEGORIES = (
 )
 
 
-def finite(value):
-    """A JSON-compatible finite number, or None."""
-    if isinstance(value, (bool, np.bool_)):
-        return None
-    try:
-        number = float(value)
-        return number if math.isfinite(number) else None
-    except (ValueError, TypeError):
-        return None
+from aria.utils.stats import finite_float as finite
 
 
 def safe_label(value):

@@ -636,13 +636,7 @@ def _rank_biased_overlap(left: list[str], right: list[str], p: float = 0.9) -> f
     return float(score)
 
 
-def _finite_float(value: Any, default: float = 0.0) -> float:
-    try:
-        import math
-        val = float(value)
-        return val if math.isfinite(val) else default
-    except Exception:
-        return default
+from aria.utils.stats import finite_float as _finite_float
 
 
 def score_bulk_de_a1(
@@ -713,16 +707,18 @@ def score_bulk_de_a1(
     if lfc_frame.empty:
         pearson = spearman = pearson_de = spearman_de = 0.0
     else:
-        pearson = _finite_float(lfc_frame["estimated"].corr(lfc_frame["true"], method="pearson"))
-        spearman = _finite_float(lfc_frame["estimated"].corr(lfc_frame["true"], method="spearman"))
+        pearson = _finite_float(lfc_frame["estimated"].corr(lfc_frame["true"], method="pearson"), 0.0)
+        spearman = _finite_float(lfc_frame["estimated"].corr(lfc_frame["true"], method="spearman"), 0.0)
         if lfc_de_frame.empty:
             pearson_de = spearman_de = 0.0
         else:
             pearson_de = _finite_float(
-                lfc_de_frame["estimated"].corr(lfc_de_frame["true"], method="pearson")
+                lfc_de_frame["estimated"].corr(lfc_de_frame["true"], method="pearson"),
+                0.0,
             )
             spearman_de = _finite_float(
-                lfc_de_frame["estimated"].corr(lfc_de_frame["true"], method="spearman")
+                lfc_de_frame["estimated"].corr(lfc_de_frame["true"], method="spearman"),
+                0.0,
             )
 
     if top_k is None:

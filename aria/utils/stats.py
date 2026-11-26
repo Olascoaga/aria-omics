@@ -2,6 +2,29 @@
 
 from __future__ import annotations
 
+import math
+
+
+def finite_float(value, default: float | None = None) -> float | None:
+    """Coerce ``value`` to a finite Python ``float``, or ``default`` (default ``None``).
+
+    Explicitly rejects ``None``, ``bool`` / ``numpy.bool_``, blank strings, and
+    non-finite values (``NaN``, ``+/-inf``) so boolean flags are never coerced
+    to ``1.0``/``0.0`` and missing metrics are never silently fabricated.
+    """
+    if value is None or isinstance(value, bool):
+        return default
+    val_type = type(value)
+    if val_type.__name__ in ("bool", "bool_") and val_type.__module__.startswith("numpy"):
+        return default
+    if isinstance(value, str) and not value.strip():
+        return default
+    try:
+        out = float(value)
+    except (TypeError, ValueError):
+        return default
+    return out if math.isfinite(out) else default
+
 
 def bh_correct(pvals):
     """Benjamini-Hochberg correction without requiring statsmodels."""
