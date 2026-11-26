@@ -458,8 +458,6 @@ class HiCNarrator:
                 severity="info",
             )
         ]
-        for w in bal.get("warnings") or []:
-            caveats.append(Caveat(_clean_token(w), severity="warning"))
 
         return NarrativeBlock(
             id="hic.qc",
@@ -551,8 +549,6 @@ class HiCNarrator:
                     severity="warning",
                 )
             )
-        for w in comp.get("warnings") or []:
-            caveats.append(Caveat(_clean_token(w), severity="warning"))
 
         return NarrativeBlock(
             id="hic.compartments",
@@ -627,8 +623,6 @@ class HiCNarrator:
                 severity="info",
             )
         ]
-        for w in tads.get("warnings") or []:
-            caveats.append(Caveat(_clean_token(w), severity="warning"))
 
         figs = (
             _figure_entries(
@@ -701,8 +695,6 @@ class HiCNarrator:
                 severity="info",
             )
         ]
-        for w in loops.get("warnings") or []:
-            caveats.append(Caveat(_clean_token(w), severity="warning"))
 
         return NarrativeBlock(
             id="hic.loops",
@@ -867,8 +859,6 @@ class HiCNarrator:
                     severity="warning",
                 )
             )
-        for w in diff3d.get("warnings") or []:
-            caveats.append(Caveat(_clean_token(w), severity="warning"))
 
         return NarrativeBlock(
             id="hic.differential_3d",
