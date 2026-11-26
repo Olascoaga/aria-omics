@@ -647,7 +647,9 @@ def test_d4_h5_h6_hic_adapter_low_replication_qval_and_disk_fallthrough(tmp_path
     from aria.agents.narrative.hypothesis.adapters.hic import _low_replication, hic_evidence
     from aria.agents.narrative.hypothesis.caveats import LOW_REPLICATION
 
-    # 1. D4-H5: descriptive_only=True overrides n_samples >= 2; loops without n_samples >= 2 keeps LOW_REPLICATION.
+    # 1. D4-H5 / D7-011: descriptive_only=True overrides n_samples >= 2; when loops omits
+    #    n_samples (real hic_topology._compute_loops schema), fall through to qc.n_samples
+    #    and remain fail-closed (True) when qc.n_samples < 2 or missing.
     assert _low_replication(
         {
             "qc": {"n_samples": 4},
@@ -660,7 +662,13 @@ def test_d4_h5_h6_hic_adapter_low_replication_qval_and_disk_fallthrough(tmp_path
     assert _low_replication(
         {
             "qc": {"n_samples": 4},
-            "topology": {"loops": {"status": "success"}},  # default n_samples=1
+            "topology": {"loops": {"status": "success"}},  # loops omits n_samples -> qc.n_samples=4
+        }
+    ) is False
+    assert _low_replication(
+        {
+            "qc": {"n_samples": 1},
+            "topology": {"loops": {"status": "success"}},  # qc.n_samples=1 < 2 -> LOW_REPLICATION
         }
     ) is True
     assert _low_replication(
@@ -731,7 +739,7 @@ def test_d4_h5_h6_hic_adapter_low_replication_qval_and_disk_fallthrough(tmp_path
     assert "NAN_QVAL_GENE" not in by_ent
     assert by_ent["TOP_GENE"].value == pytest.approx(0.001)
     assert by_ent["DISK_GENE1"].value == pytest.approx(0.002)
-    assert LOW_REPLICATION in by_ent["TOP_GENE"].caveats_inherited
+    assert LOW_REPLICATION not in by_ent["TOP_GENE"].caveats_inherited
 
     # When fdr_threshold is None and qval is NaN, value MUST be None (never count!).
     res_nofdr = {
@@ -759,6 +767,7 @@ def test_d4_h5_h6_hic_adapter_low_replication_qval_and_disk_fallthrough(tmp_path
     assert len(sigs_nf) == 1
     assert sigs_nf[0].entity == "MYC"
     assert sigs_nf[0].value is None
+    assert LOW_REPLICATION in sigs_nf[0].caveats_inherited
 
 
 def test_d4_h10_m9_hic_narrator_diagnostics_tables_tads_fig_and_captions(tmp_path: Path):

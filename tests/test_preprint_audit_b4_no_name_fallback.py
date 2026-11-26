@@ -55,25 +55,72 @@ def test_apply_design_blocks_column_name_inference_on_mismatch(tmp_path):
 
 def test_apply_design_blocks_even_when_counts_match_but_names_do_not(tmp_path):
     """A same-count mismatch where the confirmed stems/aliases match NOTHING in the
-    columns must also block, not be rescued by ctrl_*/treat_* name inference."""
+    columns must fail closed naming unmatched IDs on both sides — never falling
+    back positionally or rescuing via ctrl_*/treat_* name inference (B4/D7-001)."""
     agent = _agent()
     design = {
         "groups": {"KO": ["GSM_KO_a", "GSM_KO_b"], "WT": ["GSM_WT_a", "GSM_WT_b"]},
         "main_factor": "genotype",
     }
-    # Four columns, four confirmed samples, but the NAMES share no signal with the
-    # confirmed stems. The positional fallback uses the confirmed design (order),
-    # so this must NOT silently switch to column-name groups; if the confirmed
-    # design maps positionally it keeps KO/WT, and it must never yield ctrl/treat.
     counts = _write_counts(
         tmp_path / "counts.tsv", ["ctrl_1", "ctrl_2", "treat_1", "treat_2"]
     )
-    sample_names, group_labels, factor, contrasts = agent._apply_design(
-        design, [counts], "exp-b4"
+    with pytest.raises(ValueError) as exc_info:
+        agent._apply_design(design, [counts], "exp-b4")
+    msg = str(exc_info.value)
+    for design_id in ("GSM_KO_a", "GSM_KO_b", "GSM_WT_a", "GSM_WT_b"):
+        assert design_id in msg, f"Unmatched design ID {design_id!r} missing from: {msg}"
+    for col_id in ("ctrl_1", "ctrl_2", "treat_1", "treat_2"):
+        assert col_id in msg, f"Unmatched matrix column {col_id!r} missing from: {msg}"
+
+
+def test_apply_design_maps_by_id_not_order_with_explicit_id_map(tmp_path):
+    """Positive companion (D7-001): explicit sample_id_map / sample_aliases map
+    shuffled columns by ID rather than positional order."""
+    agent = _agent()
+    # Shuffled column order (WT, KO, WT, KO) differs from design order (KO, KO, WT, WT).
+    shuffled_cols = ["ctrl_2", "treat_1", "ctrl_1", "treat_2"]
+    counts = _write_counts(tmp_path / "counts.tsv", shuffled_cols)
+    expected_labels = {
+        "ctrl_2": "WT",
+        "treat_1": "KO",
+        "ctrl_1": "WT",
+        "treat_2": "KO",
+    }
+
+    design_id_map = {
+        "groups": {"KO": ["GSM_KO_a", "GSM_KO_b"], "WT": ["GSM_WT_a", "GSM_WT_b"]},
+        "main_factor": "genotype",
+        "sample_id_map": {
+            "GSM_KO_a": "treat_1",
+            "GSM_KO_b": "treat_2",
+            "GSM_WT_a": "ctrl_1",
+            "GSM_WT_b": "ctrl_2",
+        },
+    }
+    sample_names, group_labels, factor, _ = agent._apply_design(
+        design_id_map, [counts], "exp-b4-id-map"
     )
-    assert set(group_labels.values()) == {"KO", "WT"}
-    assert "ctrl" not in set(group_labels.values())
-    assert "treat" not in set(group_labels.values())
+    assert sample_names == shuffled_cols
+    assert group_labels == expected_labels
+    assert factor == "genotype"
+
+    design_aliases = {
+        "groups": {"KO": ["GSM_KO_a", "GSM_KO_b"], "WT": ["GSM_WT_a", "GSM_WT_b"]},
+        "main_factor": "genotype",
+        "sample_aliases": {
+            "GSM_KO_a": ["GSM_KO_a", "treat_1"],
+            "GSM_KO_b": ["GSM_KO_b", "treat_2"],
+            "GSM_WT_a": ["GSM_WT_a", "ctrl_1"],
+            "GSM_WT_b": ["GSM_WT_b", "ctrl_2"],
+        },
+    }
+    alias_names, alias_labels, alias_factor, _ = agent._apply_design(
+        design_aliases, [counts], "exp-b4-aliases"
+    )
+    assert alias_names == shuffled_cols
+    assert alias_labels == expected_labels
+    assert alias_factor == "genotype"
 
 
 def test_apply_design_still_maps_confirmed_design_via_aliases(tmp_path):

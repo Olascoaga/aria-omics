@@ -114,7 +114,31 @@ def test_same_gene_in_two_contrasts_is_not_deduped():
 
 def test_adapter_flags_unmodeled_batch():
     results = _agent_results()
-    exp_ctx = {"design": {"has_batch": True, "covariates": ["age"]}}
-    signals = bulk_rna_evidence(results, _ledger(), exp_ctx)
+    # Real DesignAgent keys (D7-012): batch present in inferred_design.covariates
+    # but unmodeled in confirmed design (batch_covariate=None, only "age" modeled).
+    exp_ctx_unmodeled = {
+        "design": {
+            "main_factor": "condition",
+            "batch_covariate": None,
+            "covariates": ["age"],
+            "design_formula": "~ age + condition",
+        },
+        "inferred_design": {"covariates": ["batch", "age"]},
+    }
+    signals = bulk_rna_evidence(results, _ledger(), exp_ctx_unmodeled)
     gata1 = next(s for s in signals if s.entity == "GATA1")
     assert any("batch" in c for c in gata1.caveats_inherited)
+
+    # Also flags batch when DesignAgent records confounded_covariates=["batch"].
+    exp_ctx_confounded = {
+        "design": {
+            "main_factor": "condition",
+            "batch_covariate": None,
+            "covariates": ["age"],
+            "design_formula": "~ age + condition",
+            "confounded_covariates": ["batch"],
+        },
+    }
+    signals_conf = bulk_rna_evidence(results, _ledger(), exp_ctx_confounded)
+    gata1_conf = next(s for s in signals_conf if s.entity == "GATA1")
+    assert any("batch" in c for c in gata1_conf.caveats_inherited)

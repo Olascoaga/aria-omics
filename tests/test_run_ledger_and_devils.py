@@ -152,16 +152,34 @@ def test_devils_advocate_addresses_confounders_with_evidence():
     block = _assoc_block()
     block.metrics["corrected_for_composition"] = True
     agent_results = {"scrna_agent": {"findings": {
-        "qc": {"status": "success", "scrublet_doublet_scores": [0.1, 0.2]},
+        "qc": {
+            "status": "success",
+            "scrublet": {"ran": True, "n_doublets": 12, "doublet_rate": 0.04},
+        },
         "integration": {"status": "success", "method": "harmony"},
         "integration_qc": {"issues": []},
     }}}
     manifest = build_devils_advocate([block], agent_results, {})
     challenges = {c["alternative"]: c["addressed"] for c in manifest[0]["challenges"]}
     assert challenges["batch_effect"] is True       # integration ran, clean
-    assert challenges["doublets"] is True           # scrublet signal present
+    assert challenges["doublets"] is True           # scrublet ran=True
     assert challenges["composition_shift"] is True  # block corrected
     assert challenges["ambient_rna"] is False       # still not in the pipeline
+
+
+def test_devils_advocate_doublets_not_addressed_when_scrublet_not_run():
+    # D7-002: real rna_qc always emits qc["scrublet"]={"ran": bool, ...};
+    # ran=False must keep doublets unaddressed.
+    block = _assoc_block()
+    agent_results = {"scrna_agent": {"findings": {
+        "qc": {
+            "status": "success",
+            "scrublet": {"ran": False, "reason": "not_requested"},
+        },
+    }}}
+    manifest = build_devils_advocate([block], agent_results, {})
+    challenges = {c["alternative"]: c["addressed"] for c in manifest[0]["challenges"]}
+    assert challenges["doublets"] is False
 
 
 def test_devils_advocate_ambient_detector_is_not_a_correction():
