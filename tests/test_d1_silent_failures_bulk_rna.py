@@ -423,3 +423,107 @@ def test_r2_sample_qc_index_error_returns_recorded_error(tmp_path, monkeypatch):
     sqc = qc_mod._sample_qc(counts, meta, str(tmp_path), warns, design_factor="condition")
     assert sqc["status"] == "error" and sqc["outliers"] is None
     assert "unexpected index error" in sqc["error"]
+
+
+def test_d1_025_ora_records_failed_databases_and_broad_catch(monkeypatch):
+    """D1-025 producer: _run_pathway_enrichment records failed_databases in ora_meta and
+    keeps broad exception catch (e.g. ConnectionError / IndexError) without aborting."""
+    import sys
+    import types
+    import pandas as pd
+    import aria.utils.ora as ora_utils
+    from aria.scripts.rna_bulk.ora import _run_pathway_enrichment
+
+    monkeypatch.setattr(ora_utils, "local_ora_for_databases", lambda *a, **kw: ({}, {}, ["GO_BP", "KEGG"]))
+    monkeypatch.setattr(ora_utils, "enrichr_opt_in", lambda: True)
+    monkeypatch.setattr("aria.utils.privacy.egress_allowed", lambda: True)
+    monkeypatch.setattr("time.sleep", lambda *a, **kw: None)
+
+    fake_gp = types.ModuleType("gseapy")
+
+    def _fake_enrichr(**kw):
+        if "KEGG" in kw["gene_sets"]:
+            raise IndexError("unexpected Enrichr response parse failure")
+        return types.SimpleNamespace(
+            results=pd.DataFrame([{
+                "Term": "Cell cycle",
+                "Adjusted P-value": 0.001,
+                "Overlap": "5/100",
+                "Genes": "G1;G2",
+            }])
+        )
+
+    fake_gp.enrichr = _fake_enrichr
+    monkeypatch.setitem(sys.modules, "gseapy", fake_gp)
+
+    pathways, warns, ora_meta = _run_pathway_enrichment(
+        sig_genes=["G1", "G2", "G3"],
+        up_genes=["G1", "G2"],
+        down_genes=["G3"],
+        organism="Homo sapiens",
+        output_dir="/tmp",
+        background_genes=["G1", "G2", "G3", "G4"],
+    )
+    assert "GO_BP" in pathways and len(pathways["GO_BP"]) == 1
+    assert "KEGG" not in pathways
+    assert "KEGG" in ora_meta["failed_databases"]
+    assert "unexpected Enrichr response parse failure" in ora_meta["failed_databases"]["KEGG"]
+    assert any("KEGG Enrichr ERROR" in w for w in warns)
+
+
+def test_d1_025_bulk_narrator_surfaces_partial_and_total_ora_failures():
+    """D1-025 narrator: BulkRnaNarrator attaches warning caveat on partial ORA failure and
+    emits a limitation block (claim='') on total ORA failure without adding new status values."""
+    pytest.importorskip("litellm")
+    from aria.agents.narrative.narrators.bulk_rna import BulkRnaNarrator
+    from aria.agents.narrative.validators import validate_blocks
+
+    # Partial failure: GO_BP succeeded, KEGG failed -> warning caveat on bulk.pathway block, status stays 'success'
+    partial_res = {
+        "findings": {
+            "contrasts": [{
+                "name": "t_vs_c",
+                "status": "success",
+                "n_significant": 5,
+                "pathways": {"GO_BP": [{"term": "Cell cycle", "padj": 0.001}]},
+                "pathway_ora": {
+                    "method": "enrichr",
+                    "failed_databases": {"KEGG": "503 Service Unavailable"},
+                },
+            }]
+        }
+    }
+    partial_blocks = validate_blocks(BulkRnaNarrator().collect("bulk_rna_agent", partial_res))
+    pw_block = next(b for b in partial_blocks if b.id == "bulk.pathway.t_vs_c")
+    assert pw_block.status == "success"
+    assert any(c.severity == "warning" and "KEGG" in c.text for c in pw_block.caveats)
+
+    # Total failure: pathways == {}, all DBs failed -> one limitation block with claim=""
+    total_res = {
+        "findings": {
+            "contrasts": [{
+                "name": "t_vs_c",
+                "status": "success",
+                "n_significant": 5,
+                "pathways": {},
+                "pathway_ora": {
+                    "method": "none",
+                    "failed_databases": {
+                        "GO_BP": "503 Service Unavailable",
+                        "KEGG": "503 Service Unavailable",
+                    },
+                },
+            }]
+        }
+    }
+    total_blocks = validate_blocks(BulkRnaNarrator().collect("bulk_rna_agent", total_res))
+    pw_lim = [b for b in total_blocks if b.analysis == "pathway_enrichment"]
+    assert len(pw_lim) == 1, [b.id for b in total_blocks]
+    lim = pw_lim[0]
+    assert lim.block_type == "limitation"
+    assert lim.status == "limitation"
+    assert lim.claim == ""
+    assert any(
+        c.severity == "warning" and "GO_BP" in c.text and "KEGG" in c.text
+        for c in lim.caveats
+    )

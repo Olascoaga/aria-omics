@@ -559,6 +559,19 @@ class BulkRnaNarrator:
         blocks = []
         name = contrast.get("name", "contrast")
         pathways = contrast.get("pathways", {}) or {}
+        ora_meta = contrast.get("pathway_ora", {}) or {}
+        raw_failed = ora_meta.get("failed_databases")
+        if isinstance(raw_failed, dict):
+            failed_dbs = {
+                str(db).strip(): re.sub(r"\s+", " ", str(err or "")).strip()[:120]
+                for db, err in raw_failed.items()
+                if str(db).strip()
+            }
+        elif isinstance(raw_failed, (list, tuple)):
+            failed_dbs = {str(db).strip(): "" for db in raw_failed if str(db).strip()}
+        else:
+            failed_dbs = {}
+
         terms = []
         for db_name, rows in pathways.items():
             if not isinstance(rows, list):
@@ -570,7 +583,32 @@ class BulkRnaNarrator:
                 if term:
                     terms.append((db_name, term, row))
         if not terms:
-            return blocks
+            if not failed_dbs:
+                return blocks
+            db_names = ", ".join(failed_dbs.keys())
+            details = "; ".join(
+                f"{db} ({err})" if err else db for db, err in failed_dbs.items()
+            )
+            return [NarrativeBlock(
+                id=f"bulk.pathway.{_safe_id(name)}",
+                modality="bulk RNA-seq",
+                analysis="pathway_enrichment",
+                block_type="limitation",
+                title=f"Pathway enrichment {name}",
+                status="limitation",
+                confidence="insufficient",
+                claim="",
+                caveats=[Caveat(
+                    f"Pathway ORA failed for all attempted database(s) ({db_names}): "
+                    f"{details}.",
+                    "warning",
+                )],
+                metrics={
+                    "n_terms": 0,
+                    "ora_method": ora_meta.get("method"),
+                    "failed_databases": dict(failed_dbs),
+                },
+            )]
         evidence = [_evidence("enriched terms", len(terms), "bulk_pathways")]
         for db_name, term, row in terms[:5]:
             evidence.append(_evidence(f"{db_name} term", term, "bulk_pathways"))
@@ -584,7 +622,6 @@ class BulkRnaNarrator:
         # P1-7/W-PRIV: surface the ORA engine + exact versioned gene-set release
         # per database so methodology.json records reproducible provenance and
         # the offline/opt-in posture is auditable.
-        ora_meta = contrast.get("pathway_ora", {}) or {}
         versions = ora_meta.get("gene_set_versions", {}) or {}
         gene_set_releases = {
             db: (v.get("library"), v.get("release"))
@@ -602,6 +639,23 @@ class BulkRnaNarrator:
                 "sets; the gene list did not leave the machine (W-PRIV).",
                 "info",
             ))
+        if failed_dbs:
+            db_names = ", ".join(failed_dbs.keys())
+            details = "; ".join(
+                f"{db} ({err})" if err else db for db, err in failed_dbs.items()
+            )
+            caveats.append(Caveat(
+                f"Pathway ORA failed for database(s) {db_names}: {details}; "
+                "enrichment results are incomplete.",
+                "warning",
+            ))
+        metrics = {
+            "n_terms": len(terms),
+            "ora_method": method,
+            "gene_set_versions": gene_set_releases,
+        }
+        if failed_dbs:
+            metrics["failed_databases"] = dict(failed_dbs)
         blocks.append(NarrativeBlock(
             id=f"bulk.pathway.{_safe_id(name)}",
             modality="bulk RNA-seq",
@@ -613,11 +667,7 @@ class BulkRnaNarrator:
             claim=f"Pathway enrichment found {len(terms)} term(s) for {name}.",
             evidence=evidence,
             caveats=caveats,
-            metrics={
-                "n_terms": len(terms),
-                "ora_method": method,
-                "gene_set_versions": gene_set_releases,
-            },
+            metrics=metrics,
         ))
         return blocks
 
