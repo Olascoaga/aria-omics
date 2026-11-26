@@ -587,12 +587,20 @@ for small-effect genes.""",
                     n_up  = c.get("n_upregulated", 0)
                     n_dn  = c.get("n_downregulated", 0)
                     tops  = c.get("top_genes", [])[:6]
-                    top_str = ", ".join(
-                        f"{g.get('symbol') or g.get('gene')}"
-                        f"({'↑' if g.get('log2fc',0)>0 else '↓'}"
-                        f"{abs(g.get('log2fc',0)):.1f})"
-                        for g in tops
-                    )
+                    from aria.utils.stats import finite_float
+                    top_parts = []
+                    for g in tops:
+                        if not isinstance(g, dict):
+                            continue
+                        label = g.get("symbol") or g.get("gene") or "?"
+                        lfc = finite_float(g.get("log2fc"))
+                        if lfc is not None:
+                            top_parts.append(
+                                f"{label}({'↑' if lfc > 0 else '↓'}{abs(lfc):.1f})"
+                            )
+                        else:
+                            top_parts.append(f"{label}(lfc=NA)")
+                    top_str = ", ".join(top_parts)
                     pw_dict = c.get("pathways", {}) or {}
                     n_pw = sum(len(v) if isinstance(v, list) else 0
                                for v in pw_dict.values())

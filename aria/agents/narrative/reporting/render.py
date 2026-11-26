@@ -556,8 +556,20 @@ class ReportRenderMixin:
             run_ledger["claim_linkage"] = link_claims_to_ledger(
                 public_claims, run_ledger
             )
-        except Exception as exc:
+        except Exception as exc:  # aria: allow-broad-except surface failed claim-ledger linkage in run ledger and report
             log.warning(f"Claim-ledger linkage failed: {exc}", exc_info=True)
+            err_msg = f"{type(exc).__name__}: {exc}"
+            if isinstance(run_ledger, dict):
+                run_ledger["claim_linkage"] = {
+                    "status": "error",
+                    "error": err_msg,
+                    "linked": 0,
+                    "unlinked": len(public_claims),
+                    "n_violations": len(public_claims),
+                }
+            governance_alerts.append(
+                f"Claim-ledger linkage pass failed ({err_msg})."
+            )
 
         # C3: the compiler already withheld any result claim without typed
         # evidence/ledger nodes. Re-verify the accepted set as a hard invariant;

@@ -166,8 +166,17 @@ class MethodologyMixin:
         try:
             from aria.agents.narrative.run_ledger import link_claims_to_ledger
             run_ledger["claim_linkage"] = link_claims_to_ledger(claims, run_ledger)
-        except Exception as exc:
+        except Exception as exc:  # aria: allow-broad-except surface failed claim-ledger linkage in methodology run ledger
             log.warning(f"Claim-ledger linkage failed: {exc}", exc_info=True)
+            err_msg = f"{type(exc).__name__}: {exc}"
+            if isinstance(run_ledger, dict):
+                run_ledger["claim_linkage"] = {
+                    "status": "error",
+                    "error": err_msg,
+                    "linked": 0,
+                    "unlinked": len(claims),
+                    "n_violations": len(claims),
+                }
         if robustness_multiverse is None:
             try:
                 from aria.agents.narrative.robustness import build_robustness_multiverse

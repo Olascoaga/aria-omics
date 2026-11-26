@@ -18,8 +18,11 @@ structured agent results; it asserts no biology and runs no LLM.
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 from typing import Any
+
+log = logging.getLogger(__name__)
 
 
 class LedgerLinkageError(ValueError):
@@ -777,8 +780,16 @@ def _integration_findings_normalized(
         graph = build_cross_modal_evidence_graph(agent_results, exp_ctx or {})
         if graph.get("ran"):
             out["cross_modal_triangulation"] = {"status": "success"}
-    except Exception:
-        pass
+    except Exception as exc:  # aria: allow-broad-except surface triangulation graph error in run ledger
+        log.warning(
+            "Cross-modal triangulation graph failed during ledger build: %s",
+            exc,
+            exc_info=True,
+        )
+        out["cross_modal_triangulation"] = {
+            "status": "error",
+            "reason": f"{type(exc).__name__}: {exc}",
+        }
     return out
 
 

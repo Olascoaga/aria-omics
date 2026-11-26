@@ -17,7 +17,10 @@ class ExecutiveSummaryMixin:
         fallback = ""
         try:
             fallback = self._fallback_executive_summary(grouped_findings, intent)
-        except Exception:
+        except Exception as exc:  # aria: allow-broad-except fallback summary helper error uses generic safe fallback
+            log.warning(
+                "Executive summary fallback builder failed: %s", exc
+            )
             fallback = ""
         if fallback and text.strip() == str(fallback).strip():
             return text, ""
@@ -26,7 +29,12 @@ class ExecutiveSummaryMixin:
         for block in narrative_blocks or []:
             try:
                 named_entities.extend(collect_named_entities(block))
-            except Exception:
+            except Exception as exc:  # aria: allow-broad-except entity extraction failure on one block must not abort governance
+                log.warning(
+                    "Named-entity extraction failed for block %s: %s",
+                    getattr(block, "id", "?"),
+                    exc,
+                )
                 continue
 
         violations: list[str] = []
@@ -64,7 +72,13 @@ class ExecutiveSummaryMixin:
         concrete = ""
         try:
             concrete = self._summarize_agent_results_for_llm(agent_results)
-        except Exception:
+        except Exception as exc:  # aria: allow-broad-except fail closed when result-summary substrate raises
+            log.warning(
+                "Executive summary result-substrate builder failed (treating "
+                "all observed numbers as unsupported): %s",
+                exc,
+                exc_info=True,
+            )
             concrete = ""
         allowed = _executive_summary_numbers(concrete)
         return observed - allowed
@@ -92,7 +106,7 @@ class ExecutiveSummaryMixin:
                 block, strict=True
             )
             return text, warning, block
-        except Exception as exc:
+        except Exception as exc:  # aria: allow-broad-except primary W-CLAIM failure falls back to deterministic summary
             log.warning(
                 "Executive summary W-CLAIM verification failed; using "
                 "deterministic fallback: %s",
@@ -102,7 +116,11 @@ class ExecutiveSummaryMixin:
                 fallback = self._fallback_executive_summary(
                     grouped_findings, intent
                 )
-            except Exception:
+            except Exception as fb_exc:  # aria: allow-broad-except fallback text helper error uses static governed summary
+                log.warning(
+                    "Fallback executive summary text generation failed: %s",
+                    fb_exc,
+                )
                 fallback = (
                     "ARIA completed the analysis. See the governed findings "
                     "and limitations below."
@@ -128,11 +146,35 @@ class ExecutiveSummaryMixin:
                 block.metadata["claim_verification"] = verify_block_claim_support(
                     block, strict=True
                 )
-            except Exception as fallback_exc:
+            except Exception as fallback_exc:  # aria: allow-broad-except fail closed when fallback W-CLAIM verification fails
                 log.warning(
-                    "Fallback executive summary verification failed: %s",
+                    "Fallback executive summary verification failed; "
+                    "withholding executive summary claim: %s",
                     fallback_exc,
+                    exc_info=True,
                 )
+                err_msg = f"{type(fallback_exc).__name__}: {fallback_exc}"
+                block.status = "error"
+                block.block_type = "error"
+                block.confidence = "insufficient"
+                block.claim = ""
+                block.error = (
+                    f"Fallback executive summary verification failed: {err_msg}"
+                )
+                block.metadata["claim_verification"] = {
+                    "status": "unsupported",
+                    "error": err_msg,
+                }
+                block.caveats.append(
+                    Caveat(
+                        text=(
+                            "Executive summary withheld: deterministic fallback "
+                            f"failed W-CLAIM verification ({err_msg})."
+                        ),
+                        severity="blocking",
+                    )
+                )
+                return "", warning, block
             return fallback, warning, block
 
     def _make_executive_summary_block(self, text: str, warning: str,
@@ -144,8 +186,16 @@ class ExecutiveSummaryMixin:
         concrete = ""
         try:
             concrete = self._summarize_agent_results_for_llm(agent_results)
-        except Exception:
-            concrete = "(concrete result summary unavailable)"
+        except Exception as exc:  # aria: allow-broad-except surface summary-substrate error in evidence item
+            log.warning(
+                "Could not summarize agent results for executive block: %s",
+                exc,
+                exc_info=True,
+            )
+            concrete = (
+                f"(concrete result summary unavailable: "
+                f"{type(exc).__name__}: {exc})"
+            )
         total_findings = sum(len(v) for v in (grouped_findings or {}).values())
         evidence = [
             EvidenceItem(
