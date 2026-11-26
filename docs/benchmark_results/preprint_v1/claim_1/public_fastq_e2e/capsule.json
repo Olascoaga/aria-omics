@@ -1,0 +1,235 @@
+{
+  "accession": "GEO GSE52778 / ENA SRP033351",
+  "aria_version": "4.9.4",
+  "canonical_artifacts": [
+    {
+      "name": "report.html",
+      "sha256": "e2b0209a46423a9a629359c6302d40dd831c1ad898a2b1edd2f4f58b8a01e7e3",
+      "size_bytes": 2778599,
+      "source_name": "report.html"
+    },
+    {
+      "name": "methodology.json",
+      "sha256": "03cd0a0d1860bc69c9a226b0cb6547fd2fe51dae2882f802c998d54c0f5f6572",
+      "size_bytes": 145327,
+      "source_name": "methodology.json"
+    },
+    {
+      "name": "de_results.tsv",
+      "sha256": "568a3794371b3e9ea1a7d89646fc9ae1437f6a069b6f816f6e0e3703b5d70729",
+      "size_bytes": 3591,
+      "source_name": "dexamethasone_vs_untreated_de_genes.tsv"
+    },
+    {
+      "name": "fig1_gse52778_bulk_de.svg",
+      "sha256": "21b015d45552b0d038f2cf4697836d9bf097541da3cbefd0287d2228040eb10d",
+      "size_bytes": 550436,
+      "source_name": "volcano.svg"
+    }
+  ],
+  "checkpoint_decisions": [
+    {
+      "checkpoint": 1,
+      "choice": "Confirm and continue"
+    },
+    {
+      "checkpoint": 2.1,
+      "choice": "dexamethasone=dexamethasone_rep1,dexamethasone_rep2,dexamethasone_rep3,dexamethasone_rep4; untreated=untreated_rep1,untreated_rep2,untreated_rep3,untreated_rep4"
+    },
+    {
+      "checkpoint": 2.2,
+      "choice": "Homo sapiens (hg38)"
+    },
+    {
+      "checkpoint": 2.3,
+      "choice": "condition"
+    },
+    {
+      "checkpoint": 2.5,
+      "choice": "Paired biological replicates \u2014 model matched donor/unit block"
+    },
+    {
+      "checkpoint": 2.6,
+      "choice": "Yes \u2014 proceed"
+    },
+    {
+      "checkpoint": 2,
+      "choice": "Run recommended plan only"
+    },
+    {
+      "checkpoint": 5,
+      "choice": "Accept report"
+    }
+  ],
+  "checkpoint_policy": "c1_public_fastq_e2e.frozen_gse52778_answer_policy",
+  "claim": "claim_1",
+  "data_source": "public-atlas://02_bulk_rna_raw_fastq/GSE52778",
+  "de_summary": [
+    {
+      "n_downregulated": 3,
+      "n_significant": 22,
+      "n_upregulated": 19
+    }
+  ],
+  "design_contract": {
+    "contrasts": [
+      {
+        "denominator": "untreated",
+        "numerator": "dexamethasone"
+      }
+    ],
+    "expected_paired_formula": "~ donor + condition",
+    "factor": "condition",
+    "groups": {
+      "dexamethasone": [
+        "dexamethasone_rep1",
+        "dexamethasone_rep2",
+        "dexamethasone_rep3",
+        "dexamethasone_rep4"
+      ],
+      "untreated": [
+        "untreated_rep1",
+        "untreated_rep2",
+        "untreated_rep3",
+        "untreated_rep4"
+      ]
+    }
+  },
+  "design_formula_recorded": "~ donor + condition",
+  "doi": "10.1371/journal.pone.0099625",
+  "environments": [
+    {
+      "env_name": "aria-env",
+      "lock_file": null,
+      "sha256": null
+    },
+    {
+      "env_name": "aria-rnaseq-env",
+      "lock_file": "envs/aria-rnaseq-env.linux-64.lock",
+      "sha256": "ff8bce77b70a52d6f1d3d405a6418cf1becea457ccb7af7253f41c4bf27cbb20"
+    },
+    {
+      "env_name": "aria-rna-env",
+      "lock_file": "envs/aria-rna-env.linux-64.lock",
+      "sha256": "6d950daba70fc7091bddc3ab7e9e9da918e39ff376e95c406096d6cced65927f"
+    }
+  ],
+  "experiment_id": "1a4798f3-6a5",
+  "git_commit": "c6a545d32976f736bb1410618a51c3c93cfab096",
+  "git_dirty": false,
+  "git_tree_sha": "2b2b29989185d33582cd312d5aea71f48144ffbb",
+  "lane_id": "c1_public_fastq_e2e",
+  "llm": "frozen-deterministic-double (hermetic, no network)",
+  "pipeline": "raw FASTQ -> fastp/STAR -> featureCounts -> paired pyDESeq2 (~ donor + condition) -> F3-governed report",
+  "report_figures": [
+    {
+      "name": "dexamethasone_vs_untreated/gsea_results.csv",
+      "sha256": "43a347e0799ce665776533df5f81a2063d032432094552137accdf5bd989181f",
+      "size_bytes": 174765
+    },
+    {
+      "name": "dexamethasone_vs_untreated/gsea_running_sum_1.png",
+      "sha256": "144bdb0b21b0da2a245543e580c0bc98e5a4370b3758a6485bd25cc147c32846",
+      "size_bytes": 201225
+    },
+    {
+      "name": "dexamethasone_vs_untreated/gsea_running_sum_1.svg",
+      "sha256": "714a064643d2064472d66b0dafce2342d41ca8df34b9bfa9e5bb69827f8413b7",
+      "size_bytes": 558491
+    },
+    {
+      "name": "dexamethasone_vs_untreated/gsea_running_sum_2.png",
+      "sha256": "eeefd862e55e2f48e3877ded3dc97d2f08a2d8d9bd40986f652a747c350c383d",
+      "size_bytes": 213900
+    },
+    {
+      "name": "dexamethasone_vs_untreated/gsea_running_sum_2.svg",
+      "sha256": "7cba56299f244ff804298542aa719821b18de0ac3f9c9f94dc1f8c469f3fc524",
+      "size_bytes": 571429
+    },
+    {
+      "name": "dexamethasone_vs_untreated/gsea_running_sum_3.png",
+      "sha256": "a2f8a692baf1ad0f7b760fec01de24ccd83617c09d4469d7222325a2bc3f406f",
+      "size_bytes": 208014
+    },
+    {
+      "name": "dexamethasone_vs_untreated/gsea_running_sum_3.svg",
+      "sha256": "e38f9cdbb141cf26bae627fe73d721c268bd62ad0e46794840fccd1debfbad9a",
+      "size_bytes": 548240
+    },
+    {
+      "name": "dexamethasone_vs_untreated/gsea_top_table.png",
+      "sha256": "d65e256e29475e45fedfe80f39158fa8b52e8c02173069b9d43f10d9f4f7bc96",
+      "size_bytes": 552739
+    },
+    {
+      "name": "dexamethasone_vs_untreated/gsea_top_table.svg",
+      "sha256": "adc12941358223c7373fa7833750a57317de4bdd553ddd8878b5a33874e42ce7",
+      "size_bytes": 402133
+    },
+    {
+      "name": "dexamethasone_vs_untreated/heatmap_lfc.svg",
+      "sha256": "a4a007656dd25cf73f8cc1ec0b0f0c3bd7c241c98f58b776bc00594d0b2a33f8",
+      "size_bytes": 75085
+    },
+    {
+      "name": "dexamethasone_vs_untreated/heatmap_padj.svg",
+      "sha256": "8362fc20d7ddc2e0d2bea1cee9b3428f4ee8fc88a3b2beab1d534bda339e46c4",
+      "size_bytes": 73756
+    },
+    {
+      "name": "dexamethasone_vs_untreated/volcano.svg",
+      "sha256": "21b015d45552b0d038f2cf4697836d9bf097541da3cbefd0287d2228040eb10d",
+      "size_bytes": 550436
+    },
+    {
+      "name": "mds.svg",
+      "sha256": "1e252ac645479631ad1a71083d6ed3c62f37737f48d7a1b15fb25474a7c629fd",
+      "size_bytes": 44513
+    },
+    {
+      "name": "mds_all_samples.svg",
+      "sha256": "1e252ac645479631ad1a71083d6ed3c62f37737f48d7a1b15fb25474a7c629fd",
+      "size_bytes": 44513
+    },
+    {
+      "name": "pca.svg",
+      "sha256": "ddfe0145188c5d0fa18b3cb75a053319c5cd8a51cf5474bcf4b6b1a55f04b905",
+      "size_bytes": 51680
+    },
+    {
+      "name": "pca_all_samples.svg",
+      "sha256": "ddfe0145188c5d0fa18b3cb75a053319c5cd8a51cf5474bcf4b6b1a55f04b905",
+      "size_bytes": 51680
+    },
+    {
+      "name": "pca_mds.svg",
+      "sha256": "f0f09cc40339478f497e2a8f109eea7e71c27a620c13246acd3b348b54063977",
+      "size_bytes": 80238
+    }
+  ],
+  "report_tables": [
+    {
+      "name": "counts_tpm.tsv",
+      "sha256": "91d4c81d6fb8716ff56ebe7e1c76442aa7a3274b2dfdced3f85c890beb7e6f44",
+      "size_bytes": 1049442
+    },
+    {
+      "name": "dexamethasone_vs_untreated_de_all_genes.tsv",
+      "sha256": "0f9bd56f5c89ce7fbc5c6c61226fbc23ea5876d0a934c560963dc7b8456adda0",
+      "size_bytes": 523724
+    },
+    {
+      "name": "dexamethasone_vs_untreated_de_genes.tsv",
+      "sha256": "568a3794371b3e9ea1a7d89646fc9ae1437f6a069b6f816f6e0e3703b5d70729",
+      "size_bytes": 3591
+    },
+    {
+      "name": "dexamethasone_vs_untreated_gsea_results.csv",
+      "sha256": "43a347e0799ce665776533df5f81a2063d032432094552137accdf5bd989181f",
+      "size_bytes": 174765
+    }
+  ],
+  "requested_cpus": 30,
+  "schema_version": "aria.preprint_freeze.c1_public_fastq_capsule.v1"
+}

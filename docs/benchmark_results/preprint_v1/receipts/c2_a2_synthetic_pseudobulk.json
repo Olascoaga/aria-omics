@@ -1,9 +1,9 @@
 {
-  "aria_version": "4.9.3",
+  "aria_version": "4.9.4",
   "artifacts": [
     {
       "path": "claim_2/a2_synthetic/a2_pseudobulk.json",
-      "sha256": "0d3e2ed8a9ff9c1f8d18fb4d35a4a1408b3677119ac7f7a6ebb4fd5620f4fb9d",
+      "sha256": "dcb44211ae44611008547f15cf51b16006f11415a2812c1cf446c93148c662d7",
       "size_bytes": 3917
     },
     {
@@ -16,18 +16,18 @@
     "claim_2"
   ],
   "command": "conda run -n aria-rna-env python scripts/run_a2_pseudobulk_benchmark.py --output-dir docs/benchmark_results/preprint_v1/claim_2/a2_synthetic --manifest-name a2_pseudobulk.json --figure-name fig2_a2_pseudobulk.svg --artifact-version preprint_v1",
-  "completed_utc": "2026-11-21T01:14:02.728538+00:00",
+  "completed_utc": "2026-11-26T06:40:47.959975+00:00",
   "environment": "aria-rna-env",
-  "git_commit": "1b7a0f1bc7f5f7c291415d3c4b409a669d2c89ee",
-  "git_tree_sha": "c2fd418b5ee69fd5c3e7f897a237141960b27093",
+  "git_commit": "c6a545d32976f736bb1410618a51c3c93cfab096",
+  "git_tree_sha": "2b2b29989185d33582cd312d5aea71f48144ffbb",
   "lane_id": "c2_a2_synthetic_pseudobulk",
   "returncode": 0,
   "schema_version": "aria.preprint_freeze.receipt.v1",
-  "source_snapshot_hash": "32d9fd177823b23e1452ad6542dacc2ea0d5e39b850ca45b0f039a5d3173ebb0",
-  "started_utc": "2026-11-21T01:13:54.005410+00:00",
+  "source_snapshot_hash": "dfd4231ee32730b663de859632aed5c806d4e266140b1db77a131c5bba7e60cc",
+  "started_utc": "2026-11-26T06:40:43.333709+00:00",
   "status": "pass",
-  "stderr_sha256": "fa44dae5a0b339f416e2fb1322bffa8bfc0d4ee035d28cc7ebff4fc8fb60ec51",
+  "stderr_sha256": "08bc40ab96aeff03173bb7ace05ea2b480eeec69e46fc14dde3c1a0e89013679",
   "stdout_sha256": "f0b6993ede4ea823cfdef966602dfa18169b328ff2a733e126ec39c42a5f9378",
   "test_summary": null,
-  "workflow_hash": "ade1b346cc321433dc65b606faff787a6dee23b32e7fbfedf78fdbc32e12f75f"
+  "workflow_hash": "bcab02e0db82febfc9c8fe4dfdaf3c32111c8b62162b2b3e4d5e934fbb16f448"
 }

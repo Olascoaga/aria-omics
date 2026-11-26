@@ -9,7 +9,7 @@
           "c1_seqc_maqc_taqman",
           "c1_seqc_multisite",
           "c1_ercc_dose_response",
-          "c1_h9_fastq_e2e"
+          "c1_public_fastq_e2e"
         ],
         "status": "verified"
       },
@@ -95,7 +95,7 @@
         "c1_seqc_maqc_taqman",
         "c1_seqc_multisite",
         "c1_ercc_dose_response",
-        "c1_h9_fastq_e2e"
+        "c1_public_fastq_e2e"
       ],
       "status": "verified"
     },
@@ -172,7 +172,7 @@
     "ready": false,
     "tag_action_authorized": false
   },
-  "generated_utc": "2026-11-21T01:23:34.296927+00:00",
+  "generated_utc": "2026-11-26T06:51:18.335546+00:00",
   "lanes": [
     {
       "claims": [
@@ -288,25 +288,25 @@
       "claims": [
         "claim_1"
       ],
-      "command": "conda run -n aria-env python scripts/run_c1_h9_fastq_e2e.py --output-dir docs/benchmark_results/preprint_v1/claim_1/h9_e2e",
+      "command": "conda run -n aria-env python scripts/run_c1_public_fastq_e2e.py --output-dir docs/benchmark_results/preprint_v1/claim_1/public_fastq_e2e",
       "environment": "aria-env -> aria-rnaseq-env + aria-rna-env",
       "evidence_kind": "e2e_capsule",
       "expected_artifacts": [
-        "claim_1/h9_e2e/capsule.json",
-        "claim_1/h9_e2e/report.html",
-        "claim_1/h9_e2e/methodology.json",
-        "claim_1/h9_e2e/de_results.tsv",
-        "claim_1/h9_e2e/fig1_h9_bulk_de.svg"
+        "claim_1/public_fastq_e2e/capsule.json",
+        "claim_1/public_fastq_e2e/report.html",
+        "claim_1/public_fastq_e2e/methodology.json",
+        "claim_1/public_fastq_e2e/de_results.tsv",
+        "claim_1/public_fastq_e2e/fig1_gse52778_bulk_de.svg"
       ],
       "implementation": "available",
-      "lane_id": "c1_h9_fastq_e2e",
+      "lane_id": "c1_public_fastq_e2e",
       "required_for_freeze": true,
-      "requirement": "Clean-checkout FASTQ-to-report bulk-RNA E2E with frozen checkpoint policy.",
+      "requirement": "Clean-checkout public paired GSE52778 FASTQ-to-report bulk-RNA E2E (~ donor + condition) with frozen checkpoint policy.",
       "resources": [
         "env:aria-env",
         "env:aria-rnaseq-env",
         "env:aria-rna-env",
-        "data:h9_fastq"
+        "data:gse52778_fastq"
       ],
       "status": "verified"
     },
@@ -372,7 +372,7 @@
       "claims": [
         "claim_2"
       ],
-      "command": "conda run -n aria-rna-env python scripts/run_scatac_multisample_da_concordance.py --data-dir ~/Samael/Oligos/data/interim/paired --young hc937,hc5579,hc13344,hc935,hc5614 --old hc26,hc98,hc35,hc40,hc73 --rna-env aria-rna-env --bench-env aria-bench-env --output-dir docs/benchmark_results/preprint_v1/claim_2/scatac_donor --manifest-name scatac_donor_da_concordance.json --work-dir /tmp/c2_scatac_donor",
+      "command": "conda run -n aria-rna-env python scripts/run_scatac_multisample_da_concordance.py --young hc937,hc5579,hc13344,hc935,hc5614 --old hc26,hc98,hc35,hc40,hc73 --rna-env aria-rna-env --bench-env aria-bench-env --output-dir docs/benchmark_results/preprint_v1/claim_2/scatac_donor --manifest-name scatac_donor_da_concordance.json",
       "environment": "aria-rna-env + aria-bench-env",
       "evidence_kind": "external_concordance",
       "expected_artifacts": [
@@ -381,7 +381,7 @@
       "implementation": "available",
       "lane_id": "c2_scatac_donor_aware",
       "required_for_freeze": true,
-      "requirement": "Fresh donor-aware scATAC DA concordance on the real multi-donor matrix.",
+      "requirement": "Fresh donor-aware scATAC DA concordance on the public GSE278576 multi-donor cohort.",
       "resources": [
         "env:aria-rna-env",
         "env:aria-bench-env",
@@ -623,26 +623,26 @@
   ],
   "output_root": "docs/benchmark_results/preprint_v1",
   "provenance": {
-    "aria_version": "4.9.3",
-    "git_commit": "1b7a0f1bc7f5f7c291415d3c4b409a669d2c89ee",
-    "git_describe": "v4.9.2-1-g1b7a0f1",
+    "aria_version": "4.9.4",
+    "git_commit": "c6a545d32976f736bb1410618a51c3c93cfab096",
+    "git_describe": "v4.9.3-3-gc6a545d",
     "git_dirty": false,
-    "git_tree_sha": "c2fd418b5ee69fd5c3e7f897a237141960b27093",
-    "source_snapshot_hash": "32d9fd177823b23e1452ad6542dacc2ea0d5e39b850ca45b0f039a5d3173ebb0",
+    "git_tree_sha": "2b2b29989185d33582cd312d5aea71f48144ffbb",
+    "source_snapshot_hash": "dfd4231ee32730b663de859632aed5c806d4e266140b1db77a131c5bba7e60cc",
     "source_snapshot_hash_algorithm": "sha256(git-ls-files-stage-excluding-output)",
     "version_source": "aria.version.__version__",
-    "workflow_hash": "ade1b346cc321433dc65b606faff787a6dee23b32e7fbfedf78fdbc32e12f75f",
+    "workflow_hash": "bcab02e0db82febfc9c8fe4dfdaf3c32111c8b62162b2b3e4d5e934fbb16f448",
     "workflow_hash_algorithm": "sha256(version+source_snapshot_hash)"
   },
   "resources": {
     "data:gse278576": {
       "available": true,
-      "path_ref": "validation-data://gse278576_scatac_donor_h5mu",
+      "path_ref": "public-benchmark://gse278576_scatac_donor_h5mu",
       "state": "available"
     },
-    "data:h9_fastq": {
+    "data:gse52778_fastq": {
       "available": true,
-      "path_ref": "validation-data://h9_bulk_fastq",
+      "path_ref": "public-atlas://02_bulk_rna_raw_fastq/GSE52778",
       "state": "available"
     },
     "data:kang_muscat": {

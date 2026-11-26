@@ -1,0 +1,4170 @@
+{
+  "analytical_fork_ledger": {
+    "commitment_status": "locked_before_execution",
+    "fork_changes": [],
+    "fork_index": 0,
+    "is_exact_spec_replay": false,
+    "ledger_runs_observed": 1,
+    "manifest_sha256": "027f1fc6a88013b7286ee5b07e2900a3e59289e01634563a383fb874af430c1f",
+    "parent_manifest_sha256": null,
+    "schema_version": "aria.fork_ledger.v1",
+    "specification_sha256": "97872d8494558efc6105deb144662aa11a3aa6d3059aabc5a58aaace2bbad096",
+    "study_input_fingerprint": "39db07609f5490b8b09aee1479740a9d4afe6b754440b2da9b07eee5aaed3ba2",
+    "total_analytical_forks": 1
+  },
+  "claim_compilation": {
+    "compiler": "compile_public_claims",
+    "n_published": 6,
+    "n_withheld": 0,
+    "withheld": []
+  },
+  "claims": [
+    {
+      "analysis": "executive_summary",
+      "causal_license": {
+        "contrast": null,
+        "estimand_id": null,
+        "licensed": false,
+        "reason": "missing_block_estimand"
+      },
+      "claim_id": "executive_summary",
+      "confidence": "medium",
+      "evidence": [
+        {
+          "label": "concrete pipeline results",
+          "path": null,
+          "source": "agent_results",
+          "value": "BULK RNA-seq: 1 contrast(s) ran successfully (DESeq2 completed, not just QC/alignment).\n  \u2022 dexamethasone vs untreated: 22 DE genes (19 up, 3 down). Top: GPX3(\u21913.5), SAMHD1(\u21913.6), GLUL(\u21912.9), ADAMTS1(\u21912.1), CXCL12(\u21932.0), FKBP5(\u21914.3).\n  \u2022 Sample QC: 8 samples, library-size range 1.0\u00d7, 0 outliers flagged; primary retained all samples; sensitivity removed 0."
+        },
+        {
+          "label": "findings recorded",
+          "path": null,
+          "source": "message_bus",
+          "value": 7
+        },
+        {
+          "label": "high-confidence findings",
+          "path": null,
+          "source": "message_bus",
+          "value": 0
+        },
+        {
+          "label": "narrative blocks summarized",
+          "path": null,
+          "source": "narrative_registry",
+          "value": 6
+        },
+        {
+          "label": "allowed confidence labels",
+          "path": null,
+          "source": "report_policy",
+          "value": "HIGH MEDIUM LOW INSUFFICIENT"
+        }
+      ],
+      "evidence_card_id": "executive_summary#evidence",
+      "evidence_categories": [
+        "descriptive"
+      ],
+      "figures": [],
+      "language_violation": null,
+      "ledger_linked": true,
+      "ledger_node_id": "ledger://report/executive_summary",
+      "ledger_node_type": "derived_report_analysis",
+      "ledger_provenance": {
+        "block_ids": [
+          "executive_summary"
+        ],
+        "kind": "compiled_narrative_block"
+      },
+      "ledger_status": "ran",
+      "licensed_language": "descriptive",
+      "limitations": [
+        "Executive summary governance: free-text summary failed unsupported numeric claims checks; deterministic fallback shown."
+      ],
+      "modality": "report",
+      "rationale": "Descriptive summary (QC/counts); no between-condition claim.",
+      "status": "success",
+      "tables": [],
+      "text": "ARIA completed the submitted analysis. 7 findings were recorded across all modalities, of which 0 reached HIGH confidence. See the governed claim ledger below for published results.",
+      "tier": "descriptive",
+      "verification": {
+        "checked_sentences": 3,
+        "evidence_card": {
+          "evidence_card_id": "executive_summary#evidence",
+          "n_refs": 8,
+          "node_type": "evidence_card",
+          "provenance": {
+            "analysis": "executive_summary",
+            "block_id": "executive_summary",
+            "modality": "report",
+            "sources": [
+              "agent_results",
+              "message_bus",
+              "narrative_registry",
+              "report_policy"
+            ]
+          },
+          "refs": [
+            {
+              "kind": "evidence",
+              "label": "concrete pipeline results",
+              "path": null,
+              "ref_id": "executive_summary:evidence:0",
+              "source": "agent_results",
+              "value": "BULK RNA-seq: 1 contrast(s) ran successfully (DESeq2 completed, not just QC/alignment).\n  \u2022 dexamethasone vs untreated: 22 DE genes (19 up, 3 down). Top: GPX3(\u21913.5), SAMHD1(\u21913.6), GLUL(\u21912.9), ADAMTS1(\u21912.1), CXCL12(\u21932.0), FKBP5(\u21914.3).\n  \u2022 Sample QC: 8 samples, library-size range 1.0\u00d7, 0 outliers flagged; primary retained all samples; sensitivity removed 0."
+            },
+            {
+              "kind": "evidence",
+              "label": "findings recorded",
+              "path": null,
+              "ref_id": "executive_summary:evidence:1",
+              "source": "message_bus",
+              "value": 7
+            },
+            {
+              "kind": "evidence",
+              "label": "high-confidence findings",
+              "path": null,
+              "ref_id": "executive_summary:evidence:2",
+              "source": "message_bus",
+              "value": 0
+            },
+            {
+              "kind": "evidence",
+              "label": "narrative blocks summarized",
+              "path": null,
+              "ref_id": "executive_summary:evidence:3",
+              "source": "narrative_registry",
+              "value": 6
+            },
+            {
+              "kind": "evidence",
+              "label": "allowed confidence labels",
+              "path": null,
+              "ref_id": "executive_summary:evidence:4",
+              "source": "report_policy",
+              "value": "HIGH MEDIUM LOW INSUFFICIENT"
+            },
+            {
+              "kind": "metric",
+              "label": "n_findings",
+              "ref_id": "executive_summary:metric:n_findings",
+              "value": 7
+            },
+            {
+              "kind": "metric",
+              "label": "n_high_confidence",
+              "ref_id": "executive_summary:metric:n_high_confidence",
+              "value": 0
+            },
+            {
+              "kind": "metric",
+              "label": "n_narrative_blocks_summarized",
+              "ref_id": "executive_summary:metric:n_narrative_blocks_summarized",
+              "value": 6
+            }
+          ],
+          "semantic_facts": []
+        },
+        "policy": "Every ARIA-authored claim sentence must be backed by structured evidence, metrics, tables, figures, or an explicitly licensed analysis family.",
+        "status": "supported",
+        "unsupported": []
+      }
+    },
+    {
+      "analysis": "preprocessing",
+      "causal_license": {
+        "contrast": null,
+        "estimand_id": null,
+        "licensed": false,
+        "reason": "missing_block_estimand"
+      },
+      "claim_id": "bulk.preprocessing",
+      "confidence": "high",
+      "evidence": [
+        {
+          "label": "library protocol",
+          "path": null,
+          "source": "bulk_preprocessing",
+          "value": "full_length"
+        },
+        {
+          "label": "samples quantified",
+          "path": null,
+          "source": "bulk_preprocessing",
+          "value": 8
+        },
+        {
+          "label": "genes quantified",
+          "path": null,
+          "source": "bulk_preprocessing",
+          "value": 16551
+        },
+        {
+          "label": "read layout",
+          "path": null,
+          "source": "bulk_preprocessing",
+          "value": "paired-end"
+        },
+        {
+          "label": "featureCounts strand",
+          "path": null,
+          "source": "bulk_preprocessing",
+          "value": 0
+        },
+        {
+          "label": "mean reads passed QC (%)",
+          "path": null,
+          "source": "fastp",
+          "value": 95.8
+        },
+        {
+          "label": "mean unique STAR mapping (%)",
+          "path": null,
+          "source": "star",
+          "value": 95.5
+        },
+        {
+          "label": "exon assignment rate (%)",
+          "path": null,
+          "source": "featurecounts",
+          "value": 80.1
+        }
+      ],
+      "evidence_card_id": "bulk.preprocessing#evidence",
+      "evidence_categories": [
+        "descriptive"
+      ],
+      "figures": [],
+      "language_violation": null,
+      "ledger_linked": true,
+      "ledger_node_id": "ledger://bulk/preprocessing",
+      "ledger_node_type": "analysis_run",
+      "ledger_provenance": {
+        "finding_keys": [
+          "preprocessing"
+        ],
+        "kind": "structured_agent_result",
+        "modality": "bulk"
+      },
+      "ledger_status": "ran",
+      "licensed_language": "descriptive",
+      "limitations": [],
+      "modality": "bulk RNA-seq",
+      "rationale": "Descriptive summary (QC/counts); no between-condition claim.",
+      "status": "success",
+      "tables": [],
+      "text": "Raw FASTQ preprocessing (full_length) quantified 16551 genes across 8 samples.",
+      "tier": "descriptive",
+      "verification": {
+        "checked_sentences": 1,
+        "evidence_card": {
+          "evidence_card_id": "bulk.preprocessing#evidence",
+          "n_refs": 14,
+          "node_type": "evidence_card",
+          "provenance": {
+            "analysis": "preprocessing",
+            "block_id": "bulk.preprocessing",
+            "modality": "bulk RNA-seq",
+            "sources": [
+              "bulk_preprocessing",
+              "fastp",
+              "featurecounts",
+              "star"
+            ]
+          },
+          "refs": [
+            {
+              "kind": "evidence",
+              "label": "library protocol",
+              "path": null,
+              "ref_id": "bulk.preprocessing:evidence:0",
+              "source": "bulk_preprocessing",
+              "value": "full_length"
+            },
+            {
+              "kind": "evidence",
+              "label": "samples quantified",
+              "path": null,
+              "ref_id": "bulk.preprocessing:evidence:1",
+              "source": "bulk_preprocessing",
+              "value": 8
+            },
+            {
+              "kind": "evidence",
+              "label": "genes quantified",
+              "path": null,
+              "ref_id": "bulk.preprocessing:evidence:2",
+              "source": "bulk_preprocessing",
+              "value": 16551
+            },
+            {
+              "kind": "evidence",
+              "label": "read layout",
+              "path": null,
+              "ref_id": "bulk.preprocessing:evidence:3",
+              "source": "bulk_preprocessing",
+              "value": "paired-end"
+            },
+            {
+              "kind": "evidence",
+              "label": "featureCounts strand",
+              "path": null,
+              "ref_id": "bulk.preprocessing:evidence:4",
+              "source": "bulk_preprocessing",
+              "value": 0
+            },
+            {
+              "kind": "evidence",
+              "label": "mean reads passed QC (%)",
+              "path": null,
+              "ref_id": "bulk.preprocessing:evidence:5",
+              "source": "fastp",
+              "value": 95.8
+            },
+            {
+              "kind": "evidence",
+              "label": "mean unique STAR mapping (%)",
+              "path": null,
+              "ref_id": "bulk.preprocessing:evidence:6",
+              "source": "star",
+              "value": 95.5
+            },
+            {
+              "kind": "evidence",
+              "label": "exon assignment rate (%)",
+              "path": null,
+              "ref_id": "bulk.preprocessing:evidence:7",
+              "source": "featurecounts",
+              "value": 80.1
+            },
+            {
+              "kind": "metric",
+              "label": "protocol",
+              "ref_id": "bulk.preprocessing:metric:protocol",
+              "value": "full_length"
+            },
+            {
+              "kind": "metric",
+              "label": "n_samples",
+              "ref_id": "bulk.preprocessing:metric:n_samples",
+              "value": 8
+            },
+            {
+              "kind": "metric",
+              "label": "n_genes",
+              "ref_id": "bulk.preprocessing:metric:n_genes",
+              "value": 16551
+            },
+            {
+              "kind": "metric",
+              "label": "strand_used",
+              "ref_id": "bulk.preprocessing:metric:strand_used",
+              "value": 0
+            },
+            {
+              "kind": "metric",
+              "label": "mean_pass_pct",
+              "ref_id": "bulk.preprocessing:metric:mean_pass_pct",
+              "value": 95.8
+            },
+            {
+              "kind": "metric",
+              "label": "mean_unique_pct",
+              "ref_id": "bulk.preprocessing:metric:mean_unique_pct",
+              "value": 95.5
+            }
+          ],
+          "semantic_facts": []
+        },
+        "policy": "Every ARIA-authored claim sentence must be backed by structured evidence, metrics, tables, figures, or an explicitly licensed analysis family.",
+        "status": "supported",
+        "unsupported": []
+      }
+    },
+    {
+      "analysis": "sample_qc",
+      "causal_license": {
+        "contrast": null,
+        "estimand_id": null,
+        "licensed": false,
+        "reason": "missing_block_estimand"
+      },
+      "claim_id": "bulk.qc",
+      "confidence": "high",
+      "evidence": [
+        {
+          "label": "samples",
+          "path": null,
+          "source": "sample_qc",
+          "value": 8
+        },
+        {
+          "label": "library-size range",
+          "path": null,
+          "source": "sample_qc",
+          "value": 1.0
+        },
+        {
+          "label": "outliers flagged",
+          "path": null,
+          "source": "sample_qc",
+          "value": 0
+        },
+        {
+          "label": "outliers removed primary",
+          "path": null,
+          "source": "sample_qc",
+          "value": 0
+        },
+        {
+          "label": "outliers removed sensitivity",
+          "path": null,
+          "source": "sample_qc",
+          "value": 0
+        }
+      ],
+      "evidence_card_id": "bulk.qc#evidence",
+      "evidence_categories": [
+        "descriptive"
+      ],
+      "figures": [
+        "pca.svg",
+        "mds.svg"
+      ],
+      "language_violation": null,
+      "ledger_linked": true,
+      "ledger_node_id": "ledger://bulk/qc",
+      "ledger_node_type": "analysis_run",
+      "ledger_provenance": {
+        "finding_keys": [
+          "sample_qc"
+        ],
+        "kind": "structured_agent_result",
+        "modality": "bulk"
+      },
+      "ledger_status": "ran",
+      "licensed_language": "descriptive",
+      "limitations": [],
+      "modality": "bulk RNA-seq",
+      "rationale": "Descriptive summary (QC/counts); no between-condition claim.",
+      "status": "success",
+      "tables": [],
+      "text": "Bulk RNA sample QC evaluated 8 samples with 0 outlier(s) flagged; primary DE retained all samples and sensitivity removed 0.",
+      "tier": "descriptive",
+      "verification": {
+        "checked_sentences": 2,
+        "evidence_card": {
+          "evidence_card_id": "bulk.qc#evidence",
+          "n_refs": 11,
+          "node_type": "evidence_card",
+          "provenance": {
+            "analysis": "sample_qc",
+            "block_id": "bulk.qc",
+            "modality": "bulk RNA-seq",
+            "sources": [
+              "sample_qc"
+            ]
+          },
+          "refs": [
+            {
+              "kind": "evidence",
+              "label": "samples",
+              "path": null,
+              "ref_id": "bulk.qc:evidence:0",
+              "source": "sample_qc",
+              "value": 8
+            },
+            {
+              "kind": "evidence",
+              "label": "library-size range",
+              "path": null,
+              "ref_id": "bulk.qc:evidence:1",
+              "source": "sample_qc",
+              "value": 1.0
+            },
+            {
+              "kind": "evidence",
+              "label": "outliers flagged",
+              "path": null,
+              "ref_id": "bulk.qc:evidence:2",
+              "source": "sample_qc",
+              "value": 0
+            },
+            {
+              "kind": "evidence",
+              "label": "outliers removed primary",
+              "path": null,
+              "ref_id": "bulk.qc:evidence:3",
+              "source": "sample_qc",
+              "value": 0
+            },
+            {
+              "kind": "evidence",
+              "label": "outliers removed sensitivity",
+              "path": null,
+              "ref_id": "bulk.qc:evidence:4",
+              "source": "sample_qc",
+              "value": 0
+            },
+            {
+              "kind": "metric",
+              "label": "n_samples",
+              "ref_id": "bulk.qc:metric:n_samples",
+              "value": 8
+            },
+            {
+              "kind": "metric",
+              "label": "n_outliers",
+              "ref_id": "bulk.qc:metric:n_outliers",
+              "value": 0
+            },
+            {
+              "kind": "metric",
+              "label": "n_outliers_removed_primary",
+              "ref_id": "bulk.qc:metric:n_outliers_removed_primary",
+              "value": 0
+            },
+            {
+              "kind": "metric",
+              "label": "n_outliers_removed_sensitivity",
+              "ref_id": "bulk.qc:metric:n_outliers_removed_sensitivity",
+              "value": 0
+            },
+            {
+              "kind": "figure",
+              "label": "pca plot",
+              "path": "pca.svg",
+              "ref_id": "bulk.qc:figure:0"
+            },
+            {
+              "kind": "figure",
+              "label": "mds plot",
+              "path": "mds.svg",
+              "ref_id": "bulk.qc:figure:1"
+            }
+          ],
+          "semantic_facts": []
+        },
+        "policy": "Every ARIA-authored claim sentence must be backed by structured evidence, metrics, tables, figures, or an explicitly licensed analysis family.",
+        "status": "supported",
+        "unsupported": []
+      }
+    },
+    {
+      "analysis": "differential_expression",
+      "causal_license": {
+        "contrast": "dexamethasone vs untreated",
+        "estimand_id": null,
+        "licensed": false,
+        "reason": "missing_design_contract"
+      },
+      "claim_id": "bulk.contrast.dexamethasone_vs_untreated",
+      "confidence": "medium",
+      "evidence": [
+        {
+          "label": "DE genes",
+          "path": null,
+          "source": "bulk_de",
+          "value": 22
+        },
+        {
+          "label": "up genes",
+          "path": null,
+          "source": "bulk_de",
+          "value": 19
+        },
+        {
+          "label": "down genes",
+          "path": null,
+          "source": "bulk_de",
+          "value": 3
+        },
+        {
+          "label": "top gene GPX3",
+          "path": null,
+          "source": "bulk_de",
+          "value": 3.535
+        },
+        {
+          "label": "top gene SAMHD1",
+          "path": null,
+          "source": "bulk_de",
+          "value": 3.578
+        },
+        {
+          "label": "top gene GLUL",
+          "path": null,
+          "source": "bulk_de",
+          "value": 2.87
+        },
+        {
+          "label": "top gene ADAMTS1",
+          "path": null,
+          "source": "bulk_de",
+          "value": 2.093
+        },
+        {
+          "label": "top gene CXCL12",
+          "path": null,
+          "source": "bulk_de",
+          "value": -2.041
+        },
+        {
+          "label": "top gene FKBP5",
+          "path": null,
+          "source": "bulk_de",
+          "value": 4.334
+        }
+      ],
+      "evidence_card_id": "bulk.contrast.dexamethasone_vs_untreated#evidence",
+      "evidence_categories": [
+        "expression_change",
+        "functional_annotation"
+      ],
+      "figures": [
+        "volcano.svg",
+        "heatmap_padj.svg",
+        "heatmap_lfc.svg"
+      ],
+      "language_violation": null,
+      "ledger_linked": true,
+      "ledger_node_id": "ledger://bulk/differential_expression",
+      "ledger_node_type": "analysis_run",
+      "ledger_provenance": {
+        "finding_keys": [
+          "contrasts"
+        ],
+        "kind": "structured_agent_result",
+        "modality": "bulk"
+      },
+      "ledger_status": "ran",
+      "licensed_language": "associative",
+      "limitations": [
+        "Observational association only; no mechanistic or interventional evidence supports a causal interpretation.",
+        "Alternative technical explanations not ruled out: batch_effect. Interpret the association with these confounders in mind."
+      ],
+      "modality": "bulk RNA-seq",
+      "rationale": "Correlative contrast (expression/abundance/communication) without independent mechanistic or perturbation evidence.",
+      "status": "success",
+      "tables": [
+        "de_genes.tsv"
+      ],
+      "text": "Bulk contrast dexamethasone vs untreated had 22 DE genes.",
+      "tier": "associative",
+      "verification": {
+        "checked_sentences": 3,
+        "evidence_card": {
+          "evidence_card_id": "bulk.contrast.dexamethasone_vs_untreated#evidence",
+          "n_refs": 18,
+          "node_type": "evidence_card",
+          "provenance": {
+            "analysis": "differential_expression",
+            "block_id": "bulk.contrast.dexamethasone_vs_untreated",
+            "modality": "bulk RNA-seq",
+            "sources": [
+              "bulk_de"
+            ]
+          },
+          "refs": [
+            {
+              "kind": "evidence",
+              "label": "DE genes",
+              "path": null,
+              "ref_id": "bulk.contrast.dexamethasone_vs_untreated:evidence:0",
+              "source": "bulk_de",
+              "value": 22
+            },
+            {
+              "kind": "evidence",
+              "label": "up genes",
+              "path": null,
+              "ref_id": "bulk.contrast.dexamethasone_vs_untreated:evidence:1",
+              "source": "bulk_de",
+              "value": 19
+            },
+            {
+              "kind": "evidence",
+              "label": "down genes",
+              "path": null,
+              "ref_id": "bulk.contrast.dexamethasone_vs_untreated:evidence:2",
+              "source": "bulk_de",
+              "value": 3
+            },
+            {
+              "kind": "evidence",
+              "label": "top gene GPX3",
+              "path": null,
+              "ref_id": "bulk.contrast.dexamethasone_vs_untreated:evidence:3",
+              "source": "bulk_de",
+              "value": 3.535
+            },
+            {
+              "kind": "evidence",
+              "label": "top gene SAMHD1",
+              "path": null,
+              "ref_id": "bulk.contrast.dexamethasone_vs_untreated:evidence:4",
+              "source": "bulk_de",
+              "value": 3.578
+            },
+            {
+              "kind": "evidence",
+              "label": "top gene GLUL",
+              "path": null,
+              "ref_id": "bulk.contrast.dexamethasone_vs_untreated:evidence:5",
+              "source": "bulk_de",
+              "value": 2.87
+            },
+            {
+              "kind": "evidence",
+              "label": "top gene ADAMTS1",
+              "path": null,
+              "ref_id": "bulk.contrast.dexamethasone_vs_untreated:evidence:6",
+              "source": "bulk_de",
+              "value": 2.093
+            },
+            {
+              "kind": "evidence",
+              "label": "top gene CXCL12",
+              "path": null,
+              "ref_id": "bulk.contrast.dexamethasone_vs_untreated:evidence:7",
+              "source": "bulk_de",
+              "value": -2.041
+            },
+            {
+              "kind": "evidence",
+              "label": "top gene FKBP5",
+              "path": null,
+              "ref_id": "bulk.contrast.dexamethasone_vs_untreated:evidence:8",
+              "source": "bulk_de",
+              "value": 4.334
+            },
+            {
+              "kind": "metric",
+              "label": "n_significant",
+              "ref_id": "bulk.contrast.dexamethasone_vs_untreated:metric:n_significant",
+              "value": 22
+            },
+            {
+              "kind": "metric",
+              "label": "n_upregulated",
+              "ref_id": "bulk.contrast.dexamethasone_vs_untreated:metric:n_upregulated",
+              "value": 19
+            },
+            {
+              "kind": "metric",
+              "label": "n_downregulated",
+              "ref_id": "bulk.contrast.dexamethasone_vs_untreated:metric:n_downregulated",
+              "value": 3
+            },
+            {
+              "kind": "metric",
+              "label": "low_power_warning",
+              "ref_id": "bulk.contrast.dexamethasone_vs_untreated:metric:low_power_warning",
+              "value": false
+            },
+            {
+              "kind": "metric",
+              "label": "power_estimate_at_lfc_min",
+              "ref_id": "bulk.contrast.dexamethasone_vs_untreated:metric:power_estimate_at_lfc_min",
+              "value": 0.85
+            },
+            {
+              "kind": "table",
+              "label": "dexamethasone vs untreated de_genes",
+              "path": "de_genes.tsv",
+              "ref_id": "bulk.contrast.dexamethasone_vs_untreated:table:0"
+            },
+            {
+              "kind": "figure",
+              "label": "dexamethasone vs untreated volcano",
+              "path": "volcano.svg",
+              "ref_id": "bulk.contrast.dexamethasone_vs_untreated:figure:0"
+            },
+            {
+              "kind": "figure",
+              "label": "dexamethasone vs untreated heatmap_padj",
+              "path": "heatmap_padj.svg",
+              "ref_id": "bulk.contrast.dexamethasone_vs_untreated:figure:1"
+            },
+            {
+              "kind": "figure",
+              "label": "dexamethasone vs untreated heatmap_lfc",
+              "path": "heatmap_lfc.svg",
+              "ref_id": "bulk.contrast.dexamethasone_vs_untreated:figure:2"
+            }
+          ],
+          "semantic_facts": [
+            {
+              "aliases": [],
+              "polarity": "affirmed",
+              "predicate": "differential_expression",
+              "source": "bulk.contrast.dexamethasone_vs_untreated:evidence:0",
+              "subject": "*",
+              "subject_type": "gene_set",
+              "value": 22
+            },
+            {
+              "aliases": [],
+              "polarity": "affirmed",
+              "predicate": "differential_expression",
+              "source": "bulk_de",
+              "subject": "GPX3",
+              "subject_type": "gene",
+              "value": 3.535
+            },
+            {
+              "aliases": [],
+              "polarity": "affirmed",
+              "predicate": "differential_expression",
+              "source": "bulk_de",
+              "subject": "SAMHD1",
+              "subject_type": "gene",
+              "value": 3.578
+            },
+            {
+              "aliases": [],
+              "polarity": "affirmed",
+              "predicate": "differential_expression",
+              "source": "bulk_de",
+              "subject": "GLUL",
+              "subject_type": "gene",
+              "value": 2.87
+            },
+            {
+              "aliases": [],
+              "polarity": "affirmed",
+              "predicate": "differential_expression",
+              "source": "bulk_de",
+              "subject": "ADAMTS1",
+              "subject_type": "gene",
+              "value": 2.093
+            },
+            {
+              "aliases": [],
+              "polarity": "affirmed",
+              "predicate": "differential_expression",
+              "source": "bulk_de",
+              "subject": "CXCL12",
+              "subject_type": "gene",
+              "value": -2.041
+            },
+            {
+              "aliases": [],
+              "polarity": "affirmed",
+              "predicate": "differential_expression",
+              "source": "bulk_de",
+              "subject": "FKBP5",
+              "subject_type": "gene",
+              "value": 4.334
+            }
+          ]
+        },
+        "policy": "Every ARIA-authored claim sentence must be backed by structured evidence, metrics, tables, figures, or an explicitly licensed analysis family.",
+        "status": "supported",
+        "unsupported": []
+      }
+    },
+    {
+      "analysis": "gsea_preranked",
+      "causal_license": {
+        "contrast": null,
+        "estimand_id": null,
+        "licensed": false,
+        "reason": "missing_block_estimand"
+      },
+      "claim_id": "bulk.gsea.dexamethasone_vs_untreated",
+      "confidence": "low",
+      "evidence": [
+        {
+          "label": "FDR<0.25 pathways",
+          "path": "gsea_results.csv",
+          "source": "gsea_preranked",
+          "value": 6
+        },
+        {
+          "label": "running-sum plots",
+          "path": null,
+          "source": "gsea_preranked",
+          "value": 3
+        },
+        {
+          "label": "GSEA term Translation (GO:0006412)",
+          "path": "gsea_results.csv",
+          "source": "gsea_preranked",
+          "value": -3.9409
+        },
+        {
+          "label": "GSEA term Positive Regulation Of Cell Population Proliferation (GO:0008284)",
+          "path": "gsea_results.csv",
+          "source": "gsea_preranked",
+          "value": -3.8843
+        },
+        {
+          "label": "GSEA term Cytoplasmic Translation (GO:0002181)",
+          "path": "gsea_results.csv",
+          "source": "gsea_preranked",
+          "value": -3.8477
+        }
+      ],
+      "evidence_card_id": "bulk.gsea.dexamethasone_vs_untreated#evidence",
+      "evidence_categories": [
+        "expression_change",
+        "functional_annotation"
+      ],
+      "figures": [
+        "gsea_top_table.png",
+        "gsea_running_sum_1.png",
+        "gsea_running_sum_2.png",
+        "gsea_running_sum_3.png"
+      ],
+      "language_violation": null,
+      "ledger_linked": true,
+      "ledger_node_id": "ledger://bulk/pathway_enrichment",
+      "ledger_node_type": "analysis_run",
+      "ledger_provenance": {
+        "finding_keys": [
+          "pathway_enrichment"
+        ],
+        "kind": "structured_agent_result",
+        "modality": "bulk"
+      },
+      "ledger_status": "ran",
+      "licensed_language": "associative",
+      "limitations": [
+        "Observational association only; no mechanistic or interventional evidence supports a causal interpretation.",
+        "GSEA uses the complete ranked gene list and is exploratory at FDR < 0.25; inspect the leading-edge genes before making mechanistic claims.",
+        "Alternative technical explanations not ruled out: batch_effect. Interpret the association with these confounders in mind."
+      ],
+      "modality": "bulk RNA-seq",
+      "rationale": "Correlative contrast (expression/abundance/communication) without independent mechanistic or perturbation evidence.",
+      "status": "success",
+      "tables": [
+        "gsea_results.csv"
+      ],
+      "text": "Preranked GSEA identified 6 exploratory pathway(s) at FDR < 0.25 for dexamethasone vs untreated.",
+      "tier": "associative",
+      "verification": {
+        "checked_sentences": 3,
+        "evidence_card": {
+          "evidence_card_id": "bulk.gsea.dexamethasone_vs_untreated#evidence",
+          "n_refs": 32,
+          "node_type": "evidence_card",
+          "provenance": {
+            "analysis": "gsea_preranked",
+            "block_id": "bulk.gsea.dexamethasone_vs_untreated",
+            "modality": "bulk RNA-seq",
+            "sources": [
+              "gsea_preranked"
+            ]
+          },
+          "refs": [
+            {
+              "kind": "evidence",
+              "label": "FDR<0.25 pathways",
+              "path": "gsea_results.csv",
+              "ref_id": "bulk.gsea.dexamethasone_vs_untreated:evidence:0",
+              "source": "gsea_preranked",
+              "value": 6
+            },
+            {
+              "kind": "evidence",
+              "label": "running-sum plots",
+              "path": null,
+              "ref_id": "bulk.gsea.dexamethasone_vs_untreated:evidence:1",
+              "source": "gsea_preranked",
+              "value": 3
+            },
+            {
+              "kind": "evidence",
+              "label": "GSEA term Translation (GO:0006412)",
+              "path": "gsea_results.csv",
+              "ref_id": "bulk.gsea.dexamethasone_vs_untreated:evidence:2",
+              "source": "gsea_preranked",
+              "value": -3.9409
+            },
+            {
+              "kind": "evidence",
+              "label": "GSEA term Positive Regulation Of Cell Population Proliferation (GO:0008284)",
+              "path": "gsea_results.csv",
+              "ref_id": "bulk.gsea.dexamethasone_vs_untreated:evidence:3",
+              "source": "gsea_preranked",
+              "value": -3.8843
+            },
+            {
+              "kind": "evidence",
+              "label": "GSEA term Cytoplasmic Translation (GO:0002181)",
+              "path": "gsea_results.csv",
+              "ref_id": "bulk.gsea.dexamethasone_vs_untreated:evidence:4",
+              "source": "gsea_preranked",
+              "value": -3.8477
+            },
+            {
+              "kind": "metric",
+              "label": "n_pathways",
+              "ref_id": "bulk.gsea.dexamethasone_vs_untreated:metric:n_pathways",
+              "value": 6
+            },
+            {
+              "kind": "metric",
+              "label": "top_pathways.0.term",
+              "ref_id": "bulk.gsea.dexamethasone_vs_untreated:metric:top_pathways.0.term",
+              "value": "Translation (GO:0006412)"
+            },
+            {
+              "kind": "metric",
+              "label": "top_pathways.0.nes",
+              "ref_id": "bulk.gsea.dexamethasone_vs_untreated:metric:top_pathways.0.nes",
+              "value": -3.9409
+            },
+            {
+              "kind": "metric",
+              "label": "top_pathways.0.fdr",
+              "ref_id": "bulk.gsea.dexamethasone_vs_untreated:metric:top_pathways.0.fdr",
+              "value": 0.04093792739563451
+            },
+            {
+              "kind": "metric",
+              "label": "top_pathways.0.numeric_unstable",
+              "ref_id": "bulk.gsea.dexamethasone_vs_untreated:metric:top_pathways.0.numeric_unstable",
+              "value": false
+            },
+            {
+              "kind": "metric",
+              "label": "top_pathways.1.term",
+              "ref_id": "bulk.gsea.dexamethasone_vs_untreated:metric:top_pathways.1.term",
+              "value": "Positive Regulation Of Cell Population Proliferation (GO:0008284)"
+            },
+            {
+              "kind": "metric",
+              "label": "top_pathways.1.nes",
+              "ref_id": "bulk.gsea.dexamethasone_vs_untreated:metric:top_pathways.1.nes",
+              "value": -3.8843
+            },
+            {
+              "kind": "metric",
+              "label": "top_pathways.1.fdr",
+              "ref_id": "bulk.gsea.dexamethasone_vs_untreated:metric:top_pathways.1.fdr",
+              "value": 0.04093792739563451
+            },
+            {
+              "kind": "metric",
+              "label": "top_pathways.1.numeric_unstable",
+              "ref_id": "bulk.gsea.dexamethasone_vs_untreated:metric:top_pathways.1.numeric_unstable",
+              "value": false
+            },
+            {
+              "kind": "metric",
+              "label": "top_pathways.2.term",
+              "ref_id": "bulk.gsea.dexamethasone_vs_untreated:metric:top_pathways.2.term",
+              "value": "Cytoplasmic Translation (GO:0002181)"
+            },
+            {
+              "kind": "metric",
+              "label": "top_pathways.2.nes",
+              "ref_id": "bulk.gsea.dexamethasone_vs_untreated:metric:top_pathways.2.nes",
+              "value": -3.8477
+            },
+            {
+              "kind": "metric",
+              "label": "top_pathways.2.fdr",
+              "ref_id": "bulk.gsea.dexamethasone_vs_untreated:metric:top_pathways.2.fdr",
+              "value": 0.04093792739563451
+            },
+            {
+              "kind": "metric",
+              "label": "top_pathways.2.numeric_unstable",
+              "ref_id": "bulk.gsea.dexamethasone_vs_untreated:metric:top_pathways.2.numeric_unstable",
+              "value": false
+            },
+            {
+              "kind": "metric",
+              "label": "top_pathways.3.term",
+              "ref_id": "bulk.gsea.dexamethasone_vs_untreated:metric:top_pathways.3.term",
+              "value": "Supramolecular Fiber Organization (GO:0097435)"
+            },
+            {
+              "kind": "metric",
+              "label": "top_pathways.3.nes",
+              "ref_id": "bulk.gsea.dexamethasone_vs_untreated:metric:top_pathways.3.nes",
+              "value": -3.7651
+            },
+            {
+              "kind": "metric",
+              "label": "top_pathways.3.fdr",
+              "ref_id": "bulk.gsea.dexamethasone_vs_untreated:metric:top_pathways.3.fdr",
+              "value": 0.04287771038393673
+            },
+            {
+              "kind": "metric",
+              "label": "top_pathways.3.numeric_unstable",
+              "ref_id": "bulk.gsea.dexamethasone_vs_untreated:metric:top_pathways.3.numeric_unstable",
+              "value": false
+            },
+            {
+              "kind": "metric",
+              "label": "top_pathways.4.term",
+              "ref_id": "bulk.gsea.dexamethasone_vs_untreated:metric:top_pathways.4.term",
+              "value": "Macromolecule Biosynthetic Process (GO:0009059)"
+            },
+            {
+              "kind": "metric",
+              "label": "top_pathways.4.nes",
+              "ref_id": "bulk.gsea.dexamethasone_vs_untreated:metric:top_pathways.4.nes",
+              "value": -3.3788
+            },
+            {
+              "kind": "metric",
+              "label": "top_pathways.4.fdr",
+              "ref_id": "bulk.gsea.dexamethasone_vs_untreated:metric:top_pathways.4.fdr",
+              "value": 0.1499808935795479
+            },
+            {
+              "kind": "metric",
+              "label": "top_pathways.4.numeric_unstable",
+              "ref_id": "bulk.gsea.dexamethasone_vs_untreated:metric:top_pathways.4.numeric_unstable",
+              "value": false
+            },
+            {
+              "kind": "metric",
+              "label": "n_numeric_unstable",
+              "ref_id": "bulk.gsea.dexamethasone_vs_untreated:metric:n_numeric_unstable",
+              "value": 0
+            },
+            {
+              "kind": "table",
+              "label": "dexamethasone vs untreated GSEA results",
+              "path": "gsea_results.csv",
+              "ref_id": "bulk.gsea.dexamethasone_vs_untreated:table:0"
+            },
+            {
+              "kind": "figure",
+              "label": "dexamethasone vs untreated GSEA top table",
+              "path": "gsea_top_table.png",
+              "ref_id": "bulk.gsea.dexamethasone_vs_untreated:figure:0"
+            },
+            {
+              "kind": "figure",
+              "label": "dexamethasone vs untreated GSEA running sum 1",
+              "path": "gsea_running_sum_1.png",
+              "ref_id": "bulk.gsea.dexamethasone_vs_untreated:figure:1"
+            },
+            {
+              "kind": "figure",
+              "label": "dexamethasone vs untreated GSEA running sum 2",
+              "path": "gsea_running_sum_2.png",
+              "ref_id": "bulk.gsea.dexamethasone_vs_untreated:figure:2"
+            },
+            {
+              "kind": "figure",
+              "label": "dexamethasone vs untreated GSEA running sum 3",
+              "path": "gsea_running_sum_3.png",
+              "ref_id": "bulk.gsea.dexamethasone_vs_untreated:figure:3"
+            }
+          ],
+          "semantic_facts": []
+        },
+        "policy": "Every ARIA-authored claim sentence must be backed by structured evidence, metrics, tables, figures, or an explicitly licensed analysis family.",
+        "status": "supported",
+        "unsupported": []
+      }
+    },
+    {
+      "analysis": "power",
+      "causal_license": {
+        "contrast": null,
+        "estimand_id": null,
+        "licensed": false,
+        "reason": "missing_block_estimand"
+      },
+      "claim_id": "bulk.power",
+      "confidence": "medium",
+      "evidence": [
+        {
+          "label": "minimum power",
+          "path": null,
+          "source": "power_estimation",
+          "value": 0.85
+        },
+        {
+          "label": "maximum power",
+          "path": null,
+          "source": "power_estimation",
+          "value": 0.85
+        },
+        {
+          "label": "minimum power percent",
+          "path": null,
+          "source": "power_estimation",
+          "value": "85%"
+        },
+        {
+          "label": "maximum power percent",
+          "path": null,
+          "source": "power_estimation",
+          "value": "85%"
+        }
+      ],
+      "evidence_card_id": "bulk.power#evidence",
+      "evidence_categories": [
+        "descriptive"
+      ],
+      "figures": [],
+      "language_violation": null,
+      "ledger_linked": true,
+      "ledger_node_id": "ledger://bulk/differential_expression",
+      "ledger_node_type": "analysis_run",
+      "ledger_provenance": {
+        "finding_keys": [
+          "contrasts"
+        ],
+        "kind": "structured_agent_result",
+        "modality": "bulk"
+      },
+      "ledger_status": "ran",
+      "licensed_language": "descriptive",
+      "limitations": [
+        "Power is an approximation from replicate count, expression, and dispersion."
+      ],
+      "modality": "bulk RNA-seq",
+      "rationale": "Descriptive summary (QC/counts); no between-condition claim.",
+      "status": "success",
+      "tables": [],
+      "text": "Approximate bulk RNA power ranged from 85% to 85% across analyzable contrasts.",
+      "tier": "descriptive",
+      "verification": {
+        "checked_sentences": 2,
+        "evidence_card": {
+          "evidence_card_id": "bulk.power#evidence",
+          "n_refs": 6,
+          "node_type": "evidence_card",
+          "provenance": {
+            "analysis": "power",
+            "block_id": "bulk.power",
+            "modality": "bulk RNA-seq",
+            "sources": [
+              "power_estimation"
+            ]
+          },
+          "refs": [
+            {
+              "kind": "evidence",
+              "label": "minimum power",
+              "path": null,
+              "ref_id": "bulk.power:evidence:0",
+              "source": "power_estimation",
+              "value": 0.85
+            },
+            {
+              "kind": "evidence",
+              "label": "maximum power",
+              "path": null,
+              "ref_id": "bulk.power:evidence:1",
+              "source": "power_estimation",
+              "value": 0.85
+            },
+            {
+              "kind": "evidence",
+              "label": "minimum power percent",
+              "path": null,
+              "ref_id": "bulk.power:evidence:2",
+              "source": "power_estimation",
+              "value": "85%"
+            },
+            {
+              "kind": "evidence",
+              "label": "maximum power percent",
+              "path": null,
+              "ref_id": "bulk.power:evidence:3",
+              "source": "power_estimation",
+              "value": "85%"
+            },
+            {
+              "kind": "metric",
+              "label": "min_power",
+              "ref_id": "bulk.power:metric:min_power",
+              "value": 0.85
+            },
+            {
+              "kind": "metric",
+              "label": "max_power",
+              "ref_id": "bulk.power:metric:max_power",
+              "value": 0.85
+            }
+          ],
+          "semantic_facts": []
+        },
+        "policy": "Every ARIA-authored claim sentence must be backed by structured evidence, metrics, tables, figures, or an explicitly licensed analysis family.",
+        "status": "supported",
+        "unsupported": []
+      }
+    }
+  ],
+  "cross_modal_evidence_graph": {
+    "absent_not_tested": [
+      "integration.eregulons",
+      "integration.mofa",
+      "integration.paired_qc",
+      "integration.peak_to_gene",
+      "integration.wnn",
+      "modality.atac_differential_accessibility",
+      "modality.atac_motif_enrichment"
+    ],
+    "circular_convergence_prevented": true,
+    "edges": [],
+    "executed_integration_stages": [],
+    "external_modality_contrasts": {
+      "atac_differential_accessibility": false,
+      "atac_motif_enrichment": false,
+      "rna_differential_expression": true
+    },
+    "genome": "hg38",
+    "mofa_summary": {
+      "n_excluded_confounder_factors": 0,
+      "n_shared_factors": 0
+    },
+    "nodes": [
+      {
+        "artifact": null,
+        "id": "state:eregulons",
+        "label": "eregulons",
+        "node_type": "modality_state",
+        "status": "absent_not_tested"
+      },
+      {
+        "artifact": null,
+        "id": "state:mofa",
+        "label": "mofa",
+        "node_type": "modality_state",
+        "status": "absent_not_tested"
+      },
+      {
+        "artifact": null,
+        "id": "state:paired_qc",
+        "label": "paired_qc",
+        "node_type": "modality_state",
+        "status": "absent_not_tested"
+      },
+      {
+        "artifact": null,
+        "id": "state:peak_to_gene",
+        "label": "peak_to_gene",
+        "node_type": "modality_state",
+        "status": "absent_not_tested"
+      },
+      {
+        "artifact": null,
+        "id": "state:wnn",
+        "label": "wnn",
+        "node_type": "modality_state",
+        "status": "absent_not_tested"
+      }
+    ],
+    "non_causal_contract": true,
+    "organism": "Homo sapiens",
+    "ran": false,
+    "regulatory_axes": [],
+    "schema_version": "1.0.0",
+    "summary_counts": {
+      "associative_cis_candidate": 0,
+      "caveated_ambiguous": 0,
+      "convergent_cross_contrast": 0,
+      "convergent_paired_multiome": 0,
+      "discordant_signal": 0,
+      "n_axes_total": 0,
+      "n_convergent_total": 0,
+      "n_edges": 0,
+      "n_nodes": 5
+    },
+    "wnn_guardrail": {
+      "lens_not_replacement": true,
+      "n_discordant_clusters": 0,
+      "status": "not_evaluated"
+    }
+  },
+  "decision_manifest": {
+    "analysis_plan": {
+      "contrasts": [
+        {
+          "denominator": "untreated",
+          "numerator": "dexamethasone"
+        }
+      ],
+      "design_intelligence_selection": "recommended_only",
+      "enable_hypotheses": false,
+      "integration_needed": false,
+      "integration_type": "none",
+      "reproducible_mode": true,
+      "run_optional_supported": false,
+      "steps": [
+        {
+          "agent": "bulk_rna_agent",
+          "analysis": "Bulk RNA differential expression",
+          "depends_on": [],
+          "order": 1
+        }
+      ]
+    },
+    "biological_intent": {
+      "analysis_type": "differential",
+      "comparison": "dexamethasone vs untreated",
+      "raw_user_question": "Analyze paired-end raw bulk RNA-seq FASTQ libraries from primary human airway smooth muscle cells treated with dexamethasone versus untreated controls across four matched human donor lines (GEO GSE52778 / ENA SRP033351, Homo sapiens hg38). Identify differentially expressed genes for dexamethasone versus untreated using a paired donor-blocked design.",
+      "summary": "Paired bulk RNA-seq differential expression (dexamethasone vs untreated)."
+    },
+    "commitment_status": "locked_before_execution",
+    "committed_at_utc": "<timestamp redacted for byte-identity>",
+    "committed_before_outcome_compute": true,
+    "design": {
+      "analysis_groups": {
+        "dexamethasone": [
+          "dexamethasone::dexamethasone_rep1",
+          "dexamethasone::dexamethasone_rep2",
+          "dexamethasone::dexamethasone_rep3",
+          "dexamethasone::dexamethasone_rep4"
+        ],
+        "untreated": [
+          "untreated::untreated_rep1",
+          "untreated::untreated_rep2",
+          "untreated::untreated_rep3",
+          "untreated::untreated_rep4"
+        ]
+      },
+      "batch_col": "donor",
+      "causal_estimands": [],
+      "contrasts": [
+        {
+          "denominator": "untreated",
+          "factor": "condition",
+          "numerator": "dexamethasone"
+        }
+      ],
+      "covariates": [],
+      "donor_col": "",
+      "factor": "condition",
+      "formula": "",
+      "genome": "hg38",
+      "groups": {
+        "dexamethasone": [
+          "dexamethasone_rep1",
+          "dexamethasone_rep2",
+          "dexamethasone_rep3",
+          "dexamethasone_rep4"
+        ],
+        "untreated": [
+          "untreated_rep1",
+          "untreated_rep2",
+          "untreated_rep3",
+          "untreated_rep4"
+        ]
+      },
+      "main_factor": "condition",
+      "organism": "Homo sapiens",
+      "paired": false,
+      "replicate_handling": {
+        "aggregation": "none",
+        "conflicts": [],
+        "mode": "paired_biological_block",
+        "pair_covariate": "donor",
+        "sample_to_pair": {
+          "dexamethasone_rep1": "rep1",
+          "dexamethasone_rep2": "rep2",
+          "dexamethasone_rep3": "rep3",
+          "dexamethasone_rep4": "rep4",
+          "untreated_rep1": "rep1",
+          "untreated_rep2": "rep2",
+          "untreated_rep3": "rep3",
+          "untreated_rep4": "rep4"
+        },
+        "sample_to_unit": {
+          "dexamethasone_rep1": "dexamethasone::dexamethasone_rep1",
+          "dexamethasone_rep2": "dexamethasone::dexamethasone_rep2",
+          "dexamethasone_rep3": "dexamethasone::dexamethasone_rep3",
+          "dexamethasone_rep4": "dexamethasone::dexamethasone_rep4",
+          "untreated_rep1": "untreated::untreated_rep1",
+          "untreated_rep2": "untreated::untreated_rep2",
+          "untreated_rep3": "untreated::untreated_rep3",
+          "untreated_rep4": "untreated::untreated_rep4"
+        },
+        "source": "user_confirmed_cp2.5",
+        "units": [
+          {
+            "group": "dexamethasone",
+            "id": "dexamethasone::dexamethasone_rep1",
+            "members": [
+              "dexamethasone_rep1"
+            ],
+            "root": "dexamethasone_rep1"
+          },
+          {
+            "group": "dexamethasone",
+            "id": "dexamethasone::dexamethasone_rep2",
+            "members": [
+              "dexamethasone_rep2"
+            ],
+            "root": "dexamethasone_rep2"
+          },
+          {
+            "group": "dexamethasone",
+            "id": "dexamethasone::dexamethasone_rep3",
+            "members": [
+              "dexamethasone_rep3"
+            ],
+            "root": "dexamethasone_rep3"
+          },
+          {
+            "group": "dexamethasone",
+            "id": "dexamethasone::dexamethasone_rep4",
+            "members": [
+              "dexamethasone_rep4"
+            ],
+            "root": "dexamethasone_rep4"
+          },
+          {
+            "group": "untreated",
+            "id": "untreated::untreated_rep1",
+            "members": [
+              "untreated_rep1"
+            ],
+            "root": "untreated_rep1"
+          },
+          {
+            "group": "untreated",
+            "id": "untreated::untreated_rep2",
+            "members": [
+              "untreated_rep2"
+            ],
+            "root": "untreated_rep2"
+          },
+          {
+            "group": "untreated",
+            "id": "untreated::untreated_rep3",
+            "members": [
+              "untreated_rep3"
+            ],
+            "root": "untreated_rep3"
+          },
+          {
+            "group": "untreated",
+            "id": "untreated::untreated_rep4",
+            "members": [
+              "untreated_rep4"
+            ],
+            "root": "untreated_rep4"
+          }
+        ]
+      },
+      "replicates": {
+        "dexamethasone": 4,
+        "untreated": 4
+      }
+    },
+    "experiment_id": "1a4798f3-6a5",
+    "fork_ledger_summary": {
+      "commitment_status": "locked_before_execution",
+      "fork_changes": [],
+      "fork_index": 0,
+      "manifest_sha256": "027f1fc6a88013b7286ee5b07e2900a3e59289e01634563a383fb874af430c1f",
+      "parent_manifest_sha256": null,
+      "schema_version": "aria.fork_ledger.v1",
+      "specification_sha256": "97872d8494558efc6105deb144662aa11a3aa6d3059aabc5a58aaace2bbad096",
+      "study_input_fingerprint": "39db07609f5490b8b09aee1479740a9d4afe6b754440b2da9b07eee5aaed3ba2",
+      "total_analytical_forks": 1
+    },
+    "genome": "hg38",
+    "locked_parameter_decisions": {},
+    "manifest_sha256": "027f1fc6a88013b7286ee5b07e2900a3e59289e01634563a383fb874af430c1f",
+    "modalities": {
+      "bulk_RNA_raw": 16
+    },
+    "organism": "Homo sapiens",
+    "parameter_grid_policy": {
+      "historical_bonus_disabled": true,
+      "leiden_grid": "canonical_union_12pt"
+    },
+    "realized_decisions_sha256": "a73aee7094d3f640676bf5d58751803e9808b237053b19f6f8808015b67c5e0c",
+    "realized_parameter_decisions": {},
+    "replayed_from_manifest_sha256": null,
+    "schema_version": "aria.decision_manifest.v1",
+    "specification_sha256": "97872d8494558efc6105deb144662aa11a3aa6d3059aabc5a58aaace2bbad096",
+    "study_input_fingerprint": "39db07609f5490b8b09aee1479740a9d4afe6b754440b2da9b07eee5aaed3ba2",
+    "thresholds": {
+      "global_lfc": 1.0,
+      "global_padj": 0.05,
+      "lfc_threshold_provenance": "default"
+    }
+  },
+  "decisions": [
+    {
+      "checkpoint": "1",
+      "decision": "Confirm and continue",
+      "id": "de97dd156d264b84b892ebd94d57f0b5",
+      "made_at": "2026-11-26T00:30:44.993355",
+      "made_by": "user",
+      "question": "\ud83d\udcc1 ARIA found the following data:\n\n  \ud83e\uddec bulk_RNA_raw: 16 file(s)\n\n  \ud83c\udf0d Organism: Homo sapiens\n  \ud83d\uddfa\ufe0f  Genome:   hg38 \u2713\n\n  \u26a0\ufe0f  Warnings:\n     \u2022 Ambiguous library type: generic paired-end FASTQ with no modality signal (untreated_rep4_R2.fastq.gz, dexamethasone_rep3_R2.fastq.gz, dexamethasone_rep1_R2.fastq.gz, dexamethasone_rep2_R2.fastq.gz, dexamethasone_rep2_R1.fastq.gz, ...) \u2014 hinted as bulk_RNA_raw but NOT bound. Declare the library type (assay manifest / library_type) or confirm the modality at CHECKPOINT 1; filenames are only a hint.\n\nIs this correct?\n\n\u2014 Data sensitivity (ELEVATED): Input appears to be human data with no obvious PHI fields. Consider air-gapped mode if the data are not de-identified.\n  To block ALL network egress (cloud LLM, Enrichr ORA, GEO/SRA), choose 'Confirm and enable air-gapped mode'.",
+      "rationale": "User confirmed data audit results",
+      "wing_id": "1a4798f3-6a5"
+    },
+    {
+      "checkpoint": "2",
+      "decision": "{\n  \"organism\": \"Homo sapiens\",\n  \"genome\": \"hg38\",\n  \"groups\": {\n    \"dexamethasone\": [\n      \"dexamethasone_rep1\",\n      \"dexamethasone_rep2\",\n      \"dexamethasone_rep3\",\n      \"dexamethasone_rep4\"\n    ],\n    \"untreated\": [\n      \"untreated_rep1\",\n      \"untreated_rep2\",\n      \"untreated_rep3\",\n      \"untreated_rep4\"\n    ]\n  },\n  \"analysis_groups\": {\n    \"dexamethasone\": [\n      \"dexamethasone::dexamethasone_rep1\",\n      \"dexamethasone::dexamethasone_rep2\",\n      \"dexamethasone::dexamethasone_rep3\",\n      \"dexamethasone::dexamethasone_rep4\"\n    ],\n    \"untreated\": [\n      \"untreated::untreated_rep1\",\n      \"untreated::untreated_rep2\",\n      \"untreated::untreated_rep3\",\n      \"untreated::untreated_rep4\"\n    ]\n  },\n  \"main_factor\": \"condition\",\n  \"design_formula\": \"~ donor + condition\",\n  \"batch_covariate\": \"donor\",\n  \"paired_covariate_values\": {\n    \"donor\": {\n      \"dexamethasone_rep1\": \"rep1\",\n      \"dexamethasone_rep2\": \"rep2\",\n      \"dexamethasone_rep3\": \"rep3\",\n      \"dexamethasone_rep4\": \"rep4\",\n      \"untreated_rep1\": \"rep1\",\n      \"untreated_rep2\": \"rep2\",\n      \"untreated_rep3\": \"rep3\",\n      \"untreated_rep4\": \"rep4\"\n    }\n  },\n  \"pseudobulk\": {},\n  \"source\": null,\n  \"sample_aliases\": {},\n  \"replicate_handling\": {\n    \"mode\": \"paired_biological_block\",\n    \"source\": \"user_confirmed_cp2.5\",\n    \"aggregation\": \"none\",\n    \"units\": [\n      {\n        \"id\": \"dexamethasone::dexamethasone_rep1\",\n        \"group\": \"dexamethasone\",\n        \"root\": \"dexamethasone_rep1\",\n        \"members\": [\n          \"dexamethasone_rep1\"\n        ]\n      },\n      {\n        \"id\": \"dexamethasone::dexamethasone_rep2\",\n        \"group\": \"dexamethasone\",\n        \"root\": \"dexamethasone_rep2\",\n        \"members\": [\n          \"dexamethasone_rep2\"\n        ]\n      },\n      {\n        \"id\": \"dexamethasone::dexamethasone_rep3\",\n        \"group\": \"dexamethasone\",\n        \"root\": \"dexamethasone_rep3\",\n        \"members\": [\n          \"dexamethasone_rep3\"\n        ]\n      },\n      {\n        \"id\": \"dexamethasone::dexamethasone_rep4\",\n        \"group\": \"dexamethasone\",\n        \"root\": \"dexamethasone_rep4\",\n        \"members\": [\n          \"dexamethasone_rep4\"\n        ]\n      },\n      {\n        \"id\": \"untreated::untreated_rep1\",\n        \"group\": \"untreated\",\n        \"root\": \"untreated_rep1\",\n        \"members\": [\n          \"untreated_rep1\"\n        ]\n      },\n      {\n        \"id\": \"untreated::untreated_rep2\",\n        \"group\": \"untreated\",\n        \"root\": \"untreated_rep2\",\n        \"members\": [\n          \"untreated_rep2\"\n        ]\n      },\n      {\n        \"id\": \"untreated::untreated_rep3\",\n        \"group\": \"untreated\",\n        \"root\": \"untreated_rep3\",\n        \"members\": [\n          \"untreated_rep3\"\n        ]\n      },\n      {\n        \"id\": \"untreated::untreated_rep4\",\n        \"group\": \"untreated\",\n        \"root\": \"untreated_rep4\",\n        \"members\": [\n          \"untreated_rep4\"\n        ]\n      }\n    ],\n    \"sample_to_unit\": {\n      \"dexamethasone_rep1\": \"dexamethasone::dexamethasone_rep1\",\n      \"dexamethasone_rep2\": \"dexamethasone::dexamethasone_rep2\",\n      \"dexamethasone_rep3\": \"dexamethasone::dexamethasone_rep3\",\n      \"dexamethasone_rep4\": \"dexamethasone::dexamethasone_rep4\",\n      \"untreated_rep1\": \"untreated::untreated_rep1\",\n      \"untreated_rep2\": \"untreated::untreated_rep2\",\n      \"untreated_rep3\": \"untreated::untreated_rep3\",\n      \"untreated_rep4\": \"untreated::untreated_rep4\"\n    },\n    \"conflicts\": [],\n    \"pair_covariate\": \"donor\",\n    \"sample_to_pair\": {\n      \"dexamethasone_rep1\": \"rep1\",\n      \"dexamethasone_rep2\": \"rep2\",\n      \"dexamethasone_rep3\": \"rep3\",\n      \"dexamethasone_rep4\": \"rep4\",\n      \"untreated_rep1\": \"rep1\",\n      \"untreated_rep2\": \"rep2\",\n      \"untreated_rep3\": \"rep3\",\n      \"untreated_rep4\": \"rep4\"\n    }\n  },\n  \"experimental_unit\": \"paired_biological_unit\",\n  \"analysis_design_formula\": \"~ donor + condition\",\n  \"replicates\": {\n    \"dexamethasone\": 4,\n    \"untreated\": 4\n  },\n  \"n_input_libraries\": 8,\n  \"n_total_samples\": 8,\n  \"nominal_residual_df\": 3,\n  \"design_status\": \"ready\",\n  \"blocking_groups\": {},\n  \"blocking_reasons\": [],\n  \"confounded_covariates\": []\n}",
+      "id": "5cdf168c",
+      "made_at": "2026-11-26T00:30:45.252785",
+      "made_by": "user",
+      "question": "Experimental design (organism, groups, factor, formula)",
+      "rationale": "User confirmed design interactively",
+      "wing_id": "1a4798f3-6a5"
+    },
+    {
+      "checkpoint": "2.pre",
+      "decision": "2 recommended, 1 optional, 1 unsupported/not recommended, 0 warning(s).",
+      "id": "1a4798f3-6a5_design_intelligence",
+      "made_at": "2026-11-26T00:30:45.401388",
+      "made_by": "design_intelligence",
+      "question": "Design Intelligence assessment",
+      "rationale": "ARIA evaluated modality feasibility, recommended analyses, optional analyses, unsupported analyses, covariates, and design limitations before compute.",
+      "wing_id": "1a4798f3-6a5"
+    },
+    {
+      "checkpoint": "2",
+      "decision": "Run recommended plan only",
+      "id": "50e2fd403bcf4db9bfd239d00fe23f84",
+      "made_at": "2026-11-26T00:30:45.452602",
+      "made_by": "user",
+      "question": "Analysis plan confirmed",
+      "rationale": "User approved analysis plan directly. Optional supported analyses were not added.",
+      "wing_id": "1a4798f3-6a5"
+    },
+    {
+      "checkpoint": "2",
+      "decision": "~ donor + condition",
+      "id": "1a4798f3-design-01",
+      "made_at": "2026-11-26T00:40:18.102555",
+      "made_by": "user",
+      "question": "Experimental design (source: DesignAgent)",
+      "rationale": "User confirmed design interactively.",
+      "wing_id": "1a4798f3-6a5"
+    },
+    {
+      "checkpoint": "1",
+      "decision": "Raw integer counts | DESeq2 median-of-ratios (internal) | \u226510 counts in \u22652 samples",
+      "id": "1a4798f3-auto-01",
+      "made_at": "2026-11-26T00:40:42.297699",
+      "made_by": "bulk_rna_agent (auto)",
+      "question": "Differential expression (DESeq2)",
+      "rationale": "DESeq2 handles library-size normalization internally; external normalization would break the negative-binomial model assumptions.",
+      "wing_id": "1a4798f3-6a5"
+    },
+    {
+      "checkpoint": "0",
+      "decision": "All count-matrix samples | Primary DE retains all samples | Design-safe removal is evaluated only as sensitivity",
+      "id": "1a4798f3-auto-00",
+      "made_at": "2026-11-26T00:40:42.297849",
+      "made_by": "bulk_rna_agent (auto)",
+      "question": "Sample outliers",
+      "rationale": "Automatic pre-DE pruning can turn a null primary result into a significant result; ARIA reports primary and outlier-removal sensitivity separately.",
+      "wing_id": "1a4798f3-6a5"
+    },
+    {
+      "checkpoint": "2",
+      "decision": "VST-transformed counts | Variance-Stabilizing Transformation (pydeseq2) | Top 2000 most-variable protein_coding genes",
+      "id": "1a4798f3-auto-02",
+      "made_at": "2026-11-26T00:40:42.297909",
+      "made_by": "bulk_rna_agent (auto)",
+      "question": "PCA + MDS (sample-level structure)",
+      "rationale": "VST produces homoscedastic values suitable for Euclidean-based methods (DESeq2 authors' recommendation). Protein-coding filter removes pseudogene/ncRNA noise. Variable-gene filter focuses on informative signal.",
+      "wing_id": "1a4798f3-6a5"
+    },
+    {
+      "checkpoint": "3",
+      "decision": "VST (or log2(counts+1) fallback) | Row z-score | 50 most significant DE genes (sorted by padj)",
+      "id": "1a4798f3-auto-03",
+      "made_at": "2026-11-26T00:40:42.297963",
+      "made_by": "bulk_rna_agent (auto)",
+      "question": "Heatmap (padj top 50)",
+      "rationale": "Statistically confident signal; symbol-annotated rows.",
+      "wing_id": "1a4798f3-6a5"
+    },
+    {
+      "checkpoint": "4",
+      "decision": "VST (or log2(counts+1) fallback) | Row z-score | 50 DE genes with largest effect sizes",
+      "id": "1a4798f3-auto-04",
+      "made_at": "2026-11-26T00:40:42.298029",
+      "made_by": "bulk_rna_agent (auto)",
+      "question": "Heatmap (|log2FC| top 50)",
+      "rationale": "Complementary view \u2014 surfaces largest effect sizes, which may not have smallest padj for low-count genes.",
+      "wing_id": "1a4798f3-6a5"
+    },
+    {
+      "checkpoint": "5",
+      "decision": "DE gene symbols | Local hypergeometric test against versioned GMT libraries (Enrichr is opt-in) | padj<0.05 from Wald lfcThreshold test; ORA universe = genes retained after expression filtering",
+      "id": "1a4798f3-auto-05",
+      "made_at": "2026-11-26T00:40:42.298054",
+      "made_by": "bulk_rna_agent (auto)",
+      "question": "Pathway enrichment (ORA)",
+      "rationale": "Standard over-representation for discrete gene lists, computed locally against the dataset-expressed background so the gene list never leaves the machine (W-PRIV); the exact gene-set release is recorded in pathway_ora.gene_set_versions.",
+      "wing_id": "1a4798f3-6a5"
+    },
+    {
+      "checkpoint": "6",
+      "decision": "All DE-tested genes ranked by log2FC | blitzgsea running sum | None (uses full ranking)",
+      "id": "1a4798f3-auto-06",
+      "made_at": "2026-11-26T00:40:42.298094",
+      "made_by": "bulk_rna_agent (auto)",
+      "question": "GSEA (pre-ranked)",
+      "rationale": "More sensitive than ORA to coordinated small effects; complementary to cutoff-based enrichment.",
+      "wing_id": "1a4798f3-6a5"
+    },
+    {
+      "checkpoint": "7",
+      "decision": "Raw counts + exon-union gene lengths | TPM (transcripts per million) | Genes with length annotation in GTF",
+      "id": "1a4798f3-auto-07",
+      "made_at": "2026-11-26T00:40:42.298121",
+      "made_by": "bulk_rna_agent (auto)",
+      "question": "TPM (supplementary export)",
+      "rationale": "Supplementary table for downstream tools that require TPM (ssGSEA, deconvolution). NOT used by ARIA for DE or PCA \u2014 both use more appropriate methods.",
+      "wing_id": "1a4798f3-6a5"
+    },
+    {
+      "checkpoint": "0",
+      "decision": "padj < 0.05, |log2FC| > 1.0",
+      "id": "1a4798f3-auto-00-thr",
+      "made_at": "2026-11-26T00:40:42.298148",
+      "made_by": "User / bulk_rna_agent",
+      "question": "Statistical thresholds for DE significance",
+      "rationale": "|log2FC| threshold provenance: default. The default (1.0) is fixed and prompt-independent; it changes only via an explicit User Checkpoint 3 profile or a versioned global_lfc override (never inferred from the question text).",
+      "wing_id": "1a4798f3-6a5"
+    },
+    {
+      "checkpoint": "0",
+      "decision": "~condition",
+      "id": "1a4798f3-auto-00-design",
+      "made_at": "2026-11-26T00:40:42.298172",
+      "made_by": "bulk_rna_agent (auto)",
+      "question": "DESeq2 design formula",
+      "rationale": "Single-factor design inferred from sample labels. No batch or covariate adjustment applied.",
+      "wing_id": "1a4798f3-6a5"
+    }
+  ],
+  "design": {
+    "analysis_design_formula": "~ donor + condition",
+    "analysis_groups": {
+      "dexamethasone": [
+        "dexamethasone::dexamethasone_rep1",
+        "dexamethasone::dexamethasone_rep2",
+        "dexamethasone::dexamethasone_rep3",
+        "dexamethasone::dexamethasone_rep4"
+      ],
+      "untreated": [
+        "untreated::untreated_rep1",
+        "untreated::untreated_rep2",
+        "untreated::untreated_rep3",
+        "untreated::untreated_rep4"
+      ]
+    },
+    "batch_covariate": "donor",
+    "blocking_groups": {},
+    "blocking_reasons": [],
+    "confounded_covariates": [],
+    "design_formula": "~ donor + condition",
+    "design_status": "ready",
+    "experimental_unit": "paired_biological_unit",
+    "genome": "hg38",
+    "groups": {
+      "dexamethasone": [
+        "dexamethasone_rep1",
+        "dexamethasone_rep2",
+        "dexamethasone_rep3",
+        "dexamethasone_rep4"
+      ],
+      "untreated": [
+        "untreated_rep1",
+        "untreated_rep2",
+        "untreated_rep3",
+        "untreated_rep4"
+      ]
+    },
+    "main_factor": "condition",
+    "n_input_libraries": 8,
+    "n_total_samples": 8,
+    "nominal_residual_df": 3,
+    "organism": "Homo sapiens",
+    "paired_covariate_values": {
+      "donor": {
+        "dexamethasone_rep1": "rep1",
+        "dexamethasone_rep2": "rep2",
+        "dexamethasone_rep3": "rep3",
+        "dexamethasone_rep4": "rep4",
+        "untreated_rep1": "rep1",
+        "untreated_rep2": "rep2",
+        "untreated_rep3": "rep3",
+        "untreated_rep4": "rep4"
+      }
+    },
+    "plan_contrasts": [
+      {
+        "denominator": "untreated",
+        "numerator": "dexamethasone"
+      }
+    ],
+    "pseudobulk": {},
+    "replicate_handling": {
+      "aggregation": "none",
+      "conflicts": [],
+      "mode": "paired_biological_block",
+      "pair_covariate": "donor",
+      "sample_to_pair": {
+        "dexamethasone_rep1": "rep1",
+        "dexamethasone_rep2": "rep2",
+        "dexamethasone_rep3": "rep3",
+        "dexamethasone_rep4": "rep4",
+        "untreated_rep1": "rep1",
+        "untreated_rep2": "rep2",
+        "untreated_rep3": "rep3",
+        "untreated_rep4": "rep4"
+      },
+      "sample_to_unit": {
+        "dexamethasone_rep1": "dexamethasone::dexamethasone_rep1",
+        "dexamethasone_rep2": "dexamethasone::dexamethasone_rep2",
+        "dexamethasone_rep3": "dexamethasone::dexamethasone_rep3",
+        "dexamethasone_rep4": "dexamethasone::dexamethasone_rep4",
+        "untreated_rep1": "untreated::untreated_rep1",
+        "untreated_rep2": "untreated::untreated_rep2",
+        "untreated_rep3": "untreated::untreated_rep3",
+        "untreated_rep4": "untreated::untreated_rep4"
+      },
+      "source": "user_confirmed_cp2.5",
+      "units": [
+        {
+          "group": "dexamethasone",
+          "id": "dexamethasone::dexamethasone_rep1",
+          "members": [
+            "dexamethasone_rep1"
+          ],
+          "root": "dexamethasone_rep1"
+        },
+        {
+          "group": "dexamethasone",
+          "id": "dexamethasone::dexamethasone_rep2",
+          "members": [
+            "dexamethasone_rep2"
+          ],
+          "root": "dexamethasone_rep2"
+        },
+        {
+          "group": "dexamethasone",
+          "id": "dexamethasone::dexamethasone_rep3",
+          "members": [
+            "dexamethasone_rep3"
+          ],
+          "root": "dexamethasone_rep3"
+        },
+        {
+          "group": "dexamethasone",
+          "id": "dexamethasone::dexamethasone_rep4",
+          "members": [
+            "dexamethasone_rep4"
+          ],
+          "root": "dexamethasone_rep4"
+        },
+        {
+          "group": "untreated",
+          "id": "untreated::untreated_rep1",
+          "members": [
+            "untreated_rep1"
+          ],
+          "root": "untreated_rep1"
+        },
+        {
+          "group": "untreated",
+          "id": "untreated::untreated_rep2",
+          "members": [
+            "untreated_rep2"
+          ],
+          "root": "untreated_rep2"
+        },
+        {
+          "group": "untreated",
+          "id": "untreated::untreated_rep3",
+          "members": [
+            "untreated_rep3"
+          ],
+          "root": "untreated_rep3"
+        },
+        {
+          "group": "untreated",
+          "id": "untreated::untreated_rep4",
+          "members": [
+            "untreated_rep4"
+          ],
+          "root": "untreated_rep4"
+        }
+      ]
+    },
+    "replicates": {
+      "dexamethasone": 4,
+      "untreated": 4
+    },
+    "sample_aliases": {},
+    "source": null
+  },
+  "design_intelligence": {
+    "optional": [
+      "PCA/sample-distance QC and pathway enrichment after DE."
+    ],
+    "profiles": [
+      {
+        "modality": "bulk_RNA_raw",
+        "optional": [
+          "PCA/sample-distance QC and pathway enrichment after DE."
+        ],
+        "recommended": [
+          "Bulk RNA DESeq2 differential expression with biological replicates.",
+          "FASTQ QC/quantification before DE."
+        ],
+        "unsupported": [],
+        "warnings": []
+      }
+    ],
+    "recommended": [
+      "Bulk RNA DESeq2 differential expression with biological replicates.",
+      "FASTQ QC/quantification before DE."
+    ],
+    "status": "success",
+    "summary": "2 recommended, 1 optional, 1 unsupported/not recommended, 0 warning(s).",
+    "unsupported": [
+      "Multimodal integration is not supported with a single detected modality."
+    ],
+    "warnings": []
+  },
+  "devils_advocate": [
+    {
+      "challenges": [
+        {
+          "addressed": false,
+          "alternative": "batch_effect",
+          "basis": "no batch covariate was modeled in the design"
+        },
+        {
+          "addressed": true,
+          "alternative": "low_replication",
+          "basis": "replicate support met the floor"
+        }
+      ],
+      "claim_id": "bulk.contrast.dexamethasone_vs_untreated",
+      "tier": "associative",
+      "unaddressed": [
+        "batch_effect"
+      ]
+    },
+    {
+      "challenges": [
+        {
+          "addressed": false,
+          "alternative": "batch_effect",
+          "basis": "no batch covariate was modeled in the design"
+        },
+        {
+          "addressed": true,
+          "alternative": "low_replication",
+          "basis": "replicate support met the floor"
+        }
+      ],
+      "claim_id": "bulk.gsea.dexamethasone_vs_untreated",
+      "tier": "associative",
+      "unaddressed": [
+        "batch_effect"
+      ]
+    }
+  ],
+  "falsification_certificates": {
+    "causal_promotion_from_robustness": false,
+    "certificates": [
+      {
+        "analysis": "executive_summary",
+        "block_preserving_permutation_null": {
+          "null_family": "none",
+          "status": "not_applicable_descriptive"
+        },
+        "claim_id": "executive_summary",
+        "design_aliasing_and_unit_audit": {
+          "batch_covariate_modeled": true,
+          "causal_promotion_permitted": false,
+          "cell_level_pseudoreplication_blocked": true,
+          "low_power_n2_warning": false,
+          "technical_replicates_aggregated": false
+        },
+        "feeds_into_parameter_selection": false,
+        "lobo_biological_unit_jackknife": {
+          "biological_unit": "biological_replicate",
+          "status": "not_applicable_descriptive"
+        },
+        "specification_multiverse_stability": {
+          "status": "single_pre_committed_specification",
+          "threshold_provenance": "default"
+        },
+        "tier": "descriptive"
+      },
+      {
+        "analysis": "preprocessing",
+        "block_preserving_permutation_null": {
+          "null_family": "none",
+          "status": "not_applicable_descriptive"
+        },
+        "claim_id": "bulk.preprocessing",
+        "design_aliasing_and_unit_audit": {
+          "batch_covariate_modeled": true,
+          "causal_promotion_permitted": false,
+          "cell_level_pseudoreplication_blocked": true,
+          "low_power_n2_warning": false,
+          "technical_replicates_aggregated": false
+        },
+        "feeds_into_parameter_selection": false,
+        "lobo_biological_unit_jackknife": {
+          "biological_unit": "biological_replicate",
+          "status": "not_applicable_descriptive"
+        },
+        "specification_multiverse_stability": {
+          "status": "single_pre_committed_specification",
+          "threshold_provenance": "default"
+        },
+        "tier": "descriptive"
+      },
+      {
+        "analysis": "sample_qc",
+        "block_preserving_permutation_null": {
+          "null_family": "none",
+          "status": "not_applicable_descriptive"
+        },
+        "claim_id": "bulk.qc",
+        "design_aliasing_and_unit_audit": {
+          "batch_covariate_modeled": true,
+          "causal_promotion_permitted": false,
+          "cell_level_pseudoreplication_blocked": true,
+          "low_power_n2_warning": false,
+          "technical_replicates_aggregated": false
+        },
+        "feeds_into_parameter_selection": false,
+        "lobo_biological_unit_jackknife": {
+          "biological_unit": "biological_replicate",
+          "status": "not_applicable_descriptive"
+        },
+        "specification_multiverse_stability": {
+          "status": "single_pre_committed_specification",
+          "threshold_provenance": "default"
+        },
+        "tier": "descriptive"
+      },
+      {
+        "analysis": "differential_expression",
+        "block_preserving_permutation_null": {
+          "null_family": "empirical_bayes_wald_or_moderated_ols_bh_fdr",
+          "status": "parametric_bh_only"
+        },
+        "claim_id": "bulk.contrast.dexamethasone_vs_untreated",
+        "design_aliasing_and_unit_audit": {
+          "batch_covariate_modeled": true,
+          "causal_promotion_permitted": false,
+          "cell_level_pseudoreplication_blocked": true,
+          "low_power_n2_warning": false,
+          "technical_replicates_aggregated": false
+        },
+        "feeds_into_parameter_selection": false,
+        "lobo_biological_unit_jackknife": {
+          "biological_unit": "biological_replicate",
+          "lobo_stable_fraction": 1.0,
+          "n_contrasts_measured": 1,
+          "n_features_evaluated": 22,
+          "n_features_lobo_stable": 22,
+          "n_jackknife_folds": 8,
+          "n_single_unit_driven": 0,
+          "status": "measured"
+        },
+        "specification_multiverse_stability": {
+          "status": "single_pre_committed_specification",
+          "threshold_provenance": "default"
+        },
+        "tier": "associative"
+      },
+      {
+        "analysis": "gsea_preranked",
+        "block_preserving_permutation_null": {
+          "null_family": "none",
+          "status": "not_applicable_descriptive"
+        },
+        "claim_id": "bulk.gsea.dexamethasone_vs_untreated",
+        "design_aliasing_and_unit_audit": {
+          "batch_covariate_modeled": true,
+          "causal_promotion_permitted": false,
+          "cell_level_pseudoreplication_blocked": true,
+          "low_power_n2_warning": false,
+          "technical_replicates_aggregated": false
+        },
+        "feeds_into_parameter_selection": false,
+        "lobo_biological_unit_jackknife": {
+          "biological_unit": "biological_replicate",
+          "n_arm_min": 4,
+          "status": "eligible_not_executed"
+        },
+        "specification_multiverse_stability": {
+          "status": "single_pre_committed_specification",
+          "threshold_provenance": "default"
+        },
+        "tier": "associative"
+      },
+      {
+        "analysis": "power",
+        "block_preserving_permutation_null": {
+          "null_family": "none",
+          "status": "not_applicable_descriptive"
+        },
+        "claim_id": "bulk.power",
+        "design_aliasing_and_unit_audit": {
+          "batch_covariate_modeled": true,
+          "causal_promotion_permitted": false,
+          "cell_level_pseudoreplication_blocked": true,
+          "low_power_n2_warning": false,
+          "technical_replicates_aggregated": false
+        },
+        "feeds_into_parameter_selection": false,
+        "lobo_biological_unit_jackknife": {
+          "biological_unit": "biological_replicate",
+          "status": "not_applicable_descriptive"
+        },
+        "specification_multiverse_stability": {
+          "status": "single_pre_committed_specification",
+          "threshold_provenance": "default"
+        },
+        "tier": "descriptive"
+      }
+    ],
+    "feeds_into_parameter_selection": false,
+    "n_certificates": 6,
+    "scalar_fragility_score_emitted": false,
+    "schema_version": "aria.falsification_certificates.v1"
+  },
+  "inputs": [
+    {
+      "modality": "bulk_RNA_raw",
+      "path": "untreated_rep4_R2.fastq.gz",
+      "sha256": "e7cca50406548895acf2a5deb84fa5cbc1d4ab78f3d6595f3b6924e04a403f08",
+      "size_bytes": 13301174
+    },
+    {
+      "modality": "bulk_RNA_raw",
+      "path": "dexamethasone_rep3_R2.fastq.gz",
+      "sha256": "4f36ef81542ff6ee907a46b491c2807069debf96d31cc9163717677d353b66d8",
+      "size_bytes": 14461397
+    },
+    {
+      "modality": "bulk_RNA_raw",
+      "path": "dexamethasone_rep1_R2.fastq.gz",
+      "sha256": "bd183ca98113a05440f7e30d70ad9ca899222874346e1d28b4ac025ed6d2dff1",
+      "size_bytes": 13229210
+    },
+    {
+      "modality": "bulk_RNA_raw",
+      "path": "dexamethasone_rep2_R2.fastq.gz",
+      "sha256": "7ca5b4d86afcf325816f4152855b9d237585ada78b59d64338899ecfa89e7472",
+      "size_bytes": 13275526
+    },
+    {
+      "modality": "bulk_RNA_raw",
+      "path": "dexamethasone_rep2_R1.fastq.gz",
+      "sha256": "6880ae8f31d05160638e7948f6ff4a17751bf5c88589a254f6c49395528031b2",
+      "size_bytes": 13183802
+    },
+    {
+      "modality": "bulk_RNA_raw",
+      "path": "untreated_rep1_R2.fastq.gz",
+      "sha256": "f5a4e6acc497c12b78292800e6b0f4776b8b879396e66dc4cb8572433a5707e6",
+      "size_bytes": 13032053
+    },
+    {
+      "modality": "bulk_RNA_raw",
+      "path": "untreated_rep3_R2.fastq.gz",
+      "sha256": "8504958d380667e40cec502422b88499459d0551ea83046deee0e45c7ebc38d3",
+      "size_bytes": 13225146
+    },
+    {
+      "modality": "bulk_RNA_raw",
+      "path": "untreated_rep3_R1.fastq.gz",
+      "sha256": "5fbee1a2c1c433505e12970b7e8db555ba5e967464776fcf45095a713710e6c2",
+      "size_bytes": 13060742
+    },
+    {
+      "modality": "bulk_RNA_raw",
+      "path": "untreated_rep2_R1.fastq.gz",
+      "sha256": "bc7b1821771218564bf3dc6ceef54b6ae80860f5bd239abb8c2232b73e607c6e",
+      "size_bytes": 13735329
+    },
+    {
+      "modality": "bulk_RNA_raw",
+      "path": "untreated_rep4_R1.fastq.gz",
+      "sha256": "b21425d623094a5dbe80df6614b4c7120198dade6af1e46bdf5852fcba7a53a1",
+      "size_bytes": 13212798
+    },
+    {
+      "modality": "bulk_RNA_raw",
+      "path": "dexamethasone_rep4_R2.fastq.gz",
+      "sha256": "c2a41b371eec3489532d2596b58287eda8a23fb6cb430c902a928f255b7be1e9",
+      "size_bytes": 13326759
+    },
+    {
+      "modality": "bulk_RNA_raw",
+      "path": "untreated_rep2_R2.fastq.gz",
+      "sha256": "1871199ece7a2e6349d1cbfe551789f1194f2bb6cdf3c99f1d30aaa9209cfe0b",
+      "size_bytes": 13879452
+    },
+    {
+      "modality": "bulk_RNA_raw",
+      "path": "dexamethasone_rep3_R1.fastq.gz",
+      "sha256": "6d617ee92a4ed859919915947d7351502f7b81222f4006af560f8b4abd54ffd4",
+      "size_bytes": 14341373
+    },
+    {
+      "modality": "bulk_RNA_raw",
+      "path": "dexamethasone_rep1_R1.fastq.gz",
+      "sha256": "3611e84670f2cd23c8c78651c1da9ae640e8a310a19a6abbc46c3aacf9f67335",
+      "size_bytes": 13149559
+    },
+    {
+      "modality": "bulk_RNA_raw",
+      "path": "untreated_rep1_R1.fastq.gz",
+      "sha256": "5a3de7a4efadee493cb4ef8d98cce05217e70af32421826f68c61eba1c850231",
+      "size_bytes": 13153585
+    },
+    {
+      "modality": "bulk_RNA_raw",
+      "path": "dexamethasone_rep4_R1.fastq.gz",
+      "sha256": "bb851b0c1a14a6a687cf324ac870be15569705c1ddf91405f4e937017943281c",
+      "size_bytes": 13237122
+    }
+  ],
+  "llm_usage": {
+    "by_model": {},
+    "cache_hits": 0,
+    "calls": 0,
+    "completion_tokens": 0,
+    "degraded": false,
+    "deterministic": null,
+    "estimated_cost_usd": 0.0,
+    "fallback_calls": 0,
+    "fallbacks": [],
+    "models": [],
+    "prompt_tokens": 0,
+    "seed": null,
+    "seed_applied": null,
+    "seed_deterministic": null,
+    "temperature": null,
+    "temperature_controlled": null,
+    "tiers": [],
+    "total_tokens": 0
+  },
+  "narrative_blocks": [
+    {
+      "analysis": "executive_summary",
+      "block_type": "summary",
+      "caveats": [
+        {
+          "severity": "warning",
+          "text": "Executive summary governance: free-text summary failed unsupported numeric claims checks; deterministic fallback shown."
+        }
+      ],
+      "claim": "ARIA completed the submitted analysis. 7 findings were recorded across all modalities, of which 0 reached HIGH confidence. See the governed claim ledger below for published results.",
+      "confidence": "medium",
+      "error": null,
+      "evidence": [
+        {
+          "facts": [],
+          "label": "concrete pipeline results",
+          "path": null,
+          "source": "agent_results",
+          "value": "BULK RNA-seq: 1 contrast(s) ran successfully (DESeq2 completed, not just QC/alignment).\n  \u2022 dexamethasone vs untreated: 22 DE genes (19 up, 3 down). Top: GPX3(\u21913.5), SAMHD1(\u21913.6), GLUL(\u21912.9), ADAMTS1(\u21912.1), CXCL12(\u21932.0), FKBP5(\u21914.3).\n  \u2022 Sample QC: 8 samples, library-size range 1.0\u00d7, 0 outliers flagged; primary retained all samples; sensitivity removed 0."
+        },
+        {
+          "facts": [],
+          "label": "findings recorded",
+          "path": null,
+          "source": "message_bus",
+          "value": 7
+        },
+        {
+          "facts": [],
+          "label": "high-confidence findings",
+          "path": null,
+          "source": "message_bus",
+          "value": 0
+        },
+        {
+          "facts": [],
+          "label": "narrative blocks summarized",
+          "path": null,
+          "source": "narrative_registry",
+          "value": 6
+        },
+        {
+          "facts": [],
+          "label": "allowed confidence labels",
+          "path": null,
+          "source": "report_policy",
+          "value": "HIGH MEDIUM LOW INSUFFICIENT"
+        }
+      ],
+      "figures": [],
+      "id": "executive_summary",
+      "metadata": {
+        "claim": {
+          "causal_license": {
+            "contrast": null,
+            "estimand_id": null,
+            "licensed": false,
+            "reason": "missing_block_estimand"
+          },
+          "evidence_categories": [
+            "descriptive"
+          ],
+          "language_violation": null,
+          "licensed_language": "descriptive",
+          "limitations": [
+            "Executive summary governance: free-text summary failed unsupported numeric claims checks; deterministic fallback shown."
+          ],
+          "rationale": "Descriptive summary (QC/counts); no between-condition claim.",
+          "tier": "descriptive"
+        },
+        "claim_verification": {
+          "checked_sentences": 3,
+          "evidence_card": {
+            "evidence_card_id": "executive_summary#evidence",
+            "n_refs": 8,
+            "node_type": "evidence_card",
+            "provenance": {
+              "analysis": "executive_summary",
+              "block_id": "executive_summary",
+              "modality": "report",
+              "sources": [
+                "agent_results",
+                "message_bus",
+                "narrative_registry",
+                "report_policy"
+              ]
+            },
+            "refs": [
+              {
+                "kind": "evidence",
+                "label": "concrete pipeline results",
+                "path": null,
+                "ref_id": "executive_summary:evidence:0",
+                "source": "agent_results",
+                "value": "BULK RNA-seq: 1 contrast(s) ran successfully (DESeq2 completed, not just QC/alignment).\n  \u2022 dexamethasone vs untreated: 22 DE genes (19 up, 3 down). Top: GPX3(\u21913.5), SAMHD1(\u21913.6), GLUL(\u21912.9), ADAMTS1(\u21912.1), CXCL12(\u21932.0), FKBP5(\u21914.3).\n  \u2022 Sample QC: 8 samples, library-size range 1.0\u00d7, 0 outliers flagged; primary retained all samples; sensitivity removed 0."
+              },
+              {
+                "kind": "evidence",
+                "label": "findings recorded",
+                "path": null,
+                "ref_id": "executive_summary:evidence:1",
+                "source": "message_bus",
+                "value": 7
+              },
+              {
+                "kind": "evidence",
+                "label": "high-confidence findings",
+                "path": null,
+                "ref_id": "executive_summary:evidence:2",
+                "source": "message_bus",
+                "value": 0
+              },
+              {
+                "kind": "evidence",
+                "label": "narrative blocks summarized",
+                "path": null,
+                "ref_id": "executive_summary:evidence:3",
+                "source": "narrative_registry",
+                "value": 6
+              },
+              {
+                "kind": "evidence",
+                "label": "allowed confidence labels",
+                "path": null,
+                "ref_id": "executive_summary:evidence:4",
+                "source": "report_policy",
+                "value": "HIGH MEDIUM LOW INSUFFICIENT"
+              },
+              {
+                "kind": "metric",
+                "label": "n_findings",
+                "ref_id": "executive_summary:metric:n_findings",
+                "value": 7
+              },
+              {
+                "kind": "metric",
+                "label": "n_high_confidence",
+                "ref_id": "executive_summary:metric:n_high_confidence",
+                "value": 0
+              },
+              {
+                "kind": "metric",
+                "label": "n_narrative_blocks_summarized",
+                "ref_id": "executive_summary:metric:n_narrative_blocks_summarized",
+                "value": 6
+              }
+            ],
+            "semantic_facts": []
+          },
+          "policy": "Every ARIA-authored claim sentence must be backed by structured evidence, metrics, tables, figures, or an explicitly licensed analysis family.",
+          "status": "supported",
+          "unsupported": []
+        },
+        "render_surface": "executive_summary"
+      },
+      "methods": [],
+      "metrics": {
+        "n_findings": 7,
+        "n_high_confidence": 0,
+        "n_narrative_blocks_summarized": 6
+      },
+      "modality": "report",
+      "status": "success",
+      "tables": [],
+      "title": "Executive Summary",
+      "warnings": []
+    },
+    {
+      "analysis": "preprocessing",
+      "block_type": "qc",
+      "caveats": [],
+      "claim": "Raw FASTQ preprocessing (full_length) quantified 16551 genes across 8 samples.",
+      "confidence": "high",
+      "error": null,
+      "evidence": [
+        {
+          "facts": [],
+          "label": "library protocol",
+          "path": null,
+          "source": "bulk_preprocessing",
+          "value": "full_length"
+        },
+        {
+          "facts": [],
+          "label": "samples quantified",
+          "path": null,
+          "source": "bulk_preprocessing",
+          "value": 8
+        },
+        {
+          "facts": [],
+          "label": "genes quantified",
+          "path": null,
+          "source": "bulk_preprocessing",
+          "value": 16551
+        },
+        {
+          "facts": [],
+          "label": "read layout",
+          "path": null,
+          "source": "bulk_preprocessing",
+          "value": "paired-end"
+        },
+        {
+          "facts": [],
+          "label": "featureCounts strand",
+          "path": null,
+          "source": "bulk_preprocessing",
+          "value": 0
+        },
+        {
+          "facts": [],
+          "label": "mean reads passed QC (%)",
+          "path": null,
+          "source": "fastp",
+          "value": 95.8
+        },
+        {
+          "facts": [],
+          "label": "mean unique STAR mapping (%)",
+          "path": null,
+          "source": "star",
+          "value": 95.5
+        },
+        {
+          "facts": [],
+          "label": "exon assignment rate (%)",
+          "path": null,
+          "source": "featurecounts",
+          "value": 80.1
+        }
+      ],
+      "figures": [],
+      "id": "bulk.preprocessing",
+      "metadata": {
+        "claim": {
+          "causal_license": {
+            "contrast": null,
+            "estimand_id": null,
+            "licensed": false,
+            "reason": "missing_block_estimand"
+          },
+          "evidence_categories": [
+            "descriptive"
+          ],
+          "language_violation": null,
+          "licensed_language": "descriptive",
+          "limitations": [],
+          "rationale": "Descriptive summary (QC/counts); no between-condition claim.",
+          "tier": "descriptive"
+        },
+        "claim_verification": {
+          "checked_sentences": 1,
+          "evidence_card": {
+            "evidence_card_id": "bulk.preprocessing#evidence",
+            "n_refs": 14,
+            "node_type": "evidence_card",
+            "provenance": {
+              "analysis": "preprocessing",
+              "block_id": "bulk.preprocessing",
+              "modality": "bulk RNA-seq",
+              "sources": [
+                "bulk_preprocessing",
+                "fastp",
+                "featurecounts",
+                "star"
+              ]
+            },
+            "refs": [
+              {
+                "kind": "evidence",
+                "label": "library protocol",
+                "path": null,
+                "ref_id": "bulk.preprocessing:evidence:0",
+                "source": "bulk_preprocessing",
+                "value": "full_length"
+              },
+              {
+                "kind": "evidence",
+                "label": "samples quantified",
+                "path": null,
+                "ref_id": "bulk.preprocessing:evidence:1",
+                "source": "bulk_preprocessing",
+                "value": 8
+              },
+              {
+                "kind": "evidence",
+                "label": "genes quantified",
+                "path": null,
+                "ref_id": "bulk.preprocessing:evidence:2",
+                "source": "bulk_preprocessing",
+                "value": 16551
+              },
+              {
+                "kind": "evidence",
+                "label": "read layout",
+                "path": null,
+                "ref_id": "bulk.preprocessing:evidence:3",
+                "source": "bulk_preprocessing",
+                "value": "paired-end"
+              },
+              {
+                "kind": "evidence",
+                "label": "featureCounts strand",
+                "path": null,
+                "ref_id": "bulk.preprocessing:evidence:4",
+                "source": "bulk_preprocessing",
+                "value": 0
+              },
+              {
+                "kind": "evidence",
+                "label": "mean reads passed QC (%)",
+                "path": null,
+                "ref_id": "bulk.preprocessing:evidence:5",
+                "source": "fastp",
+                "value": 95.8
+              },
+              {
+                "kind": "evidence",
+                "label": "mean unique STAR mapping (%)",
+                "path": null,
+                "ref_id": "bulk.preprocessing:evidence:6",
+                "source": "star",
+                "value": 95.5
+              },
+              {
+                "kind": "evidence",
+                "label": "exon assignment rate (%)",
+                "path": null,
+                "ref_id": "bulk.preprocessing:evidence:7",
+                "source": "featurecounts",
+                "value": 80.1
+              },
+              {
+                "kind": "metric",
+                "label": "protocol",
+                "ref_id": "bulk.preprocessing:metric:protocol",
+                "value": "full_length"
+              },
+              {
+                "kind": "metric",
+                "label": "n_samples",
+                "ref_id": "bulk.preprocessing:metric:n_samples",
+                "value": 8
+              },
+              {
+                "kind": "metric",
+                "label": "n_genes",
+                "ref_id": "bulk.preprocessing:metric:n_genes",
+                "value": 16551
+              },
+              {
+                "kind": "metric",
+                "label": "strand_used",
+                "ref_id": "bulk.preprocessing:metric:strand_used",
+                "value": 0
+              },
+              {
+                "kind": "metric",
+                "label": "mean_pass_pct",
+                "ref_id": "bulk.preprocessing:metric:mean_pass_pct",
+                "value": 95.8
+              },
+              {
+                "kind": "metric",
+                "label": "mean_unique_pct",
+                "ref_id": "bulk.preprocessing:metric:mean_unique_pct",
+                "value": 95.5
+              }
+            ],
+            "semantic_facts": []
+          },
+          "policy": "Every ARIA-authored claim sentence must be backed by structured evidence, metrics, tables, figures, or an explicitly licensed analysis family.",
+          "status": "supported",
+          "unsupported": []
+        }
+      },
+      "methods": [],
+      "metrics": {
+        "mean_pass_pct": 95.8,
+        "mean_unique_pct": 95.5,
+        "n_genes": 16551,
+        "n_samples": 8,
+        "protocol": "full_length",
+        "strand_used": 0
+      },
+      "modality": "bulk RNA-seq",
+      "status": "success",
+      "tables": [],
+      "title": "Bulk RNA raw FASTQ preprocessing",
+      "warnings": []
+    },
+    {
+      "analysis": "sample_qc",
+      "block_type": "qc",
+      "caveats": [],
+      "claim": "Bulk RNA sample QC evaluated 8 samples with 0 outlier(s) flagged; primary DE retained all samples and sensitivity removed 0.",
+      "confidence": "high",
+      "error": null,
+      "evidence": [
+        {
+          "facts": [],
+          "label": "samples",
+          "path": null,
+          "source": "sample_qc",
+          "value": 8
+        },
+        {
+          "facts": [],
+          "label": "library-size range",
+          "path": null,
+          "source": "sample_qc",
+          "value": 1.0
+        },
+        {
+          "facts": [],
+          "label": "outliers flagged",
+          "path": null,
+          "source": "sample_qc",
+          "value": 0
+        },
+        {
+          "facts": [],
+          "label": "outliers removed primary",
+          "path": null,
+          "source": "sample_qc",
+          "value": 0
+        },
+        {
+          "facts": [],
+          "label": "outliers removed sensitivity",
+          "path": null,
+          "source": "sample_qc",
+          "value": 0
+        }
+      ],
+      "figures": [
+        {
+          "caption": "pca plot",
+          "id": "pca_plot",
+          "path": "pca.svg"
+        },
+        {
+          "caption": "mds plot",
+          "id": "mds_plot",
+          "path": "mds.svg"
+        }
+      ],
+      "id": "bulk.qc",
+      "metadata": {
+        "claim": {
+          "causal_license": {
+            "contrast": null,
+            "estimand_id": null,
+            "licensed": false,
+            "reason": "missing_block_estimand"
+          },
+          "evidence_categories": [
+            "descriptive"
+          ],
+          "language_violation": null,
+          "licensed_language": "descriptive",
+          "limitations": [],
+          "rationale": "Descriptive summary (QC/counts); no between-condition claim.",
+          "tier": "descriptive"
+        },
+        "claim_verification": {
+          "checked_sentences": 2,
+          "evidence_card": {
+            "evidence_card_id": "bulk.qc#evidence",
+            "n_refs": 11,
+            "node_type": "evidence_card",
+            "provenance": {
+              "analysis": "sample_qc",
+              "block_id": "bulk.qc",
+              "modality": "bulk RNA-seq",
+              "sources": [
+                "sample_qc"
+              ]
+            },
+            "refs": [
+              {
+                "kind": "evidence",
+                "label": "samples",
+                "path": null,
+                "ref_id": "bulk.qc:evidence:0",
+                "source": "sample_qc",
+                "value": 8
+              },
+              {
+                "kind": "evidence",
+                "label": "library-size range",
+                "path": null,
+                "ref_id": "bulk.qc:evidence:1",
+                "source": "sample_qc",
+                "value": 1.0
+              },
+              {
+                "kind": "evidence",
+                "label": "outliers flagged",
+                "path": null,
+                "ref_id": "bulk.qc:evidence:2",
+                "source": "sample_qc",
+                "value": 0
+              },
+              {
+                "kind": "evidence",
+                "label": "outliers removed primary",
+                "path": null,
+                "ref_id": "bulk.qc:evidence:3",
+                "source": "sample_qc",
+                "value": 0
+              },
+              {
+                "kind": "evidence",
+                "label": "outliers removed sensitivity",
+                "path": null,
+                "ref_id": "bulk.qc:evidence:4",
+                "source": "sample_qc",
+                "value": 0
+              },
+              {
+                "kind": "metric",
+                "label": "n_samples",
+                "ref_id": "bulk.qc:metric:n_samples",
+                "value": 8
+              },
+              {
+                "kind": "metric",
+                "label": "n_outliers",
+                "ref_id": "bulk.qc:metric:n_outliers",
+                "value": 0
+              },
+              {
+                "kind": "metric",
+                "label": "n_outliers_removed_primary",
+                "ref_id": "bulk.qc:metric:n_outliers_removed_primary",
+                "value": 0
+              },
+              {
+                "kind": "metric",
+                "label": "n_outliers_removed_sensitivity",
+                "ref_id": "bulk.qc:metric:n_outliers_removed_sensitivity",
+                "value": 0
+              },
+              {
+                "kind": "figure",
+                "label": "pca plot",
+                "path": "pca.svg",
+                "ref_id": "bulk.qc:figure:0"
+              },
+              {
+                "kind": "figure",
+                "label": "mds plot",
+                "path": "mds.svg",
+                "ref_id": "bulk.qc:figure:1"
+              }
+            ],
+            "semantic_facts": []
+          },
+          "policy": "Every ARIA-authored claim sentence must be backed by structured evidence, metrics, tables, figures, or an explicitly licensed analysis family.",
+          "status": "supported",
+          "unsupported": []
+        }
+      },
+      "methods": [],
+      "metrics": {
+        "n_outliers": 0,
+        "n_outliers_removed_primary": 0,
+        "n_outliers_removed_sensitivity": 0,
+        "n_samples": 8
+      },
+      "modality": "bulk RNA-seq",
+      "status": "success",
+      "tables": [],
+      "title": "Bulk RNA sample QC",
+      "warnings": []
+    },
+    {
+      "analysis": "differential_expression",
+      "block_type": "result",
+      "caveats": [
+        {
+          "severity": "info",
+          "text": "Alternative technical explanations not ruled out: batch_effect. Interpret the association with these confounders in mind."
+        }
+      ],
+      "claim": "Bulk contrast dexamethasone vs untreated had 22 DE genes.",
+      "confidence": "medium",
+      "error": null,
+      "evidence": [
+        {
+          "facts": [],
+          "label": "DE genes",
+          "path": null,
+          "source": "bulk_de",
+          "value": 22
+        },
+        {
+          "facts": [],
+          "label": "up genes",
+          "path": null,
+          "source": "bulk_de",
+          "value": 19
+        },
+        {
+          "facts": [],
+          "label": "down genes",
+          "path": null,
+          "source": "bulk_de",
+          "value": 3
+        },
+        {
+          "facts": [
+            {
+              "aliases": [],
+              "polarity": "affirmed",
+              "predicate": "differential_expression",
+              "source": "bulk_de",
+              "subject": "GPX3",
+              "subject_type": "gene",
+              "value": 3.535
+            }
+          ],
+          "label": "top gene GPX3",
+          "path": null,
+          "source": "bulk_de",
+          "value": 3.535
+        },
+        {
+          "facts": [
+            {
+              "aliases": [],
+              "polarity": "affirmed",
+              "predicate": "differential_expression",
+              "source": "bulk_de",
+              "subject": "SAMHD1",
+              "subject_type": "gene",
+              "value": 3.578
+            }
+          ],
+          "label": "top gene SAMHD1",
+          "path": null,
+          "source": "bulk_de",
+          "value": 3.578
+        },
+        {
+          "facts": [
+            {
+              "aliases": [],
+              "polarity": "affirmed",
+              "predicate": "differential_expression",
+              "source": "bulk_de",
+              "subject": "GLUL",
+              "subject_type": "gene",
+              "value": 2.87
+            }
+          ],
+          "label": "top gene GLUL",
+          "path": null,
+          "source": "bulk_de",
+          "value": 2.87
+        },
+        {
+          "facts": [
+            {
+              "aliases": [],
+              "polarity": "affirmed",
+              "predicate": "differential_expression",
+              "source": "bulk_de",
+              "subject": "ADAMTS1",
+              "subject_type": "gene",
+              "value": 2.093
+            }
+          ],
+          "label": "top gene ADAMTS1",
+          "path": null,
+          "source": "bulk_de",
+          "value": 2.093
+        },
+        {
+          "facts": [
+            {
+              "aliases": [],
+              "polarity": "affirmed",
+              "predicate": "differential_expression",
+              "source": "bulk_de",
+              "subject": "CXCL12",
+              "subject_type": "gene",
+              "value": -2.041
+            }
+          ],
+          "label": "top gene CXCL12",
+          "path": null,
+          "source": "bulk_de",
+          "value": -2.041
+        },
+        {
+          "facts": [
+            {
+              "aliases": [],
+              "polarity": "affirmed",
+              "predicate": "differential_expression",
+              "source": "bulk_de",
+              "subject": "FKBP5",
+              "subject_type": "gene",
+              "value": 4.334
+            }
+          ],
+          "label": "top gene FKBP5",
+          "path": null,
+          "source": "bulk_de",
+          "value": 4.334
+        }
+      ],
+      "figures": [
+        {
+          "caption": "dexamethasone vs untreated volcano",
+          "id": "volcano",
+          "path": "volcano.svg"
+        },
+        {
+          "caption": "dexamethasone vs untreated heatmap_padj",
+          "id": "heatmap_padj",
+          "path": "heatmap_padj.svg"
+        },
+        {
+          "caption": "dexamethasone vs untreated heatmap_lfc",
+          "id": "heatmap_lfc",
+          "path": "heatmap_lfc.svg"
+        }
+      ],
+      "id": "bulk.contrast.dexamethasone_vs_untreated",
+      "metadata": {
+        "claim": {
+          "causal_license": {
+            "contrast": "dexamethasone vs untreated",
+            "estimand_id": null,
+            "licensed": false,
+            "reason": "missing_design_contract"
+          },
+          "evidence_categories": [
+            "expression_change",
+            "functional_annotation"
+          ],
+          "language_violation": null,
+          "licensed_language": "associative",
+          "limitations": [
+            "Observational association only; no mechanistic or interventional evidence supports a causal interpretation.",
+            "Alternative technical explanations not ruled out: batch_effect. Interpret the association with these confounders in mind."
+          ],
+          "rationale": "Correlative contrast (expression/abundance/communication) without independent mechanistic or perturbation evidence.",
+          "tier": "associative"
+        },
+        "claim_verification": {
+          "checked_sentences": 3,
+          "evidence_card": {
+            "evidence_card_id": "bulk.contrast.dexamethasone_vs_untreated#evidence",
+            "n_refs": 18,
+            "node_type": "evidence_card",
+            "provenance": {
+              "analysis": "differential_expression",
+              "block_id": "bulk.contrast.dexamethasone_vs_untreated",
+              "modality": "bulk RNA-seq",
+              "sources": [
+                "bulk_de"
+              ]
+            },
+            "refs": [
+              {
+                "kind": "evidence",
+                "label": "DE genes",
+                "path": null,
+                "ref_id": "bulk.contrast.dexamethasone_vs_untreated:evidence:0",
+                "source": "bulk_de",
+                "value": 22
+              },
+              {
+                "kind": "evidence",
+                "label": "up genes",
+                "path": null,
+                "ref_id": "bulk.contrast.dexamethasone_vs_untreated:evidence:1",
+                "source": "bulk_de",
+                "value": 19
+              },
+              {
+                "kind": "evidence",
+                "label": "down genes",
+                "path": null,
+                "ref_id": "bulk.contrast.dexamethasone_vs_untreated:evidence:2",
+                "source": "bulk_de",
+                "value": 3
+              },
+              {
+                "kind": "evidence",
+                "label": "top gene GPX3",
+                "path": null,
+                "ref_id": "bulk.contrast.dexamethasone_vs_untreated:evidence:3",
+                "source": "bulk_de",
+                "value": 3.535
+              },
+              {
+                "kind": "evidence",
+                "label": "top gene SAMHD1",
+                "path": null,
+                "ref_id": "bulk.contrast.dexamethasone_vs_untreated:evidence:4",
+                "source": "bulk_de",
+                "value": 3.578
+              },
+              {
+                "kind": "evidence",
+                "label": "top gene GLUL",
+                "path": null,
+                "ref_id": "bulk.contrast.dexamethasone_vs_untreated:evidence:5",
+                "source": "bulk_de",
+                "value": 2.87
+              },
+              {
+                "kind": "evidence",
+                "label": "top gene ADAMTS1",
+                "path": null,
+                "ref_id": "bulk.contrast.dexamethasone_vs_untreated:evidence:6",
+                "source": "bulk_de",
+                "value": 2.093
+              },
+              {
+                "kind": "evidence",
+                "label": "top gene CXCL12",
+                "path": null,
+                "ref_id": "bulk.contrast.dexamethasone_vs_untreated:evidence:7",
+                "source": "bulk_de",
+                "value": -2.041
+              },
+              {
+                "kind": "evidence",
+                "label": "top gene FKBP5",
+                "path": null,
+                "ref_id": "bulk.contrast.dexamethasone_vs_untreated:evidence:8",
+                "source": "bulk_de",
+                "value": 4.334
+              },
+              {
+                "kind": "metric",
+                "label": "n_significant",
+                "ref_id": "bulk.contrast.dexamethasone_vs_untreated:metric:n_significant",
+                "value": 22
+              },
+              {
+                "kind": "metric",
+                "label": "n_upregulated",
+                "ref_id": "bulk.contrast.dexamethasone_vs_untreated:metric:n_upregulated",
+                "value": 19
+              },
+              {
+                "kind": "metric",
+                "label": "n_downregulated",
+                "ref_id": "bulk.contrast.dexamethasone_vs_untreated:metric:n_downregulated",
+                "value": 3
+              },
+              {
+                "kind": "metric",
+                "label": "low_power_warning",
+                "ref_id": "bulk.contrast.dexamethasone_vs_untreated:metric:low_power_warning",
+                "value": false
+              },
+              {
+                "kind": "metric",
+                "label": "power_estimate_at_lfc_min",
+                "ref_id": "bulk.contrast.dexamethasone_vs_untreated:metric:power_estimate_at_lfc_min",
+                "value": 0.85
+              },
+              {
+                "kind": "table",
+                "label": "dexamethasone vs untreated de_genes",
+                "path": "de_genes.tsv",
+                "ref_id": "bulk.contrast.dexamethasone_vs_untreated:table:0"
+              },
+              {
+                "kind": "figure",
+                "label": "dexamethasone vs untreated volcano",
+                "path": "volcano.svg",
+                "ref_id": "bulk.contrast.dexamethasone_vs_untreated:figure:0"
+              },
+              {
+                "kind": "figure",
+                "label": "dexamethasone vs untreated heatmap_padj",
+                "path": "heatmap_padj.svg",
+                "ref_id": "bulk.contrast.dexamethasone_vs_untreated:figure:1"
+              },
+              {
+                "kind": "figure",
+                "label": "dexamethasone vs untreated heatmap_lfc",
+                "path": "heatmap_lfc.svg",
+                "ref_id": "bulk.contrast.dexamethasone_vs_untreated:figure:2"
+              }
+            ],
+            "semantic_facts": [
+              {
+                "aliases": [],
+                "polarity": "affirmed",
+                "predicate": "differential_expression",
+                "source": "bulk.contrast.dexamethasone_vs_untreated:evidence:0",
+                "subject": "*",
+                "subject_type": "gene_set",
+                "value": 22
+              },
+              {
+                "aliases": [],
+                "polarity": "affirmed",
+                "predicate": "differential_expression",
+                "source": "bulk_de",
+                "subject": "GPX3",
+                "subject_type": "gene",
+                "value": 3.535
+              },
+              {
+                "aliases": [],
+                "polarity": "affirmed",
+                "predicate": "differential_expression",
+                "source": "bulk_de",
+                "subject": "SAMHD1",
+                "subject_type": "gene",
+                "value": 3.578
+              },
+              {
+                "aliases": [],
+                "polarity": "affirmed",
+                "predicate": "differential_expression",
+                "source": "bulk_de",
+                "subject": "GLUL",
+                "subject_type": "gene",
+                "value": 2.87
+              },
+              {
+                "aliases": [],
+                "polarity": "affirmed",
+                "predicate": "differential_expression",
+                "source": "bulk_de",
+                "subject": "ADAMTS1",
+                "subject_type": "gene",
+                "value": 2.093
+              },
+              {
+                "aliases": [],
+                "polarity": "affirmed",
+                "predicate": "differential_expression",
+                "source": "bulk_de",
+                "subject": "CXCL12",
+                "subject_type": "gene",
+                "value": -2.041
+              },
+              {
+                "aliases": [],
+                "polarity": "affirmed",
+                "predicate": "differential_expression",
+                "source": "bulk_de",
+                "subject": "FKBP5",
+                "subject_type": "gene",
+                "value": 4.334
+              }
+            ]
+          },
+          "policy": "Every ARIA-authored claim sentence must be backed by structured evidence, metrics, tables, figures, or an explicitly licensed analysis family.",
+          "status": "supported",
+          "unsupported": []
+        },
+        "devils_advocate": {
+          "challenges": [
+            {
+              "addressed": false,
+              "alternative": "batch_effect",
+              "basis": "no batch covariate was modeled in the design"
+            },
+            {
+              "addressed": true,
+              "alternative": "low_replication",
+              "basis": "replicate support met the floor"
+            }
+          ],
+          "unaddressed": [
+            "batch_effect"
+          ]
+        },
+        "estimand": {
+          "contrast": "dexamethasone vs untreated",
+          "id": null
+        }
+      },
+      "methods": [],
+      "metrics": {
+        "low_power_warning": false,
+        "n_downregulated": 3,
+        "n_significant": 22,
+        "n_upregulated": 19,
+        "power_estimate_at_lfc_min": 0.85
+      },
+      "modality": "bulk RNA-seq",
+      "status": "success",
+      "tables": [
+        {
+          "id": "de_genes",
+          "label": "dexamethasone vs untreated de_genes",
+          "path": "de_genes.tsv"
+        }
+      ],
+      "title": "Bulk contrast dexamethasone vs untreated",
+      "warnings": []
+    },
+    {
+      "analysis": "gsea_preranked",
+      "block_type": "exploratory",
+      "caveats": [
+        {
+          "severity": "info",
+          "text": "GSEA uses the complete ranked gene list and is exploratory at FDR < 0.25; inspect the leading-edge genes before making mechanistic claims."
+        },
+        {
+          "severity": "info",
+          "text": "Alternative technical explanations not ruled out: batch_effect. Interpret the association with these confounders in mind."
+        }
+      ],
+      "claim": "Preranked GSEA identified 6 exploratory pathway(s) at FDR < 0.25 for dexamethasone vs untreated.",
+      "confidence": "low",
+      "error": null,
+      "evidence": [
+        {
+          "facts": [],
+          "label": "FDR<0.25 pathways",
+          "path": "gsea_results.csv",
+          "source": "gsea_preranked",
+          "value": 6
+        },
+        {
+          "facts": [],
+          "label": "running-sum plots",
+          "path": null,
+          "source": "gsea_preranked",
+          "value": 3
+        },
+        {
+          "facts": [],
+          "label": "GSEA term Translation (GO:0006412)",
+          "path": "gsea_results.csv",
+          "source": "gsea_preranked",
+          "value": -3.9409
+        },
+        {
+          "facts": [],
+          "label": "GSEA term Positive Regulation Of Cell Population Proliferation (GO:0008284)",
+          "path": "gsea_results.csv",
+          "source": "gsea_preranked",
+          "value": -3.8843
+        },
+        {
+          "facts": [],
+          "label": "GSEA term Cytoplasmic Translation (GO:0002181)",
+          "path": "gsea_results.csv",
+          "source": "gsea_preranked",
+          "value": -3.8477
+        }
+      ],
+      "figures": [
+        {
+          "caption": "dexamethasone vs untreated GSEA top table",
+          "id": "gsea_top_table",
+          "path": "gsea_top_table.png"
+        },
+        {
+          "caption": "dexamethasone vs untreated GSEA running sum 1",
+          "id": "gsea_running_sum_1",
+          "path": "gsea_running_sum_1.png"
+        },
+        {
+          "caption": "dexamethasone vs untreated GSEA running sum 2",
+          "id": "gsea_running_sum_2",
+          "path": "gsea_running_sum_2.png"
+        },
+        {
+          "caption": "dexamethasone vs untreated GSEA running sum 3",
+          "id": "gsea_running_sum_3",
+          "path": "gsea_running_sum_3.png"
+        }
+      ],
+      "id": "bulk.gsea.dexamethasone_vs_untreated",
+      "metadata": {
+        "claim": {
+          "causal_license": {
+            "contrast": null,
+            "estimand_id": null,
+            "licensed": false,
+            "reason": "missing_block_estimand"
+          },
+          "evidence_categories": [
+            "expression_change",
+            "functional_annotation"
+          ],
+          "language_violation": null,
+          "licensed_language": "associative",
+          "limitations": [
+            "Observational association only; no mechanistic or interventional evidence supports a causal interpretation.",
+            "GSEA uses the complete ranked gene list and is exploratory at FDR < 0.25; inspect the leading-edge genes before making mechanistic claims.",
+            "Alternative technical explanations not ruled out: batch_effect. Interpret the association with these confounders in mind."
+          ],
+          "rationale": "Correlative contrast (expression/abundance/communication) without independent mechanistic or perturbation evidence.",
+          "tier": "associative"
+        },
+        "claim_verification": {
+          "checked_sentences": 3,
+          "evidence_card": {
+            "evidence_card_id": "bulk.gsea.dexamethasone_vs_untreated#evidence",
+            "n_refs": 32,
+            "node_type": "evidence_card",
+            "provenance": {
+              "analysis": "gsea_preranked",
+              "block_id": "bulk.gsea.dexamethasone_vs_untreated",
+              "modality": "bulk RNA-seq",
+              "sources": [
+                "gsea_preranked"
+              ]
+            },
+            "refs": [
+              {
+                "kind": "evidence",
+                "label": "FDR<0.25 pathways",
+                "path": "gsea_results.csv",
+                "ref_id": "bulk.gsea.dexamethasone_vs_untreated:evidence:0",
+                "source": "gsea_preranked",
+                "value": 6
+              },
+              {
+                "kind": "evidence",
+                "label": "running-sum plots",
+                "path": null,
+                "ref_id": "bulk.gsea.dexamethasone_vs_untreated:evidence:1",
+                "source": "gsea_preranked",
+                "value": 3
+              },
+              {
+                "kind": "evidence",
+                "label": "GSEA term Translation (GO:0006412)",
+                "path": "gsea_results.csv",
+                "ref_id": "bulk.gsea.dexamethasone_vs_untreated:evidence:2",
+                "source": "gsea_preranked",
+                "value": -3.9409
+              },
+              {
+                "kind": "evidence",
+                "label": "GSEA term Positive Regulation Of Cell Population Proliferation (GO:0008284)",
+                "path": "gsea_results.csv",
+                "ref_id": "bulk.gsea.dexamethasone_vs_untreated:evidence:3",
+                "source": "gsea_preranked",
+                "value": -3.8843
+              },
+              {
+                "kind": "evidence",
+                "label": "GSEA term Cytoplasmic Translation (GO:0002181)",
+                "path": "gsea_results.csv",
+                "ref_id": "bulk.gsea.dexamethasone_vs_untreated:evidence:4",
+                "source": "gsea_preranked",
+                "value": -3.8477
+              },
+              {
+                "kind": "metric",
+                "label": "n_pathways",
+                "ref_id": "bulk.gsea.dexamethasone_vs_untreated:metric:n_pathways",
+                "value": 6
+              },
+              {
+                "kind": "metric",
+                "label": "top_pathways.0.term",
+                "ref_id": "bulk.gsea.dexamethasone_vs_untreated:metric:top_pathways.0.term",
+                "value": "Translation (GO:0006412)"
+              },
+              {
+                "kind": "metric",
+                "label": "top_pathways.0.nes",
+                "ref_id": "bulk.gsea.dexamethasone_vs_untreated:metric:top_pathways.0.nes",
+                "value": -3.9409
+              },
+              {
+                "kind": "metric",
+                "label": "top_pathways.0.fdr",
+                "ref_id": "bulk.gsea.dexamethasone_vs_untreated:metric:top_pathways.0.fdr",
+                "value": 0.04093792739563451
+              },
+              {
+                "kind": "metric",
+                "label": "top_pathways.0.numeric_unstable",
+                "ref_id": "bulk.gsea.dexamethasone_vs_untreated:metric:top_pathways.0.numeric_unstable",
+                "value": false
+              },
+              {
+                "kind": "metric",
+                "label": "top_pathways.1.term",
+                "ref_id": "bulk.gsea.dexamethasone_vs_untreated:metric:top_pathways.1.term",
+                "value": "Positive Regulation Of Cell Population Proliferation (GO:0008284)"
+              },
+              {
+                "kind": "metric",
+                "label": "top_pathways.1.nes",
+                "ref_id": "bulk.gsea.dexamethasone_vs_untreated:metric:top_pathways.1.nes",
+                "value": -3.8843
+              },
+              {
+                "kind": "metric",
+                "label": "top_pathways.1.fdr",
+                "ref_id": "bulk.gsea.dexamethasone_vs_untreated:metric:top_pathways.1.fdr",
+                "value": 0.04093792739563451
+              },
+              {
+                "kind": "metric",
+                "label": "top_pathways.1.numeric_unstable",
+                "ref_id": "bulk.gsea.dexamethasone_vs_untreated:metric:top_pathways.1.numeric_unstable",
+                "value": false
+              },
+              {
+                "kind": "metric",
+                "label": "top_pathways.2.term",
+                "ref_id": "bulk.gsea.dexamethasone_vs_untreated:metric:top_pathways.2.term",
+                "value": "Cytoplasmic Translation (GO:0002181)"
+              },
+              {
+                "kind": "metric",
+                "label": "top_pathways.2.nes",
+                "ref_id": "bulk.gsea.dexamethasone_vs_untreated:metric:top_pathways.2.nes",
+                "value": -3.8477
+              },
+              {
+                "kind": "metric",
+                "label": "top_pathways.2.fdr",
+                "ref_id": "bulk.gsea.dexamethasone_vs_untreated:metric:top_pathways.2.fdr",
+                "value": 0.04093792739563451
+              },
+              {
+                "kind": "metric",
+                "label": "top_pathways.2.numeric_unstable",
+                "ref_id": "bulk.gsea.dexamethasone_vs_untreated:metric:top_pathways.2.numeric_unstable",
+                "value": false
+              },
+              {
+                "kind": "metric",
+                "label": "top_pathways.3.term",
+                "ref_id": "bulk.gsea.dexamethasone_vs_untreated:metric:top_pathways.3.term",
+                "value": "Supramolecular Fiber Organization (GO:0097435)"
+              },
+              {
+                "kind": "metric",
+                "label": "top_pathways.3.nes",
+                "ref_id": "bulk.gsea.dexamethasone_vs_untreated:metric:top_pathways.3.nes",
+                "value": -3.7651
+              },
+              {
+                "kind": "metric",
+                "label": "top_pathways.3.fdr",
+                "ref_id": "bulk.gsea.dexamethasone_vs_untreated:metric:top_pathways.3.fdr",
+                "value": 0.04287771038393673
+              },
+              {
+                "kind": "metric",
+                "label": "top_pathways.3.numeric_unstable",
+                "ref_id": "bulk.gsea.dexamethasone_vs_untreated:metric:top_pathways.3.numeric_unstable",
+                "value": false
+              },
+              {
+                "kind": "metric",
+                "label": "top_pathways.4.term",
+                "ref_id": "bulk.gsea.dexamethasone_vs_untreated:metric:top_pathways.4.term",
+                "value": "Macromolecule Biosynthetic Process (GO:0009059)"
+              },
+              {
+                "kind": "metric",
+                "label": "top_pathways.4.nes",
+                "ref_id": "bulk.gsea.dexamethasone_vs_untreated:metric:top_pathways.4.nes",
+                "value": -3.3788
+              },
+              {
+                "kind": "metric",
+                "label": "top_pathways.4.fdr",
+                "ref_id": "bulk.gsea.dexamethasone_vs_untreated:metric:top_pathways.4.fdr",
+                "value": 0.1499808935795479
+              },
+              {
+                "kind": "metric",
+                "label": "top_pathways.4.numeric_unstable",
+                "ref_id": "bulk.gsea.dexamethasone_vs_untreated:metric:top_pathways.4.numeric_unstable",
+                "value": false
+              },
+              {
+                "kind": "metric",
+                "label": "n_numeric_unstable",
+                "ref_id": "bulk.gsea.dexamethasone_vs_untreated:metric:n_numeric_unstable",
+                "value": 0
+              },
+              {
+                "kind": "table",
+                "label": "dexamethasone vs untreated GSEA results",
+                "path": "gsea_results.csv",
+                "ref_id": "bulk.gsea.dexamethasone_vs_untreated:table:0"
+              },
+              {
+                "kind": "figure",
+                "label": "dexamethasone vs untreated GSEA top table",
+                "path": "gsea_top_table.png",
+                "ref_id": "bulk.gsea.dexamethasone_vs_untreated:figure:0"
+              },
+              {
+                "kind": "figure",
+                "label": "dexamethasone vs untreated GSEA running sum 1",
+                "path": "gsea_running_sum_1.png",
+                "ref_id": "bulk.gsea.dexamethasone_vs_untreated:figure:1"
+              },
+              {
+                "kind": "figure",
+                "label": "dexamethasone vs untreated GSEA running sum 2",
+                "path": "gsea_running_sum_2.png",
+                "ref_id": "bulk.gsea.dexamethasone_vs_untreated:figure:2"
+              },
+              {
+                "kind": "figure",
+                "label": "dexamethasone vs untreated GSEA running sum 3",
+                "path": "gsea_running_sum_3.png",
+                "ref_id": "bulk.gsea.dexamethasone_vs_untreated:figure:3"
+              }
+            ],
+            "semantic_facts": []
+          },
+          "policy": "Every ARIA-authored claim sentence must be backed by structured evidence, metrics, tables, figures, or an explicitly licensed analysis family.",
+          "status": "supported",
+          "unsupported": []
+        },
+        "devils_advocate": {
+          "challenges": [
+            {
+              "addressed": false,
+              "alternative": "batch_effect",
+              "basis": "no batch covariate was modeled in the design"
+            },
+            {
+              "addressed": true,
+              "alternative": "low_replication",
+              "basis": "replicate support met the floor"
+            }
+          ],
+          "unaddressed": [
+            "batch_effect"
+          ]
+        },
+        "gsea_fdr_threshold": 0.25
+      },
+      "methods": [],
+      "metrics": {
+        "n_numeric_unstable": 0,
+        "n_pathways": 6,
+        "top_pathways": [
+          {
+            "fdr": 0.04093792739563451,
+            "nes": -3.9409,
+            "numeric_unstable": false,
+            "term": "Translation (GO:0006412)"
+          },
+          {
+            "fdr": 0.04093792739563451,
+            "nes": -3.8843,
+            "numeric_unstable": false,
+            "term": "Positive Regulation Of Cell Population Proliferation (GO:0008284)"
+          },
+          {
+            "fdr": 0.04093792739563451,
+            "nes": -3.8477,
+            "numeric_unstable": false,
+            "term": "Cytoplasmic Translation (GO:0002181)"
+          },
+          {
+            "fdr": 0.04287771038393673,
+            "nes": -3.7651,
+            "numeric_unstable": false,
+            "term": "Supramolecular Fiber Organization (GO:0097435)"
+          },
+          {
+            "fdr": 0.1499808935795479,
+            "nes": -3.3788,
+            "numeric_unstable": false,
+            "term": "Macromolecule Biosynthetic Process (GO:0009059)"
+          }
+        ]
+      },
+      "modality": "bulk RNA-seq",
+      "status": "success",
+      "tables": [
+        {
+          "id": "gsea_table",
+          "label": "dexamethasone vs untreated GSEA results",
+          "path": "gsea_results.csv"
+        }
+      ],
+      "title": "Preranked GSEA dexamethasone vs untreated",
+      "warnings": [
+        "LOW/INSUFFICIENT confidence finding must remain visible in the limitations section."
+      ]
+    },
+    {
+      "analysis": "power",
+      "block_type": "limitation",
+      "caveats": [
+        {
+          "severity": "info",
+          "text": "Power is an approximation from replicate count, expression, and dispersion."
+        }
+      ],
+      "claim": "Approximate bulk RNA power ranged from 85% to 85% across analyzable contrasts.",
+      "confidence": "medium",
+      "error": null,
+      "evidence": [
+        {
+          "facts": [],
+          "label": "minimum power",
+          "path": null,
+          "source": "power_estimation",
+          "value": 0.85
+        },
+        {
+          "facts": [],
+          "label": "maximum power",
+          "path": null,
+          "source": "power_estimation",
+          "value": 0.85
+        },
+        {
+          "facts": [],
+          "label": "minimum power percent",
+          "path": null,
+          "source": "power_estimation",
+          "value": "85%"
+        },
+        {
+          "facts": [],
+          "label": "maximum power percent",
+          "path": null,
+          "source": "power_estimation",
+          "value": "85%"
+        }
+      ],
+      "figures": [],
+      "id": "bulk.power",
+      "metadata": {
+        "claim": {
+          "causal_license": {
+            "contrast": null,
+            "estimand_id": null,
+            "licensed": false,
+            "reason": "missing_block_estimand"
+          },
+          "evidence_categories": [
+            "descriptive"
+          ],
+          "language_violation": null,
+          "licensed_language": "descriptive",
+          "limitations": [
+            "Power is an approximation from replicate count, expression, and dispersion."
+          ],
+          "rationale": "Descriptive summary (QC/counts); no between-condition claim.",
+          "tier": "descriptive"
+        },
+        "claim_verification": {
+          "checked_sentences": 2,
+          "evidence_card": {
+            "evidence_card_id": "bulk.power#evidence",
+            "n_refs": 6,
+            "node_type": "evidence_card",
+            "provenance": {
+              "analysis": "power",
+              "block_id": "bulk.power",
+              "modality": "bulk RNA-seq",
+              "sources": [
+                "power_estimation"
+              ]
+            },
+            "refs": [
+              {
+                "kind": "evidence",
+                "label": "minimum power",
+                "path": null,
+                "ref_id": "bulk.power:evidence:0",
+                "source": "power_estimation",
+                "value": 0.85
+              },
+              {
+                "kind": "evidence",
+                "label": "maximum power",
+                "path": null,
+                "ref_id": "bulk.power:evidence:1",
+                "source": "power_estimation",
+                "value": 0.85
+              },
+              {
+                "kind": "evidence",
+                "label": "minimum power percent",
+                "path": null,
+                "ref_id": "bulk.power:evidence:2",
+                "source": "power_estimation",
+                "value": "85%"
+              },
+              {
+                "kind": "evidence",
+                "label": "maximum power percent",
+                "path": null,
+                "ref_id": "bulk.power:evidence:3",
+                "source": "power_estimation",
+                "value": "85%"
+              },
+              {
+                "kind": "metric",
+                "label": "min_power",
+                "ref_id": "bulk.power:metric:min_power",
+                "value": 0.85
+              },
+              {
+                "kind": "metric",
+                "label": "max_power",
+                "ref_id": "bulk.power:metric:max_power",
+                "value": 0.85
+              }
+            ],
+            "semantic_facts": []
+          },
+          "policy": "Every ARIA-authored claim sentence must be backed by structured evidence, metrics, tables, figures, or an explicitly licensed analysis family.",
+          "status": "supported",
+          "unsupported": []
+        }
+      },
+      "methods": [],
+      "metrics": {
+        "max_power": 0.85,
+        "min_power": 0.85
+      },
+      "modality": "bulk RNA-seq",
+      "status": "success",
+      "tables": [],
+      "title": "Bulk RNA power",
+      "warnings": []
+    },
+    {
+      "analysis": "paired_qc",
+      "block_type": "qc",
+      "caveats": [
+        {
+          "severity": "blocking",
+          "text": "Same-cell multiome integration requires verified shared cell barcodes across RNA and ATAC; cross-sample pseudo-pairing is disallowed."
+        }
+      ],
+      "claim": "",
+      "confidence": "insufficient",
+      "error": "multiome_same_cell_gate_blocked",
+      "evidence": [],
+      "figures": [],
+      "id": "multiome.gate",
+      "metadata": {
+        "claim": {
+          "causal_license": {
+            "contrast": null,
+            "estimand_id": null,
+            "licensed": false,
+            "reason": "missing_block_estimand"
+          },
+          "evidence_categories": [
+            "descriptive"
+          ],
+          "language_violation": null,
+          "licensed_language": "descriptive",
+          "limitations": [
+            "Same-cell multiome integration requires verified shared cell barcodes across RNA and ATAC; cross-sample pseudo-pairing is disallowed."
+          ],
+          "rationale": "Descriptive summary (QC/counts); no between-condition claim.",
+          "tier": "descriptive"
+        },
+        "claim_verification": {
+          "checked_sentences": 0,
+          "evidence_card": {
+            "evidence_card_id": "multiome.gate#evidence",
+            "n_refs": 0,
+            "node_type": "evidence_card",
+            "provenance": {
+              "analysis": "paired_qc",
+              "block_id": "multiome.gate",
+              "modality": "integration",
+              "sources": []
+            },
+            "refs": [],
+            "semantic_facts": []
+          },
+          "policy": "Non-success block: diagnostic message, not a verified claim.",
+          "status": "supported",
+          "unsupported": []
+        }
+      },
+      "methods": [],
+      "metrics": {},
+      "modality": "integration",
+      "status": "skipped",
+      "tables": [],
+      "title": "Same-cell multiome pairing gate",
+      "warnings": [
+        "LOW/INSUFFICIENT confidence finding must remain visible in the limitations section."
+      ]
+    }
+  ],
+  "provenance": {
+    "aria_version": "4.9.4",
+    "conda_env": "aria-env",
+    "environment": {
+      "conda_prefix": null,
+      "env_lock_file": null,
+      "env_lock_sha256": null,
+      "env_name": "aria-env",
+      "source": "no_lock"
+    },
+    "git_commit": "c6a545d32976f736bb1410618a51c3c93cfab096",
+    "git_describe": "v4.9.3-3-gc6a545d",
+    "git_dirty": false,
+    "git_sha": "c6a545d32976f736bb1410618a51c3c93cfab096",
+    "git_tree_sha": "2b2b29989185d33582cd312d5aea71f48144ffbb",
+    "image": {
+      "containerized": false,
+      "digest": null,
+      "env_lock_sha256": null,
+      "kind": null,
+      "reference": null,
+      "revision": null,
+      "validation": null
+    },
+    "platform": "Linux-5.15.167.4-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "python_version": "3.11.15 | packaged by conda-forge | (main, Mar  5 2026, 16:45:40) [GCC 14.3.0]",
+    "timestamp_utc": "<timestamp redacted for byte-identity>",
+    "version": "4.9.4",
+    "version_source": "aria.version.__version__",
+    "workflow_hash": "83fa1b57639d4c5de45b0bfd9c46a71726334a77315d1227696d5211185e8868",
+    "workflow_hash_algorithm": "sha256(version+git_sha+git_tree_sha+git_dirty+git_status+git_diff)"
+  },
+  "raw_ingestion": [],
+  "robustness_multiverse": {
+    "entries": [],
+    "method": "gene-ID intersection across local/global BH pseudobulk FDR families",
+    "n_entries": 0,
+    "note": "FDR-family stability is reported only when a block records the actual gene-ID intersection. Composition on/off is not rerun implicitly; the manifest records the realized composition-covariate state for each block.",
+    "status": "not_available"
+  },
+  "run_ledger": {
+    "claim_ledger_verification": {
+      "n_violations": 0,
+      "status": "ok",
+      "violations": []
+    },
+    "claim_linkage": {
+      "linked": 6,
+      "n_violations": 0,
+      "unlinked": 0,
+      "violations": []
+    },
+    "divergences": [],
+    "entries": [
+      {
+        "analysis": "preprocessing",
+        "divergence": false,
+        "label": "Raw FASTQ preprocessing & alignment",
+        "modality": "bulk",
+        "node_id": "ledger://bulk/preprocessing",
+        "node_type": "analysis_run",
+        "planned": true,
+        "provenance": {
+          "finding_keys": [
+            "preprocessing"
+          ],
+          "kind": "structured_agent_result",
+          "modality": "bulk"
+        },
+        "reason": null,
+        "status": "ran"
+      },
+      {
+        "analysis": "qc",
+        "divergence": false,
+        "label": "Sample QC",
+        "modality": "bulk",
+        "node_id": "ledger://bulk/qc",
+        "node_type": "analysis_run",
+        "planned": true,
+        "provenance": {
+          "finding_keys": [
+            "sample_qc"
+          ],
+          "kind": "structured_agent_result",
+          "modality": "bulk"
+        },
+        "reason": null,
+        "status": "ran"
+      },
+      {
+        "analysis": "differential_expression",
+        "divergence": false,
+        "label": "Differential expression",
+        "modality": "bulk",
+        "node_id": "ledger://bulk/differential_expression",
+        "node_type": "analysis_run",
+        "planned": true,
+        "provenance": {
+          "finding_keys": [
+            "contrasts"
+          ],
+          "kind": "structured_agent_result",
+          "modality": "bulk"
+        },
+        "reason": null,
+        "status": "ran"
+      },
+      {
+        "analysis": "pathway_enrichment",
+        "divergence": false,
+        "label": "Pathway enrichment (ORA/GSEA)",
+        "modality": "bulk",
+        "node_id": "ledger://bulk/pathway_enrichment",
+        "node_type": "analysis_run",
+        "planned": true,
+        "provenance": {
+          "finding_keys": [
+            "pathway_enrichment"
+          ],
+          "kind": "structured_agent_result",
+          "modality": "bulk"
+        },
+        "reason": null,
+        "status": "ran"
+      },
+      {
+        "analysis": "preprocessing",
+        "divergence": false,
+        "label": "Multiome raw assembly & cohort union",
+        "modality": "integration",
+        "node_id": "ledger://integration/preprocessing",
+        "node_type": "analysis_run",
+        "planned": false,
+        "provenance": {
+          "finding_keys": [
+            "preprocessing"
+          ],
+          "kind": "structured_agent_result",
+          "modality": "integration"
+        },
+        "reason": null,
+        "status": "not_run"
+      },
+      {
+        "analysis": "paired_qc",
+        "divergence": false,
+        "label": "Paired multiome QC",
+        "modality": "integration",
+        "node_id": "ledger://integration/paired_qc",
+        "node_type": "analysis_run",
+        "planned": false,
+        "provenance": {
+          "finding_keys": [
+            "paired_qc"
+          ],
+          "kind": "structured_agent_result",
+          "modality": "integration"
+        },
+        "reason": null,
+        "status": "not_run"
+      },
+      {
+        "analysis": "wnn",
+        "divergence": false,
+        "label": "Weighted Nearest Neighbors (WNN)",
+        "modality": "integration",
+        "node_id": "ledger://integration/wnn",
+        "node_type": "analysis_run",
+        "planned": false,
+        "provenance": {
+          "finding_keys": [
+            "wnn"
+          ],
+          "kind": "structured_agent_result",
+          "modality": "integration"
+        },
+        "reason": null,
+        "status": "not_run"
+      },
+      {
+        "analysis": "mofa",
+        "divergence": false,
+        "label": "MOFA+ factor decomposition",
+        "modality": "integration",
+        "node_id": "ledger://integration/mofa",
+        "node_type": "analysis_run",
+        "planned": false,
+        "provenance": {
+          "finding_keys": [
+            "mofa"
+          ],
+          "kind": "structured_agent_result",
+          "modality": "integration"
+        },
+        "reason": null,
+        "status": "not_run"
+      },
+      {
+        "analysis": "peak_to_gene",
+        "divergence": false,
+        "label": "Cis peak-to-gene linkage",
+        "modality": "integration",
+        "node_id": "ledger://integration/peak_to_gene",
+        "node_type": "analysis_run",
+        "planned": false,
+        "provenance": {
+          "finding_keys": [
+            "peak_to_gene"
+          ],
+          "kind": "structured_agent_result",
+          "modality": "integration"
+        },
+        "reason": null,
+        "status": "not_run"
+      },
+      {
+        "analysis": "eregulons",
+        "divergence": false,
+        "label": "Candidate eRegulon inference",
+        "modality": "integration",
+        "node_id": "ledger://integration/eregulons",
+        "node_type": "analysis_run",
+        "planned": false,
+        "provenance": {
+          "finding_keys": [
+            "eregulons"
+          ],
+          "kind": "structured_agent_result",
+          "modality": "integration"
+        },
+        "reason": null,
+        "status": "not_run"
+      },
+      {
+        "analysis": "cross_modal_triangulation",
+        "divergence": false,
+        "label": "Cross-modal evidence triangulation",
+        "modality": "integration",
+        "node_id": "ledger://integration/cross_modal_triangulation",
+        "node_type": "analysis_run",
+        "planned": false,
+        "provenance": {
+          "finding_keys": [
+            "cross_modal_triangulation"
+          ],
+          "kind": "structured_agent_result",
+          "modality": "integration"
+        },
+        "reason": null,
+        "status": "not_run"
+      },
+      {
+        "analysis": "executive_summary",
+        "divergence": false,
+        "label": "Executive summary",
+        "modality": "report",
+        "node_id": "ledger://report/executive_summary",
+        "node_type": "derived_report_analysis",
+        "planned": true,
+        "provenance": {
+          "block_ids": [
+            "executive_summary"
+          ],
+          "kind": "compiled_narrative_block"
+        },
+        "reason": "compiled from governed narrative blocks",
+        "status": "ran"
+      }
+    ],
+    "modalities": [
+      "bulk",
+      "integration",
+      "report"
+    ],
+    "n_divergences": 0
+  },
+  "seeds": {
+    "global": 0,
+    "harmony": 0,
+    "scanpy": 0
+  },
+  "thresholds": {
+    "bulk_lfc_min": 1.0,
+    "bulk_padj": 0.05,
+    "scrna_multiple_testing": {},
+    "scrna_pseudobulk": {}
+  },
+  "tools": {
+    "anndata": "0.12.10",
+    "anndata_lock": "0.11.4",
+    "gseapy": "1.1.13",
+    "kb-python": "0.30.2",
+    "numpy": "2.4.4",
+    "numpy_lock": "2.4.1",
+    "pandas": "2.3.3",
+    "pydeseq2": "0.5.4",
+    "scanpy": "1.11.5",
+    "scanpy_lock": "1.11.0"
+  }
+}

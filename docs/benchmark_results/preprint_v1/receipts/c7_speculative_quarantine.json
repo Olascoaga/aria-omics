@@ -1,22 +1,22 @@
 {
-  "aria_version": "4.9.3",
+  "aria_version": "4.9.4",
   "artifacts": [],
   "claims": [
     "claim_7"
   ],
   "command": "conda run -n aria-env python -m pytest tests/test_hypothesis_quarantine.py tests/test_hypothesis_report_section.py tests/test_ledger_export.py tests/test_preprint_audit_c1_claim_boundary.py -q",
-  "completed_utc": "2026-11-21T01:14:16.341824+00:00",
+  "completed_utc": "2026-11-26T06:51:20.414011+00:00",
   "environment": "aria-env",
-  "git_commit": "1b7a0f1bc7f5f7c291415d3c4b409a669d2c89ee",
-  "git_tree_sha": "c2fd418b5ee69fd5c3e7f897a237141960b27093",
+  "git_commit": "c6a545d32976f736bb1410618a51c3c93cfab096",
+  "git_tree_sha": "2b2b29989185d33582cd312d5aea71f48144ffbb",
   "lane_id": "c7_speculative_quarantine",
   "returncode": 0,
   "schema_version": "aria.preprint_freeze.receipt.v1",
-  "source_snapshot_hash": "32d9fd177823b23e1452ad6542dacc2ea0d5e39b850ca45b0f039a5d3173ebb0",
-  "started_utc": "2026-11-21T01:14:11.808374+00:00",
+  "source_snapshot_hash": "dfd4231ee32730b663de859632aed5c806d4e266140b1db77a131c5bba7e60cc",
+  "started_utc": "2026-11-26T06:51:17.503864+00:00",
   "status": "pass",
   "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-  "stdout_sha256": "fae06538482e288f96e4ff1bd52df6996d6f050c8f6b42237240946463512482",
-  "test_summary": "63 passed in 1.82s",
-  "workflow_hash": "ade1b346cc321433dc65b606faff787a6dee23b32e7fbfedf78fdbc32e12f75f"
+  "stdout_sha256": "b3be317cfdcb36433e3bdf8e4d1a1971720c80c6117d8ce7d2761320620a6bda",
+  "test_summary": "63 passed in 1.34s",
+  "workflow_hash": "bcab02e0db82febfc9c8fe4dfdaf3c32111c8b62162b2b3e4d5e934fbb16f448"
 }
