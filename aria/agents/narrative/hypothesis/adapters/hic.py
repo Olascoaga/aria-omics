@@ -97,10 +97,12 @@ def _low_replication(findings: dict[str, Any]) -> bool:
         or findings.get("loops")
         or {}
     )
-    if isinstance(loops, dict):
-        loop_n = loops.get("n_samples", 1)
+    # D7-011: hic_topology._compute_loops does not emit 'n_samples' (sample count
+    # lives in qc['n_samples']). Only short-circuit when loops explicitly carries
+    # a non-None 'n_samples'; otherwise fall through to qc['n_samples'].
+    if isinstance(loops, dict) and "n_samples" in loops and loops.get("n_samples") is not None:
         try:
-            if loop_n is None or int(loop_n) < 2:
+            if int(loops["n_samples"]) < 2:
                 return True
         except (TypeError, ValueError):
             return True
@@ -114,6 +116,12 @@ def _low_replication(findings: dict[str, Any]) -> bool:
                 return True
         except (TypeError, ValueError):
             pass
+    if isinstance(loops, dict) and loops.get("n_samples") is not None:
+        try:
+            if int(loops["n_samples"]) >= 2:
+                return False
+        except (TypeError, ValueError):
+            return True
     samples = findings.get("samples")
     if isinstance(samples, list):
         return len(samples) < 2
