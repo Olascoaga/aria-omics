@@ -249,3 +249,73 @@ def test_d7_013_decision_manifest_preserves_design_formula_covariates_and_paired
     assert norm_d["paired"] is True
     assert "donor" in norm_d["covariates"]
     assert norm_d["donor_col"] == "donor"
+
+
+def test_d7_004_devils_advocate_reads_design_agent_batch_covariate_and_formula():
+    """D7-004: DesignAgent._build_design writes batch_covariate and design_formula
+    (never top-level covariates). devils_advocate must resolve batch modeling via
+    the real producer design contract and keep unmodeled designs flagged False."""
+    import pytest
+
+    pytest.importorskip("litellm")
+    from aria.agents.design_agent import DesignAgent
+    from aria.agents.narrative.devils_advocate import build_devils_advocate
+    from aria.agents.narrative.types import EvidenceItem, NarrativeBlock
+    from aria.memory.memory import ARIAMemory
+
+    def _bulk_block():
+        return NarrativeBlock(
+            id="bulk.contrast.treat_vs_ctrl",
+            modality="bulk_RNA",
+            analysis="contrast",
+            block_type="result",
+            title="treat vs ctrl",
+            status="success",
+            confidence="high",
+            claim="42 DE genes identified.",
+            evidence=[EvidenceItem("DE genes", 42, source="rna_bulk_de")],
+            metadata={"claim": {"tier": "associative"}},
+        )
+
+    da = DesignAgent(ARIAMemory(":memory:"), llm=None)
+    da._organism = "Homo sapiens"
+    da._genome = "hg38"
+    da._confirmed_groups = {
+        "ctrl": ["c1", "c2", "c3", "c4"],
+        "treat": ["t1", "t2", "t3", "t4"],
+    }
+    da._main_factor = "condition"
+    da._batch_covariate = "batch"
+    da._inferred_design = {"source": "sample_sheet"}
+    design_with_batch = da._build_design()
+    assert design_with_batch["batch_covariate"] == "batch"
+    assert design_with_batch["design_formula"] == "~ batch + condition"
+
+    manifest = build_devils_advocate(
+        [_bulk_block()], agent_results={}, exp_ctx={"design": design_with_batch}
+    )
+    batch_ch = next(c for c in manifest[0]["challenges"] if c["alternative"] == "batch_effect")
+    assert batch_ch["addressed"] is True, (
+        f"DesignAgent modeled {design_with_batch['design_formula']!r}, yet devils_advocate reported {batch_ch}"
+    )
+
+    # Non-'batch'-named blocking covariate confirmed by DesignAgent (e.g. 'donor'):
+    da._batch_covariate = "donor"
+    design_with_donor = da._build_design()
+    assert design_with_donor["design_formula"] == "~ donor + condition"
+    manifest_donor = build_devils_advocate(
+        [_bulk_block()], agent_results={}, exp_ctx={"design": design_with_donor}
+    )
+    donor_ch = next(c for c in manifest_donor[0]["challenges"] if c["alternative"] == "batch_effect")
+    assert donor_ch["addressed"] is True
+
+    # Negative control: DesignAgent with no batch covariate stays addressed=False.
+    da._batch_covariate = None
+    design_no_batch = da._build_design()
+    assert design_no_batch["design_formula"] == "~ condition"
+    manifest_none = build_devils_advocate(
+        [_bulk_block()], agent_results={}, exp_ctx={"design": design_no_batch}
+    )
+    none_ch = next(c for c in manifest_none[0]["challenges"] if c["alternative"] == "batch_effect")
+    assert none_ch["addressed"] is False
+

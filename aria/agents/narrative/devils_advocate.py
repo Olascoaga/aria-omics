@@ -19,9 +19,11 @@ QC/technical vocabulary). It reuses the Claim Compiler tiers and adds an
 from __future__ import annotations
 
 import json
+import re
 from typing import Any
 
 from aria.agents.narrative.types import Caveat, NarrativeBlock
+from aria.utils.design_matrix import resolve_design_contract
 
 
 _CHALLENGEABLE_TIERS = {"associative", "weak_mechanistic", "strong_mechanistic"}
@@ -60,9 +62,31 @@ def _run_signals(agent_results: dict, exp_ctx: dict) -> dict:
     integration_issue = bool(iqc.get("issues") or iqc.get("flags")
                              or iqc.get("residual_batch"))
     da = f.get("differential_abundance") or {}
-    covariates = [str(c).lower()
-                  for c in ((exp_ctx or {}).get("design", {}) or {}).get(
-                      "covariates", []) or []]
+    # D7-004: read batch_covariate / covariates / design_formula through the
+    # shared design contract instead of masking DesignAgent outputs behind
+    # design.get("covariates", []).
+    contract = resolve_design_contract((exp_ctx or {}).get("design"), exp_ctx)
+    covariates = [c.lower() for c in contract["covariates"]]
+    formula = str(contract.get("design_formula") or "")
+    cond_lower = str(contract.get("condition_col") or "condition").lower()
+    formula_terms: list[str] = []
+    if "~" in formula:
+        rhs = formula.split("~", 1)[1]
+        formula_terms = [
+            t.strip().lower()
+            for t in re.split(r"[+*:\s]+", rhs)
+            if t.strip() and t.strip().lower() not in {"0", "1", cond_lower}
+        ]
+    batch_cov_name = str(contract.get("batch_covariate") or "").strip().lower()
+    if "~" in formula:
+        batch_covariate = bool(
+            (batch_cov_name and batch_cov_name in formula_terms)
+            or any("batch" in t for t in formula_terms)
+        )
+    else:
+        batch_covariate = bool(
+            batch_cov_name or any("batch" in c for c in covariates)
+        )
     # P1-4: ambient correction is read from the STRUCTURED QC flag, not a blob
     # text scan — the new ambient-RNA *detector* finding contains the word
     # "ambient" and must not be mistaken for an applied correction.
@@ -91,7 +115,7 @@ def _run_signals(agent_results: dict, exp_ctx: dict) -> dict:
         "ambient_corrected": ambient_corrected,
         "da_ran": _ran(da),
         "da_significant": bool(da.get("any_significant")),
-        "batch_covariate": any("batch" in c for c in covariates),
+        "batch_covariate": batch_covariate,
         "multiome": _multiome_signals(agent_results),
     }
 
