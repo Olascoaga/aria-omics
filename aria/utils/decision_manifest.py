@@ -279,20 +279,29 @@ def _normalize_design(design: dict[str, Any] | None) -> dict[str, Any]:
         if isinstance(replicates, dict)
         else {}
     )
+    from aria.utils.design_matrix import resolve_design_contract
+
+    contract = resolve_design_contract(d)
+    rep_handling = dict(d.get("replicate_handling") or {})
     return {
         "organism": str(d.get("organism") or ""),
         "genome": str(d.get("genome") or ""),
         "main_factor": str(d.get("main_factor") or d.get("factor") or d.get("condition_col") or ""),
         "factor": str(d.get("factor") or d.get("main_factor") or d.get("condition_col") or ""),
-        "formula": str(d.get("formula") or ""),
-        "batch_col": str(d.get("batch_col") or d.get("batch_covariate") or d.get("batch") or ""),
-        "donor_col": str(d.get("donor_col") or d.get("biological_unit_col") or ""),
-        "covariates": sorted(str(x) for x in (d.get("covariates") or []) if x),
-        "paired": bool(d.get("paired", False)),
+        "formula": str(contract.get("design_formula") or ""),
+        "batch_col": str(contract.get("batch_covariate") or d.get("batch") or ""),
+        "donor_col": str(
+            d.get("donor_col")
+            or d.get("biological_unit_col")
+            or rep_handling.get("pair_covariate")
+            or ""
+        ),
+        "covariates": sorted(str(x) for x in (contract.get("covariates") or []) if x),
+        "paired": bool(contract.get("is_paired")),
         "groups": norm_groups,
         "analysis_groups": norm_analysis_groups,
         "replicates": norm_replicates,
-        "replicate_handling": dict(d.get("replicate_handling") or {}),
+        "replicate_handling": rep_handling,
         "contrasts": norm_contrasts,
         "causal_estimands": list(d.get("causal_estimands") or []),
     }

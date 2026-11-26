@@ -93,16 +93,27 @@ class AuditAgent(BaseAgent):
             log.warning(f"Replicate correlation check failed: {e}")
 
         # ── 2. PCA batch dominance ────────────────────────────────────────
-        if design.get("batch_factor"):
+        from aria.utils.design_matrix import resolve_design_contract
+
+        design_contract = resolve_design_contract(design, exp_context)
+        if (
+            design_contract.get("batch_covariate")
+            or design.get("batch_map")
+            or design.get("batches")
+        ):
             try:
-                batch_findings = self._check_pca_batch_dominance(files, design)
+                batch_findings = self._check_pca_batch_dominance(
+                    files, design, exp_context=exp_context
+                )
                 findings.extend(batch_findings)
             except Exception as e:
                 log.warning(f"PCA batch dominance check failed: {e}")
 
         # ── 2b. Design-matrix sanity ────────────────────────────────────
         try:
-            design_findings = self._check_design_matrix_sanity(files, design)
+            design_findings = self._check_design_matrix_sanity(
+                files, design, exp_context=exp_context
+            )
             findings.extend(design_findings)
         except Exception as e:
             log.warning(f"Design-matrix sanity check failed: {e}")
@@ -241,12 +252,17 @@ class AuditAgent(BaseAgent):
 
     # ── Check 2: PCA batch dominance ─────────────────────────────────────
 
-    def _check_pca_batch_dominance(self, files: list, design: dict) -> list:
+    def _check_pca_batch_dominance(
+        self,
+        files: list,
+        design: dict,
+        exp_context: dict | None = None,
+    ) -> list:
         """
         Runs a quick PCA on log1p(CPM) counts and checks whether PC1 separates
         samples by batch more than by biological condition.
 
-        Only runs when the design explicitly has a batch_factor.
+        Only runs when the design explicitly carries a batch covariate or batch map.
         """
         if not files:
             return []
@@ -267,7 +283,7 @@ class AuditAgent(BaseAgent):
         if not group_labels:
             return []
 
-        batch_labels = _infer_batch_labels(counts, design)
+        batch_labels = _infer_batch_labels(counts, design, exp_context=exp_context)
         if not batch_labels or len(set(batch_labels.values())) < 2:
             return []
 
@@ -331,14 +347,22 @@ class AuditAgent(BaseAgent):
 
     # ── Check 2b: DE design-matrix sanity ───────────────────────────────
 
-    def _check_design_matrix_sanity(self, files: list, design: dict) -> list:
+    def _check_design_matrix_sanity(
+        self,
+        files: list,
+        design: dict,
+        exp_context: dict | None = None,
+    ) -> list:
         """Validate condition/covariate structure before DESeq2 dispatch."""
         if not files or not design or not design.get("groups"):
             return []
 
         try:
             import pandas as pd
-            from aria.utils.design_matrix import validate_design_matrix
+            from aria.utils.design_matrix import (
+                resolve_design_contract,
+                validate_design_matrix,
+            )
         except ImportError:
             return []
 
@@ -350,26 +374,32 @@ class AuditAgent(BaseAgent):
         if not group_labels:
             return []
 
+        contract = resolve_design_contract(design, exp_context)
         meta = pd.DataFrame(index=list(group_labels))
-        condition_col = design.get("main_factor") or "condition"
+        condition_col = contract.get("condition_col") or "condition"
         meta[condition_col] = [
             group_labels[sample] for sample in meta.index
         ]
 
-        covariates = []
-        batch_labels = _infer_batch_labels(counts, design)
+        covariates: list[str] = []
+        batch_labels = _infer_batch_labels(counts, design, exp_context=exp_context)
         if batch_labels:
-            batch_col = design.get("batch_factor") or "batch"
+            batch_col = contract.get("batch_covariate") or "batch"
             meta[batch_col] = [
                 batch_labels.get(sample, "") for sample in meta.index
             ]
             covariates.append(batch_col)
 
-        for cov in design.get("covariates", []) or []:
-            cov_map = (design.get("covariate_map", {}) or {}).get(cov, {})
+        cov_values = contract.get("covariate_values") or {}
+        for cov in contract.get("covariates") or []:
+            if cov in covariates:
+                continue
+            cov_map = cov_values.get(cov) or {}
             if cov_map:
-                meta[cov] = [cov_map.get(sample, "") for sample in meta.index]
-                covariates.append(cov)
+                matched = _match_columns_to_map(meta.index, cov_map)
+                if matched:
+                    meta[cov] = [matched.get(sample, "") for sample in meta.index]
+                    covariates.append(cov)
 
         check = validate_design_matrix(
             meta,
@@ -468,6 +498,39 @@ def _load_count_matrix(files: list):
         return None
 
 
+def _match_columns_to_map(columns, sample_map: dict) -> dict[str, str]:
+    """Map column names -> label using exact match first, then longest-key boundary/substring."""
+    if not sample_map:
+        return {}
+    entries = [(str(k), str(v)) for k, v in sample_map.items() if str(k)]
+    exact = {k: v for k, v in entries}
+    longest = sorted(entries, key=lambda kv: (-len(kv[0]), kv[0]))
+    result: dict[str, str] = {}
+    for col in columns:
+        col_s = str(col)
+        if col_s in exact:
+            result[col] = exact[col_s]
+            continue
+        matched_val = None
+        for stem, val in longest:
+            if re.search(rf"(?<![A-Za-z0-9]){re.escape(stem)}(?![A-Za-z0-9])", col_s):
+                matched_val = val
+                break
+        if matched_val is None:
+            for stem, val in longest:
+                idx = col_s.find(stem)
+                if idx == -1:
+                    continue
+                end = idx + len(stem)
+                if stem[-1].isdigit() and end < len(col_s) and col_s[end].isdigit():
+                    continue
+                matched_val = val
+                break
+        if matched_val is not None:
+            result[col] = matched_val
+    return result
+
+
 def _infer_group_labels(counts, design: dict) -> dict:
     """
     Map column names → group labels using design["groups"].
@@ -482,34 +545,33 @@ def _infer_group_labels(counts, design: dict) -> dict:
         for grp, samples in groups.items()
         for sample in samples
     }
-
-    result = {}
-    for col in counts.columns:
-        for stem, grp in sample_to_group.items():
-            if stem in col:
-                result[col] = grp
-                break
-
-    return result
+    return _match_columns_to_map(counts.columns, sample_to_group)
 
 
-def _infer_batch_labels(counts, design: dict) -> dict:
+def _infer_batch_labels(
+    counts,
+    design: dict,
+    exp_context: dict | None = None,
+) -> dict:
     """
-    Map column names → batch labels using design["batch_map"] or
-    design["batches"] if present.
+    Map column names → batch labels using resolve_design_contract (reading
+    DesignAgent's batch_covariate + paired_covariate_values / sample_sheet,
+    with fallback to legacy batch_map / batches).
     """
-    batch_map = design.get("batch_map", {})   # {sample_stem: batch_label}
+    from aria.utils.design_matrix import resolve_design_contract
+
+    contract = resolve_design_contract(design, exp_context)
+    batch_col = contract.get("batch_covariate")
+    cov_values = contract.get("covariate_values") or {}
+    batch_map = (
+        (cov_values.get(batch_col) if batch_col else None)
+        or design.get("batch_map")
+        or design.get("batches")
+        or {}
+    )
     if not batch_map:
         return {}
-
-    result = {}
-    for col in counts.columns:
-        for stem, batch in batch_map.items():
-            if stem in col:
-                result[col] = str(batch)
-                break
-
-    return result
+    return _match_columns_to_map(counts.columns, batch_map)
 
 
 def _find_star_logs(files: list) -> dict:

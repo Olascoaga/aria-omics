@@ -536,13 +536,17 @@ def build_falsification_certificates(
                 "threshold_provenance": str(ctx.get("lfc_threshold_provenance") or "default"),
             }
 
-        # Axis 4: Design aliasing & biological-unit discipline
+        # Axis 4: Design aliasing & biological-unit discipline (D7-008: read
+        # canonical DesignAgent fields through resolve_design_contract).
+        from aria.utils.design_matrix import resolve_design_contract
+
+        d_contract = resolve_design_contract(design, ctx)
         aliasing_axis = {
             "cell_level_pseudoreplication_blocked": True,
             "technical_replicates_aggregated": bool(
-                (design.get("replicate_handling") or {}).get("has_technical_replicates", False)
+                d_contract["has_technical_replicates"]
             ),
-            "batch_covariate_modeled": bool(design.get("batch_covariate") or design.get("batch_col")),
+            "batch_covariate_modeled": bool(d_contract["batch_covariate"]),
             "low_power_n2_warning": bool(n_arm_min is not None and n_arm_min <= 2),
             "causal_promotion_permitted": bool(tier == "causal_experimental"),
         }

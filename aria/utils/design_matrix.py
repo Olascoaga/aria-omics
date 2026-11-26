@@ -90,6 +90,97 @@ def resolve_design_contract(
         if norm_comps:
             raw_comparisons = norm_comps
 
+    design_formula = _first(
+        exp_ctx.get("design_formula"),
+        design.get("design_formula"),
+        design.get("formula"),
+        exp_ctx.get("formula"),
+    )
+
+    rep_handling = design.get("replicate_handling")
+    if not isinstance(rep_handling, dict):
+        rep_handling = {}
+    rep_mode = str(rep_handling.get("mode") or "").strip().lower()
+    exp_unit = str(design.get("experimental_unit") or "").strip().lower()
+    is_paired = bool(
+        exp_ctx.get("paired_replicates")
+        or design.get("paired")
+        or rep_mode == "paired_biological_block"
+        or exp_unit == "paired_biological_unit"
+    )
+    has_technical_replicates = bool(rep_mode == "technical_aggregate")
+
+    # Sample-to-covariate value mappings from DesignAgent (paired_covariate_values,
+    # replicate_handling.sample_to_pair, sample_sheet) plus legacy batch_map /
+    # covariate_map shapes.
+    covariate_values: dict[str, dict[str, str]] = {}
+
+    def _merge_cov_map(cov_name: str | None, mapping: Any) -> None:
+        if not cov_name or not isinstance(mapping, dict):
+            return
+        bucket = covariate_values.setdefault(str(cov_name), {})
+        for k, v in mapping.items():
+            ks = str(k).strip()
+            if ks and v not in (None, ""):
+                bucket.setdefault(ks, str(v).strip())
+
+    paired_cov_vals = design.get("paired_covariate_values")
+    if isinstance(paired_cov_vals, dict):
+        for cov_name, s_map in paired_cov_vals.items():
+            _merge_cov_map(str(cov_name).strip(), s_map)
+
+    if rep_handling.get("pair_covariate") and isinstance(
+        rep_handling.get("sample_to_pair"), dict
+    ):
+        _merge_cov_map(
+            str(rep_handling["pair_covariate"]).strip(),
+            rep_handling["sample_to_pair"],
+        )
+
+    cov_map_legacy = design.get("covariate_map")
+    if isinstance(cov_map_legacy, dict):
+        for cov_name, s_map in cov_map_legacy.items():
+            _merge_cov_map(str(cov_name).strip(), s_map)
+
+    legacy_batch_map = design.get("batch_map") or design.get("batches")
+    if isinstance(legacy_batch_map, dict) and legacy_batch_map:
+        _merge_cov_map(batch_covariate or "batch", legacy_batch_map)
+
+    inferred_design = exp_ctx.get("inferred_design")
+    inferred_design = inferred_design if isinstance(inferred_design, dict) else {}
+    target_covs = list(dict.fromkeys(
+        ([batch_covariate] if batch_covariate else []) + clean_covariates
+    ))
+    for sheet in (
+        design.get("sample_sheet"),
+        exp_ctx.get("sample_sheet"),
+        inferred_design.get("sample_sheet"),
+    ):
+        if not isinstance(sheet, list) or not target_covs:
+            continue
+        for row in sheet:
+            if not isinstance(row, dict):
+                continue
+            sid = str(row.get("sample") or row.get("id") or "").strip()
+            if not sid:
+                continue
+            for cov_name in target_covs:
+                val = row.get(cov_name)
+                if val not in (None, ""):
+                    covariate_values.setdefault(cov_name, {}).setdefault(
+                        sid, str(val).strip()
+                    )
+
+    confounded_covariates: list[str] = []
+    for src in (
+        design.get("confounded_covariates"),
+        inferred_design.get("confounded_covariates"),
+    ):
+        for cov in (src or []):
+            cs = str(cov).strip()
+            if cs and cs not in confounded_covariates:
+                confounded_covariates.append(cs)
+
     return {
         "condition_col": condition_col,
         "replicate_col": replicate_col,
@@ -100,6 +191,11 @@ def resolve_design_contract(
             "condition_col": condition_col,
             "replicate_col": replicate_col,
         },
+        "design_formula": design_formula,
+        "is_paired": is_paired,
+        "has_technical_replicates": has_technical_replicates,
+        "covariate_values": covariate_values,
+        "confounded_covariates": confounded_covariates,
     }
 
 

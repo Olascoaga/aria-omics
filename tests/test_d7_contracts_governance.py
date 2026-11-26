@@ -93,3 +93,159 @@ def test_d7_002_devils_advocate_reads_real_rna_qc_scrublet_ran_flag(tmp_path):
     sigs_true = scrna_evidence(ar_true, run_ledger=None, exp_ctx={})
     assert dbl_true["addressed"] is True
     assert sigs_true and DOUBLET not in sigs_true[0].caveats_inherited
+
+
+def test_d7_008_falsification_certificates_reads_design_agent_technical_replicates():
+    """D7-008: DesignAgent._build_replicate_handling(technical=True) writes
+    mode='technical_aggregate' (never 'has_technical_replicates').
+    falsification_certificates must resolve technical_replicates_aggregated=True."""
+    import pytest
+
+    pytest.importorskip("litellm")
+    from aria.agents.design_agent import DesignAgent
+    from aria.agents.narrative.falsification_certificates import (
+        build_falsification_certificates,
+    )
+    from aria.memory.memory import ARIAMemory
+
+    da = DesignAgent(ARIAMemory(":memory:"), llm=None)
+    da._organism = "Homo sapiens"
+    da._genome = "hg38"
+    da._confirmed_groups = {
+        "ctrl": ["cA_rep1", "cA_rep2", "cB_rep1", "cB_rep2", "cC_rep1", "cC_rep2"],
+        "treat": ["tA_rep1", "tA_rep2", "tB_rep1", "tB_rep2", "tC_rep1", "tC_rep2"],
+    }
+    da._main_factor = "condition"
+    da._replicate_handling = da._build_replicate_handling(technical=True)
+    da._inferred_design = {"source": "sample_sheet"}
+    design = da._build_design()
+    assert design["replicate_handling"]["mode"] == "technical_aggregate"
+    assert design["replicate_handling"]["aggregation"] == "sum_raw_counts"
+
+    claims = [{
+        "claim_id": "bulk.contrast.treat_vs_ctrl",
+        "modality": "bulk_RNA",
+        "analysis": "contrast",
+        "tier": "associative",
+    }]
+    res = build_falsification_certificates(claims, agent_results={}, exp_ctx={"design": design})
+    audit = res["certificates"][0]["design_aliasing_and_unit_audit"]
+    assert audit["technical_replicates_aggregated"] is True
+
+    # Independent biological design stays False:
+    da._replicate_handling = da._build_replicate_handling(technical=False)
+    design_ind = da._build_design()
+    res_ind = build_falsification_certificates(claims, agent_results={}, exp_ctx={"design": design_ind})
+    assert res_ind["certificates"][0]["design_aliasing_and_unit_audit"]["technical_replicates_aggregated"] is False
+
+
+def test_d7_010_audit_agent_and_design_intelligence_detect_batch_on_design_agent_output(tmp_path):
+    """D7-010: DesignAgent._build_design writes batch_covariate and
+    paired_covariate_values (never batch_factor/batch_map). AuditAgent.run_audit
+    must detect PC1 batch dominance and DesignIntelligence must detect batch
+    confounding on real DesignAgent outputs."""
+    import pytest
+
+    pytest.importorskip("litellm")
+    from aria.agents.audit_agent import AuditAgent
+    from aria.agents.design_agent import DesignAgent
+    from aria.agents.design_intelligence import DesignIntelligence
+    from aria.memory.memory import ARIAMemory
+
+    rng = np.random.default_rng(23)
+    samples = ["c1", "c2", "c3", "c4", "t1", "t2", "t3", "t4"]
+    batch_for = {
+        "c1": "B1", "c2": "B1", "c3": "B2", "c4": "B2",
+        "t1": "B1", "t2": "B1", "t3": "B2", "t4": "B2",
+    }
+    base = rng.poisson(200, size=(80, 8)).astype(int)
+    for j, s in enumerate(samples):
+        if batch_for[s] == "B2":
+            base[:40, j] *= 15
+            base[40:, j] = np.maximum(1, base[40:, j] // 10)
+    tsv = tmp_path / "counts.tsv"
+    pd.DataFrame(base, index=[f"G{i}" for i in range(80)], columns=samples).to_csv(
+        tsv, sep="\t", index_label="gene_id"
+    )
+
+    da = DesignAgent(ARIAMemory(":memory:"), llm=None)
+    da._organism = "Homo sapiens"
+    da._genome = "hg38"
+    da._confirmed_groups = {"ctrl": ["c1", "c2", "c3", "c4"], "treat": ["t1", "t2", "t3", "t4"]}
+    da._main_factor = "condition"
+    da._batch_covariate = "batch"
+    da._paired_covariate_values = {"batch": batch_for}
+    da._inferred_design = {"source": "sample_sheet"}
+    design = da._build_design()
+
+    auditor = AuditAgent(ARIAMemory(":memory:"), llm=None)
+    out = auditor.run_audit(
+        {"files": [str(tsv)], "modalities": {"bulk_RNA": [str(tsv)]}, "design": design},
+        experiment_id="exp_audit",
+    )
+    checks = [f["check"] for f in out["findings"]]
+    assert "pca_batch_dominance" in checks, (
+        f"Strong batch PC1 dominance was missed on DesignAgent output; checks={checks}"
+    )
+
+    # DesignIntelligence also flags confounded batch from DesignAgent output:
+    conf_batch = {
+        "c1": "B1", "c2": "B1", "c3": "B1", "c4": "B1",
+        "t1": "B2", "t2": "B2", "t3": "B2", "t4": "B2",
+    }
+    da._paired_covariate_values = {"batch": conf_batch}
+    conf_design = da._build_design()
+    di = DesignIntelligence()
+    prof = di._bulk_rna_profile("bulk_RNA", {"design": conf_design}, intent={})
+    assert any("confounded" in w.lower() for w in prof["warnings"]), prof["warnings"]
+
+
+def test_d7_013_decision_manifest_preserves_design_formula_covariates_and_paired():
+    """D7-013: decision_manifest._normalize_design must read DesignAgent's
+    design_formula, batch_covariate, and replicate_handling.mode='paired_biological_block'
+    instead of masking them to empty formula, empty covariates, and paired=False."""
+    import pytest
+
+    pytest.importorskip("litellm")
+    from aria.agents.design_agent import DesignAgent
+    from aria.memory.memory import ARIAMemory
+    from aria.utils.decision_manifest import build_decision_manifest, verify_decision_manifest
+
+    da = DesignAgent(ARIAMemory(":memory:"), llm=None)
+    da._organism = "Homo sapiens"
+    da._genome = "hg38"
+    da._confirmed_groups = {
+        "ctrl": ["D1_ctrl", "D2_ctrl", "D3_ctrl"],
+        "treat": ["D1_treat", "D2_treat", "D3_treat"],
+    }
+    da._main_factor = "condition"
+    da._batch_covariate = "donor"
+    da._paired_covariate_values = {
+        "donor": {
+            "D1_ctrl": "D1", "D1_treat": "D1",
+            "D2_ctrl": "D2", "D2_treat": "D2",
+            "D3_ctrl": "D3", "D3_treat": "D3",
+        }
+    }
+    da._replicate_handling = da._build_replicate_handling(
+        technical=False,
+        paired_covariate="donor",
+        sample_to_pair=da._paired_covariate_values["donor"],
+    )
+    da._inferred_design = {"source": "sample_sheet"}
+    design = da._build_design()
+    assert design["design_formula"] == "~ donor + condition"
+    assert design["replicate_handling"]["mode"] == "paired_biological_block"
+
+    dm = build_decision_manifest(
+        experiment_id="exp_dm",
+        exp_context={"design": design},
+        plan={"steps": []},
+        biological_intent={},
+    )
+    assert verify_decision_manifest(dm) == (True, "verified")
+    norm_d = dm["design"]
+    assert norm_d["formula"] == "~ donor + condition"
+    assert norm_d["paired"] is True
+    assert "donor" in norm_d["covariates"]
+    assert norm_d["donor_col"] == "donor"
