@@ -121,3 +121,27 @@ def test_d8_018_h5_obs_legacy_categorical_decoding_converges(tmp_path: Path):
     assert ok and series_mudata == ["T_cell", "B_cell", None]
     assert list(series_narr) == ["T_cell", "B_cell", "NA"]
     assert isinstance(weights_narr, np.ndarray) and np.allclose(weights_narr, [0.7, 0.3, 0.5])
+
+
+def test_d8_022_10x_barcode_inspector_uncompressed_converges(tmp_path: Path):
+    """D8-022 / CL-040: raw_ingestion must reuse assay_detector 10x barcode helpers (including uncompressed MEX)."""
+    from aria.utils.assay_detector import (
+        _inspect_10x_barcodes as det_inspect,
+        _is_likely_10x_mtx_dir as det_dir,
+        _looks_like_10x_cell_barcode as det_bc,
+    )
+    from aria.utils.raw_ingestion import (
+        _inspect_10x_barcodes as raw_inspect,
+        _is_likely_10x_mtx_dir as raw_dir,
+        _looks_like_10x_cell_barcode as raw_bc,
+    )
+
+    bc = tmp_path / "barcodes.tsv"
+    bc.write_text("AAACCCAAGAAACACT-1\nAAACCCAAGAAACCAT-1\n", encoding="utf-8")
+    r_det = det_inspect(bc)
+    r_raw = raw_inspect(bc)
+    assert r_det["barcode_rows_checked"] == 2 and r_det["tenx_like_barcode_fraction"] == 1.0
+    assert r_raw == r_det
+    assert raw_inspect is det_inspect
+    assert raw_dir is det_dir
+    assert raw_bc is det_bc

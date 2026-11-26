@@ -612,41 +612,11 @@ def _validate_gzip(path: Path) -> None:
         raise ValueError(f"Invalid gzip file {path}: {exc}") from exc
 
 
-def _inspect_10x_barcodes(path: Path) -> dict[str, Any]:
-    checked = 0
-    tenx_like = 0
-    examples: list[str] = []
-    with gzip.open(path, "rt", encoding="utf-8") as fh:
-        for line in fh:
-            value = line.strip().split("\t", 1)[0]
-            if not value:
-                continue
-            checked += 1
-            if len(examples) < 3:
-                examples.append(value)
-            if _looks_like_10x_cell_barcode(value):
-                tenx_like += 1
-            if checked >= 64:
-                break
-    return {
-        "barcode_rows_checked": checked,
-        "tenx_like_barcode_fraction": (
-            round(tenx_like / checked, 3) if checked else 0.0
-        ),
-        "barcode_examples": examples,
-    }
-
-
-def _is_likely_10x_mtx_dir(directory: Path, barcode_summary: dict[str, Any]) -> bool:
-    if directory.name.lower() in {"filtered_feature_bc_matrix", "raw_feature_bc_matrix"}:
-        return True
-    checked = int(barcode_summary.get("barcode_rows_checked") or 0)
-    fraction = float(barcode_summary.get("tenx_like_barcode_fraction") or 0.0)
-    return checked > 0 and fraction >= 0.80
-
-
-def _looks_like_10x_cell_barcode(value: str) -> bool:
-    return re.fullmatch(r"[ACGTNacgtn]{8,32}(?:-\d+)?", value.strip()) is not None
+from aria.utils.assay_detector import (
+    _inspect_10x_barcodes,
+    _is_likely_10x_mtx_dir,
+    _looks_like_10x_cell_barcode,
+)
 
 
 def _count_gzip_lines(path: Path) -> int:
