@@ -294,12 +294,18 @@ def _reconcile_cross_modal(findings: dict, phrases: list[str]) -> list[dict]:
 
 
 def _plan_phrases(exp_ctx: dict) -> list[str]:
-    di = (exp_ctx or {}).get("design_intelligence", {}) or {}
-    phrases: list[str] = []
-    for bucket in ("recommended", "optional"):
-        for item in di.get(bucket, []) or []:
-            phrases.append(str(item).lower())
-    return phrases
+    di = (exp_ctx or {}).get("design_intelligence")
+    if isinstance(di, dict):
+        phrases: list[str] = []
+        for bucket in ("recommended", "optional"):
+            items = di.get(bucket) or []
+            if isinstance(items, (list, tuple)):
+                for item in items:
+                    phrases.append(str(item).lower())
+        return phrases
+    if isinstance(di, (list, tuple)):
+        return [str(item).lower() for item in di]
+    return []
 
 
 def _is_planned(spec: dict, phrases: list[str]) -> bool:

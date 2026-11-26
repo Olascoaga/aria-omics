@@ -414,9 +414,16 @@ class ReportRenderMixin:
                 ensure_report_ledger_nodes,
             )
             ensure_report_ledger_nodes(run_ledger, narrative_blocks)
-        except Exception as exc:
+        except Exception as exc:  # aria: allow-broad-except surface failed run-ledger governance pass
             log.warning(f"Run-ledger build failed: {exc}", exc_info=True)
-            run_ledger = {"entries": [], "divergences": [], "n_divergences": 0}
+            run_ledger = {
+                "status": "error",
+                "error": f"{type(exc).__name__}: {exc}",
+                "entries": [],
+                "divergences": [],
+                "n_divergences": 0,
+                "modalities": [],
+            }
             from aria.agents.narrative.run_ledger import (
                 ensure_report_ledger_nodes,
             )
@@ -514,6 +521,32 @@ class ReportRenderMixin:
             run_ledger["claim_ledger_verification"] = ledger_verification
 
         public_claim_rows = self._build_public_claims_table(public_claims)
+        withheld_entries = list(public_compilation.withheld or [])
+        withheld_suffix = (
+            f", {len(withheld_entries)} withheld" if withheld_entries else ""
+        )
+        withheld_claims_html = ""
+        if withheld_entries:
+            reason_counts: dict[str, int] = {}
+            for w in withheld_entries:
+                rsn = str(w.get("reason") or "withheld")
+                reason_counts[rsn] = reason_counts.get(rsn, 0) + 1
+            w_rows = "".join(
+                "<tr>"
+                f"<td>{cnt}</td>"
+                f"<td>{_html.escape(rsn)}</td>"
+                "</tr>"
+                for rsn, cnt in sorted(reason_counts.items())
+            )
+            withheld_claims_html = (
+                "<div class='warning'>"
+                f"<strong>Withheld Claims ({len(withheld_entries)}):</strong> "
+                f"{len(withheld_entries)} claim(s) were withheld before publication "
+                "(unverified text and claim IDs omitted from HTML; see "
+                "<code>methodology.json</code> &rarr; <code>claim_compilation.withheld</code>)."
+                "<table><tr><th>Count</th><th>Reason</th></tr>"
+                f"{w_rows}</table></div>"
+            )
 
         # Decisions log rows
         decisions_rows = self._build_decisions_table(decisions)
@@ -786,7 +819,7 @@ class ReportRenderMixin:
 {findings_html}
 {speculative_html}
 
-<h2>Governed Claim Ledger ({len(public_claims)} published)</h2>
+<h2>Governed Claim Ledger ({len(public_claims)} published{withheld_suffix})</h2>
 <p style="color: var(--muted); font-size: 0.875rem;">
   Every row below was compiled from an evidence-bearing NarrativeBlock and
   verified before rendering. MessageBus events are operational records, not
@@ -800,6 +833,7 @@ class ReportRenderMixin:
   </tr>
   {public_claim_rows}
 </table>
+{withheld_claims_html}
 
 <h2>Cross-modal Conflicts &amp; Limitations</h2>
 <div class="card">

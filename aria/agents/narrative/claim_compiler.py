@@ -667,6 +667,16 @@ def compile_public_claims(
             from aria.agents.narrative.run_ledger import link_claims_to_ledger
             linkage = link_claims_to_ledger([manifest], run_ledger)
             if linkage.get("n_violations"):
+                if isinstance(run_ledger, dict) and run_ledger.get("status") == "error":
+                    compiled.withheld.append({
+                        "claim_id": str(getattr(block, "id", "unknown")),
+                        "status": "withheld",
+                        "reason": (
+                            "run_ledger governance pass failed: "
+                            f"{run_ledger.get('error') or 'unknown error'}"
+                        ),
+                    })
+                    continue
                 raise ValueError("claim did not resolve to governed evidence nodes")
             card = (manifest.get("verification") or {}).get("evidence_card") or {}
             if not card.get("node_type") or not card.get("provenance"):

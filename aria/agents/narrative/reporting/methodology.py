@@ -81,10 +81,16 @@ class MethodologyMixin:
             try:
                 from aria.agents.narrative.run_ledger import build_run_ledger
                 run_ledger = build_run_ledger(exp_ctx, agent_results)
-            except Exception as exc:
+            except Exception as exc:  # aria: allow-broad-except surface failed run-ledger governance pass
                 log.warning(f"Run-ledger build failed: {exc}", exc_info=True)
-                run_ledger = {"entries": [], "divergences": [],
-                              "n_divergences": 0}
+                run_ledger = {
+                    "status": "error",
+                    "error": f"{type(exc).__name__}: {exc}",
+                    "entries": [],
+                    "divergences": [],
+                    "n_divergences": 0,
+                    "modalities": [],
+                }
         from aria.agents.narrative.run_ledger import ensure_report_ledger_nodes
         ensure_report_ledger_nodes(run_ledger, list(narrative_blocks or []))
         # C1: the HTML and methodology consume the SAME pre-render compilation.
