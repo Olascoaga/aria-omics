@@ -1,5 +1,5 @@
 {
-  "aria_version": "4.9.4",
+  "aria_version": "4.9.5",
   "arms": {
     "governed": {
       "causal_overreach_denominator": 6,
@@ -233,13 +233,13 @@
       "emit_template_only": false,
       "governed_language_violation": null,
       "governed_rejection_reasons": [
-        "named entity 'TP53' is absent from the evidence card",
-        "named entity 'BRCA1' is absent from the evidence card"
+        "named entity 'BRCA1' is absent from the evidence card",
+        "named entity 'TP53' is absent from the evidence card"
       ],
       "governed_tier": "associative",
       "guards_off_rejection_reasons": [
-        "named entity 'TP53' is absent from the evidence card",
-        "named entity 'BRCA1' is absent from the evidence card"
+        "named entity 'BRCA1' is absent from the evidence card",
+        "named entity 'TP53' is absent from the evidence card"
       ],
       "id": "b2.bulk_de.gene",
       "interpretive": true,
@@ -374,13 +374,13 @@
       "emit_template_only": false,
       "governed_language_violation": null,
       "governed_rejection_reasons": [
-        "named entity 'IL2RA' is absent from the evidence card",
-        "named entity 'FOXP3' is absent from the evidence card"
+        "named entity 'FOXP3' is absent from the evidence card",
+        "named entity 'IL2RA' is absent from the evidence card"
       ],
       "governed_tier": "associative",
       "guards_off_rejection_reasons": [
-        "named entity 'IL2RA' is absent from the evidence card",
-        "named entity 'FOXP3' is absent from the evidence card"
+        "named entity 'FOXP3' is absent from the evidence card",
+        "named entity 'IL2RA' is absent from the evidence card"
       ],
       "id": "b2.scrna_pb.gene",
       "interpretive": true,
@@ -412,9 +412,9 @@
       "emit_template_only": false,
       "governed_language_violation": "causes",
       "governed_rejection_reasons": [
-        "named entity 'FOXP3' is absent from the evidence card",
         "causal language 'causes' exceeds the licensed 'associative' claim tier",
-        "language_violation:causes"
+        "language_violation:causes",
+        "named entity 'FOXP3' is absent from the evidence card"
       ],
       "governed_tier": "associative",
       "guards_off_rejection_reasons": [
@@ -661,15 +661,15 @@
       "emit_template_only": false,
       "governed_language_violation": null,
       "governed_rejection_reasons": [
-        "numeric value '1' is absent from the evidence card",
+        "named entity 'AP-1' is absent from the evidence card",
         "named entity 'CTCF' is absent from the evidence card",
-        "named entity 'AP-1' is absent from the evidence card"
+        "numeric value '1' is absent from the evidence card"
       ],
       "governed_tier": "associative",
       "guards_off_rejection_reasons": [
-        "numeric value '1' is absent from the evidence card",
+        "named entity 'AP-1' is absent from the evidence card",
         "named entity 'CTCF' is absent from the evidence card",
-        "named entity 'AP-1' is absent from the evidence card"
+        "numeric value '1' is absent from the evidence card"
       ],
       "id": "b2.scatac_da.motif",
       "interpretive": true,
@@ -800,13 +800,13 @@
       "emit_template_only": false,
       "governed_language_violation": null,
       "governed_rejection_reasons": [
-        "named entity 'SOX2' is absent from the evidence card",
-        "named entity 'NANOG' is absent from the evidence card"
+        "named entity 'NANOG' is absent from the evidence card",
+        "named entity 'SOX2' is absent from the evidence card"
       ],
       "governed_tier": "associative",
       "guards_off_rejection_reasons": [
-        "named entity 'SOX2' is absent from the evidence card",
-        "named entity 'NANOG' is absent from the evidence card"
+        "named entity 'NANOG' is absent from the evidence card",
+        "named entity 'SOX2' is absent from the evidence card"
       ],
       "id": "b2.traj.gene",
       "interpretive": true,
@@ -937,15 +937,15 @@
       "emit_template_only": false,
       "governed_language_violation": null,
       "governed_rejection_reasons": [
-        "named entity 'CXCR4' is absent from the evidence card",
+        "named entity 'CXCL12' is absent from the evidence card",
         "named entity 'CXCL12-CXCR4' is absent from the evidence card",
-        "named entity 'CXCL12' is absent from the evidence card"
+        "named entity 'CXCR4' is absent from the evidence card"
       ],
       "governed_tier": "associative",
       "guards_off_rejection_reasons": [
-        "named entity 'CXCR4' is absent from the evidence card",
+        "named entity 'CXCL12' is absent from the evidence card",
         "named entity 'CXCL12-CXCR4' is absent from the evidence card",
-        "named entity 'CXCL12' is absent from the evidence card"
+        "named entity 'CXCR4' is absent from the evidence card"
       ],
       "id": "b2.cellcomm.pair",
       "interpretive": true,
@@ -1006,7 +1006,7 @@
     }
   ],
   "provenance": {
-    "aria_version": "4.9.4",
+    "aria_version": "4.9.5",
     "environment": {
       "conda_prefix": null,
       "env_lock_file": null,
@@ -1014,11 +1014,11 @@
       "env_name": "aria-env",
       "source": "no_lock"
     },
-    "git_commit": "c6a545d32976f736bb1410618a51c3c93cfab096",
-    "git_describe": "v4.9.3-3-gc6a545d",
+    "git_commit": "fb8f71239d1f367e12b11418d417723bdec46f73",
+    "git_describe": "v4.9.4-126-gfb8f712",
     "git_dirty": false,
-    "git_sha": "c6a545d32976f736bb1410618a51c3c93cfab096",
-    "git_tree_sha": "2b2b29989185d33582cd312d5aea71f48144ffbb",
+    "git_sha": "fb8f71239d1f367e12b11418d417723bdec46f73",
+    "git_tree_sha": "bff72e7fa14408c599fcacac76b91a782c9aa3c6",
     "image": {
       "containerized": false,
       "digest": null,
@@ -1028,9 +1028,9 @@
       "revision": null,
       "validation": null
     },
-    "version": "4.9.4",
+    "version": "4.9.5",
     "version_source": "aria.version.__version__",
-    "workflow_hash": "83fa1b57639d4c5de45b0bfd9c46a71726334a77315d1227696d5211185e8868",
+    "workflow_hash": "3d5f4ec763cdc568d057ccbbbfbb727c2d78d5cc01e6f239e5e929087aea4261",
     "workflow_hash_algorithm": "sha256(version+git_sha+git_tree_sha+git_dirty+git_status+git_diff)"
   },
   "scope": "governance_claim_ablation_4arm",

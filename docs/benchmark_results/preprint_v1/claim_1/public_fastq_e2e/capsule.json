@@ -1,17 +1,17 @@
 {
   "accession": "GEO GSE52778 / ENA SRP033351",
-  "aria_version": "4.9.4",
+  "aria_version": "4.9.5",
   "canonical_artifacts": [
     {
       "name": "report.html",
-      "sha256": "e2b0209a46423a9a629359c6302d40dd831c1ad898a2b1edd2f4f58b8a01e7e3",
-      "size_bytes": 2778599,
+      "sha256": "35940499e208a25e3a5d928c076db70d3a29da05ba26902c139dadbf3f7ad42a",
+      "size_bytes": 2780028,
       "source_name": "report.html"
     },
     {
       "name": "methodology.json",
-      "sha256": "03cd0a0d1860bc69c9a226b0cb6547fd2fe51dae2882f802c998d54c0f5f6572",
-      "size_bytes": 145327,
+      "sha256": "ef0243a7a8321af79dee7df7e263241f5278d0a8723dc1e04eb079e56c262fa5",
+      "size_bytes": 152455,
       "source_name": "methodology.json"
     },
     {
@@ -22,7 +22,7 @@
     },
     {
       "name": "fig1_gse52778_bulk_de.svg",
-      "sha256": "21b015d45552b0d038f2cf4697836d9bf097541da3cbefd0287d2228040eb10d",
+      "sha256": "8af1160d568a5f75ab4352d50abcab84f290bf8b3ce33a967e9ea13637c4173e",
       "size_bytes": 550436,
       "source_name": "volcano.svg"
     }
@@ -114,10 +114,10 @@
       "sha256": "6d950daba70fc7091bddc3ab7e9e9da918e39ff376e95c406096d6cced65927f"
     }
   ],
-  "experiment_id": "1a4798f3-6a5",
-  "git_commit": "c6a545d32976f736bb1410618a51c3c93cfab096",
+  "experiment_id": "07bf9261-708",
+  "git_commit": "fb8f71239d1f367e12b11418d417723bdec46f73",
   "git_dirty": false,
-  "git_tree_sha": "2b2b29989185d33582cd312d5aea71f48144ffbb",
+  "git_tree_sha": "bff72e7fa14408c599fcacac76b91a782c9aa3c6",
   "lane_id": "c1_public_fastq_e2e",
   "llm": "frozen-deterministic-double (hermetic, no network)",
   "pipeline": "raw FASTQ -> fastp/STAR -> featureCounts -> paired pyDESeq2 (~ donor + condition) -> F3-governed report",
@@ -134,7 +134,7 @@
     },
     {
       "name": "dexamethasone_vs_untreated/gsea_running_sum_1.svg",
-      "sha256": "714a064643d2064472d66b0dafce2342d41ca8df34b9bfa9e5bb69827f8413b7",
+      "sha256": "8251c99c2db101c18019b006cbde9b4ea7e374e7a87bf927e60b5e9d063c565f",
       "size_bytes": 558491
     },
     {
@@ -144,7 +144,7 @@
     },
     {
       "name": "dexamethasone_vs_untreated/gsea_running_sum_2.svg",
-      "sha256": "7cba56299f244ff804298542aa719821b18de0ac3f9c9f94dc1f8c469f3fc524",
+      "sha256": "f552a256134a48895bcba32464aee39af89525d24a8ac2669359cd511190a7e2",
       "size_bytes": 571429
     },
     {
@@ -154,7 +154,7 @@
     },
     {
       "name": "dexamethasone_vs_untreated/gsea_running_sum_3.svg",
-      "sha256": "e38f9cdbb141cf26bae627fe73d721c268bd62ad0e46794840fccd1debfbad9a",
+      "sha256": "6d20e8a9573fdff20db61b1c3dfb3e4c04d3b7938f71dc0ac5edfa0a41b9bb55",
       "size_bytes": 548240
     },
     {
@@ -164,47 +164,47 @@
     },
     {
       "name": "dexamethasone_vs_untreated/gsea_top_table.svg",
-      "sha256": "adc12941358223c7373fa7833750a57317de4bdd553ddd8878b5a33874e42ce7",
+      "sha256": "580c10400e5ad1a9057a51ef6eb45fd90bac05c99d9343769c89348a2d1d40b5",
       "size_bytes": 402133
     },
     {
       "name": "dexamethasone_vs_untreated/heatmap_lfc.svg",
-      "sha256": "a4a007656dd25cf73f8cc1ec0b0f0c3bd7c241c98f58b776bc00594d0b2a33f8",
+      "sha256": "48c18ebd957606e4309577fdb33eaf97d58c209e313836acf31b09fa0fbd0084",
       "size_bytes": 75085
     },
     {
       "name": "dexamethasone_vs_untreated/heatmap_padj.svg",
-      "sha256": "8362fc20d7ddc2e0d2bea1cee9b3428f4ee8fc88a3b2beab1d534bda339e46c4",
+      "sha256": "3a45514da1b0e45d6191b1e207f0e48d3b01c8f6c4f1f2dcba967b30ee77fcb3",
       "size_bytes": 73756
     },
     {
       "name": "dexamethasone_vs_untreated/volcano.svg",
-      "sha256": "21b015d45552b0d038f2cf4697836d9bf097541da3cbefd0287d2228040eb10d",
+      "sha256": "8af1160d568a5f75ab4352d50abcab84f290bf8b3ce33a967e9ea13637c4173e",
       "size_bytes": 550436
     },
     {
       "name": "mds.svg",
-      "sha256": "1e252ac645479631ad1a71083d6ed3c62f37737f48d7a1b15fb25474a7c629fd",
+      "sha256": "2f7c250e027a34fe23e2c04f57e08fa73a23c7a0e827bcffbb6d87e2754f0bda",
       "size_bytes": 44513
     },
     {
       "name": "mds_all_samples.svg",
-      "sha256": "1e252ac645479631ad1a71083d6ed3c62f37737f48d7a1b15fb25474a7c629fd",
+      "sha256": "2f7c250e027a34fe23e2c04f57e08fa73a23c7a0e827bcffbb6d87e2754f0bda",
       "size_bytes": 44513
     },
     {
       "name": "pca.svg",
-      "sha256": "ddfe0145188c5d0fa18b3cb75a053319c5cd8a51cf5474bcf4b6b1a55f04b905",
+      "sha256": "9c47f057963ae0c0c0ccc6f9606facbf9f39680766f3586215bef066f52c645a",
       "size_bytes": 51680
     },
     {
       "name": "pca_all_samples.svg",
-      "sha256": "ddfe0145188c5d0fa18b3cb75a053319c5cd8a51cf5474bcf4b6b1a55f04b905",
+      "sha256": "9c47f057963ae0c0c0ccc6f9606facbf9f39680766f3586215bef066f52c645a",
       "size_bytes": 51680
     },
     {
       "name": "pca_mds.svg",
-      "sha256": "f0f09cc40339478f497e2a8f109eea7e71c27a620c13246acd3b348b54063977",
+      "sha256": "6b3bfe2b7ea18c9ae03d63d49999c57a51ae2d0ec8b5bfd114b58c73e946903c",
       "size_bytes": 80238
     }
   ],

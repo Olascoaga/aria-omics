@@ -1,16 +1,21 @@
 {
   "analytical_fork_ledger": {
-    "commitment_status": "locked_before_execution",
-    "fork_changes": [],
-    "fork_index": 0,
+    "commitment_status": "post_hoc_fork",
+    "fork_changes": [
+      "design.covariates",
+      "design.donor_col",
+      "design.formula",
+      "design.paired"
+    ],
+    "fork_index": 1,
     "is_exact_spec_replay": false,
-    "ledger_runs_observed": 1,
-    "manifest_sha256": "027f1fc6a88013b7286ee5b07e2900a3e59289e01634563a383fb874af430c1f",
-    "parent_manifest_sha256": null,
+    "ledger_runs_observed": 2,
+    "manifest_sha256": "0a59d8579f09545189fed8a0dcbcf32c6cb6e40f299708f278dc202fa577714b",
+    "parent_manifest_sha256": "027f1fc6a88013b7286ee5b07e2900a3e59289e01634563a383fb874af430c1f",
     "schema_version": "aria.fork_ledger.v1",
-    "specification_sha256": "97872d8494558efc6105deb144662aa11a3aa6d3059aabc5a58aaace2bbad096",
+    "specification_sha256": "bc9d85ded6a443ec3ef6a3d8ee6d818f1f8ead04afba31b4411f8d28abbf31c4",
     "study_input_fingerprint": "39db07609f5490b8b09aee1479740a9d4afe6b754440b2da9b07eee5aaed3ba2",
-    "total_analytical_forks": 1
+    "total_analytical_forks": 2
   },
   "claim_compilation": {
     "compiler": "compile_public_claims",
@@ -445,7 +450,18 @@
       },
       "ledger_status": "ran",
       "licensed_language": "descriptive",
-      "limitations": [],
+      "limitations": [
+        "Gene annotation loaded from annotation.gtf: 63,140 biotypes, 63,140 lengths.",
+        "DR input: 2000 most-variable protein_coding genes (from 13111 total protein_coding).",
+        "TPM table written (16551 genes) \u2014 supplementary only; not used for DE or PCA.",
+        "11997 low-count genes removed (< 10 counts in < 2 samples).",
+        "[dexamethasone vs untreated] Design matrix warning: Some condition x covariate design cells have fewer than 2 samples: {('dexamethasone', 'rep1'): 1, ('dexamethasone', 'rep2'): 1, ('dexamethasone', 'rep3'): 1, ('dexamethasone', 'rep4'): 1, ('untreated', 'rep1'): 1, ('untreated', 'rep2'): 1, ('untrea",
+        "[dexamethasone vs untreated] pydeseq2 fit warning [UserWarning]: As the residual degrees of freedom is less than 3, the distribution of log dispersions is especially asymmetric and likely to be poorly estimated by the MAD.",
+        "[dexamethasone vs untreated] No significant GO_BP pathways at padj < 0.05 (local ORA).",
+        "[dexamethasone vs untreated] No significant KEGG pathways at padj < 0.05 (local ORA).",
+        "[dexamethasone vs untreated] No significant Reactome pathways at padj < 0.05 (local ORA).",
+        "[dexamethasone vs untreated] GSEA: 6 pathways at FDR<0.25"
+      ],
       "modality": "bulk RNA-seq",
       "rationale": "Descriptive summary (QC/counts); no between-condition claim.",
       "status": "success",
@@ -641,8 +657,7 @@
       "ledger_status": "ran",
       "licensed_language": "associative",
       "limitations": [
-        "Observational association only; no mechanistic or interventional evidence supports a causal interpretation.",
-        "Alternative technical explanations not ruled out: batch_effect. Interpret the association with these confounders in mind."
+        "Observational association only; no mechanistic or interventional evidence supports a causal interpretation."
       ],
       "modality": "bulk RNA-seq",
       "rationale": "Correlative contrast (expression/abundance/communication) without independent mechanistic or perturbation evidence.",
@@ -933,8 +948,7 @@
       "licensed_language": "associative",
       "limitations": [
         "Observational association only; no mechanistic or interventional evidence supports a causal interpretation.",
-        "GSEA uses the complete ranked gene list and is exploratory at FDR < 0.25; inspect the leading-edge genes before making mechanistic claims.",
-        "Alternative technical explanations not ruled out: batch_effect. Interpret the association with these confounders in mind."
+        "GSEA uses the complete ranked gene list and is exploratory at FDR < 0.25; inspect the leading-edge genes before making mechanistic claims."
       ],
       "modality": "bulk RNA-seq",
       "rationale": "Correlative contrast (expression/abundance/communication) without independent mechanistic or perturbation evidence.",
@@ -1438,10 +1452,12 @@
           "numerator": "dexamethasone"
         }
       ],
-      "covariates": [],
-      "donor_col": "",
+      "covariates": [
+        "donor"
+      ],
+      "donor_col": "donor",
       "factor": "condition",
-      "formula": "",
+      "formula": "~ donor + condition",
       "genome": "hg38",
       "groups": {
         "dexamethasone": [
@@ -1459,7 +1475,7 @@
       },
       "main_factor": "condition",
       "organism": "Homo sapiens",
-      "paired": false,
+      "paired": true,
       "replicate_handling": {
         "aggregation": "none",
         "conflicts": [],
@@ -1558,21 +1574,26 @@
         "untreated": 4
       }
     },
-    "experiment_id": "1a4798f3-6a5",
+    "experiment_id": "07bf9261-708",
     "fork_ledger_summary": {
-      "commitment_status": "locked_before_execution",
-      "fork_changes": [],
-      "fork_index": 0,
-      "manifest_sha256": "027f1fc6a88013b7286ee5b07e2900a3e59289e01634563a383fb874af430c1f",
-      "parent_manifest_sha256": null,
+      "commitment_status": "post_hoc_fork",
+      "fork_changes": [
+        "design.covariates",
+        "design.donor_col",
+        "design.formula",
+        "design.paired"
+      ],
+      "fork_index": 1,
+      "manifest_sha256": "0a59d8579f09545189fed8a0dcbcf32c6cb6e40f299708f278dc202fa577714b",
+      "parent_manifest_sha256": "027f1fc6a88013b7286ee5b07e2900a3e59289e01634563a383fb874af430c1f",
       "schema_version": "aria.fork_ledger.v1",
-      "specification_sha256": "97872d8494558efc6105deb144662aa11a3aa6d3059aabc5a58aaace2bbad096",
+      "specification_sha256": "bc9d85ded6a443ec3ef6a3d8ee6d818f1f8ead04afba31b4411f8d28abbf31c4",
       "study_input_fingerprint": "39db07609f5490b8b09aee1479740a9d4afe6b754440b2da9b07eee5aaed3ba2",
-      "total_analytical_forks": 1
+      "total_analytical_forks": 2
     },
     "genome": "hg38",
     "locked_parameter_decisions": {},
-    "manifest_sha256": "027f1fc6a88013b7286ee5b07e2900a3e59289e01634563a383fb874af430c1f",
+    "manifest_sha256": "0a59d8579f09545189fed8a0dcbcf32c6cb6e40f299708f278dc202fa577714b",
     "modalities": {
       "bulk_RNA_raw": 16
     },
@@ -1581,11 +1602,11 @@
       "historical_bonus_disabled": true,
       "leiden_grid": "canonical_union_12pt"
     },
-    "realized_decisions_sha256": "a73aee7094d3f640676bf5d58751803e9808b237053b19f6f8808015b67c5e0c",
+    "realized_decisions_sha256": "a220b9f5e0f9cf8581b20229a66aafbbcf7e3efbb58abc0d16d982b2873977bd",
     "realized_parameter_decisions": {},
     "replayed_from_manifest_sha256": null,
     "schema_version": "aria.decision_manifest.v1",
-    "specification_sha256": "97872d8494558efc6105deb144662aa11a3aa6d3059aabc5a58aaace2bbad096",
+    "specification_sha256": "bc9d85ded6a443ec3ef6a3d8ee6d818f1f8ead04afba31b4411f8d28abbf31c4",
     "study_input_fingerprint": "39db07609f5490b8b09aee1479740a9d4afe6b754440b2da9b07eee5aaed3ba2",
     "thresholds": {
       "global_lfc": 1.0,
@@ -1597,152 +1618,152 @@
     {
       "checkpoint": "1",
       "decision": "Confirm and continue",
-      "id": "de97dd156d264b84b892ebd94d57f0b5",
-      "made_at": "2026-11-26T00:30:44.993355",
+      "id": "6730515a2d6f48529f2c2ceaf3dcb842",
+      "made_at": "2026-11-26T16:47:59.350418",
       "made_by": "user",
       "question": "\ud83d\udcc1 ARIA found the following data:\n\n  \ud83e\uddec bulk_RNA_raw: 16 file(s)\n\n  \ud83c\udf0d Organism: Homo sapiens\n  \ud83d\uddfa\ufe0f  Genome:   hg38 \u2713\n\n  \u26a0\ufe0f  Warnings:\n     \u2022 Ambiguous library type: generic paired-end FASTQ with no modality signal (untreated_rep4_R2.fastq.gz, dexamethasone_rep3_R2.fastq.gz, dexamethasone_rep1_R2.fastq.gz, dexamethasone_rep2_R2.fastq.gz, dexamethasone_rep2_R1.fastq.gz, ...) \u2014 hinted as bulk_RNA_raw but NOT bound. Declare the library type (assay manifest / library_type) or confirm the modality at CHECKPOINT 1; filenames are only a hint.\n\nIs this correct?\n\n\u2014 Data sensitivity (ELEVATED): Input appears to be human data with no obvious PHI fields. Consider air-gapped mode if the data are not de-identified.\n  To block ALL network egress (cloud LLM, Enrichr ORA, GEO/SRA), choose 'Confirm and enable air-gapped mode'.",
       "rationale": "User confirmed data audit results",
-      "wing_id": "1a4798f3-6a5"
+      "wing_id": "07bf9261-708"
     },
     {
       "checkpoint": "2",
       "decision": "{\n  \"organism\": \"Homo sapiens\",\n  \"genome\": \"hg38\",\n  \"groups\": {\n    \"dexamethasone\": [\n      \"dexamethasone_rep1\",\n      \"dexamethasone_rep2\",\n      \"dexamethasone_rep3\",\n      \"dexamethasone_rep4\"\n    ],\n    \"untreated\": [\n      \"untreated_rep1\",\n      \"untreated_rep2\",\n      \"untreated_rep3\",\n      \"untreated_rep4\"\n    ]\n  },\n  \"analysis_groups\": {\n    \"dexamethasone\": [\n      \"dexamethasone::dexamethasone_rep1\",\n      \"dexamethasone::dexamethasone_rep2\",\n      \"dexamethasone::dexamethasone_rep3\",\n      \"dexamethasone::dexamethasone_rep4\"\n    ],\n    \"untreated\": [\n      \"untreated::untreated_rep1\",\n      \"untreated::untreated_rep2\",\n      \"untreated::untreated_rep3\",\n      \"untreated::untreated_rep4\"\n    ]\n  },\n  \"main_factor\": \"condition\",\n  \"design_formula\": \"~ donor + condition\",\n  \"batch_covariate\": \"donor\",\n  \"paired_covariate_values\": {\n    \"donor\": {\n      \"dexamethasone_rep1\": \"rep1\",\n      \"dexamethasone_rep2\": \"rep2\",\n      \"dexamethasone_rep3\": \"rep3\",\n      \"dexamethasone_rep4\": \"rep4\",\n      \"untreated_rep1\": \"rep1\",\n      \"untreated_rep2\": \"rep2\",\n      \"untreated_rep3\": \"rep3\",\n      \"untreated_rep4\": \"rep4\"\n    }\n  },\n  \"pseudobulk\": {},\n  \"source\": null,\n  \"sample_aliases\": {},\n  \"replicate_handling\": {\n    \"mode\": \"paired_biological_block\",\n    \"source\": \"user_confirmed_cp2.5\",\n    \"aggregation\": \"none\",\n    \"units\": [\n      {\n        \"id\": \"dexamethasone::dexamethasone_rep1\",\n        \"group\": \"dexamethasone\",\n        \"root\": \"dexamethasone_rep1\",\n        \"members\": [\n          \"dexamethasone_rep1\"\n        ]\n      },\n      {\n        \"id\": \"dexamethasone::dexamethasone_rep2\",\n        \"group\": \"dexamethasone\",\n        \"root\": \"dexamethasone_rep2\",\n        \"members\": [\n          \"dexamethasone_rep2\"\n        ]\n      },\n      {\n        \"id\": \"dexamethasone::dexamethasone_rep3\",\n        \"group\": \"dexamethasone\",\n        \"root\": \"dexamethasone_rep3\",\n        \"members\": [\n          \"dexamethasone_rep3\"\n        ]\n      },\n      {\n        \"id\": \"dexamethasone::dexamethasone_rep4\",\n        \"group\": \"dexamethasone\",\n        \"root\": \"dexamethasone_rep4\",\n        \"members\": [\n          \"dexamethasone_rep4\"\n        ]\n      },\n      {\n        \"id\": \"untreated::untreated_rep1\",\n        \"group\": \"untreated\",\n        \"root\": \"untreated_rep1\",\n        \"members\": [\n          \"untreated_rep1\"\n        ]\n      },\n      {\n        \"id\": \"untreated::untreated_rep2\",\n        \"group\": \"untreated\",\n        \"root\": \"untreated_rep2\",\n        \"members\": [\n          \"untreated_rep2\"\n        ]\n      },\n      {\n        \"id\": \"untreated::untreated_rep3\",\n        \"group\": \"untreated\",\n        \"root\": \"untreated_rep3\",\n        \"members\": [\n          \"untreated_rep3\"\n        ]\n      },\n      {\n        \"id\": \"untreated::untreated_rep4\",\n        \"group\": \"untreated\",\n        \"root\": \"untreated_rep4\",\n        \"members\": [\n          \"untreated_rep4\"\n        ]\n      }\n    ],\n    \"sample_to_unit\": {\n      \"dexamethasone_rep1\": \"dexamethasone::dexamethasone_rep1\",\n      \"dexamethasone_rep2\": \"dexamethasone::dexamethasone_rep2\",\n      \"dexamethasone_rep3\": \"dexamethasone::dexamethasone_rep3\",\n      \"dexamethasone_rep4\": \"dexamethasone::dexamethasone_rep4\",\n      \"untreated_rep1\": \"untreated::untreated_rep1\",\n      \"untreated_rep2\": \"untreated::untreated_rep2\",\n      \"untreated_rep3\": \"untreated::untreated_rep3\",\n      \"untreated_rep4\": \"untreated::untreated_rep4\"\n    },\n    \"conflicts\": [],\n    \"pair_covariate\": \"donor\",\n    \"sample_to_pair\": {\n      \"dexamethasone_rep1\": \"rep1\",\n      \"dexamethasone_rep2\": \"rep2\",\n      \"dexamethasone_rep3\": \"rep3\",\n      \"dexamethasone_rep4\": \"rep4\",\n      \"untreated_rep1\": \"rep1\",\n      \"untreated_rep2\": \"rep2\",\n      \"untreated_rep3\": \"rep3\",\n      \"untreated_rep4\": \"rep4\"\n    }\n  },\n  \"experimental_unit\": \"paired_biological_unit\",\n  \"analysis_design_formula\": \"~ donor + condition\",\n  \"replicates\": {\n    \"dexamethasone\": 4,\n    \"untreated\": 4\n  },\n  \"n_input_libraries\": 8,\n  \"n_total_samples\": 8,\n  \"nominal_residual_df\": 3,\n  \"design_status\": \"ready\",\n  \"blocking_groups\": {},\n  \"blocking_reasons\": [],\n  \"confounded_covariates\": []\n}",
-      "id": "5cdf168c",
-      "made_at": "2026-11-26T00:30:45.252785",
+      "id": "2eee8140",
+      "made_at": "2026-11-26T16:47:59.609454",
       "made_by": "user",
       "question": "Experimental design (organism, groups, factor, formula)",
       "rationale": "User confirmed design interactively",
-      "wing_id": "1a4798f3-6a5"
+      "wing_id": "07bf9261-708"
     },
     {
       "checkpoint": "2.pre",
-      "decision": "2 recommended, 1 optional, 1 unsupported/not recommended, 0 warning(s).",
-      "id": "1a4798f3-6a5_design_intelligence",
-      "made_at": "2026-11-26T00:30:45.401388",
+      "decision": "2 recommended, 1 optional, 1 unsupported/not recommended, 1 warning(s).",
+      "id": "07bf9261-708_design_intelligence",
+      "made_at": "2026-11-26T16:47:59.738431",
       "made_by": "design_intelligence",
       "question": "Design Intelligence assessment",
       "rationale": "ARIA evaluated modality feasibility, recommended analyses, optional analyses, unsupported analyses, covariates, and design limitations before compute.",
-      "wing_id": "1a4798f3-6a5"
+      "wing_id": "07bf9261-708"
     },
     {
       "checkpoint": "2",
       "decision": "Run recommended plan only",
-      "id": "50e2fd403bcf4db9bfd239d00fe23f84",
-      "made_at": "2026-11-26T00:30:45.452602",
+      "id": "b63692f9fbc4429dbdb447409c972f75",
+      "made_at": "2026-11-26T16:47:59.797081",
       "made_by": "user",
       "question": "Analysis plan confirmed",
       "rationale": "User approved analysis plan directly. Optional supported analyses were not added.",
-      "wing_id": "1a4798f3-6a5"
+      "wing_id": "07bf9261-708"
     },
     {
       "checkpoint": "2",
       "decision": "~ donor + condition",
-      "id": "1a4798f3-design-01",
-      "made_at": "2026-11-26T00:40:18.102555",
+      "id": "07bf9261-design-01",
+      "made_at": "2026-11-26T16:48:16.179309",
       "made_by": "user",
       "question": "Experimental design (source: DesignAgent)",
       "rationale": "User confirmed design interactively.",
-      "wing_id": "1a4798f3-6a5"
+      "wing_id": "07bf9261-708"
     },
     {
       "checkpoint": "1",
       "decision": "Raw integer counts | DESeq2 median-of-ratios (internal) | \u226510 counts in \u22652 samples",
-      "id": "1a4798f3-auto-01",
-      "made_at": "2026-11-26T00:40:42.297699",
+      "id": "07bf9261-auto-01",
+      "made_at": "2026-11-26T16:48:40.163936",
       "made_by": "bulk_rna_agent (auto)",
       "question": "Differential expression (DESeq2)",
       "rationale": "DESeq2 handles library-size normalization internally; external normalization would break the negative-binomial model assumptions.",
-      "wing_id": "1a4798f3-6a5"
+      "wing_id": "07bf9261-708"
     },
     {
       "checkpoint": "0",
       "decision": "All count-matrix samples | Primary DE retains all samples | Design-safe removal is evaluated only as sensitivity",
-      "id": "1a4798f3-auto-00",
-      "made_at": "2026-11-26T00:40:42.297849",
+      "id": "07bf9261-auto-00",
+      "made_at": "2026-11-26T16:48:40.164045",
       "made_by": "bulk_rna_agent (auto)",
       "question": "Sample outliers",
       "rationale": "Automatic pre-DE pruning can turn a null primary result into a significant result; ARIA reports primary and outlier-removal sensitivity separately.",
-      "wing_id": "1a4798f3-6a5"
+      "wing_id": "07bf9261-708"
     },
     {
       "checkpoint": "2",
       "decision": "VST-transformed counts | Variance-Stabilizing Transformation (pydeseq2) | Top 2000 most-variable protein_coding genes",
-      "id": "1a4798f3-auto-02",
-      "made_at": "2026-11-26T00:40:42.297909",
+      "id": "07bf9261-auto-02",
+      "made_at": "2026-11-26T16:48:40.164072",
       "made_by": "bulk_rna_agent (auto)",
       "question": "PCA + MDS (sample-level structure)",
       "rationale": "VST produces homoscedastic values suitable for Euclidean-based methods (DESeq2 authors' recommendation). Protein-coding filter removes pseudogene/ncRNA noise. Variable-gene filter focuses on informative signal.",
-      "wing_id": "1a4798f3-6a5"
+      "wing_id": "07bf9261-708"
     },
     {
       "checkpoint": "3",
       "decision": "VST (or log2(counts+1) fallback) | Row z-score | 50 most significant DE genes (sorted by padj)",
-      "id": "1a4798f3-auto-03",
-      "made_at": "2026-11-26T00:40:42.297963",
+      "id": "07bf9261-auto-03",
+      "made_at": "2026-11-26T16:48:40.164097",
       "made_by": "bulk_rna_agent (auto)",
       "question": "Heatmap (padj top 50)",
       "rationale": "Statistically confident signal; symbol-annotated rows.",
-      "wing_id": "1a4798f3-6a5"
+      "wing_id": "07bf9261-708"
     },
     {
       "checkpoint": "4",
       "decision": "VST (or log2(counts+1) fallback) | Row z-score | 50 DE genes with largest effect sizes",
-      "id": "1a4798f3-auto-04",
-      "made_at": "2026-11-26T00:40:42.298029",
+      "id": "07bf9261-auto-04",
+      "made_at": "2026-11-26T16:48:40.164121",
       "made_by": "bulk_rna_agent (auto)",
       "question": "Heatmap (|log2FC| top 50)",
       "rationale": "Complementary view \u2014 surfaces largest effect sizes, which may not have smallest padj for low-count genes.",
-      "wing_id": "1a4798f3-6a5"
+      "wing_id": "07bf9261-708"
     },
     {
       "checkpoint": "5",
       "decision": "DE gene symbols | Local hypergeometric test against versioned GMT libraries (Enrichr is opt-in) | padj<0.05 from Wald lfcThreshold test; ORA universe = genes retained after expression filtering",
-      "id": "1a4798f3-auto-05",
-      "made_at": "2026-11-26T00:40:42.298054",
+      "id": "07bf9261-auto-05",
+      "made_at": "2026-11-26T16:48:40.164145",
       "made_by": "bulk_rna_agent (auto)",
       "question": "Pathway enrichment (ORA)",
       "rationale": "Standard over-representation for discrete gene lists, computed locally against the dataset-expressed background so the gene list never leaves the machine (W-PRIV); the exact gene-set release is recorded in pathway_ora.gene_set_versions.",
-      "wing_id": "1a4798f3-6a5"
+      "wing_id": "07bf9261-708"
     },
     {
       "checkpoint": "6",
       "decision": "All DE-tested genes ranked by log2FC | blitzgsea running sum | None (uses full ranking)",
-      "id": "1a4798f3-auto-06",
-      "made_at": "2026-11-26T00:40:42.298094",
+      "id": "07bf9261-auto-06",
+      "made_at": "2026-11-26T16:48:40.164169",
       "made_by": "bulk_rna_agent (auto)",
       "question": "GSEA (pre-ranked)",
       "rationale": "More sensitive than ORA to coordinated small effects; complementary to cutoff-based enrichment.",
-      "wing_id": "1a4798f3-6a5"
+      "wing_id": "07bf9261-708"
     },
     {
       "checkpoint": "7",
       "decision": "Raw counts + exon-union gene lengths | TPM (transcripts per million) | Genes with length annotation in GTF",
-      "id": "1a4798f3-auto-07",
-      "made_at": "2026-11-26T00:40:42.298121",
+      "id": "07bf9261-auto-07",
+      "made_at": "2026-11-26T16:48:40.164230",
       "made_by": "bulk_rna_agent (auto)",
       "question": "TPM (supplementary export)",
       "rationale": "Supplementary table for downstream tools that require TPM (ssGSEA, deconvolution). NOT used by ARIA for DE or PCA \u2014 both use more appropriate methods.",
-      "wing_id": "1a4798f3-6a5"
+      "wing_id": "07bf9261-708"
     },
     {
       "checkpoint": "0",
       "decision": "padj < 0.05, |log2FC| > 1.0",
-      "id": "1a4798f3-auto-00-thr",
-      "made_at": "2026-11-26T00:40:42.298148",
+      "id": "07bf9261-auto-00-thr",
+      "made_at": "2026-11-26T16:48:40.164256",
       "made_by": "User / bulk_rna_agent",
       "question": "Statistical thresholds for DE significance",
       "rationale": "|log2FC| threshold provenance: default. The default (1.0) is fixed and prompt-independent; it changes only via an explicit User Checkpoint 3 profile or a versioned global_lfc override (never inferred from the question text).",
-      "wing_id": "1a4798f3-6a5"
+      "wing_id": "07bf9261-708"
     },
     {
       "checkpoint": "0",
-      "decision": "~condition",
-      "id": "1a4798f3-auto-00-design",
-      "made_at": "2026-11-26T00:40:42.298172",
+      "decision": "~ donor + condition",
+      "id": "07bf9261-auto-00-design",
+      "made_at": "2026-11-26T16:48:40.164290",
       "made_by": "bulk_rna_agent (auto)",
       "question": "DESeq2 design formula",
-      "rationale": "Single-factor design inferred from sample labels. No batch or covariate adjustment applied.",
-      "wing_id": "1a4798f3-6a5"
+      "rationale": "Multi-factor DESeq2 design adjusting for confirmed covariate(s): donor.",
+      "wing_id": "07bf9261-708"
     }
   ],
   "design": {
@@ -1922,7 +1943,9 @@
           "FASTQ QC/quantification before DE."
         ],
         "unsupported": [],
-        "warnings": []
+        "warnings": [
+          "Design-matrix warning: Some condition x covariate design cells have fewer than 2 samples: {('dexamethasone', 'rep1'): 1, ('dexamethasone', 'rep2'): 1, ('dexamethasone', 'rep3'): 1, ('dexamethasone', 'rep4'): 1, ('untreated', 'rep1'): 1, ('untreated', 'rep2'): 1, ('untreated', 'rep3'): 1, ('untreated', 'rep4'): 1}."
+        ]
       }
     ],
     "recommended": [
@@ -1930,19 +1953,21 @@
       "FASTQ QC/quantification before DE."
     ],
     "status": "success",
-    "summary": "2 recommended, 1 optional, 1 unsupported/not recommended, 0 warning(s).",
+    "summary": "2 recommended, 1 optional, 1 unsupported/not recommended, 1 warning(s).",
     "unsupported": [
       "Multimodal integration is not supported with a single detected modality."
     ],
-    "warnings": []
+    "warnings": [
+      "Design-matrix warning: Some condition x covariate design cells have fewer than 2 samples: {('dexamethasone', 'rep1'): 1, ('dexamethasone', 'rep2'): 1, ('dexamethasone', 'rep3'): 1, ('dexamethasone', 'rep4'): 1, ('untreated', 'rep1'): 1, ('untreated', 'rep2'): 1, ('untreated', 'rep3'): 1, ('untreated', 'rep4'): 1}."
+    ]
   },
   "devils_advocate": [
     {
       "challenges": [
         {
-          "addressed": false,
+          "addressed": true,
           "alternative": "batch_effect",
-          "basis": "no batch covariate was modeled in the design"
+          "basis": "a batch covariate was included in the design"
         },
         {
           "addressed": true,
@@ -1952,16 +1977,14 @@
       ],
       "claim_id": "bulk.contrast.dexamethasone_vs_untreated",
       "tier": "associative",
-      "unaddressed": [
-        "batch_effect"
-      ]
+      "unaddressed": []
     },
     {
       "challenges": [
         {
-          "addressed": false,
+          "addressed": true,
           "alternative": "batch_effect",
-          "basis": "no batch covariate was modeled in the design"
+          "basis": "a batch covariate was included in the design"
         },
         {
           "addressed": true,
@@ -1971,9 +1994,7 @@
       ],
       "claim_id": "bulk.gsea.dexamethasone_vs_untreated",
       "tier": "associative",
-      "unaddressed": [
-        "batch_effect"
-      ]
+      "unaddressed": []
     }
   ],
   "falsification_certificates": {
@@ -2656,7 +2677,48 @@
     {
       "analysis": "sample_qc",
       "block_type": "qc",
-      "caveats": [],
+      "caveats": [
+        {
+          "severity": "warning",
+          "text": "Gene annotation loaded from annotation.gtf: 63,140 biotypes, 63,140 lengths."
+        },
+        {
+          "severity": "warning",
+          "text": "DR input: 2000 most-variable protein_coding genes (from 13111 total protein_coding)."
+        },
+        {
+          "severity": "warning",
+          "text": "TPM table written (16551 genes) \u2014 supplementary only; not used for DE or PCA."
+        },
+        {
+          "severity": "warning",
+          "text": "11997 low-count genes removed (< 10 counts in < 2 samples)."
+        },
+        {
+          "severity": "warning",
+          "text": "[dexamethasone vs untreated] Design matrix warning: Some condition x covariate design cells have fewer than 2 samples: {('dexamethasone', 'rep1'): 1, ('dexamethasone', 'rep2'): 1, ('dexamethasone', 'rep3'): 1, ('dexamethasone', 'rep4'): 1, ('untreated', 'rep1'): 1, ('untreated', 'rep2'): 1, ('untrea"
+        },
+        {
+          "severity": "warning",
+          "text": "[dexamethasone vs untreated] pydeseq2 fit warning [UserWarning]: As the residual degrees of freedom is less than 3, the distribution of log dispersions is especially asymmetric and likely to be poorly estimated by the MAD."
+        },
+        {
+          "severity": "warning",
+          "text": "[dexamethasone vs untreated] No significant GO_BP pathways at padj < 0.05 (local ORA)."
+        },
+        {
+          "severity": "warning",
+          "text": "[dexamethasone vs untreated] No significant KEGG pathways at padj < 0.05 (local ORA)."
+        },
+        {
+          "severity": "warning",
+          "text": "[dexamethasone vs untreated] No significant Reactome pathways at padj < 0.05 (local ORA)."
+        },
+        {
+          "severity": "warning",
+          "text": "[dexamethasone vs untreated] GSEA: 6 pathways at FDR<0.25"
+        }
+      ],
       "claim": "Bulk RNA sample QC evaluated 8 samples with 0 outlier(s) flagged; primary DE retained all samples and sensitivity removed 0.",
       "confidence": "high",
       "error": null,
@@ -2723,7 +2785,18 @@
           ],
           "language_violation": null,
           "licensed_language": "descriptive",
-          "limitations": [],
+          "limitations": [
+            "Gene annotation loaded from annotation.gtf: 63,140 biotypes, 63,140 lengths.",
+            "DR input: 2000 most-variable protein_coding genes (from 13111 total protein_coding).",
+            "TPM table written (16551 genes) \u2014 supplementary only; not used for DE or PCA.",
+            "11997 low-count genes removed (< 10 counts in < 2 samples).",
+            "[dexamethasone vs untreated] Design matrix warning: Some condition x covariate design cells have fewer than 2 samples: {('dexamethasone', 'rep1'): 1, ('dexamethasone', 'rep2'): 1, ('dexamethasone', 'rep3'): 1, ('dexamethasone', 'rep4'): 1, ('untreated', 'rep1'): 1, ('untreated', 'rep2'): 1, ('untrea",
+            "[dexamethasone vs untreated] pydeseq2 fit warning [UserWarning]: As the residual degrees of freedom is less than 3, the distribution of log dispersions is especially asymmetric and likely to be poorly estimated by the MAD.",
+            "[dexamethasone vs untreated] No significant GO_BP pathways at padj < 0.05 (local ORA).",
+            "[dexamethasone vs untreated] No significant KEGG pathways at padj < 0.05 (local ORA).",
+            "[dexamethasone vs untreated] No significant Reactome pathways at padj < 0.05 (local ORA).",
+            "[dexamethasone vs untreated] GSEA: 6 pathways at FDR<0.25"
+          ],
           "rationale": "Descriptive summary (QC/counts); no between-condition claim.",
           "tier": "descriptive"
         },
@@ -2824,7 +2897,69 @@
           "policy": "Every ARIA-authored claim sentence must be backed by structured evidence, metrics, tables, figures, or an explicitly licensed analysis family.",
           "status": "supported",
           "unsupported": []
-        }
+        },
+        "degradation_signals": [
+          {
+            "field": "warnings",
+            "message": "Gene annotation loaded from annotation.gtf: 63,140 biotypes, 63,140 lengths.",
+            "scope": "__root__",
+            "severity": "warning"
+          },
+          {
+            "field": "warnings",
+            "message": "DR input: 2000 most-variable protein_coding genes (from 13111 total protein_coding).",
+            "scope": "__root__",
+            "severity": "warning"
+          },
+          {
+            "field": "warnings",
+            "message": "TPM table written (16551 genes) \u2014 supplementary only; not used for DE or PCA.",
+            "scope": "__root__",
+            "severity": "warning"
+          },
+          {
+            "field": "warnings",
+            "message": "11997 low-count genes removed (< 10 counts in < 2 samples).",
+            "scope": "__root__",
+            "severity": "warning"
+          },
+          {
+            "field": "warnings",
+            "message": "[dexamethasone vs untreated] Design matrix warning: Some condition x covariate design cells have fewer than 2 samples: {('dexamethasone', 'rep1'): 1, ('dexamethasone', 'rep2'): 1, ('dexamethasone', 'rep3'): 1, ('dexamethasone', 'rep4'): 1, ('untreated', 'rep1'): 1, ('untreated', 'rep2'): 1, ('untrea",
+            "scope": "__root__",
+            "severity": "warning"
+          },
+          {
+            "field": "warnings",
+            "message": "[dexamethasone vs untreated] pydeseq2 fit warning [UserWarning]: As the residual degrees of freedom is less than 3, the distribution of log dispersions is especially asymmetric and likely to be poorly estimated by the MAD.",
+            "scope": "__root__",
+            "severity": "warning"
+          },
+          {
+            "field": "warnings",
+            "message": "[dexamethasone vs untreated] No significant GO_BP pathways at padj < 0.05 (local ORA).",
+            "scope": "__root__",
+            "severity": "warning"
+          },
+          {
+            "field": "warnings",
+            "message": "[dexamethasone vs untreated] No significant KEGG pathways at padj < 0.05 (local ORA).",
+            "scope": "__root__",
+            "severity": "warning"
+          },
+          {
+            "field": "warnings",
+            "message": "[dexamethasone vs untreated] No significant Reactome pathways at padj < 0.05 (local ORA).",
+            "scope": "__root__",
+            "severity": "warning"
+          },
+          {
+            "field": "warnings",
+            "message": "[dexamethasone vs untreated] GSEA: 6 pathways at FDR<0.25",
+            "scope": "__root__",
+            "severity": "warning"
+          }
+        ]
       },
       "methods": [],
       "metrics": {
@@ -2842,12 +2977,7 @@
     {
       "analysis": "differential_expression",
       "block_type": "result",
-      "caveats": [
-        {
-          "severity": "info",
-          "text": "Alternative technical explanations not ruled out: batch_effect. Interpret the association with these confounders in mind."
-        }
-      ],
+      "caveats": [],
       "claim": "Bulk contrast dexamethasone vs untreated had 22 DE genes.",
       "confidence": "medium",
       "error": null,
@@ -3009,8 +3139,7 @@
           "language_violation": null,
           "licensed_language": "associative",
           "limitations": [
-            "Observational association only; no mechanistic or interventional evidence supports a causal interpretation.",
-            "Alternative technical explanations not ruled out: batch_effect. Interpret the association with these confounders in mind."
+            "Observational association only; no mechanistic or interventional evidence supports a causal interpretation."
           ],
           "rationale": "Correlative contrast (expression/abundance/communication) without independent mechanistic or perturbation evidence.",
           "tier": "associative"
@@ -3230,9 +3359,9 @@
         "devils_advocate": {
           "challenges": [
             {
-              "addressed": false,
+              "addressed": true,
               "alternative": "batch_effect",
-              "basis": "no batch covariate was modeled in the design"
+              "basis": "a batch covariate was included in the design"
             },
             {
               "addressed": true,
@@ -3240,9 +3369,7 @@
               "basis": "replicate support met the floor"
             }
           ],
-          "unaddressed": [
-            "batch_effect"
-          ]
+          "unaddressed": []
         },
         "estimand": {
           "contrast": "dexamethasone vs untreated",
@@ -3276,10 +3403,6 @@
         {
           "severity": "info",
           "text": "GSEA uses the complete ranked gene list and is exploratory at FDR < 0.25; inspect the leading-edge genes before making mechanistic claims."
-        },
-        {
-          "severity": "info",
-          "text": "Alternative technical explanations not ruled out: batch_effect. Interpret the association with these confounders in mind."
         }
       ],
       "claim": "Preranked GSEA identified 6 exploratory pathway(s) at FDR < 0.25 for dexamethasone vs untreated.",
@@ -3361,8 +3484,7 @@
           "licensed_language": "associative",
           "limitations": [
             "Observational association only; no mechanistic or interventional evidence supports a causal interpretation.",
-            "GSEA uses the complete ranked gene list and is exploratory at FDR < 0.25; inspect the leading-edge genes before making mechanistic claims.",
-            "Alternative technical explanations not ruled out: batch_effect. Interpret the association with these confounders in mind."
+            "GSEA uses the complete ranked gene list and is exploratory at FDR < 0.25; inspect the leading-edge genes before making mechanistic claims."
           ],
           "rationale": "Correlative contrast (expression/abundance/communication) without independent mechanistic or perturbation evidence.",
           "tier": "associative"
@@ -3594,9 +3716,9 @@
         "devils_advocate": {
           "challenges": [
             {
-              "addressed": false,
+              "addressed": true,
               "alternative": "batch_effect",
-              "basis": "no batch covariate was modeled in the design"
+              "basis": "a batch covariate was included in the design"
             },
             {
               "addressed": true,
@@ -3604,9 +3726,7 @@
               "basis": "replicate support met the floor"
             }
           ],
-          "unaddressed": [
-            "batch_effect"
-          ]
+          "unaddressed": []
         },
         "gsea_fdr_threshold": 0.25
       },
@@ -3868,7 +3988,7 @@
     }
   ],
   "provenance": {
-    "aria_version": "4.9.4",
+    "aria_version": "4.9.5",
     "conda_env": "aria-env",
     "environment": {
       "conda_prefix": null,
@@ -3877,11 +3997,11 @@
       "env_name": "aria-env",
       "source": "no_lock"
     },
-    "git_commit": "c6a545d32976f736bb1410618a51c3c93cfab096",
-    "git_describe": "v4.9.3-3-gc6a545d",
+    "git_commit": "fb8f71239d1f367e12b11418d417723bdec46f73",
+    "git_describe": "v4.9.4-126-gfb8f712",
     "git_dirty": false,
-    "git_sha": "c6a545d32976f736bb1410618a51c3c93cfab096",
-    "git_tree_sha": "2b2b29989185d33582cd312d5aea71f48144ffbb",
+    "git_sha": "fb8f71239d1f367e12b11418d417723bdec46f73",
+    "git_tree_sha": "bff72e7fa14408c599fcacac76b91a782c9aa3c6",
     "image": {
       "containerized": false,
       "digest": null,
@@ -3894,9 +4014,9 @@
     "platform": "Linux-5.15.167.4-microsoft-standard-WSL2-x86_64-with-glibc2.39",
     "python_version": "3.11.15 | packaged by conda-forge | (main, Mar  5 2026, 16:45:40) [GCC 14.3.0]",
     "timestamp_utc": "<timestamp redacted for byte-identity>",
-    "version": "4.9.4",
+    "version": "4.9.5",
     "version_source": "aria.version.__version__",
-    "workflow_hash": "83fa1b57639d4c5de45b0bfd9c46a71726334a77315d1227696d5211185e8868",
+    "workflow_hash": "3d5f4ec763cdc568d057ccbbbfbb727c2d78d5cc01e6f239e5e929087aea4261",
     "workflow_hash_algorithm": "sha256(version+git_sha+git_tree_sha+git_dirty+git_status+git_diff)"
   },
   "raw_ingestion": [],
