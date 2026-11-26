@@ -413,6 +413,38 @@ def call_seacr_peaks(
     if not targets:
         return {"status": "error", "error_type": "NoInputFiles", "details": "SEACR requires target input(s)."}
 
+    try:
+        target_scale_factors = _finite_positive_scales(
+            target_scale_factors, "target_scale_factors"
+        )
+        control_scale_factors = _finite_positive_scales(
+            control_scale_factors, "control_scale_factors"
+        )
+    except ValueError as exc:
+        return {
+            "status": "error",
+            "error_type": "InvalidScaleFactors",
+            "details": str(exc),
+        }
+    if target_scale_factors and len(target_scale_factors) != len(targets):
+        return {
+            "status": "error",
+            "error_type": "InvalidScaleFactors",
+            "details": (
+                f"target_scale_factors length ({len(target_scale_factors)}) "
+                f"must match number of target inputs ({len(targets)})."
+            ),
+        }
+    if control_scale_factors and len(control_scale_factors) != len(controls):
+        return {
+            "status": "error",
+            "error_type": "InvalidScaleFactors",
+            "details": (
+                f"control_scale_factors length ({len(control_scale_factors)}) "
+                f"must match number of control inputs ({len(controls)})."
+            ),
+        }
+
     out_path = Path(output_bed)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     tmp_dir = Path(work_dir) if work_dir else out_path.parent / "_seacr_work"
@@ -422,7 +454,7 @@ def call_seacr_peaks(
         bgs: list[str] = []
         for idx, p in enumerate(paths):
             p_str = str(p)
-            scale = float(scales[idx]) if (scales and idx < len(scales)) else 1.0
+            scale = float(scales[idx]) if scales else 1.0
             if not math.isfinite(scale) or scale <= 0.0:
                 raise ValueError(f"Invalid SEACR scale factor for {p_str}: {scale!r}")
             if p_str.lower().endswith((".bedgraph", ".bg", ".bdg")):
@@ -964,6 +996,24 @@ def call_broad_domains(
     except ValueError as exc:
         return {"status": "error", "error_type": "InvalidScaleFactors",
                 "details": str(exc)}
+    if ip_scale_factors and len(ip_scale_factors) != len(ip_bams):
+        return {
+            "status": "error",
+            "error_type": "InvalidScaleFactors",
+            "details": (
+                f"ip_scale_factors length ({len(ip_scale_factors)}) "
+                f"must match number of IP BAMs ({len(ip_bams)})."
+            ),
+        }
+    if control_scale_factors and len(control_scale_factors) != len(control_bams or []):
+        return {
+            "status": "error",
+            "error_type": "InvalidScaleFactors",
+            "details": (
+                f"control_scale_factors length ({len(control_scale_factors)}) "
+                f"must match number of control BAMs ({len(control_bams or [])})."
+            ),
+        }
 
     def _bin_cohort(paths: list[str], scales: list[float] | None) -> tuple[dict[str, np.ndarray], dict[str, int]]:
         chrom_sizes: dict[str, int] = {}
@@ -996,7 +1046,7 @@ def call_broad_domains(
 
             scale = (
                 float(scales[idx])
-                if (scales and idx < len(scales))
+                if scales
                 else (1e6 / max(1, total_mapped))
             )
             for ref, arr in sample_bins.items():

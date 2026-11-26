@@ -183,6 +183,35 @@ def chromatin_peaks(params: dict) -> dict:
                 "Running without input control."
             )
 
+    if target_scale_factors:
+        if len(target_scale_factors) != len(valid_files):
+            return {
+                "status": "error",
+                "error_type": "InvalidScaleFactors",
+                "details": (
+                    f"target_scale_factors length ({len(target_scale_factors)}) "
+                    f"must match input file count ({len(valid_files)})."
+                ),
+            }
+        if any(
+            isinstance(v, bool) or not (isinstance(v, (int, float)) and v > 0)
+            for v in target_scale_factors
+        ):
+            return {
+                "status": "error",
+                "error_type": "InvalidScaleFactors",
+                "details": f"target_scale_factors must contain positive numbers: {target_scale_factors!r}",
+            }
+    if control_scale_factors and len(control_scale_factors) != len(valid_ctrl):
+        return {
+            "status": "error",
+            "error_type": "InvalidScaleFactors",
+            "details": (
+                f"control_scale_factors length ({len(control_scale_factors)}) "
+                f"must match control file count ({len(valid_ctrl)})."
+            ),
+        }
+
     cmd: list[str] = []
     effective_format = macs3_params.get("format", "BAMPE")
     seacr_diagnostics = None
@@ -369,11 +398,7 @@ def chromatin_peaks(params: dict) -> dict:
         for idx, (path, sid) in enumerate(zip(valid_files, sample_ids_for_files)):
             if not str(path).lower().endswith((".bam", ".cram")):
                 continue
-            sf = (
-                float(target_scale_factors[idx])
-                if (target_scale_factors and idx < len(target_scale_factors))
-                else None
-            )
+            sf = float(target_scale_factors[idx]) if target_scale_factors else None
             try:
                 bw_info = write_normalized_bigwig(
                     path,
