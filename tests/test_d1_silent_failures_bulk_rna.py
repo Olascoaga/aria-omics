@@ -78,6 +78,115 @@ def test_d1_009_sample_qc_crash_must_not_emit_high_conf_zero_outliers(tmp_path, 
     assert qc_block.status == "error" and "0 outlier(s)" not in qc_block.claim
 
 
+def test_d1_009_failed_qc_preserves_real_lib_size_and_safe_across_all_consumers(
+    tmp_path, monkeypatch
+):
+    """R1/D1-009: Failed sample_qc preserves real size_ratio when computable, omits it if not,
+    and never crashes or emits '0 outlier' / '1.0x' / HIGH confidence in any consumer."""
+    pytest.importorskip("litellm")
+    import pandas as pd
+    import aria.scripts.rna_bulk.qc as qc_mod
+    from aria.agents.bulk_rna_agent import BulkRNAAgent
+    from aria.agents.narrative_agent import NarrativeAgent
+    from aria.agents.narrative.narrators.bulk_rna import BulkRnaNarrator
+    from aria.bus.message_bus import Confidence
+
+    # 1. Producer: VST fails, but library-size stats from counts are real (4.0x: 60 vs 240).
+    counts = pd.DataFrame(
+        {"s1": [10, 20, 30], "s2": [40, 80, 120], "s3": [20, 40, 60], "s4": [20, 40, 60]},
+        index=["G1", "G2", "G3"],
+    )
+    meta = pd.DataFrame({"condition": ["A", "A", "B", "B"]}, index=["s1", "s2", "s3", "s4"])
+    monkeypatch.setattr(
+        qc_mod, "_run_vst", lambda *a, **kw: (_ for _ in ()).throw(RuntimeError("VST crashed"))
+    )
+    sqc_with_ratio = qc_mod._sample_qc(counts, meta, str(tmp_path), [], design_factor="condition")
+    assert sqc_with_ratio["status"] == "error"
+    assert sqc_with_ratio["outliers"] is None
+    assert sqc_with_ratio["size_ratio"] == 4.0
+    assert sqc_with_ratio["lib_size_range"] == [60, 240]
+
+    # When even counts summation fails, size_ratio and lib_size_range must be omitted (not defaulted).
+    bad_counts = pd.DataFrame({"s1": ["bad"], "s2": ["data"]}, index=["G1"])
+    sqc_bad_counts = qc_mod._sample_qc(bad_counts, meta, str(tmp_path), [], design_factor="condition")
+    assert sqc_bad_counts["status"] == "error"
+    assert sqc_bad_counts["outliers"] is None
+    assert "size_ratio" not in sqc_bad_counts and "lib_size_range" not in sqc_bad_counts
+
+    # Simulate rna_bulk_de copying candidate_outliers = None and a variant without size_ratio.
+    sqc_with_ratio["candidate_outliers"] = None
+    sqc_no_ratio = {
+        "status": "error",
+        "n_samples": 4,
+        "outliers": None,
+        "candidate_outliers": None,
+        "pca_variance": [],
+        "error": "counts unreadable",
+    }
+
+    narr = NarrativeAgent.__new__(NarrativeAgent)
+    for label, sqc in (("with_ratio", sqc_with_ratio), ("no_ratio", sqc_no_ratio)):
+        bulk_findings = {
+            "sample_qc": sqc,
+            "contrasts": [{
+                "name": "treat_vs_ctrl",
+                "status": "success",
+                "n_significant": 12,
+                "n_upregulated": 7,
+                "n_downregulated": 5,
+                "top_genes": [{"gene": "G1", "symbol": "G1", "log2fc": 2.0, "padj": 1e-3}],
+            }],
+        }
+        agent_results = {"bulk_rna_agent": {"status": "done", "findings": bulk_findings}}
+
+        # Consumer 1: _deterministic_bulk_executive_summary
+        exec_sum = narr._deterministic_bulk_executive_summary({}, {}, agent_results)
+        assert "0 outlier" not in exec_sum.lower(), (label, exec_sum)
+        assert "failed" in exec_sum.lower() or "not available" in exec_sum.lower(), (label, exec_sum)
+
+        # Consumer 2: _summarize_agent_results_for_llm (must not raise TypeError on len(None))
+        llm_sum = narr._summarize_agent_results_for_llm(agent_results)
+        assert "0 outlier" not in llm_sum.lower(), (label, llm_sum)
+        assert "failed" in llm_sum.lower() or "not available" in llm_sum.lower(), (label, llm_sum)
+        if label == "no_ratio":
+            assert "0×" not in llm_sum and "1.0×" not in llm_sum, llm_sum
+            assert "not available" in llm_sum.lower(), llm_sum
+        else:
+            assert "4.0×" in llm_sum, llm_sum
+
+        # Consumer 3: _summarize_bulk_rna
+        bulk_sum = narr._summarize_bulk_rna(
+            agent_results["bulk_rna_agent"],
+            {"high": [], "medium": [], "low": [], "insufficient": []},
+        )
+        assert "0 outlier" not in bulk_sum.lower() and "no outliers" not in bulk_sum.lower(), (label, bulk_sum)
+        assert "1.0×" not in bulk_sum and "1.0x" not in bulk_sum, (label, bulk_sum)
+        assert "passed" not in bulk_sum.lower(), (label, bulk_sum)
+        assert "failed" in bulk_sum.lower() or "not available" in bulk_sum.lower(), (label, bulk_sum)
+
+        # Consumer 4: BulkRNAAgent._publish_findings
+        published = []
+        bulk_agent = BulkRNAAgent.__new__(BulkRNAAgent)
+        bulk_agent.publish_finding = lambda exp_id, payload, conf: published.append((payload, conf))
+        bulk_agent._publish_findings("exp1", bulk_findings)
+        qc_pubs = [(p, c) for p, c in published if "qc" in str(p.get("summary", "")).lower()]
+        assert len(qc_pubs) == 1, published
+        qc_payload, qc_conf = qc_pubs[0]
+        assert qc_conf != Confidence.HIGH, (label, qc_conf)
+        assert "1.0x" not in qc_payload["summary"].lower(), (label, qc_payload)
+        assert "failed" in qc_payload["summary"].lower() or "not available" in qc_payload["summary"].lower()
+
+        # Consumers 5 & 6: BulkRnaNarrator._qc_blocks & ReportSectionsMixin._build_qc_section
+        blocks = BulkRnaNarrator().collect("bulk_rna_agent", {"findings": bulk_findings})
+        qc_block = next(b for b in blocks if b.id == "bulk.qc")
+        assert qc_block.status == "error" and qc_block.confidence != "high"
+        qc_html = narr._build_qc_section(
+            {"high": [], "medium": [], "low": [], "insufficient": []},
+            agent_results=agent_results,
+        )
+        assert "sample QC failed" in qc_html and "no outliers flagged" not in qc_html
+
+
 def test_d1_014_lobo_error_must_not_be_masked_as_eligible_not_executed():
     """D1-014: LOBO jackknife status='error' must surface as status='error' in falsification certificates."""
     pytest.importorskip("litellm")

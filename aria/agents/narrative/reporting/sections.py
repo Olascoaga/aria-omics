@@ -5,6 +5,7 @@ from __future__ import annotations
 import math
 
 from aria.agents.narrative.reporting._base import *
+from aria.scripts.rna_bulk.qc import sample_qc_failed, sample_qc_size_ratio
 
 
 def _finite_num(value) -> float | None:
@@ -38,17 +39,23 @@ class ReportSectionsMixin:
             if bulk.get("status") == "done":
                 sqc = ((bulk.get("findings") or {}).get("sample_qc")) or {}
                 n   = sqc.get("n_samples", "?")
-                if sqc.get("status") == "error" or sqc.get("error"):
+                ratio_f = sample_qc_size_ratio(sqc)
+                if sample_qc_failed(sqc):
+                    ratio_err_str = (
+                        f" · library-size range {ratio_f:.1f}×"
+                        if ratio_f is not None
+                        else " · library-size range not available"
+                    )
                     err_txt = _html.escape(str(sqc.get("error") or "sample QC failed")[:120])
                     rows.append(
                         f"<tr><td>Bulk RNA-seq</td>"
-                        f"<td>{_html.escape(str(n))} samples · "
-                        f"<span style='color:var(--red)'>sample QC failed ({err_txt})</span></td></tr>"
+                        f"<td>{_html.escape(str(n))} samples{ratio_err_str} · "
+                        f"<span style='color:var(--red)'>sample QC failed ({err_txt}); "
+                        f"outlier screening not available</span></td></tr>"
                     )
                 else:
-                    out = sqc.get("candidate_outliers", sqc.get("outliers", []))
-                    sens_out = sqc.get("sensitivity_outliers_removed", [])
-                    ratio_f = _finite_num(sqc.get("size_ratio"))
+                    out = sqc.get("candidate_outliers", sqc.get("outliers", [])) or []
+                    sens_out = sqc.get("sensitivity_outliers_removed", []) or []
                     ratio_str = (f" · library-size range {ratio_f:.1f}×"
                                  if ratio_f is not None else "")
                     out_str = (f" · <span style='color:var(--amber)'>"

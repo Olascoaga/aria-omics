@@ -57,6 +57,7 @@ from aria.llm.prompt_boundary import (
 from aria.memory.memory import ARIAMemory
 from aria.agents.narrative import report_sections
 from aria.agents.narrative.report_builder import ReportBuilderMixin
+from aria.scripts.rna_bulk.qc import sample_qc_failed, sample_qc_size_ratio
 
 log = logging.getLogger("aria.narrative")
 
@@ -527,12 +528,19 @@ for small-effect genes.""",
         outlier_clause = ""
         sample_qc = findings.get("sample_qc", {}) or {}
         if sample_qc:
-            n_out = len(sample_qc.get("candidate_outliers",
-                                      sample_qc.get("outliers", [])) or [])
-            outlier_clause = (
-                f" Sample QC flagged {n_out} outlier(s); the primary DE "
-                "analysis retained all samples."
-            )
+            if sample_qc_failed(sample_qc):
+                err_txt = str(sample_qc.get("error") or "QC failed")[:120]
+                outlier_clause = (
+                    f" Sample QC failed ({err_txt}); outlier screening was "
+                    "not available, and the primary DE analysis retained all samples."
+                )
+            else:
+                n_out = len(sample_qc.get("candidate_outliers",
+                                          sample_qc.get("outliers", [])) or [])
+                outlier_clause = (
+                    f" Sample QC flagged {n_out} outlier(s); the primary DE "
+                    "analysis retained all samples."
+                )
         if powers:
             parts.append(
                 f"Approximate power at the selected LFC threshold ranged from "
@@ -612,19 +620,30 @@ for small-effect genes.""",
                     )
                 # Sample QC
                 sqc = findings.get("sample_qc", {}) or {}
-                if sqc.get("n_samples"):
-                    outliers = sqc.get("candidate_outliers",
-                                       sqc.get("outliers", []))
-                    sensitivity_removed = sqc.get(
-                        "sensitivity_outliers_removed", []
-                    )
-                    lines.append(
-                        f"  • Sample QC: {sqc['n_samples']} samples, "
-                        f"library-size range {sqc.get('size_ratio', 0)}×, "
-                        f"{len(outliers)} outliers flagged; primary retained "
-                        f"all samples; sensitivity removed "
-                        f"{len(sensitivity_removed)}."
-                    )
+                if sqc and (sqc.get("n_samples") or sample_qc_failed(sqc)):
+                    ratio = sample_qc_size_ratio(sqc)
+                    ratio_txt = f"{ratio:.1f}×" if ratio is not None else "not available"
+                    n_s = sqc.get("n_samples", "?")
+                    if sample_qc_failed(sqc):
+                        err_txt = str(sqc.get("error") or "QC failed")[:120]
+                        lines.append(
+                            f"  • Sample QC: FAILED ({err_txt}); {n_s} samples, "
+                            f"library-size range {ratio_txt}, outlier screening "
+                            f"not available."
+                        )
+                    else:
+                        outliers = sqc.get("candidate_outliers",
+                                           sqc.get("outliers", [])) or []
+                        sensitivity_removed = sqc.get(
+                            "sensitivity_outliers_removed", []
+                        ) or []
+                        lines.append(
+                            f"  • Sample QC: {n_s} samples, "
+                            f"library-size range {ratio_txt}, "
+                            f"{len(outliers)} outliers flagged; primary retained "
+                            f"all samples; sensitivity removed "
+                            f"{len(sensitivity_removed)}."
+                        )
             else:
                 lines.append("BULK RNA-seq: ran but no successful contrasts.")
 
@@ -1494,22 +1513,31 @@ for small-effect genes.""",
         sqc = findings.get("sample_qc", {})
         if sqc:
             n_samples = sqc.get("n_samples", "?")
-            outliers  = sqc.get("candidate_outliers", sqc.get("outliers", []))
-            sensitivity_removed = sqc.get("sensitivity_outliers_removed", [])
-            lib_range = sqc.get("size_ratio", 1)
-            if outliers:
+            ratio = sample_qc_size_ratio(sqc)
+            ratio_txt = f"{ratio:.1f}×" if ratio is not None else "not available"
+            if sample_qc_failed(sqc):
+                err_txt = str(sqc.get("error") or "QC failed")[:120]
                 parts.append(
-                    f"PCA-based QC on {n_samples} samples identified "
-                    f"outliers: {outliers}. Primary differential expression "
-                    f"retained all samples; sensitivity removed "
-                    f"{sensitivity_removed} where design support allowed."
+                    f"PCA-based sample QC on {n_samples} samples failed "
+                    f"({err_txt}); library size range {ratio_txt}; "
+                    f"outlier screening was not available."
                 )
             else:
-                parts.append(
-                    f"PCA-based QC on {n_samples} samples passed; "
-                    f"library size range {lib_range:.1f}× "
-                    f"(no outliers flagged for sensitivity removal)."
-                )
+                outliers = sqc.get("candidate_outliers", sqc.get("outliers", [])) or []
+                sensitivity_removed = sqc.get("sensitivity_outliers_removed", []) or []
+                if outliers:
+                    parts.append(
+                        f"PCA-based QC on {n_samples} samples identified "
+                        f"outliers: {outliers}. Primary differential expression "
+                        f"retained all samples; sensitivity removed "
+                        f"{sensitivity_removed} where design support allowed."
+                    )
+                else:
+                    parts.append(
+                        f"PCA-based QC on {n_samples} samples passed; "
+                        f"library size range {ratio_txt} "
+                        f"(no outliers flagged for sensitivity removal)."
+                    )
 
         # Multi-contrast results
         contrasts = findings.get("contrasts", [])

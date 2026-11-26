@@ -98,6 +98,7 @@ from aria.scripts.rna_bulk.counts import (  # noqa: E402,F401
 )
 from aria.scripts.rna_bulk.qc import (  # noqa: E402,F401
     _sample_qc, _prune_outliers_for_design, _run_outlier_sensitivity,
+    sample_qc_failed,
 )
 
 # The paper plot theme (`_P`) now lives in aria/scripts/rna_bulk/plots.py.
@@ -310,7 +311,7 @@ def bulk_rna_de(params: dict) -> dict:
     sample_qc = _call_with_optional_keywords(
         _sample_qc, counts, metadata, output_dir, warnings,
         biotype_map=biotype_map, design_factor=design_factor)
-    if sample_qc.get("status") == "error" or sample_qc.get("error"):
+    if sample_qc_failed(sample_qc):
         flagged_outliers = None
         outlier_samples = []
     else:

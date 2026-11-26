@@ -26,6 +26,7 @@ from aria.llm.prompt_boundary import (
     system_with_untrusted_boundary,
 )
 from aria.memory.memory import ARIAMemory
+from aria.scripts.rna_bulk.qc import sample_qc_failed, sample_qc_size_ratio
 
 log = logging.getLogger("aria.bulk_rna")
 
@@ -1358,8 +1359,35 @@ class BulkRNAAgent(BaseAgent):
                     self.publish_finding(experiment_id, {"summary": f"[{name}] {db}: {len(terms)} pathways. Top: {', '.join(t['term'] for t in terms[:3])}", "contrast": name, "pathways": terms[:10], "database": db}, Confidence.MEDIUM)
 
         if qc := result.get("sample_qc", {}):
-            outliers = qc.get("outliers", [])
-            self.publish_finding(experiment_id, {"summary": f"Bulk QC: {qc.get('n_samples','?')} samples. Lib size range: {qc.get('size_ratio',1):.1f}x." + (f" Outliers: {outliers}." if outliers else "")}, Confidence.HIGH if not outliers else Confidence.MEDIUM)
+            ratio = sample_qc_size_ratio(qc)
+            ratio_txt = f"{ratio:.1f}x" if ratio is not None else "not available"
+            if sample_qc_failed(qc):
+                err_txt = str(qc.get("error") or "QC failed")[:120]
+                self.publish_finding(
+                    experiment_id,
+                    {
+                        "summary": (
+                            f"Bulk QC failed ({err_txt}): {qc.get('n_samples', '?')} samples. "
+                            f"Lib size range: {ratio_txt}. Outlier screening not available."
+                        ),
+                        "status": "error",
+                        "error": err_txt,
+                    },
+                    Confidence.INSUFFICIENT,
+                )
+            else:
+                outliers = qc.get("candidate_outliers", qc.get("outliers", [])) or []
+                self.publish_finding(
+                    experiment_id,
+                    {
+                        "summary": (
+                            f"Bulk QC: {qc.get('n_samples', '?')} samples. "
+                            f"Lib size range: {ratio_txt}."
+                            + (f" Outliers: {outliers}." if outliers else "")
+                        )
+                    },
+                    Confidence.HIGH if not outliers else Confidence.MEDIUM,
+                )
 
     def _publish_single_contrast_findings(self, experiment_id: str, result: dict):
         n_sig, n_up, n_down, comp = result.get("n_significant", 0), result.get("n_upregulated", 0), result.get("n_downregulated", 0), result.get("comparison_used", {})

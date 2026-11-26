@@ -3,12 +3,40 @@
 
 Re-exported from aria.scripts.rna_bulk_de."""
 from __future__ import annotations
+import math
 import warnings
 
 from aria.utils.stats import contrast_family_significance
 from aria.scripts.rna_bulk.transforms import _run_vst, _select_variable_genes
 from aria.scripts.rna_bulk.deseq2 import _run_deseq2
 from aria.scripts.rna_bulk.plots import _plot_pca_mds
+
+
+def sample_qc_failed(sqc: dict | None) -> bool:
+    """Return True when bulk RNA sample QC failed or left outlier screening incomplete."""
+    if not isinstance(sqc, dict) or not sqc:
+        return False
+    if sqc.get("status") == "error" or bool(sqc.get("error")):
+        return True
+    if "outliers" in sqc and sqc.get("outliers") is None:
+        return True
+    if "candidate_outliers" in sqc and sqc.get("candidate_outliers") is None:
+        return True
+    return False
+
+
+def sample_qc_size_ratio(sqc: dict | None) -> float | None:
+    """Return finite numeric library-size ratio from sample_qc, or None if unavailable."""
+    if not isinstance(sqc, dict):
+        return None
+    val = sqc.get("size_ratio")
+    if val is None or isinstance(val, bool):
+        return None
+    try:
+        num = float(val)
+    except (TypeError, ValueError):
+        return None
+    return num if math.isfinite(num) else None
 
 
 def _sample_qc(counts, metadata, output_dir: str,
@@ -29,15 +57,15 @@ def _sample_qc(counts, metadata, output_dir: str,
     A sample is reported as "outlier" if it fails BOTH (more conservative).
     Primary DE retains flagged outliers; removal is a sensitivity analysis only.
     """
+    lib_size_range: list[int] | None = None
+    size_ratio_val: float | None = None
     try:
-        import pandas as pd
-        import numpy as np
-        from sklearn.decomposition import PCA
-        from sklearn.preprocessing import StandardScaler
-
-        # ── Library size stats ────────────────────────────────────────────
+        # ── Library size stats (independent of PCA/VST) ───────────────────
         lib_sizes  = counts.sum(axis=0)
         size_ratio = float(lib_sizes.max() / max(lib_sizes.min(), 1))
+        if math.isfinite(size_ratio):
+            lib_size_range = [int(lib_sizes.min()), int(lib_sizes.max())]
+            size_ratio_val = round(float(size_ratio), 1)
         if size_ratio > 10:
             warnings.append(
                 f"Library size range: {size_ratio:.1f}× "
@@ -46,6 +74,11 @@ def _sample_qc(counts, metadata, output_dir: str,
                 f"DESeq2 normalization handles modest variation; "
                 f"consider re-sequencing low-depth samples if >100×."
             )
+
+        import pandas as pd
+        import numpy as np
+        from sklearn.decomposition import PCA
+        from sklearn.preprocessing import StandardScaler
 
         # ── (a) Replicate concordance ─────────────────────────────────────
         # Use log2(counts+1) so highly-expressed genes don't dominate.
@@ -176,13 +209,18 @@ def _sample_qc(counts, metadata, output_dir: str,
 
     except (ValueError, RuntimeError, TypeError, KeyError, OSError, ZeroDivisionError) as e:
         warnings.append(f"Sample QC failed: {e}")
-        return {
+        err_payload = {
             "status": "error",
             "n_samples": int(counts.shape[1]),
             "outliers": None,
             "pca_variance": [],
             "error": str(e),
         }
+        if lib_size_range is not None:
+            err_payload["lib_size_range"] = lib_size_range
+        if size_ratio_val is not None:
+            err_payload["size_ratio"] = size_ratio_val
+        return err_payload
 
 
 def _prune_outliers_for_design(outliers: list, metadata,

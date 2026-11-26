@@ -13,6 +13,7 @@ from aria.agents.narrative.types import (
     NarrativeBlock,
     SemanticFact,
 )
+from aria.scripts.rna_bulk.qc import sample_qc_failed, sample_qc_size_ratio
 
 
 def _safe_id(value) -> str:
@@ -390,8 +391,17 @@ class BulkRnaNarrator:
         n_samples = sqc.get("n_samples") or (preprocessing.get("qc", {}) or {}).get(
             "n_samples"
         )
-        if sqc.get("status") == "error" or sqc.get("error"):
+        if sample_qc_failed(sqc):
             err_msg = str(sqc.get("error") or "Sample QC failed")
+            ratio = sample_qc_size_ratio(sqc)
+            ratio_note = (
+                f" Library-size range: {ratio:.1f}×."
+                if ratio is not None
+                else " Library-size range: not available."
+            )
+            metrics = {"n_samples": n_samples, "error": err_msg}
+            if ratio is not None:
+                metrics["size_ratio"] = ratio
             return [NarrativeBlock(
                 id="bulk.qc",
                 modality="bulk RNA-seq",
@@ -404,10 +414,10 @@ class BulkRnaNarrator:
                 error=err_msg,
                 caveats=[Caveat(
                     f"Bulk RNA sample QC failed ({err_msg}); outlier screening "
-                    "was not completed.",
+                    f"was not completed.{ratio_note}",
                     severity="warning",
                 )],
-                metrics={"n_samples": n_samples, "error": err_msg},
+                metrics=metrics,
             )]
         outliers = sqc.get("candidate_outliers", sqc.get("outliers", [])) or []
         removed_primary = sqc.get("outliers_removed_primary", []) or []
@@ -415,9 +425,9 @@ class BulkRnaNarrator:
         evidence = []
         if n_samples is not None:
             evidence.append(_evidence("samples", n_samples, "sample_qc"))
-        if sqc.get("size_ratio") is not None:
-            evidence.append(_evidence("library-size range", sqc.get("size_ratio"),
-                                      "sample_qc"))
+        ratio = sample_qc_size_ratio(sqc)
+        if ratio is not None:
+            evidence.append(_evidence("library-size range", ratio, "sample_qc"))
         evidence.append(_evidence("outliers flagged", len(outliers), "sample_qc"))
         evidence.append(_evidence("outliers removed primary",
                                   len(removed_primary), "sample_qc"))
