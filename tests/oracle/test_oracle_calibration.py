@@ -141,13 +141,7 @@ class TestCheckCalibrationExactBoundaries:
         assert len(res_str["violations"]) == 2
         assert all("non-numeric metric" in v for v in res_str["violations"])
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            "D2-BUG-3: calibration.check_calibration accepts NaN metrics as 'pass' "
-            "because NaN < min_recall and NaN > max_empirical_fdr both evaluate False"
-        ),
-    )
+    # D2-BUG-3 fixed: check_calibration fails closed on non-finite metrics.
     def test_nan_metrics_must_fail_closed(self):
         res = check_calibration(
             "synthetic_de_pseudobulk",
@@ -161,13 +155,7 @@ class TestCheckCalibrationExactBoundaries:
         assert res["status"] == "fail"
         assert len(res["violations"]) >= 2
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            "D2-BUG-4: calibration.check_calibration accepts boolean True/False as "
-            "numeric metrics (float(True)==1.0, float(False)==0.0) instead of failing closed"
-        ),
-    )
+    # D2-BUG-4 fixed: check_calibration rejects bool metrics as non-numeric.
     def test_boolean_metrics_must_not_pass_as_numeric(self):
         res = check_calibration(
             "synthetic_de_pseudobulk",
