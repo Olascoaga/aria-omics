@@ -27,6 +27,41 @@ def _evidence(label: str, value, source: str,
     return EvidenceItem(label=label, value=value, source=source, path=path)
 
 
+def _count_union_caveat(findings: dict) -> Caveat | None:
+    """Return a warning caveat when per-sample count files were merged under a non-error policy."""
+    cu = findings.get("count_union")
+    if not isinstance(cu, dict):
+        return None
+    policy = str(cu.get("policy") or "error").strip()
+    if policy == "error":
+        return None
+    n_union = cu.get("n_genes_union")
+    n_inter = cu.get("n_genes_intersection")
+    per_file = cu.get("per_file_missing") or {}
+    affected = {
+        str(k): int(v)
+        for k, v in per_file.items()
+        if isinstance(v, (int, float)) and int(v) > 0
+    }
+    affected_txt = (
+        "; per-file missing: "
+        + ", ".join(f"{k}={v}" for k, v in sorted(affected.items())[:8])
+        if affected
+        else ""
+    )
+    if policy == "union_zero_fill":
+        action = "missing per-sample gene entries were filled with 0"
+    elif policy == "intersect":
+        action = "analysis was restricted to the shared gene intersection"
+    else:
+        action = f"merged using policy '{policy}'"
+    return Caveat(
+        f"Per-sample count files were merged under count_union_policy='{policy}' "
+        f"(union={n_union}, intersection={n_inter}): {action}{affected_txt}.",
+        severity="warning",
+    )
+
+
 class BulkRnaNarrator:
     name = "bulk_rna"
 
@@ -168,6 +203,9 @@ class BulkRnaNarrator:
                 f"where the design allowed it, and the conclusion was "
                 f"{robust_text} to that decision."
             )
+        cu_caveat = _count_union_caveat(findings)
+        if cu_caveat is not None:
+            lines.append(cu_caveat.text)
         return lines
 
     def figures(self, agent_name: str, agent_result: dict,
@@ -391,6 +429,7 @@ class BulkRnaNarrator:
         n_samples = sqc.get("n_samples") or (preprocessing.get("qc", {}) or {}).get(
             "n_samples"
         )
+        cu_caveat = _count_union_caveat(findings)
         if sample_qc_failed(sqc):
             err_msg = str(sqc.get("error") or "Sample QC failed")
             ratio = sample_qc_size_ratio(sqc)
@@ -402,6 +441,13 @@ class BulkRnaNarrator:
             metrics = {"n_samples": n_samples, "error": err_msg}
             if ratio is not None:
                 metrics["size_ratio"] = ratio
+            qc_caveats = [Caveat(
+                f"Bulk RNA sample QC failed ({err_msg}); outlier screening "
+                f"was not completed.{ratio_note}",
+                severity="warning",
+            )]
+            if cu_caveat is not None:
+                qc_caveats.append(cu_caveat)
             return [NarrativeBlock(
                 id="bulk.qc",
                 modality="bulk RNA-seq",
@@ -412,11 +458,7 @@ class BulkRnaNarrator:
                 confidence="insufficient",
                 claim="",
                 error=err_msg,
-                caveats=[Caveat(
-                    f"Bulk RNA sample QC failed ({err_msg}); outlier screening "
-                    f"was not completed.{ratio_note}",
-                    severity="warning",
-                )],
+                caveats=qc_caveats,
                 metrics=metrics,
             )]
         outliers = sqc.get("candidate_outliers", sqc.get("outliers", [])) or []
@@ -448,6 +490,7 @@ class BulkRnaNarrator:
             confidence="high",
             claim=claim,
             evidence=evidence or [_evidence("QC status", "completed", "sample_qc")],
+            caveats=[cu_caveat] if cu_caveat is not None else [],
             metrics={
                 "n_samples": n_samples,
                 "n_outliers": len(outliers),
@@ -506,6 +549,9 @@ class BulkRnaNarrator:
                         source="bulk_de",
                     ))
             caveats = []
+            cu_caveat = _count_union_caveat(findings)
+            if cu_caveat is not None:
+                caveats.append(cu_caveat)
             if contrast.get("low_power_warning"):
                 caveats.append(Caveat(
                     contrast.get("low_power_reason")

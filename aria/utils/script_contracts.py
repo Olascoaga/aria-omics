@@ -292,11 +292,13 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
             _f("design_factor", "str", allow_empty=False),
             _f("contrasts", "list", allow_empty=False),
             _f("n_cpus", "int", required=False),
+            _f("count_union_policy", "str", required=False),
         ),
         success_outputs=(
             _f("n_contrasts", "int"),
             _f("contrasts", "list"),
             _f("count_source", "str", required=False),
+            _f("count_union", "dict", required=False),
         ),
     ),
     "aria/scripts/benchmark_a1_external_comparators.py": ScriptContract(

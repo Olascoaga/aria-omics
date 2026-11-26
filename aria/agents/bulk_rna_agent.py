@@ -255,6 +255,8 @@ class BulkRNAAgent(BaseAgent):
             de_extra_params["suppress_tpm"] = True
         if proto_for_de.get("umi_config"):
             de_extra_params["umi_config"] = proto_for_de["umi_config"]
+        if exp_ctx.get("count_union_policy"):
+            de_extra_params["count_union_policy"] = str(exp_ctx["count_union_policy"])
 
         # D1-H3: never fabricate conflicting human/hg38 defaults when only one
         # of organism/genome is specified; read from exp_ctx, design, or

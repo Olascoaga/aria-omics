@@ -202,24 +202,32 @@ def bulk_rna_de(params: dict) -> dict:
 
     # ── 1. Load counts matrix ─────────────────────────────────────────────
     allow_nonraw = bool(params.get("allow_nonraw_counts", False))
-    counts, load_warn, count_meta = _load_counts(files, allow_nonraw=allow_nonraw)
+    count_union_policy = str(params.get("count_union_policy") or "error").strip()
+    counts, load_warn, count_meta = _load_counts(
+        files,
+        allow_nonraw=allow_nonraw,
+        count_union_policy=count_union_policy,
+    )
     warnings.extend(load_warn)
     if counts is None:
         if count_meta.get("refused"):
-            # Raw-count guard (B10): hard-refuse a non-raw matrix rather than
-            # coerce it into pseudo-counts for DESeq2.
-            return {
+            # Raw-count guard (B10) / count-union mismatch guard (D4-001).
+            err_out = {
                 "status":       "error",
                 "error_type":   count_meta.get("error_type", "NonRawCounts"),
                 "details":      count_meta.get("details", ""),
                 "count_source": count_meta.get("kind"),
             }
+            if count_meta.get("count_union") is not None:
+                err_out["count_union"] = count_meta["count_union"]
+            return err_out
         return {
             "status":     "error",
             "error_type": "CountsLoadFailed",
             "details":    "Could not load count matrix from provided files.",
         }
     count_source = count_meta.get("count_source", "raw_counts")
+    count_union = count_meta.get("count_union")
 
     # ── 2. Load or infer metadata ─────────────────────────────────────────
     metadata, meta_warn = _load_or_infer_metadata(
@@ -874,6 +882,7 @@ def bulk_rna_de(params: dict) -> dict:
         "n_protein_coding":   sample_qc.get("n_protein_coding", 0),
         "technical_replicate_aggregation": technical_replicate_aggregation,
         "metadata_correspondence": metadata_correspondence,
+        **({"count_union": count_union} if count_union is not None else {}),
     }
 
     return {
@@ -901,6 +910,7 @@ def bulk_rna_de(params: dict) -> dict:
         "tpm_status":       tpm_status,
         "technical_replicate_aggregation": technical_replicate_aggregation,
         "metadata_correspondence": metadata_correspondence,
+        **({"count_union": count_union} if count_union is not None else {}),
         "warnings":         warnings,
     }
 
