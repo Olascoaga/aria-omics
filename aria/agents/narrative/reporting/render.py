@@ -601,18 +601,35 @@ class ReportRenderMixin:
         )
         from aria.agents.narrative.robustness import build_robustness_multiverse
         try:
+            _prov_rm = build_robustness_multiverse(agent_results)
+        except Exception as exc:  # aria: allow-broad-except surface robustness multiverse error independently
+            log.warning(
+                f"Robustness multiverse build failed: {exc}", exc_info=True
+            )
+            _prov_rm = {"status": "error", "details": f"{type(exc).__name__}: {exc}"}
+        try:
             _prov_fc = build_falsification_certificates(
                 public_claims,
                 agent_results,
                 exp_ctx,
-                robustness_multiverse=build_robustness_multiverse(agent_results),
+                robustness_multiverse=_prov_rm,
             )
-        except Exception as exc:
+        except Exception as exc:  # aria: allow-broad-except surface failed falsification certificates governance pass
             log.warning(
                 f"Falsification certificates build failed: {exc}",
                 exc_info=True,
             )
-            _prov_fc = None
+            fc_err = f"{type(exc).__name__}: {exc}"
+            _prov_fc = {
+                "schema_version": "aria.falsification_certificates.v1",
+                "feeds_into_parameter_selection": False,
+                "status": "error",
+                "details": fc_err,
+                "certificates": [],
+            }
+            governance_alerts.append(
+                f"Falsification Certificates governance pass failed ({fc_err})."
+            )
         provenance_html = self._build_provenance_section(
             provenance=provenance,
             input_files=exp_ctx.get("input_files", []),
@@ -930,6 +947,8 @@ class ReportRenderMixin:
             devils_advocate=devils_advocate,
             compiled_claims=public_claims,
             claim_compilation=public_compilation.summary(),
+            robustness_multiverse=_prov_rm,
+            falsification_certificates=_prov_fc,
         )
         methodology_path = report_dir / "methodology.json"
         methodology_clean = _sanitize_json_value(methodology_obj)

@@ -46,9 +46,11 @@ class MethodologyMixin:
                                 llm_usage: dict | None = None,
                                 narrative_blocks: list | None = None,
                                 run_ledger: dict | None = None,
-                                devils_advocate: list | None = None,
+                                devils_advocate: list | dict | None = None,
                                 compiled_claims: list | None = None,
-                                claim_compilation: dict | None = None) -> dict:
+                                claim_compilation: dict | None = None,
+                                robustness_multiverse: dict | None = None,
+                                falsification_certificates: dict | None = None) -> dict:
         thresholds = {}
         bulk = (agent_results or {}).get("bulk_rna_agent", {})
         bulk_findings = bulk.get("findings", bulk) if isinstance(bulk, dict) else {}
@@ -153,12 +155,13 @@ class MethodologyMixin:
             run_ledger["claim_linkage"] = link_claims_to_ledger(claims, run_ledger)
         except Exception as exc:
             log.warning(f"Claim-ledger linkage failed: {exc}", exc_info=True)
-        try:
-            from aria.agents.narrative.robustness import build_robustness_multiverse
-            robustness_multiverse = build_robustness_multiverse(agent_results)
-        except Exception as exc:
-            log.warning(f"Robustness multiverse build failed: {exc}", exc_info=True)
-            robustness_multiverse = {"status": "error", "details": str(exc)}
+        if robustness_multiverse is None:
+            try:
+                from aria.agents.narrative.robustness import build_robustness_multiverse
+                robustness_multiverse = build_robustness_multiverse(agent_results)
+            except Exception as exc:  # aria: allow-broad-except surface robustness multiverse error in methodology
+                log.warning(f"Robustness multiverse build failed: {exc}", exc_info=True)
+                robustness_multiverse = {"status": "error", "details": f"{type(exc).__name__}: {exc}"}
         try:
             from aria.agents.narrative.synthesis.cross_modal_triangulation import (
                 build_cross_modal_evidence_graph,
@@ -166,7 +169,7 @@ class MethodologyMixin:
             cross_modal_evidence_graph = build_cross_modal_evidence_graph(
                 agent_results, exp_ctx
             )
-        except Exception as exc:
+        except Exception as exc:  # aria: allow-broad-except surface triangulation graph error in methodology
             log.warning(
                 f"Cross-modal evidence graph build failed: {exc}", exc_info=True
             )
@@ -176,27 +179,28 @@ class MethodologyMixin:
                 "status": "error",
                 "details": str(exc),
             }
-        try:
-            from aria.agents.narrative.falsification_certificates import (
-                build_falsification_certificates,
-            )
-            falsification_certificates = build_falsification_certificates(
-                claims,
-                agent_results,
-                exp_ctx,
-                robustness_multiverse=robustness_multiverse,
-            )
-        except Exception as exc:
-            log.warning(
-                f"Falsification certificates build failed: {exc}", exc_info=True
-            )
-            falsification_certificates = {
-                "schema_version": "aria.falsification_certificates.v1",
-                "feeds_into_parameter_selection": False,
-                "status": "error",
-                "details": str(exc),
-                "certificates": [],
-            }
+        if falsification_certificates is None:
+            try:
+                from aria.agents.narrative.falsification_certificates import (
+                    build_falsification_certificates,
+                )
+                falsification_certificates = build_falsification_certificates(
+                    claims,
+                    agent_results,
+                    exp_ctx,
+                    robustness_multiverse=robustness_multiverse,
+                )
+            except Exception as exc:  # aria: allow-broad-except surface failed falsification certificates pass in methodology
+                log.warning(
+                    f"Falsification certificates build failed: {exc}", exc_info=True
+                )
+                falsification_certificates = {
+                    "schema_version": "aria.falsification_certificates.v1",
+                    "feeds_into_parameter_selection": False,
+                    "status": "error",
+                    "details": f"{type(exc).__name__}: {exc}",
+                    "certificates": [],
+                }
         realized_param_decisions: dict[str, Any] = {}
         for dec in decisions or []:
             if not isinstance(dec, dict):
@@ -298,6 +302,18 @@ class MethodologyMixin:
     ) -> str:
         if not isinstance(falsification_certificates, dict):
             return ""
+        if falsification_certificates.get("status") == "error":
+            err = _html.escape(
+                str(falsification_certificates.get("details")
+                    or falsification_certificates.get("error")
+                    or "unknown error")
+            )
+            return (
+                "<h3>In-Silico Reviewer #2 Falsification Certificates</h3>"
+                "<div class='warning'>"
+                f"<strong>Falsification Certificates governance pass failed:</strong> "
+                f"<code>{err}</code>.</div>"
+            )
         certs = falsification_certificates.get("certificates") or []
         if not certs:
             return ""
