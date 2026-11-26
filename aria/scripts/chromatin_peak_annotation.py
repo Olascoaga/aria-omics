@@ -328,24 +328,10 @@ def _modality_stamp(params: dict) -> tuple:
 
 
 def _select_comparison_rows(df, comp: Optional[dict]):
-    """Restrict a DA table to one contrast when it is a combined multi-contrast
-    table (a ``comparison`` column, as in the scATAC pseudobulk full CSV).
+    """Restrict a DA table to one contrast via canonical ``cross_modal_concordance.filter_comparison``."""
+    from aria.utils.cross_modal_concordance import filter_comparison
 
-    A multi-contrast table (>1 distinct ``comparison``) is ALWAYS filtered to
-    ``f"{test}_vs_{reference}"`` -- possibly to zero rows; it never falls back to
-    the other contrasts' peaks. A single-contrast table (no ``comparison``
-    column, or one distinct value) is returned unchanged when the key does not
-    match, so per-comparison CSVs are never emptied."""
-    comp = comp or {}
-    test, ref = comp.get("test"), comp.get("reference")
-    if "comparison" not in df.columns or test is None or ref is None:
-        return df
-    comp_key = f"{test}_vs_{ref}"
-    labels = df["comparison"].astype(str)
-    mask = labels == comp_key
-    if bool(mask.any()) or labels.nunique(dropna=True) > 1:
-        return df[mask]
-    return df
+    return filter_comparison(df, comp)
 
 
 def _significant_peaks(csv_path: str, comp: Optional[dict] = None):

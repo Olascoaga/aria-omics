@@ -201,11 +201,24 @@ def _value(record, *names):
     return None
 
 
+def _norm_contrast_label(label: str) -> str:
+    return re.sub(r"\s+vs\s+", "_vs_", str(label).strip(), flags=re.IGNORECASE).replace(" ", "_")
+
+
 def filter_comparison(df, comp):
+    """Restrict a DA/DE table to one contrast, tolerating ``'A vs B'`` vs ``'A_vs_B'``
+    and preserving unambiguous single-contrast tables (never leaking multi-contrast rows)."""
+    comp = comp or {}
+    target = contrast_name(comp)
+    has_arms = bool(contrast_arms(comp))
+    target_norm = _norm_contrast_label(target) if (has_arms and target) else ""
     for col in ("comparison", "contrast"):
-        if col in df:
-            df = df[df[col].astype(str) == contrast_name(comp)]
-    if "group" in df and comp.get("group") is not None:
+        if col in df.columns and target_norm:
+            labels = df[col].astype(str)
+            mask = (labels == target) | (labels.map(_norm_contrast_label) == target_norm)
+            if bool(mask.any()) or labels.nunique(dropna=True) > 1:
+                df = df[mask]
+    if "group" in df.columns and comp.get("group") is not None:
         df = df[df["group"].astype(str) == str(comp["group"])]
     return df
 
