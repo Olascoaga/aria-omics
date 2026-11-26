@@ -2518,17 +2518,58 @@ class ChromatinAgent(BaseAgent):
             exp_ctx.get("sample_metadata")
             or (exp_ctx.get("design") or {}).get("sample_sheet")
         )
+        sample_metadata_encoding: str | None = None
         if sample_metadata is None and exp_ctx.get("sample_metadata_path"):
             mpath = Path(str(exp_ctx["sample_metadata_path"]))
             if mpath.is_file():
-                try:
-                    import csv as _csv
+                import csv as _csv
+                import io as _io
 
-                    sep = "\t" if mpath.suffix.lower() in {".tsv", ".txt"} else ","
-                    with mpath.open("r", encoding="utf-8") as fh:
-                        sample_metadata = list(_csv.DictReader(fh, delimiter=sep))
-                except Exception:
-                    sample_metadata = None
+                raw_bytes = mpath.read_bytes()
+                if b"\x00" in raw_bytes:
+                    raise ValueError(
+                        f"sample_metadata_path '{mpath}' contains NUL bytes and "
+                        "cannot be parsed as delimited text."
+                    )
+                enc_order = (
+                    ("utf-8-sig", "utf-8", "cp1252", "latin-1")
+                    if raw_bytes.startswith(b"\xef\xbb\xbf")
+                    else ("utf-8", "utf-8-sig", "cp1252", "latin-1")
+                )
+                decoded_text: str | None = None
+                last_decode_err: Exception | None = None
+                for enc in enc_order:
+                    try:
+                        decoded_text = raw_bytes.decode(enc)
+                        sample_metadata_encoding = enc
+                        break
+                    except UnicodeDecodeError as exc:
+                        last_decode_err = exc
+                if decoded_text is None:
+                    raise ValueError(
+                        f"Could not decode sample_metadata_path '{mpath}' with "
+                        f"encodings {enc_order}: {last_decode_err}"
+                    ) from last_decode_err
+                if sample_metadata_encoding != "utf-8":
+                    log.info(
+                        "Decoded sample_metadata_path '%s' using %s encoding",
+                        mpath,
+                        sample_metadata_encoding,
+                    )
+                sep = "\t" if mpath.suffix.lower() in {".tsv", ".txt"} else ","
+                try:
+                    reader = _csv.DictReader(_io.StringIO(decoded_text), delimiter=sep)
+                    if not reader.fieldnames or not any(
+                        str(f or "").strip() for f in reader.fieldnames
+                    ):
+                        raise ValueError(
+                            f"sample_metadata_path '{mpath}' has no valid header row."
+                        )
+                    sample_metadata = list(reader)
+                except _csv.Error as exc:
+                    raise ValueError(
+                        f"Malformed delimited metadata file '{mpath}': {exc}"
+                    ) from exc
         meta_by_sid: dict[str, dict] = {}
         if isinstance(sample_metadata, dict):
             for sid, m in sample_metadata.items():
@@ -2658,6 +2699,7 @@ class ChromatinAgent(BaseAgent):
             "control_files": control_files,
             "control_sample_ids": control_sids,
             "parsed_sample_metadata": meta_by_sid or None,
+            "sample_metadata_encoding": sample_metadata_encoding,
             "spikein_counts": {k: v for k, v in spikein_counts.items()
                                if k in known_sids},
             "spikein_scale_factors": {k: v for k, v in spikein_sf.items()
