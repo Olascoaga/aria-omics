@@ -30,6 +30,14 @@ from pathlib import Path
 import re
 from typing import Any
 
+from aria.agents.narrative.protocols import (
+    OK_STAGE_STATUSES as _OK_STATUSES,
+    as_int as _as_int,
+    clean_token as _clean_token,
+    diagnostic_block as _shared_diagnostic_block,
+    finite_round as _finite_round,
+    stage_state as _stage_state,
+)
 from aria.agents.narrative.synthesis.cross_modal_triangulation import (
     build_cross_modal_evidence_graph,
     build_triangulation_block,
@@ -41,9 +49,7 @@ from aria.agents.narrative.types import (
     SemanticFact,
 )
 
-_OK_STATUSES = {"success", "ok", "done"}
 _NON_RUN_STATUSES = {"skipped", "not_run", "blocked", "error", "failed"}
-_TAG_STRIP_RE = re.compile(r"<[^>]+>")
 
 
 def unwrap_integration_findings(agent_result: dict | None) -> dict[str, Any]:
@@ -54,15 +60,6 @@ def unwrap_integration_findings(agent_result: dict | None) -> dict[str, Any]:
     if isinstance(findings, dict):
         return findings
     return agent_result
-
-
-def _clean_token(val: Any, default: str = "unspecified") -> str:
-    """Sanitize dynamic identifiers for copy-pasteable Methods (no HTML tags/control chars)."""
-    if val is None:
-        return default
-    txt = _TAG_STRIP_RE.sub("", str(val))
-    txt = re.sub(r"[\r\n\t]+", " ", txt).strip()
-    return txt or default
 
 
 def _format_motif_source(val: Any, default: str = "JASPAR2024_CORE_vertebrates") -> str:
@@ -106,32 +103,6 @@ def _count_factor_collection(
     return count
 
 
-def _finite_round(val: Any, digits: int = 4) -> float | None:
-    if val is None or isinstance(val, bool):
-        return None
-    try:
-        f = float(val)
-    except (TypeError, ValueError):
-        return None
-    if not math.isfinite(f):
-        return None
-    return round(f, digits)
-
-
-def _stage_state(stage: Any) -> str:
-    """Classify stage dict into ``'ok'``, ``'skipped'``, ``'error'``, or ``'absent'``."""
-    if not isinstance(stage, dict) or not stage:
-        return "absent"
-    st = str(stage.get("status") or "").lower().strip()
-    if st in {"error", "failed"}:
-        return "error"
-    if st in {"skipped", "not_run", "blocked"} or stage.get("ran") is False:
-        return "skipped"
-    if st in _OK_STATUSES or stage.get("ran") is True:
-        return "ok"
-    return "ok"
-
-
 def _diagnostic_block(
     block_id: str,
     analysis: str,
@@ -140,30 +111,16 @@ def _diagnostic_block(
     state: str,
     block_type: str = "result",
 ) -> NarrativeBlock:
-    reason = _clean_token(
-        stage.get("reason")
-        or stage.get("details")
-        or stage.get("error_type")
-        or f"stage reported status={stage.get('status')}",
-        default="stage did not execute",
-    )
-    status = "error" if state == "error" else "skipped"
-    return NarrativeBlock(
-        id=block_id,
+    return _shared_diagnostic_block(
+        block_id,
+        analysis,
+        title,
+        stage,
+        state,
         modality="integration",
-        analysis=analysis,
         block_type=block_type,
-        title=title,
-        status=status,
-        confidence="insufficient",
-        claim="",
-        error=reason,
-        caveats=[
-            Caveat(
-                text=f"{title} status is {status} ({reason}); no inferred result was published.",
-                severity="warning" if status == "error" else "info",
-            )
-        ],
+        skipped_status="skipped",
+        caveat_template="{title} status is {status} ({reason}); no inferred result was published.",
     )
 
 
@@ -232,15 +189,6 @@ def _first_stage_value(pre: dict[str, Any], *keys: str) -> Any:
             if val is not None and val != "" and not isinstance(val, bool):
                 return val
     return None
-
-
-def _as_int(val: Any) -> int | None:
-    if val is None or isinstance(val, bool):
-        return None
-    try:
-        return int(val)
-    except (TypeError, ValueError):
-        return None
 
 
 def _preprocessing_summary(pre: dict[str, Any]) -> dict[str, Any]:
