@@ -223,7 +223,8 @@ def test_certificate_manual_override_and_non_de_claims(live_results):
     # Explicit non-measured status overrides live results; empty/None placeholders
     # must not shadow measured agent-result LOBO summaries.
     axis_err = _axis(_claim("bulk_rna"), results, {"lobo_jackknife": {"status": "error"}})
-    assert axis_err["status"] == "eligible_not_executed"
+    assert axis_err["status"] == "error"
+    assert axis_err.get("error_details") == ["LOBO jackknife failed"]
     for empty_placeholder in ({}, None):
         axis_live = _axis(_claim("bulk_rna"), results, {"lobo_jackknife": empty_placeholder})
         assert axis_live["status"] == "measured"
@@ -242,7 +243,9 @@ def test_certificate_mixed_statuses_only_sum_measured_contrasts(live_results):
     assert axis["n_contrasts_measured"] == 1
     assert axis["n_features_evaluated"] == measured["lobo_jackknife"]["n_features_evaluated"]
     results["bulk_rna_agent"]["contrasts"] = [insufficient, failed]
-    assert _axis(_claim("bulk_rna"), results)["status"] == "eligible_not_executed"
+    axis_mixed_err = _axis(_claim("bulk_rna"), results)
+    assert axis_mixed_err["status"] == "error"
+    assert axis_mixed_err.get("error_details") == ["diagnostic failed"]
 
 
 def test_script_import_isolation():
