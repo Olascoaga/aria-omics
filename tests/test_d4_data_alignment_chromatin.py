@@ -191,3 +191,39 @@ def test_d4_003_lobo_jackknife_reindexes_series_and_rejects_missing_keys():
             counts, meta, condition_col="condition", numerator="treat", denominator="ctrl",
             size_factors=sf_missing,
         )
+
+
+def test_d4_015_tobias_duplicate_donor_id_fails_closed():
+    """D4-015: Duplicate replicate_ids within the same condition must fail closed
+    for inference (recording duplicate_replicate_ids) instead of silently overwriting
+    earlier replicates in a dict comprehension."""
+    from aria.scripts.chromatin_footprint_tobias import infer_replicate_footprints
+
+    rep_groups = {
+        "A_D1_a": "A", "A_D1_b": "A", "A_D2": "A", "A_D3": "A",
+        "B_D1": "B", "B_D2": "B", "B_D3": "B",
+    }
+    rep_ids = {
+        "A_D1_a": "D1", "A_D1_b": "D1", "A_D2": "D2", "A_D3": "D3",
+        "B_D1": "D1", "B_D2": "D2", "B_D3": "D3",
+    }
+    scores = {
+        "M1": {
+            "tf": "CTCF",
+            "motif_id": "M1",
+            "n_sites": 100,
+            "scores": {
+                "A_D1_a": 10.0, "A_D1_b": 0.0, "A_D2": 5.0, "A_D3": 5.0,
+                "B_D1": 1.0, "B_D2": 1.0, "B_D3": 1.0,
+            },
+        }
+    }
+    res = infer_replicate_footprints(
+        scores, rep_groups, "A", "B",
+        replicate_ids=rep_ids, min_replicates_per_condition=3,
+    )
+    inf = res["inference"]
+    assert inf["pairing_status"] != "complete", f"Silently overwrote duplicate donor: {inf}"
+    assert inf["status"] == "descriptive_only"
+    assert inf["reason"] == "duplicate_replicate_ids_within_condition"
+    assert "D1" in (inf.get("duplicate_replicate_ids") or {}).get("A", {})

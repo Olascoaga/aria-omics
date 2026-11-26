@@ -441,18 +441,31 @@ def infer_replicate_footprints(
     reps_b = [rep for rep, group in replicate_groups.items() if group == group_b]
     pairing_status = "independent"
     excluded_unpaired_replicates: list[str] = []
+    duplicate_replicate_ids: dict[str, dict[str, list[str]]] = {}
     if replicate_ids:
-        ids_a = {replicate_ids.get(rep, rep): rep for rep in reps_a}
-        ids_b = {replicate_ids.get(rep, rep): rep for rep in reps_b}
-        common = set(ids_a).intersection(ids_b)
-        if common:
-            ordered_ids = sorted(common)
-            excluded_unpaired_replicates = sorted(
-                (set(ids_a).symmetric_difference(set(ids_b))))
-            reps_a = [ids_a[replicate_id] for replicate_id in ordered_ids]
-            reps_b = [ids_b[replicate_id] for replicate_id in ordered_ids]
-            pairing_status = ("complete" if not excluded_unpaired_replicates
-                              else "partial_complete_pair_subset")
+        by_id_a: dict[str, list[str]] = {}
+        for rep in reps_a:
+            by_id_a.setdefault(str(replicate_ids.get(rep, rep)), []).append(rep)
+        by_id_b: dict[str, list[str]] = {}
+        for rep in reps_b:
+            by_id_b.setdefault(str(replicate_ids.get(rep, rep)), []).append(rep)
+        dup_a = {k: sorted(v) for k, v in by_id_a.items() if len(v) > 1}
+        dup_b = {k: sorted(v) for k, v in by_id_b.items() if len(v) > 1}
+        if dup_a or dup_b:
+            pairing_status = "duplicate_replicate_ids_within_condition"
+            duplicate_replicate_ids = {group_a: dup_a, group_b: dup_b}
+        else:
+            ids_a = {k: v[0] for k, v in by_id_a.items()}
+            ids_b = {k: v[0] for k, v in by_id_b.items()}
+            common = set(ids_a).intersection(ids_b)
+            if common:
+                ordered_ids = sorted(common)
+                excluded_unpaired_replicates = sorted(
+                    (set(ids_a).symmetric_difference(set(ids_b))))
+                reps_a = [ids_a[replicate_id] for replicate_id in ordered_ids]
+                reps_b = [ids_b[replicate_id] for replicate_id in ordered_ids]
+                pairing_status = ("complete" if not excluded_unpaired_replicates
+                                  else "partial_complete_pair_subset")
     replicates = reps_a + reps_b
     complete = []
     for motif, record in sorted(score_table.items()):
@@ -470,9 +483,15 @@ def infer_replicate_footprints(
         "minimum_replicates_per_condition": int(min_replicates_per_condition),
         "pairing_status": pairing_status,
         "excluded_unpaired_replicates": excluded_unpaired_replicates,
+        **({"duplicate_replicate_ids": duplicate_replicate_ids}
+           if duplicate_replicate_ids else {}),
     }
     batch_design = None
-    descriptive_reason = None
+    descriptive_reason = (
+        "duplicate_replicate_ids_within_condition"
+        if duplicate_replicate_ids
+        else None
+    )
     batches = [str((replicate_batches or {}).get(rep) or "").strip()
                for rep in replicates]
     has_multi_batch = (
@@ -518,9 +537,17 @@ def infer_replicate_footprints(
                 "replicate_inference": False,
                 "pseudobulk": False,
                 "filter": "none; ranked by absolute replicate-mean difference",
-                "note": ("descriptive only because biological replication is insufficient"
-                         if descriptive_reason == "insufficient_biological_replicates"
-                         else "descriptive only because batch and condition are confounded"),
+                "note": (
+                    "descriptive only because biological replication is insufficient"
+                    if descriptive_reason == "insufficient_biological_replicates"
+                    else (
+                        "descriptive only because duplicate replicate_ids appear within "
+                        "the same condition; collapse technical replicates or supply "
+                        "distinct biological unit IDs before paired inference"
+                        if descriptive_reason == "duplicate_replicate_ids_within_condition"
+                        else "descriptive only because batch and condition are confounded"
+                    )
+                ),
             },
             "inference": {
                 **base_inference,
