@@ -7,6 +7,7 @@ from typing import Iterable
 from aria.agents.narrative.protocols import ModalityNarrator
 from aria.agents.narrative.types import NarrativeBlock
 from aria.agents.narrative.validators import validate_blocks
+from aria.agents.narrative.warning_router import route_degradation_signals
 
 
 class NarrativeRegistry:
@@ -27,8 +28,9 @@ class NarrativeRegistry:
         for agent_name, result in (agent_results or {}).items():
             for narrator in self._narrators:
                 if narrator.accepts(agent_name, result or {}):
+                    agent_blocks = narrator.collect(agent_name, result or {}, ctx)
                     blocks.extend(
-                        narrator.collect(agent_name, result or {}, ctx)
+                        route_degradation_signals(agent_name, result or {}, agent_blocks)
                     )
                     break
         return validate_blocks(blocks)
