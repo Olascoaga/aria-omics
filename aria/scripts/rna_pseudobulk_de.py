@@ -87,14 +87,7 @@ from aria.utils.stats import (
 )
 
 
-def _global_bh(pvals):
-    """Return BH-adjusted p-values for one global family of tests."""
-    try:
-        from statsmodels.stats.multitest import multipletests
-        _, padj, _, _ = multipletests(pvals, method="fdr_bh")
-        return padj
-    except Exception:
-        return _bh_correct(pvals)
+_global_bh = _bh_correct
 
 
 def _effective_alpha_from_significant(rows) -> float:

@@ -40,24 +40,7 @@ def _donor_id(value):
     return None if donor.lower() in ("", "nan", "none", "na", "null", "<na>") else donor
 
 
-def bh_adjust(pvals: np.ndarray) -> np.ndarray:
-    """Deterministic Benjamini-Hochberg adjusted p-values preserving NaNs."""
-    p = np.asarray(pvals, dtype=float)
-    out = np.full_like(p, np.nan, dtype=float)
-    valid = np.isfinite(p)
-    m = int(valid.sum())
-    if m == 0:
-        return out
-    pv = np.clip(p[valid], 0.0, 1.0)
-    order = np.argsort(pv, kind="mergesort")
-    ranked = pv[order]
-    adj = ranked * float(m) / np.arange(1, m + 1, dtype=float)
-    adj = np.minimum.accumulate(adj[::-1])[::-1]
-    adj = np.clip(adj, 0.0, 1.0)
-    inv = np.empty(m, dtype=int)
-    inv[order] = np.arange(m)
-    out[valid] = adj[inv]
-    return out
+from aria.utils.stats import bh_correct as bh_adjust
 
 
 def _unpaired_fold_stats(

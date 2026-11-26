@@ -254,14 +254,7 @@ def simulate_pseudoreplication_null_dataset(
     )
 
 
-def _bh_adjust(pvalues: Any) -> Any:
-    try:
-        from statsmodels.stats.multitest import multipletests
-        _, padj, _, _ = multipletests(pvalues, method="fdr_bh")
-        return padj
-    except Exception:
-        from aria.utils.stats import bh_correct
-        return bh_correct(pvalues)
+from aria.utils.stats import bh_correct as _bh_adjust
 
 
 def _naive_cell_level_null_calls(

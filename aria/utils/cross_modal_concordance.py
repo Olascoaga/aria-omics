@@ -883,20 +883,7 @@ def read_cpm(path, aliases, warnings):
     return df
 
 
-def bh_adjust(values):
-    values = np.asarray(values, dtype=float)
-    result = np.full_like(values, np.nan)
-    valid = np.isfinite(values)
-    m = int(valid.sum())
-    if not m:
-        return result
-    p = np.clip(values[valid], 0.0, 1.0)
-    order = np.argsort(p, kind="mergesort")
-    adjusted = np.minimum.accumulate((p[order] * m / np.arange(1, m + 1))[::-1])[::-1]
-    restored = np.empty(m, dtype=float)
-    restored[order] = np.clip(adjusted, 0.0, 1.0)
-    result[valid] = restored
-    return result
+from aria.utils.stats import bh_correct as bh_adjust
 
 
 def _norm_chrom(chrom):

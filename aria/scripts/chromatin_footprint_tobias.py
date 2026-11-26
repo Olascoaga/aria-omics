@@ -149,19 +149,10 @@ def _finite_change(value: Any) -> bool:
 
 
 def _bh_adjust(pvalues: list[float]) -> list[float]:
-    """Benjamini-Hochberg adjusted p-values, preserving NaN positions."""
-    adjusted = [math.nan] * len(pvalues)
-    valid = [(idx, float(value)) for idx, value in enumerate(pvalues)
-             if math.isfinite(float(value))]
-    valid.sort(key=lambda item: item[1])
-    m = len(valid)
-    running = 1.0
-    for rank_from_end in range(m - 1, -1, -1):
-        idx, pvalue = valid[rank_from_end]
-        rank = rank_from_end + 1
-        running = min(running, max(0.0, min(1.0, pvalue)) * m / rank)
-        adjusted[idx] = min(1.0, running)
-    return adjusted
+    """Benjamini-Hochberg adjusted p-values via canonical ``aria.utils.stats.bh_correct``."""
+    from aria.utils.stats import bh_correct
+
+    return bh_correct(pvalues).tolist()
 
 
 def parse_bindetect_replicate_scores(

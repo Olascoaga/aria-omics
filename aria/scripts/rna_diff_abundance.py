@@ -218,10 +218,8 @@ def rna_diff_abundance(params: dict) -> dict:
     method = "donor_clr_ols_hc3"
     try:
         import statsmodels.api as sm
-        from statsmodels.stats.multitest import multipletests
     except ImportError:
         sm = None
-        multipletests = None
         method = "fisher_exact_fallback"
         warnings.append(
             "statsmodels not available; falling back to per-cell-type "
@@ -375,12 +373,7 @@ def rna_diff_abundance(params: dict) -> dict:
         if rows:
             primary_rows = [r for r in rows if r["fdr_included"]]
             pvals = [r["pval"] for r in primary_rows]
-            if not primary_rows:
-                padj_arr = []
-            elif multipletests is not None:
-                _, padj_arr, _, _ = multipletests(pvals, method="fdr_bh")
-            else:
-                padj_arr = _bh_correct(pvals)
+            padj_arr = _bh_correct(pvals) if primary_rows else []
             for r in rows:
                 r["padj"] = None
                 r["significant"] = False

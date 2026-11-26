@@ -488,26 +488,7 @@ def _build_phasing_track(
     return None, "unphased_arbitrary_sign", False, set()
 
 
-def _bh_fdr(pvals):
-    import numpy as np
-
-    p = np.asarray(pvals, dtype=float)
-    n = p.size
-    out = np.full(n, np.nan, dtype=float)
-    valid = np.isfinite(p)
-    m = int(valid.sum())
-    if m == 0:
-        return out
-    pv = np.clip(p[valid], 0.0, 1.0)
-    order = np.argsort(pv, kind="mergesort")
-    ranked = pv[order]
-    adj = ranked * float(m) / np.arange(1, m + 1, dtype=float)
-    adj = np.minimum.accumulate(adj[::-1])[::-1]
-    adj = np.clip(adj, 0.0, 1.0)
-    inv = np.empty(m, dtype=int)
-    inv[order] = np.arange(m)
-    out[valid] = adj[inv]
-    return out
+from aria.utils.stats import bh_correct as _bh_fdr
 
 
 # ── 1. Compartments A/B ──────────────────────────────────────────────────────

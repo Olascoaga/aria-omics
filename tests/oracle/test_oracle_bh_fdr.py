@@ -184,13 +184,7 @@ class TestBHNanAndNonFiniteHandling:
         got = np.asarray(bh_fn(pvals), dtype=float)
         np.testing.assert_allclose(got, [0.0, 0.03, 1.0], rtol=1e-12, atol=1e-12)
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            "D2-BUG-1: rna_pseudobulk_de._global_bh passes unmasked NaNs directly "
-            "to statsmodels.multipletests, poisoning all adjusted p-values to NaN"
-        ),
-    )
+    # D2-BUG-1 fixed by D8-016 on fix/d1-silent-failures; xfail marker removed.
     def test_pseudobulk_global_bh_nan_does_not_poison_finite_values(self):
         pytest.importorskip("statsmodels")
         pvals = [0.001, float("nan"), 0.02, 0.5]
@@ -199,13 +193,7 @@ class TestBHNanAndNonFiniteHandling:
         assert np.isnan(got[1])
         np.testing.assert_allclose(got[[0, 2, 3]], expected[[0, 2, 3]], rtol=1e-12, atol=1e-12)
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            "D2-BUG-2: synthetic_de._bh_adjust passes unmasked NaNs directly "
-            "to statsmodels.multipletests, poisoning all adjusted p-values to NaN"
-        ),
-    )
+    # D2-BUG-2 fixed by D8-016 on fix/d1-silent-failures; xfail marker removed.
     def test_synthetic_de_bh_adjust_nan_does_not_poison_finite_values(self):
         pytest.importorskip("statsmodels")
         pvals = [0.001, float("nan"), 0.02, 0.5]
