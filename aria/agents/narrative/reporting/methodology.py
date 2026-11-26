@@ -64,8 +64,9 @@ class MethodologyMixin:
             pb = sc_f.get("pseudobulk_de") or {}
             thresholds["scrna_pseudobulk"] = pb.get("thresholds", {})
             thresholds["scrna_multiple_testing"] = pb.get("multiple_testing", {})
-        except Exception:
-            pass
+        except Exception as exc:  # aria: allow-broad-except surface scRNA threshold extraction failure in methodology
+            log.warning(f"Could not extract scRNA thresholds: {exc}")
+            thresholds["scrna_error"] = f"{type(exc).__name__}: {exc}"
         tools = self._collect_tool_versions(
             (
                 "scanpy", "anndata", "pydeseq2", "gseapy", "numpy",

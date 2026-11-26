@@ -1037,42 +1037,30 @@ for small-effect genes.""",
 
     def _collect_narrative_blocks(self, agent_results: dict,
                                   exp_ctx: dict | None = None) -> list:
+        context = {"exp_context": exp_ctx or {}}
+        blocks = self._narrative_registry().collect_blocks(
+            agent_results or {}, context
+        )
+        # BiologicalSynthesisAgent (Slice 1): integrate the structured results
+        # into an Integrated Biological Discussion. Emitting NarrativeBlocks
+        # means the synthesis inherits the claim tiering + STRICT evidence
+        # verification + devil's advocate + ledger linkage applied below.
         try:
-            context = {"exp_context": exp_ctx or {}}
-            blocks = self._narrative_registry().collect_blocks(
-                agent_results or {}, context
+            from aria.agents.biological_synthesis_agent import (
+                BiologicalSynthesisAgent,
             )
-            # BiologicalSynthesisAgent (Slice 1): integrate the structured results
-            # into an Integrated Biological Discussion. Emitting NarrativeBlocks
-            # means the synthesis inherits the claim tiering + STRICT evidence
-            # verification + devil's advocate + ledger linkage applied below.
-            # Best-effort — never block report generation.
-            try:
-                from aria.agents.biological_synthesis_agent import (
-                    BiologicalSynthesisAgent,
+            blocks.extend(
+                BiologicalSynthesisAgent().synthesize(
+                    agent_results or {}, exp_ctx or {}
                 )
-                blocks.extend(
-                    BiologicalSynthesisAgent().synthesize(
-                        agent_results or {}, exp_ctx or {}
-                    )
-                )
-            except Exception as exc:
-                log.warning(f"Biological synthesis failed: {exc}", exc_info=True)
-            # C1: tiering, verification and manifest emission happen once at the
-            # report builder's public-compilation boundary. Collection only emits
-            # typed evidence-bearing blocks; it never creates a parallel claim set.
-            # FAIL-SAFE for the synthesis layer (W-LEDGER lesson): the render path
-            # verifies every block STRICTLY and HARD-FAILS the whole report on an
-            # unsupported sentence. The synthesis is additive — a synthesis block
-            # that cannot be verified must be DROPPED, never abort the report. We
-            # pre-verify only the `integration.*` blocks with the exact check the
-            # renderer uses and keep only the supported ones (loudly logged).
-            blocks = self._drop_unverifiable_synthesis_blocks(blocks)
-            return blocks
-        except Exception as exc:
-            log.warning(f"Narrative block collection failed: {exc}",
-                        exc_info=True)
-            return []
+            )
+        except Exception as exc:  # aria: allow-broad-except surface synthesis error block instead of wiping modalities
+            log.warning(f"Biological synthesis failed: {exc}", exc_info=True)
+        # C1: tiering, verification and manifest emission happen once at the
+        # report builder's public-compilation boundary. Collection only emits
+        # typed evidence-bearing blocks; it never creates a parallel claim set.
+        blocks = self._drop_unverifiable_synthesis_blocks(blocks)
+        return blocks
 
     @staticmethod
     def _drop_unverifiable_synthesis_blocks(blocks: list) -> list:
