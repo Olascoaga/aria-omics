@@ -148,103 +148,13 @@ def _power_disclosure_for_strategy(fdr_strategy: str) -> dict:
 COMPOSITION_COLLINEARITY_MAX = 0.8
 
 
-def _quote_formula_term(name: str) -> str:
-    """Quote non-identifier column names for formulaic using backticks."""
-    import keyword
-    text = str(name)
-    if text.isidentifier() and not keyword.iskeyword(text):
-        return text
-    escaped = text.replace("`", "\\`")
-    return f"`{escaped}`"
-
-
-def _can_wrap_in_formulaic_c(name: str) -> bool:
-    """True when formulaic safely parses ``C(<term>, Treatment(...))``."""
-    import keyword
-    text = str(name)
-    return "." not in text and not keyword.iskeyword(text)
-
-
-def _build_design_formula(
-    condition_col: str,
-    covariates: list,
-    *,
-    ref_level: str | None = None,
-) -> str:
-    """Build a formulaic DESeq2 design with explicit treatment reference level."""
-    terms = [
-        _quote_formula_term(c)
-        for c in dict.fromkeys(covariates or [])
-        if c and c != condition_col
-    ]
-    q_cond = _quote_formula_term(condition_col)
-    if ref_level is not None and _can_wrap_in_formulaic_c(condition_col):
-        cond_term = f"C({q_cond}, Treatment(reference={str(ref_level)!r}))"
-    else:
-        cond_term = q_cond
-    return "~ " + " + ".join(terms + [cond_term])
-
-
-def _shrink_coeff(dds, condition_col: str, test_lvl: str) -> str | None:
-    """Find the apeGLM LFC coefficient column for test-vs-ref (C4 shrinkage).
-
-    Matches ONLY the exact ``[T.<test_lvl>]`` suffix on ``condition_col``
-    (plain, backtick-quoted, or formulaic ``C(<condition_col>, ...)[T.<test_lvl>]``).
-    Never falls back to substring containment (which could match ``[T.KO_ctrl]``
-    when ``test_lvl == 'KO'`` and invert every LFC sign).
-    """
-    try:
-        cols = [str(c) for c in dds.varm["LFC"].columns]
-    except Exception:
-        return None
-    cond = str(condition_col)
-    q_cond = _quote_formula_term(cond)
-    suffix = f"[T.{test_lvl}]"
-    cond_tokens = {cond, q_cond, f"`{cond}`"}
-    for c in cols:
-        if not c.endswith(suffix):
-            continue
-        lhs = c[: -len(suffix)].strip()
-        if lhs in cond_tokens:
-            return c
-    for c in cols:
-        if not c.endswith(suffix):
-            continue
-        lhs = c[: -len(suffix)].strip()
-        if lhs.startswith("C(") and lhs.endswith(")"):
-            inner = lhs[2:-1].strip()
-            for tok in sorted(cond_tokens, key=len, reverse=True):
-                if inner.startswith(tok):
-                    rest = inner[len(tok):].lstrip()
-                    if not rest or rest.startswith(","):
-                        return c
-    return None
-
-
-def _detect_shrink_sign_flip(raw_lfc, shrunk_lfc) -> bool:
-    """Guard against shrinking the inverted contrast coefficient."""
-    import numpy as np
-
-    raw = np.asarray(raw_lfc, dtype=float)
-    shrunk = np.asarray(shrunk_lfc, dtype=float)
-    if raw.shape != shrunk.shape or raw.size == 0:
-        return False
-    clear = (
-        np.isfinite(raw)
-        & np.isfinite(shrunk)
-        & (np.abs(raw) >= 0.5)
-        & (np.abs(shrunk) >= 0.1)
-    )
-    n_clear = int(clear.sum())
-    if n_clear == 0:
-        return False
-    flipped = np.sign(raw[clear]) != np.sign(shrunk[clear])
-    flip_frac = float(flipped.mean())
-    if n_clear >= 3 and flip_frac > 0.5:
-        return True
-    if flip_frac == 1.0 and float(np.abs(raw[clear]).max()) >= 1.0:
-        return True
-    return False
+from aria.scripts.rna_bulk.deseq2 import (
+    _build_design_formula,
+    _can_wrap_in_formulaic_c,
+    _detect_shrink_sign_flip,
+    _quote_formula_term,
+    _shrink_coeff,
+)
 
 
 def _abs_corr(x, y) -> float | None:

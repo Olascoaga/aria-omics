@@ -472,15 +472,7 @@ class TestBulkAtacDiffAccOracles:
         assert comp["n_down"] >= 40
         assert comp["n_up"] == 0
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            "D2-BUG-6: epigenomic_spikein_de.run_deseq2_with_external_size_factors omits "
-            "Treatment(reference=denominator) in design formula; on pydeseq2>=0.5.4 when "
-            "numerator < denominator alphabetically (KO vs WT), apeGLM shrinkage fails to "
-            "find coeff [T.KO] (or uses inverted reference level)"
-        ),
-    )
+    # D2-BUG-6 fixed by D8-001 on fix/d1-silent-failures; xfail marker removed.
     def test_spikein_alphabetical_trap_ko_vs_wt_applies_shrinkage_with_correct_sign(self, tmp_path):
         pytest.importorskip("pydeseq2")
         rng = np.random.default_rng(406)

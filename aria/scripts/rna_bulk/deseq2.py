@@ -173,7 +173,8 @@ def _run_deseq2(counts, metadata, design_factor: str,
                 covariates: list = None,
                 lfc_shrink: bool = True,
                 n_cpus: int = None,
-                expose_convergence: bool = False) -> tuple:
+                expose_convergence: bool = False,
+                external_size_factors=None) -> tuple:
     """
     Run DESeq2 via pydeseq2 with correct design factor.
     Returns (result_dict, warnings_list).
@@ -182,6 +183,12 @@ def _run_deseq2(counts, metadata, design_factor: str,
     permitted only when the caller explicitly lowers this (e.g. for
     pilot/legacy datasets); the resulting block is flagged with
     low_power_warning in the return dict.
+
+    external_size_factors: optional Series indexed by sample ID with positive
+    finite heterologous spike-in size factors (ADR-081). When supplied, bypasses
+    median-of-ratios ``fit_size_factors()`` while keeping the identical
+    formulaic ``Treatment(reference=denominator)`` design, continuous/categorical
+    covariate handling, Wald ``lfcThreshold`` test, and apeGLM sign-flip guard.
     """
     import numpy as np
     import pandas as pd
@@ -255,6 +262,28 @@ def _run_deseq2(counts, metadata, design_factor: str,
             )[:500],
             "design_check": design_check,
         }, warnings
+
+    sf_sub = None
+    if external_size_factors is not None:
+        sf_raw = external_size_factors.reindex(meta_sub.index).astype(float)
+        sf_arr = sf_raw.to_numpy(dtype=float)
+        if sf_arr.size == 0 or (~np.isfinite(sf_arr)).any() or (sf_arr <= 0).any():
+            return {
+                "status": "error",
+                "error_type": "InvalidSpikeInSizeFactors",
+                "details": (
+                    "External spike-in size factors must be finite and > 0 "
+                    "for all contrast samples."
+                ),
+            }, warnings
+        # Re-center subset size factors to geometric mean = 1.0 (R DESeq2 semantics).
+        sf_sub = sf_raw / float(np.exp(np.mean(np.log(sf_arr))))
+        if not np.isfinite(sf_sub.to_numpy(dtype=float)).all() or (sf_sub <= 0).any():
+            return {
+                "status": "error",
+                "error_type": "InvalidSpikeInSizeFactors",
+                "details": "Re-centred spike-in size factors are not finite and positive.",
+            }, warnings
 
     try:
         from pydeseq2.dds import DeseqDataSet
@@ -361,9 +390,27 @@ def _run_deseq2(counts, metadata, design_factor: str,
             })
         with w.catch_warnings(record=True) as _fit_warns:
             w.simplefilter("always")
-            # P1-1b: put the biological effect-size threshold inside the Wald test
-            # instead of filtering |log2FC| after BH, matching DESeq2's lfcThreshold.
-            dds.deseq2()
+            if sf_sub is not None:
+                # Inject external heterologous spike-in size factors directly,
+                # bypassing median-of-ratios fit_size_factors() so global
+                # unidirectional chromatin shifts are preserved (ADR-081).
+                sf_aligned = sf_sub.reindex(dds.obs_names).to_numpy(dtype=float)
+                dds.obs["size_factors"] = sf_aligned
+                dds.layers["normed_counts"] = dds.X / sf_aligned[:, None]
+                dds.var["_normed_means"] = dds.layers["normed_counts"].mean(axis=0)
+                dds.fit_genewise_dispersions()
+                dds.fit_dispersion_trend()
+                dds.fit_dispersion_prior()
+                dds.fit_MAP_dispersions()
+                dds.fit_LFC()
+                dds.calculate_cooks()
+                if dds.refit_cooks:
+                    dds.refit()
+                dds.cooks_outlier()
+            else:
+                # P1-1b: put the biological effect-size threshold inside the Wald test
+                # instead of filtering |log2FC| after BH, matching DESeq2's lfcThreshold.
+                dds.deseq2()
             stat_res = DeseqStats(dds, **wald_kwargs)
             stat_res.summary()
         warnings.extend(_serialize_fit_warnings(_fit_warns))
@@ -452,7 +499,7 @@ def _run_deseq2(counts, metadata, design_factor: str,
         if low_power:
             warnings.append(low_power_reason)
 
-        return {
+        out = {
             "status":            "success",
             "results":           results_df,
             "n_sig":             len(sig),
@@ -480,7 +527,13 @@ def _run_deseq2(counts, metadata, design_factor: str,
                 "reason":    shrink_reason,
             },
             "lfc_threshold_test": lfc_threshold_test,
-        }, warnings
+        }
+        if sf_sub is not None:
+            out["size_factors_used"] = {
+                str(k): round(float(v), 6) for k, v in dds.obs["size_factors"].items()
+            }
+            out["normalization_method"] = "heterologous_spikein_size_factors"
+        return out, warnings
 
     except ImportError:
         if allow_mock:
