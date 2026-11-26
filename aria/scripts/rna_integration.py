@@ -160,23 +160,19 @@ def rna_integration(params: dict) -> dict:
         sc.tl.pca(adata, svd_solver="arpack", n_comps=n_comps, random_state=seed)
 
     # Silhouette score — batch separation (lower is better AFTER correction).
-    from sklearn.metrics import silhouette_score
-    from sklearn.preprocessing import LabelEncoder
-    le = LabelEncoder()
-    batch_labels = le.fit_transform(adata.obs[batch_col].astype(str))
+    from aria.utils.integration_qc import safe_silhouette_score
+
+    batch_raw = adata.obs[batch_col].tolist()
     pca20 = adata.obsm["X_pca"][:, :20]
+
     def _silhouette(embedding):
-        _, sizes = np.unique(batch_labels, return_counts=True)
-        if len(sizes) < 2 or sizes.min() < 2:
-            return None
-        try:
-            value = float(silhouette_score(
-                embedding, batch_labels,
-                sample_size=min(2000, len(batch_labels)), random_state=seed,
-            ))
-            return value if np.isfinite(value) else None
-        except ValueError:
-            return None
+        return safe_silhouette_score(
+            embedding,
+            batch_raw,
+            seed=seed,
+            require_all_groups_min2=True,
+            round_digits=None,
+        )
 
     sil_before = _silhouette(pca20)
 

@@ -165,3 +165,32 @@ def test_d8_002_uncomputed_mito_surfaces_as_structured_signal_and_truthful_metho
     methods = build_scrna_methods({"qc": qc_payload})
     assert "percent.mt" not in methods
     assert "mitochondrial filtering was skipped" in methods
+
+
+def test_d8_020_silhouette_missing_labels_converges():
+    """D8-020: silhouette QC helpers must exclude missing/'nan' labels and cap deterministically."""
+    from aria.scripts.integration_wnn import _compute_safe_silhouette
+    from aria.utils.chromatin_robustness import _safe_silhouette
+
+    rng = np.random.default_rng(123)
+    emb = np.vstack([
+        rng.normal(5.0, 0.2, (20, 6)),
+        rng.normal(-5.0, 0.2, (20, 6)),
+        rng.normal(0.0, 0.2, (20, 6)),
+    ])
+    labels = ["A"] * 20 + ["B"] * 20 + ["nan"] * 20
+    s_chrom = _safe_silhouette(emb, labels)
+    s_wnn = _compute_safe_silhouette(emb, labels, seed=0)
+    assert s_chrom is not None and s_wnn is not None
+    assert abs(s_chrom - s_wnn) < 1e-3, f"chrom={s_chrom} vs wnn={s_wnn}"
+    assert s_chrom > 0.96
+
+    from aria.utils.integration_qc import safe_silhouette_score
+
+    s_canon = safe_silhouette_score(emb, labels, seed=0)
+    assert s_canon is not None and abs(s_chrom - s_canon) < 1e-12
+
+    # Non-finite embedding must return None cleanly.
+    emb_bad = emb.copy()
+    emb_bad[0, 0] = np.nan
+    assert safe_silhouette_score(emb_bad, labels, seed=0) is None

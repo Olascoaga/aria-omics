@@ -195,32 +195,12 @@ def _compute_safe_silhouette(
     seed: int,
     max_dims: int = 20,
 ) -> float | None:
-    """Compute Euclidean silhouette score safely on up to 2,000 sampled cells."""
-    import numpy as np
-    from sklearn.metrics import silhouette_score
+    """Compute Euclidean silhouette score safely via canonical ``integration_qc.safe_silhouette_score``."""
+    from aria.utils.integration_qc import safe_silhouette_score
 
-    n_cells = int(embedding.shape[0])
-    uniq = set(labels)
-    if n_cells < 4 or len(uniq) < 2 or len(uniq) >= n_cells:
-        return None
-    # Require at least one group with >= 2 cells so silhouette is well-defined.
-    if max(labels.count(u) for u in uniq) < 2:
-        return None
-    mat = np.asarray(embedding[:, : min(max_dims, embedding.shape[1])], dtype=np.float64)
-    if not np.all(np.isfinite(mat)):
-        return None
-    try:
-        val = float(
-            silhouette_score(
-                mat,
-                np.asarray(labels, dtype=object),
-                sample_size=min(2000, n_cells),
-                random_state=int(seed),
-            )
-        )
-        return round(val, 4) if np.isfinite(val) else None
-    except Exception:
-        return None
+    return safe_silhouette_score(
+        embedding, labels, seed=int(seed), max_dims=int(max_dims), round_digits=4
+    )
 
 
 def _compute_graph_ilisi(

@@ -230,24 +230,9 @@ def assess_atac_batch_embedding(
 
 
 def _safe_silhouette(embedding, labels) -> float | None:
-    if embedding is None or labels is None:
-        return None
-    try:
-        import numpy as np
-        from sklearn.metrics import silhouette_score
+    from aria.utils.integration_qc import safe_silhouette_score
 
-        x = np.asarray(embedding)
-        y = np.asarray(labels).astype(str)
-        valid = np.array([v not in {"", "nan", "None"} for v in y])
-        x = x[valid]
-        y = y[valid]
-        if x.shape[0] < 3 or len(set(y.tolist())) < 2:
-            return None
-        if len(set(y.tolist())) >= x.shape[0]:
-            return None
-        return round(float(silhouette_score(x, y)), 4)
-    except Exception:
-        return None
+    return safe_silhouette_score(embedding, labels, seed=0, round_digits=4)
 
 
 _COORD_RE = re.compile(r"^(chr)?[A-Za-z0-9_.]+[:-]\d+[-:]\d+$")
