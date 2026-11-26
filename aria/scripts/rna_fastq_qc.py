@@ -511,7 +511,7 @@ def _run_fastp_lane(sample: dict, trimmed_dir: Path, fastp_dir: Path,
     }
 
     # ── Resume check: outputs valid AND the stage manifest still matches? ──
-    manifest_current, manifest_reason = stage_is_current(
+    manifest_current, _manifest_reason = stage_is_current(
         manifest_path, inputs=stage_inputs, params=stage_params,
         tool_version=tool_version,
     )

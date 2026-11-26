@@ -1060,13 +1060,6 @@ class BulkRNAAgent(BaseAgent):
             if len(set(gr.values())) >= 2: return gr
         return {}
 
-    def _build_contrasts(self, intent: dict, group_labels: dict, experiment_id: str) -> tuple[str, list]:
-        design_factor = self._infer_design_factor(intent)
-        # P0-5: this legacy helper no longer authorizes executable contrasts.
-        # The run path emits a confirmation checkpoint via
-        # _block_for_explicit_contrast when no plan/design contrast is present.
-        return design_factor, []
-
     @staticmethod
     def _infer_design_factor(intent: dict) -> str:
         text = f"{intent.get('comparison', '')} {intent.get('summary', '')}".lower()
@@ -1133,11 +1126,6 @@ class BulkRNAAgent(BaseAgent):
             for label in group_names:
                 if keyword in label.lower(): return label
         return None
-
-    @staticmethod
-    def _humanize_contrast(num_label: str, den_label: str, entity_to_label: dict) -> str:
-        label_to_entity = {v: k for k, v in entity_to_label.items()}
-        return f"{label_to_entity.get(num_label, num_label)} vs {label_to_entity.get(den_label, den_label)}"
 
     def _record_methodology_decisions(self, experiment_id: str, result: dict) -> None:
         try:
@@ -1528,18 +1516,6 @@ class BulkRNAAgent(BaseAgent):
             avg_map = sum(b.get("pct_unique", 0) for b in ok_bams) / max(len(ok_bams), 1)
             low_map = [b["name"] for b in ok_bams if b.get("pct_unique", 100) < 70]
             self.publish_finding(experiment_id, {"summary": f"STAR alignment: {len(ok_bams)}/{len(bams)} samples mapped. Avg unique mapping: {avg_map:.1f}%." + (f" Low mapping: {low_map}" if low_map else "")}, Confidence.MEDIUM if avg_map <= 75 or low_map else Confidence.HIGH)
-
-    def _interpret(self, result: dict, intent: dict, exp_ctx: dict) -> str:
-        return (
-            "Free-text LLM bulk RNA interpretation is disabled by F3 governance; "
-            "use structured NarrativeBlock results and evidence cards."
-        )
-
-    def _interpret_single(self, result: dict, intent: dict, exp_ctx: dict) -> str:
-        return (
-            "Free-text LLM bulk RNA interpretation is disabled by F3 governance; "
-            "use structured NarrativeBlock results and evidence cards."
-        )
 
     def _output_dir(self, files: list) -> str: return str(Path(files[0]).parent / "aria_bulk_de") if files else "/tmp/aria_bulk_de"
 

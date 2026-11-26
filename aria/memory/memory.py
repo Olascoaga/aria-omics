@@ -332,9 +332,6 @@ class ARIAMemory:
         )
         return hall_id
 
-    def update_hall_status(self, hall_id: str, status: str):
-        self._write("UPDATE halls SET status=? WHERE id=?", (status, hall_id))
-
     def get_halls(self, wing_id: str) -> list[dict]:
         rows = self._fetchall("SELECT * FROM halls WHERE wing_id=?", (wing_id,))
         return [dict(r) for r in rows]
@@ -361,19 +358,6 @@ class ARIAMemory:
              datetime.now().isoformat(), None),
         )
         return finding_id
-
-    def invalidate_finding(self, finding_id: str):
-        self._write(
-            "UPDATE findings SET is_stale=1, valid_until=? WHERE id=?",
-            (datetime.now().isoformat(), finding_id),
-        )
-
-    def get_active_findings(self, room_id: str) -> list[dict]:
-        rows = self._fetchall(
-            "SELECT * FROM findings WHERE room_id=? AND is_stale=0",
-            (room_id,),
-        )
-        return [dict(r) for r in rows]
 
     # ── Tunnels ──────────────────────────────────────────────────────────
 

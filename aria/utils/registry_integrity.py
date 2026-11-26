@@ -62,9 +62,7 @@ AGENT_SCRIPT_CONTRACTS = {
             "aria/scripts/chromatin_peak_ora.py",
             "aria/scripts/chromatin_footprint_tobias.py",
         ),
-        "planned": (
-            "aria/scripts/chromatin_differential.py",
-        ),
+        "planned": (),
     },
     "genome_arch_agent": {
         "required": (

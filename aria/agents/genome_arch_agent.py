@@ -84,15 +84,6 @@ class GenomeArchAgent(BaseAgent):
         "compartments A/B, TAD calling, loop calling, and differential 3D topology."
     )
     validation_level = "production"  # ADR-082
-    dispatch_enabled = True
-    REQUIRED_SCRIPTS = (
-        "aria/scripts/hic_preprocess.py",
-        "aria/scripts/hic_inspect.py",
-        "aria/scripts/hic_qc_and_balance.py",
-        "aria/scripts/hic_topology.py",
-        "aria/scripts/hic_figure.py",
-    )
-    PLANNED_SCRIPTS = ()
 
     def __init__(self, memory: ARIAMemory,
                  llm: LLMProvider,

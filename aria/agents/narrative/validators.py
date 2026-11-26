@@ -125,9 +125,6 @@ def _unnegated_causal_hit(
     return None
 
 
-find_unnegated_causal_language = _unnegated_causal_hit
-
-
 # Evidence whose label/value carries an EXTERNAL named entity — a database
 # term/gene-set identifier or a gene symbol — rather than an assertion authored
 # by ARIA. The causal guard must read ARIA's claims, not the names of the

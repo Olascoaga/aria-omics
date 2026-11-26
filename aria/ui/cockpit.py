@@ -423,30 +423,6 @@ def _start_run_handles(orchestrator: Any, experiment_id: str, context: dict,
             meta_provider)
 
 
-def launch_cockpit(orchestrator: Any, experiment_id: str,
-                   context: dict) -> Optional[ExperimentSnapshot]:
-    """Drive a full run through the Textual cockpit (immediate-run path).
-
-    Mirrors ``aria.tui.run_analysis`` but renders via the cockpit and resolves
-    checkpoints through the read-model. Returns the final snapshot (or ``None``
-    if the orchestrator failed to start).
-    """
-    from aria.version import __version__
-
-    handles = _start_run_handles(orchestrator, experiment_id, context,
-                                 __version__)
-    if handles is None:
-        return None
-    experiment_id, provider, resolver, meta_provider = handles
-    app = AriaCockpit(
-        provider, resolver,
-        experiment_id=experiment_id,
-        version=__version__,
-        meta_provider=meta_provider,
-    )
-    return app.run()
-
-
 def run_control_center(orchestrator: Any, *,
                        version: str,
                        intake_kwargs: dict,

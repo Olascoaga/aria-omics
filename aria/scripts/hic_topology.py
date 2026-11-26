@@ -542,7 +542,7 @@ def _compute_compartments(
         n_eigs = min(3, max(1, nbins_min - 2))
         ignore_diags = _safe_ignore_diags(clr, view_df, actual_res)
 
-        eigvals_df, eigvecs_df = _run_eigs_per_chrom_safe(
+        _eigvals_df, eigvecs_df = _run_eigs_per_chrom_safe(
             eig,
             clr,
             phasing_df=phasing_df,

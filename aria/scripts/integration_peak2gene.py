@@ -79,10 +79,6 @@ _ASSOCIATIVE_CAVEAT = (
 )
 
 
-class MissingGTFError(Exception):
-    """Raised when a local GTF gene annotation is required but unavailable."""
-
-
 def _load_rna_adata(rna_path: str):
     from aria.utils.mudata_io import load_modality_matrix
 

@@ -1389,10 +1389,6 @@ class DataAuditAgent(BaseAgent):
             "with_condition",
         }
 
-    @staticmethod
-    def _is_aria_intermediate_h5ad(path: str) -> bool:
-        return DataAuditAgent._is_aria_generated_output(path)
-
     def _filter_aria_intermediate_outputs(
         self, classified: dict[str, list[str]]
     ) -> tuple[dict[str, list[str]], list[str]]:

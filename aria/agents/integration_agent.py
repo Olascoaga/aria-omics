@@ -126,9 +126,6 @@ class IntegrationAgent(BaseAgent):
         "peak-to-gene linking, MOFA+ for 3+ modalities."
     )
 
-    # Minimum cells required per modality for reliable WNN
-    MIN_CELLS_WNN = 200
-
     def __init__(self, memory: ARIAMemory,
                  llm: LLMProvider,
                  api_key: str = None):

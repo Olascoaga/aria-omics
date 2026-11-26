@@ -35,8 +35,6 @@ class ExperimentSession:
     llm_provider: Any = None
     usage_log: Any = None
     run_ledger: dict[str, Any] = field(default_factory=dict)
-    cache: dict[str, Any] = field(default_factory=dict)
-    locks: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         bus.bind_experiment(self.experiment_id, self.message_bus)

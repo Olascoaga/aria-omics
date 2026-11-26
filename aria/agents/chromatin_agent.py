@@ -147,21 +147,6 @@ class ChromatinAgent(BaseAgent):
         "Handles scATAC-seq, bulk ATAC-seq, ChIP-seq, CUT&RUN, CUT&TAG."
     )
     validation_level = "production"  # ADR-076/077/078/081: all 5 chromatin assays production
-    dispatch_enabled = True
-    REQUIRED_SCRIPTS = (
-        "aria/scripts/chromatin_qc.py",
-        "aria/scripts/chromatin_peaks.py",
-        "aria/scripts/chromatin_peak_counts.py",
-        "aria/scripts/chromatin_bulk_diffacc.py",
-        "aria/scripts/chromatin_lsi_clustering.py",
-        "aria/scripts/chromatin_diffacc.py",
-        "aria/scripts/chromatin_motifs.py",
-        "aria/scripts/chromatin_regulatory.py",
-    )
-    PLANNED_SCRIPTS = (
-        "aria/scripts/chromatin_footprinting.py",
-        "aria/scripts/chromatin_accessibility_score.py",
-    )
 
     # Assay-specific MACS3 parameters
     MACS3_PARAMS = {
@@ -3122,30 +3107,6 @@ class ChromatinAgent(BaseAgent):
             )
 
         return motif_result
-
-    # ── Differential accessibility ────────────────────────────────────────
-
-    def _run_differential_accessibility(
-        self, experiment_id: str, exp_ctx: dict,
-        intent: dict, peaks_result: dict
-    ) -> dict:
-        """Differential accessibility between conditions using DESeq2."""
-        script_path = "aria/scripts/chromatin_differential.py"
-        if not self._script_exists(script_path):
-            return self._planned_script_blocker(
-                script_path, "differential_accessibility"
-            )
-
-        return self.env.run_in_stack(
-            stack="chromatin",
-            script_path=script_path,
-            params={
-                "peaks_path":  peaks_result.get("consensus_peaks_path", ""),
-                "comparison":  intent.get("comparison", ""),
-                "genome":      exp_ctx.get("genome", "hg38"),
-                "organism":    exp_ctx.get("organism", "Homo sapiens"),
-            },
-        )
 
     # ── Helpers ───────────────────────────────────────────────────────────
 

@@ -125,15 +125,6 @@ def _param_float(params: dict, key: str, default: float) -> float:
     return float(value)
 
 
-def _col(mat, idx: int):
-    import numpy as np
-    from scipy import sparse
-
-    if sparse.issparse(mat):
-        return np.asarray(mat.getcol(idx).todense()).ravel()
-    return np.asarray(mat[:, idx]).ravel()
-
-
 def _sum_cols(mat, indices: list[int]):
     import numpy as np
     from scipy import sparse

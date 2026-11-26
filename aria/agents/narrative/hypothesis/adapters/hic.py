@@ -138,12 +138,6 @@ def _disk_loop_rows(loops: dict[str, Any], limit: int = 5000) -> list[dict[str, 
     return []
 
 
-def _candidate_loop_rows(loops: dict[str, Any]) -> list[dict[str, Any]]:
-    inline = _inline_loop_rows(loops)
-    disk = _disk_loop_rows(loops)
-    return inline + disk if inline else disk
-
-
 def hic_evidence(
     agent_results: dict,
     run_ledger: dict | None = None,

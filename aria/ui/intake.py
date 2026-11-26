@@ -290,23 +290,3 @@ class AriaIntakeApp(App):
 
     def on_mount(self) -> None:
         self.push_screen(AriaIntakeScreen(**self._screen_kwargs), self.exit)
-
-
-def launch_intake(
-    *,
-    startup_context: str = "",
-    experiments: list[dict] | None = None,
-    history: list[ExperimentHistoryView] | None = None,
-    version: str = "",
-    data_validator: Optional[Callable[[str], Optional[str]]] = None,
-) -> IntakeResult | None:
-    """Run the Textual intake and return submitted fields, or ``None``."""
-
-    app = AriaIntakeApp(
-        startup_context=startup_context,
-        experiments=experiments,
-        history=history,
-        version=version,
-        data_validator=data_validator,
-    )
-    return app.run()

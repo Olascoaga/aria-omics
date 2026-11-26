@@ -42,10 +42,6 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspa
 
 from aria.scripts._base import run_script
 
-# Tn5 insertion offsets (the canonical +4 / -5 shift); applied by TOBIAS via
-# --read_shift, kept here as the documented constant for the cut-site reads.
-TN5_SHIFT = (4, -5)
-
 
 def _skip(reason: str, **extra: Any) -> dict[str, Any]:
     """Honest not-run result (mirrors chromatin_regulatory._skip)."""

@@ -112,19 +112,6 @@ def _view_value(mapping: Any, kind: str, views_meta: Any = None) -> Any:
     return None
 
 
-def _view_key(mofa: dict[str, Any], kind: str) -> str | None:
-    """Original view name (e.g. ``"scRNA"``) resolving to ``kind``, if any."""
-    views_meta = mofa.get("views") if isinstance(mofa.get("views"), dict) else None
-    candidates: list[str] = list(views_meta or {})
-    for src in (mofa.get("variance_explained"), mofa.get("variance_explained_additive")):
-        if isinstance(src, dict):
-            candidates.extend(k for k in src if k not in candidates)
-    for key in candidates:
-        if _classify_view_kind(key, views_meta) == kind:
-            return str(key)
-    return None
-
-
 def _label_str(value: Any) -> str:
     """Stable string label: ``3``, ``np.int64(3)``, ``3.0`` and ``"3"`` -> ``"3"``."""
     if isinstance(value, (bytes, bytearray, np.bytes_)):
@@ -995,10 +982,6 @@ def _load_p2g_rows_with_total(p2g_findings: dict[str, Any]) -> tuple[list[dict[s
         rows = [dict(r) for r in (p2g_findings.get("top_links") or []) if isinstance(r, dict)]
         total = len(rows)
     return rows, total
-
-
-def _load_p2g_rows(p2g_findings: dict[str, Any]) -> list[dict[str, Any]]:
-    return _load_p2g_rows_with_total(p2g_findings)[0]
 
 
 def _first_present(row: dict[str, Any], *keys: str) -> Any:
