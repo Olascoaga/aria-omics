@@ -80,9 +80,11 @@ class TestPeak2GeneHelpersOracle:
         assert stats["n_par_y_dropped"] == 1
         assert stats["n_duplicate_symbols_resolved"] == 1
         assert recs["SHOX"]["canon_chrom"] == "chrX"
-        assert recs["SHOX"]["tss"] == 5000  # + strand -> start
+        # D8-005: 0-based BED TSS for 1-based GTF + strand start 5000 -> 5000 - 1 = 4999
+        assert recs["SHOX"]["tss"] == 4999
         assert recs["DUP1"]["gene_id"] == "ENSG003"
-        assert recs["DUP1"]["tss"] == 4000  # - strand -> end
+        # D8-005: 0-based BED TSS for 1-based GTF - strand end 4000 -> 4000 - 1 = 3999
+        assert recs["DUP1"]["tss"] == 3999
 
     def test_log1p_cp10k_and_signac_tfidf_exact_dense_sparse_parity(self):
         raw = np.array([

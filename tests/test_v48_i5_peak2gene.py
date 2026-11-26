@@ -178,7 +178,8 @@ def test_contig_canonicalization_and_gtf_duplicate_resolution(tmp_path):
     assert stats["n_duplicate_symbols_resolved"] == 1
     assert detailed["PLCXD1"]["canon_chrom"] == "chrX"
     assert detailed["DUPGENE"]["gene_id"] == "ENSG000200"
-    assert detailed["DUPGENE"]["tss"] == 830000  # minus strand end
+    # D8-005: 0-based BED TSS for 1-based GTF - strand end 830000 -> 830000 - 1 = 829999
+    assert detailed["DUPGENE"]["tss"] == 829999
     assert detailed["DUPGENE"]["canon_chrom"] == "chr1"
 
     # Ensembl GTF ("1", "X") seamlessly matches UCSC ATAC peaks ("chr1:...", "chrX:...")
@@ -313,8 +314,8 @@ def test_background_null_rejects_depth_confounder_and_is_seed_deterministic(tmp_
     neg_distal = by_pair[("GENE_NEG", "chr2:180000-180500")]
     assert neg_distal["direction"] == "negative"
     assert neg_distal["region_class"] == "distal_cis"
-    # Minus-strand TSS=200,000, peak midpoint=180,250 -> downstream (+19,750 bp)
-    assert neg_distal["tss_offset_bp"] == 19750
+    # D8-005: 0-based - strand TSS=200000-1=199999, peak midpoint=180250 -> 199999-180250 = 19749
+    assert neg_distal["tss_offset_bp"] == 19749
     assert neg_distal["padj"] < 0.01
 
 
