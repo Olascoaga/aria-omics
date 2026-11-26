@@ -51,10 +51,57 @@ def test_d1_001_hic_preprocess_must_not_drop_chrom_contacts(tmp_path, monkeypatc
         _convert_hic_to_cooler(tmp_path / "in.hic", tmp_path / "out.cool", 10000, "hg38")
 
 
+def _make_compartment_cooler_and_gtf(tmp_path):
+    """Build a small balanced cooler with strong A/B block signal and a matching GTF."""
+    import cooler
+    import numpy as np
+
+    n_bins = 24
+    res = 100_000
+    bins = pd.DataFrame({
+        "chrom": ["chr1"] * n_bins,
+        "start": [i * res for i in range(n_bins)],
+        "end": [(i + 1) * res for i in range(n_bins)],
+    })
+    rows = []
+    # Two strong compartment blocks (first half A, second half B) + distance decay
+    for i in range(n_bins):
+        for j in range(i, n_bins):
+            same_comp = (i < n_bins // 2) == (j < n_bins // 2)
+            base = 200.0 / (1.0 + (j - i) * 0.35)
+            cnt = int(round(base * (3.0 if same_comp else 0.5)))
+            if cnt > 0:
+                rows.append((i, j, cnt))
+    cool_p = tmp_path / "ab.cool"
+    cooler.create_cooler(
+        str(cool_p),
+        bins,
+        pd.DataFrame(rows, columns=["bin1_id", "bin2_id", "count"]),
+        assembly="hg38",
+    )
+    clr = cooler.Cooler(str(cool_p))
+    cooler.balance_cooler(clr, store=True, mad_max=0, min_nnz=1, ignore_diags=1)
+
+    # GTF with higher gene density in first half (A compartment) than second half
+    gtf_lines = []
+    for i in range(n_bins // 2):
+        for k in range(4):
+            pos = i * res + 1000 + k * 5000
+            gtf_lines.append(
+                f'chr1\tHAVANA\tgene\t{pos}\t{pos + 1000}\t.\t+\t.\tgene_id "G{i}_{k}";\n'
+            )
+    gtf_lines.append(
+        f'chr1\tHAVANA\tgene\t{(n_bins - 2) * res + 1000}\t{(n_bins - 2) * res + 2000}\t.\t+\t.\tgene_id "GB1";\n'
+    )
+    gtf_p = tmp_path / "genes.gtf"
+    gtf_p.write_text("".join(gtf_lines))
+    return cool_p, gtf_p
+
+
 def test_d1_020_corrupt_fasta_must_not_be_silently_swallowed(tmp_path):
-    """D1-020: Corrupt user-supplied genome FASTA must fail closed instead of falling back to unphased."""
+    """D1-020: Corrupt FASTA sequence body detected during fetch after open must fail closed."""
     cooler = pytest.importorskip("cooler")
-    pytest.importorskip("pysam")
+    pysam = pytest.importorskip("pysam")
     from aria.scripts.hic_topology import _build_phasing_track
 
     bins = pd.DataFrame({
@@ -70,10 +117,72 @@ def test_d1_020_corrupt_fasta_must_not_be_silently_swallowed(tmp_path):
         pd.DataFrame([(0, 1, 10)], columns=["bin1_id", "bin2_id", "count"]),
         assembly="hg38",
     )
-    bad_fa = tmp_path / "corrupt.fa"
-    bad_fa.write_bytes(b"\x00\xff\xfeNOT_A_FASTA")
+    # Valid header + .fai, then truncated sequence body so open succeeds and fetch fails.
+    bad_fa = tmp_path / "corrupt_trunc.fa"
+    bad_fa.write_text(">chr1\n" + ("ACGT" * 20 + "\n") * 200)
+    with pysam.FastaFile(str(bad_fa)):
+        pass  # builds corrupt_trunc.fa.fai
+    bad_fa.write_text(">chr1\nACGT\n")
     with pytest.raises((OSError, ValueError, RuntimeError)):
         _build_phasing_track(cooler.Cooler(str(cool_p)), ["chr1"], str(bad_fa), None)
+
+
+def test_r3_d1_020_plain_gzip_fasta_falls_back_to_gtf_with_reason(tmp_path):
+    """R3/D1-020 (a): Valid plain-gzip FASTA must fall back to GTF phasing with a recorded reason."""
+    import gzip
+
+    pytest.importorskip("cooler")
+    pytest.importorskip("cooltools")
+    pytest.importorskip("pysam")
+    from aria.scripts.hic_topology import _compute_compartments
+
+    cool_p, gtf_p = _make_compartment_cooler_and_gtf(tmp_path)
+    gz_fa = tmp_path / "hg38.fa.gz"
+    gz_fa.write_bytes(gzip.compress((">chr1\n" + "ACGT" * 100 + "\n").encode("utf-8")))
+
+    res = _compute_compartments(
+        str(cool_p), "hg38", "Homo sapiens", 100_000, ["chr1"], str(tmp_path / "out_gz"),
+        genome_fasta=str(gz_fa), gtf_path=str(gtf_p),
+    )
+    assert res["status"] == "success", res
+    assert res["phasing_method"] == "gene_density"
+    assert res["pc1_validated"] is True
+    reason = res.get("phasing_fallback_reason")
+    assert isinstance(reason, str) and "hg38.fa.gz" in reason
+    assert any("hg38.fa.gz" in w for w in (res.get("warnings") or []))
+
+
+def test_r3_d1_020_readonly_dir_fasta_without_fai_falls_back_to_gtf_with_reason(tmp_path):
+    """R3/D1-020 (b): Valid FASTA in a read-only dir without .fai must fall back to GTF with a recorded reason."""
+    import os
+
+    pytest.importorskip("cooler")
+    pytest.importorskip("cooltools")
+    pytest.importorskip("pysam")
+    from aria.scripts.hic_topology import _compute_compartments
+
+    if hasattr(os, "geteuid") and os.geteuid() == 0:
+        pytest.skip("read-only dir permission check is bypassed by root")
+
+    cool_p, gtf_p = _make_compartment_cooler_and_gtf(tmp_path)
+    ro_dir = tmp_path / "ro_ref"
+    ro_dir.mkdir()
+    ro_fa = ro_dir / "ref.fa"
+    ro_fa.write_text(">chr1\n" + "ACGT" * 100 + "\n")
+    os.chmod(ro_dir, 0o555)
+    try:
+        res = _compute_compartments(
+            str(cool_p), "hg38", "Homo sapiens", 100_000, ["chr1"], str(tmp_path / "out_ro"),
+            genome_fasta=str(ro_fa), gtf_path=str(gtf_p),
+        )
+    finally:
+        os.chmod(ro_dir, 0o755)
+    assert res["status"] == "success", res
+    assert res["phasing_method"] == "gene_density"
+    assert res["pc1_validated"] is True
+    reason = res.get("phasing_fallback_reason")
+    assert isinstance(reason, str) and "ref.fa" in reason
+    assert any("ref.fa" in w for w in (res.get("warnings") or []))
 
 
 def test_d1_007_hic_qc_must_not_drop_corrupt_sample_silently(tmp_path):
