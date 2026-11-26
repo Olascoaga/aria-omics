@@ -2469,13 +2469,9 @@ class ChromatinAgent(BaseAgent):
 
     @staticmethod
     def _parse_bool_flag(value) -> bool:
-        if isinstance(value, bool):
-            return value
-        if value is None:
-            return False
-        if isinstance(value, (int, float)):
-            return bool(value) and value == value
-        return str(value).strip().lower() in {"1", "true", "yes", "y"}
+        from aria.utils.thresholds import parse_bool_flag
+
+        return parse_bool_flag(value)
 
     @staticmethod
     def _parse_optional_float(value) -> Optional[float]:

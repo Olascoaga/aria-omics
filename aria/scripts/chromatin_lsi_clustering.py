@@ -116,12 +116,7 @@ def _cache_params(params: dict) -> dict:
     }
 
 
-def _as_bool(value) -> bool:
-    if isinstance(value, bool):
-        return value
-    if value is None:
-        return False
-    return str(value).strip().lower() not in {"0", "false", "no", "off", ""}
+from aria.utils.thresholds import parse_bool_flag as _as_bool
 
 
 def _string_or_none(value):

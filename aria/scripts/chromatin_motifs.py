@@ -141,17 +141,7 @@ def _regions_from_csv(da_csv, max_per_group, warnings):
     }
 
 
-def _count_meme_motifs(meme_path: str) -> int | None:
-    """Count MOTIF records in a local MEME file (lightweight header scan)."""
-    try:
-        n = 0
-        with open(meme_path, encoding="utf-8", errors="ignore") as fh:
-            for line in fh:
-                if line.startswith(("MOTIF ", "MOTIF\t")):
-                    n += 1
-        return n
-    except OSError:
-        return None
+from aria.utils.motifs import _count_meme_motifs
 
 
 from aria.utils.genomic_coords import (

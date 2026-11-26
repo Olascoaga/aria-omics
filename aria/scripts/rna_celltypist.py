@@ -75,12 +75,7 @@ _MOUSE_MODELS = {
 _IMMUNE_DEFAULT_MODEL = "Immune_All_Low.pkl"
 
 
-def _as_bool(value) -> bool:
-    if isinstance(value, bool):
-        return value
-    if value is None:
-        return False
-    return str(value).strip().lower() in {"1", "true", "yes", "on"}
+from aria.utils.thresholds import parse_bool_flag as _as_bool
 
 
 def _resolve_celltypist_model(model_explicit, organism, tissue_hint):

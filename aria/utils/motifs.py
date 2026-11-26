@@ -63,16 +63,16 @@ def collection_paths(collection: str) -> tuple[Path, Path]:
     return base / f"{collection}.meme", base / "manifest.json"
 
 
-def _count_meme_motifs(meme_path: Path) -> int:
-    """Count ``MOTIF`` records in a MEME file (cheap line scan)."""
+def _count_meme_motifs(meme_path: str | Path) -> int | None:
+    """Count ``MOTIF`` records in a MEME file (strict ``MOTIF `` / ``MOTIF\\t`` prefix)."""
     n = 0
     try:
         with open(meme_path, "r", encoding="utf-8", errors="ignore") as fh:
             for line in fh:
-                if line.startswith("MOTIF"):
+                if line.startswith(("MOTIF ", "MOTIF\t")):
                     n += 1
-    except Exception:
-        return 0
+    except OSError:
+        return None
     return n
 
 
@@ -87,7 +87,7 @@ def load_local_motif_collection(collection: str = DEFAULT_COLLECTION):
     if not meme_path.is_file():
         return None
     n_motifs = _count_meme_motifs(meme_path)
-    if n_motifs == 0:
+    if not n_motifs:
         return None
     version: dict = {"collection": collection, "n_motifs": n_motifs}
     integrity = verify_reference_file(meme_path, manifest_path=manifest_path)
