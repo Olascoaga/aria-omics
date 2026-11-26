@@ -1276,12 +1276,12 @@ def compute_wnn_anti_degradation_diagnostics(
         fin_rna_mask = np.isfinite(rna_w)
         fin_atac_mask = np.isfinite(atac_w)
         fin_both_mask = fin_rna_mask & fin_atac_mask
-        if not np.any(fin_rna_mask) or not np.any(fin_atac_mask):
+        if not np.any(fin_both_mask):
             issues.append(
                 {
                     "code": "missing_modality_weights",
                     "severity": "warn",
-                    "detail": "Per-cell modality weights contained no finite values.",
+                    "detail": "Per-cell modality weights contained no cells with both RNA and ATAC weights finite.",
                 }
             )
             weight_audit = {
@@ -1290,8 +1290,8 @@ def compute_wnn_anti_degradation_diagnostics(
                 "clusters": {},
             }
         else:
-            rw_fin = rna_w[fin_rna_mask]
-            aw_fin = atac_w[fin_atac_mask]
+            rw_fin = rna_w[fin_both_mask]
+            aw_fin = atac_w[fin_both_mask]
             g_mean_rna = float(np.mean(rw_fin))
             g_med_rna = float(np.median(rw_fin))
             g_iqr_rna = float(np.percentile(rw_fin, 75) - np.percentile(rw_fin, 25))
@@ -1315,10 +1315,8 @@ def compute_wnn_anti_degradation_diagnostics(
                 n_cl = int(c_idx.size)
                 rw_raw = rna_w[c_idx]
                 aw_raw = atac_w[c_idx]
-                c_fin_r = rw_raw[np.isfinite(rw_raw)]
-                c_fin_a = aw_raw[np.isfinite(aw_raw)]
                 c_fin_both = np.isfinite(rw_raw) & np.isfinite(aw_raw)
-                if c_fin_r.size == 0 or c_fin_a.size == 0:
+                if not np.any(c_fin_both):
                     cluster_weights[str(cl)] = {
                         "n_cells": n_cl,
                         "mean_rna_weight": None,
@@ -1332,17 +1330,15 @@ def compute_wnn_anti_degradation_diagnostics(
                         "modality_collapsed": False,
                     }
                     continue
+                c_fin_r = rw_raw[c_fin_both]
+                c_fin_a = aw_raw[c_fin_both]
                 m_rw = float(np.mean(c_fin_r))
                 m_aw = float(np.mean(c_fin_a))
                 med_rw = float(np.median(c_fin_r))
                 iqr_rw = float(np.percentile(c_fin_r, 75) - np.percentile(c_fin_r, 25))
                 frac_r_dom = float(np.mean(c_fin_r > 0.55))
                 frac_a_dom = float(np.mean(c_fin_a > 0.55))
-                frac_bal = (
-                    float(np.mean(np.abs(rw_raw[c_fin_both] - aw_raw[c_fin_both]) <= 0.10))
-                    if np.any(c_fin_both)
-                    else 0.0
-                )
+                frac_bal = float(np.mean(np.abs(c_fin_r - c_fin_a) <= 0.10))
                 collapsed = bool(c_fin_r.size >= 5 and (m_rw > 0.90 or m_rw < 0.10))
                 if collapsed:
                     collapsed_clusters.append(str(cl))

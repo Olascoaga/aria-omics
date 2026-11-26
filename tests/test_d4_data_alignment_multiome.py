@@ -67,3 +67,61 @@ def test_d4_002_select_raw_counts_reindexes_permuted_var_and_obs_and_rejects_mis
     assert not sel_bad["ok"]
     assert sel_bad["inspections"]["raw.X"]["reason"] == "raw_var_names_mismatch"
     assert "raw_var_names_mismatch" in sel_bad["details"]
+
+
+def test_d4_013_wnn_diagnostics_applies_fin_both_mask():
+    """D4-013 (F841): compute_wnn_anti_degradation_diagnostics must apply fin_both_mask
+    so RNA and ATAC modality weights are always evaluated on the exact same cells."""
+    from scipy.spatial.distance import cdist
+    from aria.utils.wnn_diagnostics import compute_wnn_anti_degradation_diagnostics
+
+    rng = np.random.default_rng(42)
+    n = 30
+    emb = np.vstack([rng.normal(2.0, 0.2, (15, 6)), rng.normal(-2.0, 0.2, (15, 6))])
+    D = cdist(emb, emb)
+    rows, cols, vals = [], [], []
+    for i in range(n):
+        for j in np.argsort(D[i])[1:7]:
+            rows.append(i)
+            cols.append(j)
+            vals.append(float(D[i, j]) + 1e-4)
+    wnn_graph = sparse.csr_matrix((vals, (rows, cols)), shape=(n, n))
+    clusters = ["0"] * 15 + ["1"] * 15
+
+    # Case 1: Disjoint finite masks (0 cells have both finite) -> evaluable=False.
+    diag_disjoint = compute_wnn_anti_degradation_diagnostics(
+        rna_embedding=emb,
+        atac_embedding=emb,
+        wnn_distances=wnn_graph,
+        wnn_clusters=clusters,
+        rna_clusters=clusters,
+        atac_clusters=clusters,
+        rna_weights=np.array([0.9] * 15 + [np.nan] * 15),
+        atac_weights=np.array([np.nan] * 15 + [0.9] * 15),
+        k=6,
+        seed=0,
+    )
+    wa_disjoint = diag_disjoint["per_cluster_weight_audit"]
+    assert wa_disjoint["evaluable"] is False
+    assert wa_disjoint["reason"] == "non_finite_modality_weights"
+
+    # Case 2: Partially overlapping finite masks -> means computed strictly on shared cells (sum = 1.0).
+    rna_w = np.array([0.8] * 10 + [0.95] * 5 + [0.3] * 10 + [np.nan] * 5)
+    atac_w = np.array([0.2] * 10 + [np.nan] * 5 + [0.7] * 10 + [0.95] * 5)
+    diag_partial = compute_wnn_anti_degradation_diagnostics(
+        rna_embedding=emb,
+        atac_embedding=emb,
+        wnn_distances=wnn_graph,
+        wnn_clusters=clusters,
+        rna_clusters=clusters,
+        atac_clusters=clusters,
+        rna_weights=rna_w,
+        atac_weights=atac_w,
+        k=6,
+        seed=0,
+    )
+    wa_partial = diag_partial["per_cluster_weight_audit"]
+    assert wa_partial["evaluable"] is True
+    assert abs(wa_partial["global_mean_rna_weight"] + wa_partial["global_mean_atac_weight"] - 1.0) < 1e-6
+    for cl_info in wa_partial["clusters"].values():
+        assert abs(cl_info["mean_rna_weight"] + cl_info["mean_atac_weight"] - 1.0) < 1e-6
