@@ -653,7 +653,7 @@ class scRNAAgent(
                 rationale=rationale,
                 made_by=made_by,
             )
-        except Exception as e:
+        except Exception as e:  # aria: allow-broad-except surface non-fatal scRNA decision persistence error
             log.warning(f"scRNA decision logging failed: {e}")
 
     @staticmethod

@@ -1161,7 +1161,12 @@ class BulkRNAAgent(BaseAgent):
                         decision_id=f"{experiment_id[:8]}-auto-{cp:02d}", wing_id=experiment_id, checkpoint=cp,
                         question=step, decision=decision_summary, rationale=d.get("justification", "")[:500], made_by="bulk_rna_agent (auto)"
                     )
-                except Exception as e: log.debug(f"Failed to store decision '{step}': {e}")
+                except Exception as e:  # aria: allow-broad-except surface non-fatal decision persistence error
+                    log.warning(f"Failed to store decision '{step}': {e}")
+                    if isinstance(result, dict):
+                        result.setdefault("warnings", []).append(
+                            f"Decision persistence failed for '{step}': {type(e).__name__}: {e}"
+                        )
 
             try:
                 self.memory.store_decision(
@@ -1177,7 +1182,12 @@ class BulkRNAAgent(BaseAgent):
                         f"(never inferred from the question text)."),
                     made_by="User / bulk_rna_agent"
                 )
-            except Exception as e: log.debug(f"Failed to store threshold decision: {e}")
+            except Exception as e:  # aria: allow-broad-except surface non-fatal threshold decision persistence error
+                log.warning(f"Failed to store threshold decision: {e}")
+                if isinstance(result, dict):
+                    result.setdefault("warnings", []).append(
+                        f"Threshold decision persistence failed: {type(e).__name__}: {e}"
+                    )
 
             try:
                 contrasts_list = [
@@ -1244,9 +1254,18 @@ class BulkRNAAgent(BaseAgent):
                     rationale=design_rationale,
                     made_by="bulk_rna_agent (auto)",
                 )
-            except Exception as e: log.debug(f"Failed to store design decision: {e}")
-        except Exception as e:
+            except Exception as e:  # aria: allow-broad-except surface non-fatal design decision persistence error
+                log.warning(f"Failed to store design decision: {e}")
+                if isinstance(result, dict):
+                    result.setdefault("warnings", []).append(
+                        f"Design decision persistence failed: {type(e).__name__}: {e}"
+                    )
+        except Exception as e:  # aria: allow-broad-except surface non-fatal bulk decision logging failure
             log.warning(f"Decision logging failed (non-fatal): {e}")
+            if isinstance(result, dict):
+                result.setdefault("warnings", []).append(
+                    f"Decision logging failed: {type(e).__name__}: {e}"
+                )
 
     def _run_preprocessing(self, experiment_id: str, fastq_files: list, exp_ctx: dict, intent: dict) -> tuple:
         from aria.utils.rna_fastq_protocol import resolve_bulk_rna_protocol

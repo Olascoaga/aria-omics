@@ -1177,8 +1177,12 @@ class DesignAgent(BaseAgent):
                 made_by="user",
             )
             log.info(f"Design stored for {self._experiment_id}")
-        except Exception as e:
+        except Exception as e:  # aria: allow-broad-except surface non-fatal design decision persistence error
             log.warning(f"Failed to store design decision: {e}")
+            if isinstance(design, dict):
+                design.setdefault("warnings", []).append(
+                    f"Design decision persistence failed: {type(e).__name__}: {e}"
+                )
 
     # ── Satisfy BaseAgent's abstract method ──────────────────────────────
     def run(self, experiment_id: str, context: dict) -> dict:

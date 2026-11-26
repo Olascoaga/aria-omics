@@ -960,8 +960,12 @@ class OrchestratorAgent(BaseAgent):
                     ),
                     made_by=actor,
                 )
-            except Exception as exc:
-                log.debug("Could not persist CP3.5 decision in ARIAMemory: %s", exc)
+            except Exception as exc:  # aria: allow-broad-except surface non-fatal CP3.5 decision persistence error
+                log.warning("Could not persist CP3.5 decision in ARIAMemory: %s", exc)
+                if isinstance(exp_context, dict):
+                    exp_context.setdefault("warnings", []).append(
+                        f"CP3.5 decision persistence failed: {type(exc).__name__}: {exc}"
+                    )
 
         self.publish_status(
             experiment_id, "Proceeding with analysis despite audit warnings.", 0.10

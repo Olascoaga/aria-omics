@@ -531,8 +531,8 @@ class GenomeArchAgent(BaseAgent):
                 )
                 if hist:
                     decision["historical_precedent"] = hist[:2]
-            except Exception:
-                pass
+            except Exception as e:  # aria: allow-broad-except optional historical precedent recall is non-fatal
+                log.debug("Could not recall Hi-C historical precedent: %s", e)
 
         try:
             self.memory.store_decision(
@@ -544,8 +544,9 @@ class GenomeArchAgent(BaseAgent):
                 rationale=decision["rationale"],
                 made_by="advisor",
             )
-        except Exception as e:
+        except Exception as e:  # aria: allow-broad-except surface non-fatal Hi-C resolution decision persistence error
             log.warning("Could not store resolution decision: %s", e)
+            decision["memory_warning"] = f"{type(e).__name__}: {e}"
 
         return decision
 
@@ -857,8 +858,9 @@ class GenomeArchAgent(BaseAgent):
                 rationale=decision["rationale"],
                 made_by="advisor",
             )
-        except Exception as e:
+        except Exception as e:  # aria: allow-broad-except surface non-fatal Hi-C window decision persistence error
             log.warning("Could not store window decision: %s", e)
+            decision["memory_warning"] = f"{type(e).__name__}: {e}"
 
         self.publish_escalation(
             experiment_id=experiment_id,

@@ -3024,8 +3024,9 @@ class ChromatinAgent(BaseAgent):
                 content=json.dumps(decision),
                 confidence="high",
             )
-        except Exception as e:
+        except Exception as e:  # aria: allow-broad-except surface non-fatal LSI decision persistence error
             log.warning(f"Could not store LSI decision: {e}")
+            decision["memory_warning"] = f"{type(e).__name__}: {e}"
 
         return decision
 

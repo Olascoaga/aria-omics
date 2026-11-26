@@ -1852,11 +1852,10 @@ for small-effect genes.""",
         return groups
 
     def _get_decisions_log(self, experiment_id: str) -> list:
-        """Retrieve all parameter decisions for this experiment."""
-        try:
-            return self.memory.get_decisions(experiment_id)
-        except Exception:
+        """Retrieve all parameter decisions for this experiment (fails closed on DB error)."""
+        if self.memory is None or not hasattr(self.memory, "get_decisions"):
             return []
+        return self.memory.get_decisions(experiment_id)
 
     def _fallback_executive_summary(self, grouped: dict,
                                      intent: dict) -> str:
