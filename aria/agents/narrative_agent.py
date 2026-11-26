@@ -57,7 +57,7 @@ from aria.llm.prompt_boundary import (
 from aria.memory.memory import ARIAMemory
 from aria.agents.narrative import report_sections
 from aria.agents.narrative.report_builder import ReportBuilderMixin
-from aria.scripts.rna_bulk.qc import sample_qc_failed, sample_qc_size_ratio
+from aria.utils.bulk_qc_contract import sample_qc_failed, sample_qc_size_ratio
 
 log = logging.getLogger("aria.narrative")
 

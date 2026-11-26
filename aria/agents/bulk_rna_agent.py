@@ -26,7 +26,7 @@ from aria.llm.prompt_boundary import (
     system_with_untrusted_boundary,
 )
 from aria.memory.memory import ARIAMemory
-from aria.scripts.rna_bulk.qc import sample_qc_failed, sample_qc_size_ratio
+from aria.utils.bulk_qc_contract import sample_qc_failed, sample_qc_size_ratio
 
 log = logging.getLogger("aria.bulk_rna")
 

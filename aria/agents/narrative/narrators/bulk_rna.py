@@ -13,7 +13,7 @@ from aria.agents.narrative.types import (
     NarrativeBlock,
     SemanticFact,
 )
-from aria.scripts.rna_bulk.qc import sample_qc_failed, sample_qc_size_ratio
+from aria.utils.bulk_qc_contract import sample_qc_failed, sample_qc_size_ratio
 
 
 def _safe_id(value) -> str:

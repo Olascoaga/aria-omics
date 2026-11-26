@@ -5,7 +5,7 @@ from __future__ import annotations
 import math
 
 from aria.agents.narrative.reporting._base import *
-from aria.scripts.rna_bulk.qc import sample_qc_failed, sample_qc_size_ratio
+from aria.utils.bulk_qc_contract import sample_qc_failed, sample_qc_size_ratio
 
 
 def _finite_num(value) -> float | None:
