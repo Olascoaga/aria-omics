@@ -285,7 +285,7 @@ def _eval_guards_off(clean_block) -> tuple[bool, dict[str, Any]]:
     try:
         manifest = verify_block_claim_support(blk, strict=False)
         supported = manifest.get("status") == "supported" and not manifest.get("unsupported")
-        reasons = [u.get("reason", "") for u in (manifest.get("unsupported") or [])]
+        reasons = sorted(u.get("reason", "") for u in (manifest.get("unsupported") or []))
     except EvidenceVerificationError as exc:
         supported = False
         reasons = [str(exc)]
@@ -332,7 +332,7 @@ def _eval_governed(clean_block) -> tuple[bool, dict[str, Any]]:
         "tier": claim_meta.get("tier"),
         "licensed_language": claim_meta.get("licensed_language"),
         "language_violation": violation,
-        "reasons": reasons,
+        "reasons": sorted(reasons),
     }
 
 
