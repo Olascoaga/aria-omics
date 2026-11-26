@@ -846,8 +846,20 @@ def read_cpm(path, aliases, warnings):
         return pd.DataFrame()
     if df.empty:
         return pd.DataFrame()
-    feature = _column(df, "gene_symbol", "gene", "gene_id", "peak", "feature", "Unnamed: 0")
+    # Prefer unique gene_id over non-unique gene_symbol (D4-012), while
+    # preserving any inline gene_symbol column as a local alias map so distinct
+    # Ensembl loci sharing an HGNC symbol sum cleanly instead of aborting.
+    feature = _column(df, "gene_id", "gene_symbol", "gene", "peak", "feature", "Unnamed: 0")
     feature = feature if feature is not None else df.columns[0]
+    sym_col = _column(df, "gene_symbol", "symbol")
+    table_aliases: dict[str, str] = {}
+    if sym_col is not None and sym_col != feature:
+        for fid, sym in zip(df[feature], df[sym_col], strict=True):
+            if pd.notna(fid) and pd.notna(sym):
+                fid_s = str(fid).split(".")[0].strip().upper()
+                sym_s = str(sym).strip()
+                if fid_s and sym_s and sym_s.lower() != "nan":
+                    table_aliases.setdefault(fid_s, sym_s)
     unit = _column(df, "sample_id", "donor_id")
     amount = _column(df, "cpm", "tpm", "expression")
     if unit is not None and amount is not None:
@@ -863,7 +875,8 @@ def read_cpm(path, aliases, warnings):
         warnings.append("cpm_matrix_skipped: duplicate_feature_or_sample_ids")
         return pd.DataFrame()
     df = df.apply(pd.to_numeric, errors="coerce")
-    df.index = [aliases.get(str(x).split(".")[0].upper(), str(x)) for x in df.index]
+    eff_aliases = {**table_aliases, **aliases} if table_aliases else aliases
+    df.index = [eff_aliases.get(str(x).split(".")[0].upper(), str(x)) for x in df.index]
     if df.index.duplicated().any():
         warnings.append("cpm_feature_alias_collisions: summed_mapped_loci")
         df = df.groupby(level=0, sort=False).sum(min_count=1)

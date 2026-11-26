@@ -46,3 +46,25 @@ def test_d4_011_load_rna_table_does_not_splice_or_fabricate_duplicate_symbols():
         assert pd.isna(tbce2.iloc[0]["rna_log2fc"]), (
             f"Spliced log2fc across loci: {tbce2.iloc[0].to_dict()}"
         )
+
+
+def test_d4_012_read_cpm_prefers_unique_gene_id_on_counts_with_symbols(tmp_path: Path):
+    """D4-012: read_cpm must prefer unique gene_id over non-unique gene_symbol on
+    ARIA's counts_with_symbols.tsv so duplicate HGNC symbols aggregate cleanly."""
+    from aria.utils.cross_modal_concordance import read_cpm
+
+    cpm_tsv = tmp_path / "counts_with_symbols.tsv"
+    pd.DataFrame({
+        "gene_id": ["ENSG00000285053", "ENSG00000284770", "ENSG00000141510"],
+        "gene_symbol": ["TBCE", "TBCE", "TP53"],
+        "ctrl_1": [10.0, 20.0, 100.0],
+        "treat_1": [50.0, 10.0, 300.0],
+    }).to_csv(cpm_tsv, sep="\t", index=False)
+
+    warns: list[str] = []
+    out = read_cpm(cpm_tsv, aliases={}, warnings=warns)
+    assert not out.empty, f"read_cpm aborted on valid counts_with_symbols.tsv: warns={warns}"
+    assert float(out.loc["TBCE", "ctrl_1"]) == 30.0
+    assert float(out.loc["TBCE", "treat_1"]) == 60.0
+    assert float(out.loc["TP53", "treat_1"]) == 300.0
+    assert any("summed_mapped_loci" in w for w in warns)
