@@ -2962,11 +2962,13 @@ def test_pseudobulk_composition_covariate_flag_propagates_into_blocks(tmp_path):
     pytest.importorskip("pydeseq2")
 
     rng = np.random.default_rng(11)
-    # 3 donors per condition, 2 cell types. We give donors very different
-    # totals so the composition log-ratio varies across pseudosamples.
+    # 3 donors per condition, 2 cell types. Vary composition strongly within
+    # each condition so the log-ratio varies across pseudosamples without
+    # being collinear with condition (|r| < COMPOSITION_COLLINEARITY_MAX = 0.8;
+    # collinear drop is tested separately in test_composition_collinearity.py).
     donor_totals = {
-        "ctrl_1": (40, 200), "ctrl_2": (30, 250), "ctrl_3": (50, 220),
-        "treat_1": (90, 220), "treat_2": (110, 200), "treat_3": (100, 180),
+        "ctrl_1": (30, 250), "ctrl_2": (90, 190), "ctrl_3": (55, 225),
+        "treat_1": (35, 245), "treat_2": (105, 185), "treat_3": (60, 220),
     }
     rows = []
     for donor, (n_a, n_b) in donor_totals.items():
@@ -3017,10 +3019,11 @@ def test_pseudobulk_composition_covariate_flag_propagates_into_blocks(tmp_path):
             assert 0.0 <= comp["power_estimate_at_lfc_min"] <= 1.0
             assert "n_significant_local" in comp
             assert "n_significant_global" in comp
+            primary_col = mt.get("primary_padj_column", "padj_local")
             for rec in comp.get("top_genes", []) + comp.get("all_sig", []):
                 assert "padj_local" in rec
                 assert "padj_global" in rec
-                assert rec["padj"] == rec["padj_global"]
+                assert rec["padj"] == rec[primary_col]
             found_corrected = True
     assert found_corrected, "Expected at least one composition-corrected block"
 
