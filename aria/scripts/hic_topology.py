@@ -1447,7 +1447,15 @@ def _compute_differential_3d(params: dict, out_dir: str) -> dict:
     import numpy as np
     import pandas as pd
 
-    files = [str(f) for f in (params.get("files") or []) if Path(str(f)).exists()]
+    raw_files = [str(f) for f in (params.get("files") or []) if f]
+    missing_files = [f for f in raw_files if not Path(f).exists()]
+    if missing_files:
+        return {
+            "status": "error",
+            "error_type": "FileNotFound",
+            "details": f"Declared Hi-C input file(s) not found: {missing_files}",
+        }
+    files = raw_files
     if len(files) < 2:
         return {
             "status": "skipped",
@@ -1487,7 +1495,17 @@ def _compute_differential_3d(params: dict, out_dir: str) -> dict:
                     meta_by_sid[str(sid_val)] = m
 
     declared_sids = params.get("sample_ids")
-    if isinstance(declared_sids, list) and len(declared_sids) == len(files):
+    if declared_sids is not None:
+        if not isinstance(declared_sids, list) or len(declared_sids) != len(files):
+            return {
+                "status": "error",
+                "error_type": "SampleIdLengthMismatch",
+                "details": (
+                    f"Declared sample_ids length "
+                    f"({len(declared_sids) if isinstance(declared_sids, list) else type(declared_sids).__name__}) "
+                    f"does not match files length ({len(files)})."
+                ),
+            }
         raw_sids = [str(s) for s in declared_sids]
     else:
         raw_sids = [Path(f).stem.replace(".balanced", "").replace(".mcool", "").replace(".cool", "") for f in files]
@@ -1954,13 +1972,32 @@ def hic_topology(params: dict) -> dict:
     chromosomes = params.get("chromosomes", "all")
     allow_mock = mocks_allowed(params)
 
-    valid_files = [f for f in files if Path(f).exists()]
-    if not valid_files:
+    if not files:
         return {
             "status": "error",
             "error_type": "FileNotFound",
             "details": "No valid Hi-C files found for topology analysis.",
         }
+    missing_files = [f for f in files if not Path(f).exists()]
+    if missing_files:
+        return {
+            "status": "error",
+            "error_type": "FileNotFound",
+            "details": f"Declared Hi-C input file(s) not found: {missing_files}",
+        }
+    declared_sids = params.get("sample_ids")
+    if declared_sids is not None:
+        if not isinstance(declared_sids, list) or len(declared_sids) != len(files):
+            return {
+                "status": "error",
+                "error_type": "SampleIdLengthMismatch",
+                "details": (
+                    f"Declared sample_ids length "
+                    f"({len(declared_sids) if isinstance(declared_sids, list) else type(declared_sids).__name__}) "
+                    f"does not match files length ({len(files)})."
+                ),
+            }
+    valid_files = list(files)
 
     default_out = Path(valid_files[0]).parent / "aria_hic_topology" / analysis
     out_dir = str(params.get("output_dir") or default_out)

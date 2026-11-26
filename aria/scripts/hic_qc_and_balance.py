@@ -614,13 +614,20 @@ def hic_qc_and_balance(params: dict) -> dict:
     allow_mock = mocks_allowed(params)
     warnings: list[str] = []
 
-    valid_files = [f for f in files if Path(f).exists()]
-    if not valid_files:
+    if not files:
         return {
             "status": "error",
             "error_type": "FileNotFound",
             "details": "No valid Hi-C files found.",
         }
+    missing_files = [f for f in files if not Path(f).exists()]
+    if missing_files:
+        return {
+            "status": "error",
+            "error_type": "FileNotFound",
+            "details": f"Declared Hi-C input file(s) not found: {missing_files}",
+        }
+    valid_files = list(files)
 
     out_dir = Path(
         str(params.get("output_dir") or (Path(valid_files[0]).parent / "aria_hic_qc"))
@@ -628,7 +635,17 @@ def hic_qc_and_balance(params: dict) -> dict:
     out_dir.mkdir(parents=True, exist_ok=True)
 
     declared_sids = params.get("sample_ids")
-    if isinstance(declared_sids, list) and len(declared_sids) == len(valid_files):
+    if declared_sids is not None:
+        if not isinstance(declared_sids, list) or len(declared_sids) != len(valid_files):
+            return {
+                "status": "error",
+                "error_type": "SampleIdLengthMismatch",
+                "details": (
+                    f"Declared sample_ids length "
+                    f"({len(declared_sids) if isinstance(declared_sids, list) else type(declared_sids).__name__}) "
+                    f"does not match files length ({len(valid_files)})."
+                ),
+            }
         raw_sids = [str(s) for s in declared_sids]
     else:
         raw_sids = [Path(f).stem.replace(".mcool", "").replace(".cool", "") for f in valid_files]
