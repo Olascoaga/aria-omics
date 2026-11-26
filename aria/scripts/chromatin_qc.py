@@ -1079,64 +1079,61 @@ def _compute_fragment_sizes(frag_file: str) -> dict:
     fabricated. The scan is capped at `_FRAG_SCAN_LIMIT` records — when the cap
     is reached the counts are lower bounds and `scan_truncated` is True.
     """
-    try:
-        import gzip
-        sizes = []
-        barcodes = set()
-        n_records = 0
-        scan_truncated = False
-        opener = gzip.open if frag_file.endswith(".gz") else open
-        with opener(frag_file, "rt") as f:
-            for line in f:
-                if not line or line.startswith("#"):
-                    continue
-                if n_records >= _FRAG_SCAN_LIMIT:
-                    scan_truncated = True
-                    break
-                parts = line.rstrip("\n").split("\t")
-                if len(parts) < 3:
-                    continue
-                n_records += 1
-                if len(parts) >= 4 and parts[3]:
-                    barcodes.add(parts[3])
-                if len(sizes) < _SIZE_SAMPLE_LIMIT:
-                    try:
-                        size = int(parts[2]) - int(parts[1])
-                        if 0 < size < 1000:
-                            sizes.append(size)
-                    except ValueError:
-                        pass
+    import gzip
+    sizes = []
+    barcodes = set()
+    n_records = 0
+    scan_truncated = False
+    opener = gzip.open if frag_file.endswith(".gz") else open
+    with opener(frag_file, "rt") as f:
+        for line in f:
+            if not line or line.startswith("#"):
+                continue
+            if n_records >= _FRAG_SCAN_LIMIT:
+                scan_truncated = True
+                break
+            parts = line.rstrip("\n").split("\t")
+            if len(parts) < 3:
+                continue
+            n_records += 1
+            if len(parts) >= 4 and parts[3]:
+                barcodes.add(parts[3])
+            if len(sizes) < _SIZE_SAMPLE_LIMIT:
+                try:
+                    size = int(parts[2]) - int(parts[1])
+                    if 0 < size < 1000:
+                        sizes.append(size)
+                except ValueError:
+                    pass
 
-        out = {
-            "n_barcodes":      len(barcodes),
-            "n_fragments":     n_records,
-            "scan_truncated":  scan_truncated,
-            "scan_limit":      _FRAG_SCAN_LIMIT,
+    out = {
+        "n_barcodes":      len(barcodes),
+        "n_fragments":     n_records,
+        "scan_truncated":  scan_truncated,
+        "scan_limit":      _FRAG_SCAN_LIMIT,
+    }
+    if sizes:
+        import numpy as np
+        sizes_arr = np.array(sizes)
+        out.update({
+            "median_size":       int(np.median(sizes_arr)),
+            "pct_mononucleosomal": float(
+                np.mean((sizes_arr > 150) & (sizes_arr < 300))
+            ),
+            "pct_subnucleosomal": float(np.mean(sizes_arr < 150)),
+        })
+        # W0.2 (scATAC P0): a binned size histogram (0-800 bp, 5 bp bins) so
+        # the report can plot the nucleosome banding pattern. Summary-only
+        # before; the raw sizes are not persisted (privacy + size).
+        counts, edges = np.histogram(
+            sizes_arr[(sizes_arr >= 0) & (sizes_arr <= 800)],
+            bins=160, range=(0, 800),
+        )
+        out["size_histogram"] = {
+            "bin_edges": [float(e) for e in edges],
+            "counts":    [int(c) for c in counts],
         }
-        if sizes:
-            import numpy as np
-            sizes_arr = np.array(sizes)
-            out.update({
-                "median_size":       int(np.median(sizes_arr)),
-                "pct_mononucleosomal": float(
-                    np.mean((sizes_arr > 150) & (sizes_arr < 300))
-                ),
-                "pct_subnucleosomal": float(np.mean(sizes_arr < 150)),
-            })
-            # W0.2 (scATAC P0): a binned size histogram (0-800 bp, 5 bp bins) so
-            # the report can plot the nucleosome banding pattern. Summary-only
-            # before; the raw sizes are not persisted (privacy + size).
-            counts, edges = np.histogram(
-                sizes_arr[(sizes_arr >= 0) & (sizes_arr <= 800)],
-                bins=160, range=(0, 800),
-            )
-            out["size_histogram"] = {
-                "bin_edges": [float(e) for e in edges],
-                "counts":    [int(c) for c in counts],
-            }
-        return out
-    except Exception:
-        return {"n_barcodes": 0, "n_fragments": 0, "scan_truncated": False}
+    return out
 
 
 def _compute_mito_fraction(frag_file: str, mito_chr: str) -> float | None:
@@ -1297,42 +1294,39 @@ def _estimate_frip_stats(frag_file: str, peaks_bed: str | None = None,
     }
     if not peaks_bed:
         return out
-    try:
-        import gzip
-        peaks_by_chrom = _peaks_by_chrom_from_bed(peaks_bed)
-        if not peaks_by_chrom:
-            return out
-
-        truncated = False
-
-        def _frag_iter():
-            nonlocal truncated
-            opener = gzip.open if str(frag_file).endswith(".gz") else open
-            n_yielded = 0
-            with opener(frag_file, "rt") as f:
-                for line in f:
-                    if not line or line[0] == "#":
-                        continue
-                    parts = line.rstrip("\n").split("\t")
-                    if len(parts) < 3:
-                        continue
-                    try:
-                        s, e = int(parts[1]), int(parts[2])
-                    except ValueError:
-                        continue
-                    if n_yielded >= scan_limit:
-                        truncated = True
-                        break
-                    n_yielded += 1
-                    yield parts[0], s, e
-
-        frip, n_scanned = _frip_from_intervals(_frag_iter(), peaks_by_chrom)
-        out["frip"] = frip
-        out["frip_scan_truncated"] = bool(truncated)
-        out["frip_fragments_scanned"] = int(n_scanned)
+    import gzip
+    peaks_by_chrom = _peaks_by_chrom_from_bed(peaks_bed)
+    if not peaks_by_chrom:
         return out
-    except Exception:
-        return out
+
+    truncated = False
+
+    def _frag_iter():
+        nonlocal truncated
+        opener = gzip.open if str(frag_file).endswith(".gz") else open
+        n_yielded = 0
+        with opener(frag_file, "rt") as f:
+            for line in f:
+                if not line or line[0] == "#":
+                    continue
+                parts = line.rstrip("\n").split("\t")
+                if len(parts) < 3:
+                    continue
+                try:
+                    s, e = int(parts[1]), int(parts[2])
+                except ValueError:
+                    continue
+                if n_yielded >= scan_limit:
+                    truncated = True
+                    break
+                n_yielded += 1
+                yield parts[0], s, e
+
+    frip, n_scanned = _frip_from_intervals(_frag_iter(), peaks_by_chrom)
+    out["frip"] = frip
+    out["frip_scan_truncated"] = bool(truncated)
+    out["frip_fragments_scanned"] = int(n_scanned)
+    return out
 
 
 def _estimate_frip(frag_file: str, peaks_bed: str | None = None,
@@ -1355,36 +1349,33 @@ def _estimate_frip_distribution(frag_file: str, peaks_bed: str | None = None,
     honest None without peaks or when no barcode clears ``min_frags``."""
     if not peaks_bed:
         return None
-    try:
-        import gzip
-        peaks_by_chrom = _peaks_by_chrom_from_bed(peaks_bed)
-        if not peaks_by_chrom:
-            return None
-
-        def _frag_iter():
-            opener = gzip.open if str(frag_file).endswith(".gz") else open
-            n_yielded = 0
-            with opener(frag_file, "rt") as f:
-                for line in f:
-                    if not line or line[0] == "#":
-                        continue
-                    parts = line.rstrip("\n").split("\t")
-                    if len(parts) < 4:
-                        continue
-                    try:
-                        s, e = int(parts[1]), int(parts[2])
-                    except ValueError:
-                        continue
-                    if n_yielded >= scan_limit:
-                        break
-                    n_yielded += 1
-                    yield parts[0], s, e, parts[3]
-
-        dist = _frip_per_barcode_from_intervals(
-            _frag_iter(), peaks_by_chrom, min_frags=min_frags)
-        return dist or None
-    except Exception:
+    import gzip
+    peaks_by_chrom = _peaks_by_chrom_from_bed(peaks_bed)
+    if not peaks_by_chrom:
         return None
+
+    def _frag_iter():
+        opener = gzip.open if str(frag_file).endswith(".gz") else open
+        n_yielded = 0
+        with opener(frag_file, "rt") as f:
+            for line in f:
+                if not line or line[0] == "#":
+                    continue
+                parts = line.rstrip("\n").split("\t")
+                if len(parts) < 4:
+                    continue
+                try:
+                    s, e = int(parts[1]), int(parts[2])
+                except ValueError:
+                    continue
+                if n_yielded >= scan_limit:
+                    break
+                n_yielded += 1
+                yield parts[0], s, e, parts[3]
+
+    dist = _frip_per_barcode_from_intervals(
+        _frag_iter(), peaks_by_chrom, min_frags=min_frags)
+    return dist or None
 
 
 def _estimate_frip_bulk(data_type: str):

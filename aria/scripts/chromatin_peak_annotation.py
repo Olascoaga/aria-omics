@@ -70,47 +70,43 @@ def parse_gtf_gene_models(gtf_path) -> dict:
     Returns ``{chrom: [gene_dict, ...]}`` sorted by TSS, where each ``gene_dict`` has
     ``gene`` (symbol or id), ``strand``, ``start``, ``end``, ``tss`` (1-based), and
     ``exons`` (sorted ``[(start, end), ...]``). Mirrors the parsing conventions in
-    ``rna_bulk/gtf_io``. Returns ``{}`` on a read/parse failure (honest, never partial
-    fabrication).
+    ``rna_bulk/gtf_io``. Raises on read/decompression errors (fail-closed).
     """
     genes: dict = {}
     exons = defaultdict(list)
     opener = gzip.open if str(gtf_path).endswith(".gz") else open
-    try:
-        with opener(gtf_path, "rt") as handle:
-            for line in handle:
-                if line.startswith("#"):
-                    continue
-                fields = line.rstrip("\n").split("\t")
-                if len(fields) < 9:
-                    continue
-                feature = fields[2]
-                if feature not in ("gene", "exon"):
-                    continue
-                attrs = fields[8]
-                gid_m = _GENE_ID.search(attrs)
-                if not gid_m:
-                    continue
-                gid = gid_m.group(1)
-                try:
-                    start, end = int(fields[3]), int(fields[4])
-                except ValueError:
-                    continue
-                if feature == "gene":
-                    strand = fields[6]
-                    name_m = _GENE_NAME.search(attrs)
-                    genes[gid] = {
-                        "gene": name_m.group(1) if name_m else gid.split(".")[0],
-                        "chrom": _norm_chrom(fields[0]),
-                        "strand": strand,
-                        "start": start,
-                        "end": end,
-                        "tss": start if strand != "-" else end,
-                    }
-                else:  # exon
-                    exons[gid].append((start, end))
-    except Exception:
-        return {}
+    with opener(gtf_path, "rt") as handle:
+        for line in handle:
+            if line.startswith("#"):
+                continue
+            fields = line.rstrip("\n").split("\t")
+            if len(fields) < 9:
+                continue
+            feature = fields[2]
+            if feature not in ("gene", "exon"):
+                continue
+            attrs = fields[8]
+            gid_m = _GENE_ID.search(attrs)
+            if not gid_m:
+                continue
+            gid = gid_m.group(1)
+            try:
+                start, end = int(fields[3]), int(fields[4])
+            except ValueError:
+                continue
+            if feature == "gene":
+                strand = fields[6]
+                name_m = _GENE_NAME.search(attrs)
+                genes[gid] = {
+                    "gene": name_m.group(1) if name_m else gid.split(".")[0],
+                    "chrom": _norm_chrom(fields[0]),
+                    "strand": strand,
+                    "start": start,
+                    "end": end,
+                    "tss": start if strand != "-" else end,
+                }
+            else:  # exon
+                exons[gid].append((start, end))
 
     by_chrom: dict = defaultdict(list)
     for gid, gene in genes.items():

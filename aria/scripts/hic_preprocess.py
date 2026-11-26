@@ -374,15 +374,12 @@ def _convert_hic_to_cooler(
                 off2 = chrom_offsets[c2]
                 nb2 = chrom_nbins[c2]
                 len2 = lengths[c2]
-                try:
-                    mzd = hic.getMatrixZoomData(
-                        c1, c2, "observed", "NONE", "BP", chosen_res
-                    )
-                    if mzd is None:
-                        continue
-                    recs = mzd.getRecords(0, max(0, len1 - 1), 0, max(0, len2 - 1))
-                except Exception:
+                mzd = hic.getMatrixZoomData(
+                    c1, c2, "observed", "NONE", "BP", chosen_res
+                )
+                if mzd is None:
                     continue
+                recs = mzd.getRecords(0, max(0, len1 - 1), 0, max(0, len2 - 1))
                 if not recs:
                     continue
                 b1_list: list[int] = []

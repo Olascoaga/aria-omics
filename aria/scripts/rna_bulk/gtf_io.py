@@ -270,41 +270,38 @@ def _parse_gtf_biotype_and_length(gtf_file: str) -> tuple:
     gene_lengths = {}
 
     opener = _gzip.open if str(gtf_file).endswith(".gz") else open
-    try:
-        with opener(gtf_file, "rt") as f:
-            for line in f:
-                if line.startswith("#"):
-                    continue
-                fields = line.rstrip("\n").split("\t")
-                if len(fields) < 9:
-                    continue
+    with opener(gtf_file, "rt") as f:
+        for line in f:
+            if line.startswith("#"):
+                continue
+            fields = line.rstrip("\n").split("\t")
+            if len(fields) < 9:
+                continue
 
-                feature = fields[2]
-                if feature not in ("gene", "transcript", "exon"):
-                    continue
+            feature = fields[2]
+            if feature not in ("gene", "transcript", "exon"):
+                continue
 
-                attrs = _gtf_attributes(fields[8])
-                if not attrs.get("gene_id"):
-                    continue
-                gid = _strip_gene_version(attrs["gene_id"])
-                biotype = attrs.get("gene_biotype") or attrs.get("gene_type")
-                if biotype and (feature == "gene" or gid not in biotype_map):
-                    biotype_map[gid] = biotype
+            attrs = _gtf_attributes(fields[8])
+            if not attrs.get("gene_id"):
+                continue
+            gid = _strip_gene_version(attrs["gene_id"])
+            biotype = attrs.get("gene_biotype") or attrs.get("gene_type")
+            if biotype and (feature == "gene" or gid not in biotype_map):
+                biotype_map[gid] = biotype
 
-                if feature in ("gene", "exon"):
-                    try:
-                        start = int(fields[3])
-                        end   = int(fields[4])
-                        if start < 1 or end < start:
-                            continue
-                        if feature == "gene":
-                            gene_lengths[gid] = end - start + 1
-                        else:
-                            exons_by_gene[gid].append((start, end))
-                    except ValueError:
+            if feature in ("gene", "exon"):
+                try:
+                    start = int(fields[3])
+                    end   = int(fields[4])
+                    if start < 1 or end < start:
                         continue
-    except Exception:
-        return biotype_map, {}
+                    if feature == "gene":
+                        gene_lengths[gid] = end - start + 1
+                    else:
+                        exons_by_gene[gid].append((start, end))
+                except ValueError:
+                    continue
 
     # Compute union-exon length per gene (merge overlapping intervals)
     length_map = dict(gene_lengths)

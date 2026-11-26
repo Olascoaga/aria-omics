@@ -387,7 +387,9 @@ def _build_phasing_track(clr, chroms: list[str], genome_fasta: str | None, gtf_p
     if genome_fasta and Path(str(genome_fasta)).is_file():
         try:
             import pysam
-
+        except ImportError:
+            pysam = None
+        if pysam is not None:
             with pysam.FastaFile(str(genome_fasta)) as fa:
                 refs = set(fa.references)
                 alias_to_ref: dict[str, str] = {}
@@ -419,8 +421,6 @@ def _build_phasing_track(clr, chroms: list[str], genome_fasta: str | None, gtf_p
                     if valid_ch:
                         all_phased = bool(chrom_strs) and (set(chrom_strs) <= valid_ch)
                         return cand_df, "gc_content", all_phased, valid_ch
-        except Exception:
-            pass
 
     # 2. Local GTF TSS / gene density per bin
     tss_records = _parse_gtf_tss(gtf_path)

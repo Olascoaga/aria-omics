@@ -864,12 +864,9 @@ def _write_overlap_consensus(peak_files: list[str],
 
 def _count_peaks(peaks_file: str) -> int:
     """Count number of peaks in a narrowPeak/broadPeak file."""
-    try:
-        with open(peaks_file) as f:
-            return sum(1 for line in f
-                       if line.strip() and not line.startswith("#"))
-    except Exception:
-        return 0
+    with open(peaks_file) as f:
+        return sum(1 for line in f
+                   if line.strip() and not line.startswith("#"))
 
 
 def _effective_macs3_params(files, params, data_type: str = "bulk_ATAC"):
