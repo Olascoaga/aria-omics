@@ -726,9 +726,40 @@ class BulkRnaNarrator:
             return []
 
         summary = _read_gsea_summary(gsea_table)
+        parse_error = summary.get("parse_error")
         n_pathways = summary.get("n_pathways")
         top_pathways = summary.get("top_pathways", [])
         n_numeric_unstable = summary.get("n_numeric_unstable", 0)
+        name = contrast.get("name", "contrast")
+        if parse_error:
+            return [NarrativeBlock(
+                id=f"bulk.gsea.{_safe_id(name)}",
+                modality="bulk RNA-seq",
+                analysis="gsea_preranked",
+                block_type="limitation",
+                title=f"Preranked GSEA {name}",
+                status="limitation",
+                confidence="insufficient",
+                claim="",
+                evidence=[
+                    _evidence("GSEA table parse error", parse_error, "gsea_preranked", path=gsea_table),
+                ],
+                caveats=[Caveat(
+                    f"GSEA results table could not be parsed ({parse_error}); "
+                    "ranked pathway support could not be verified.",
+                    "warning",
+                )],
+                metrics={"n_pathways": None, "top_pathways": [], "parse_error": parse_error},
+                figures=[
+                    {"id": "gsea_top_table", "path": top_table_fig,
+                     "caption": f"{name} GSEA top table"}
+                ] if top_table_fig else [],
+                tables=[
+                    {"id": "gsea_table", "path": gsea_table,
+                     "label": f"{name} GSEA results"}
+                ] if gsea_table else [],
+                metadata={"gsea_fdr_threshold": 0.25, "parse_error": parse_error},
+            )]
         evidence = [
             _evidence(
                 "FDR<0.25 pathways",
@@ -928,8 +959,12 @@ def _read_gsea_summary(path: str | None) -> dict:
             reader = csv.DictReader(handle)
             for row in reader:
                 rows.append(row)
-    except Exception:
-        return {"n_pathways": None, "top_pathways": []}
+    except (OSError, UnicodeDecodeError, csv.Error) as exc:
+        return {
+            "n_pathways": None,
+            "top_pathways": [],
+            "parse_error": f"{type(exc).__name__}: {exc}",
+        }
 
     parsed = [_parse_gsea_row(row) for row in rows]
     parsed = [row for row in parsed if row.get("term")]

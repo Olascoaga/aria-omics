@@ -693,9 +693,10 @@ class BulkRNAAgent(BaseAgent):
                 sep = "\t" if "\t" in sample_lines[0] else ","
                 reader = csv.DictReader(sample_lines, delimiter=sep)
                 source = list(reader)
-            except Exception as exc:
-                log.debug(f"Could not read metadata source {p}: {exc}")
-                return {}
+            except (OSError, UnicodeDecodeError, csv.Error) as exc:
+                raise ValueError(
+                    f"Failed to read declared sample metadata file '{p}': {exc}"
+                ) from exc
         if isinstance(source, list):
             for row in source:
                 if not isinstance(row, dict):

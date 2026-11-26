@@ -85,12 +85,27 @@ class AuditAgent(BaseAgent):
         )
         findings.extend(capability_matrix.get("findings", []))
 
+        def _check_error_finding(check_key: str, label: str, exc: Exception) -> dict:
+            return {
+                "severity": "warning",
+                "check": f"{check_key}_failed",
+                "message": (
+                    f"{label} audit check failed ({type(exc).__name__}: {exc}); "
+                    "this confound check could not be evaluated."
+                ),
+                "recommendation": (
+                    "Inspect the input count matrix, design metadata, or alignment "
+                    "logs and resolve the error before trusting clean audit status."
+                ),
+            }
+
         # ── 1. Replicate correlation ──────────────────────────────────────
         try:
             corr_findings = self._check_replicate_correlation(files, design)
             findings.extend(corr_findings)
-        except Exception as e:
+        except Exception as e:  # aria: allow-broad-except surface failed audit check as CP3.5 warning
             log.warning(f"Replicate correlation check failed: {e}")
+            findings.append(_check_error_finding("replicate_correlation", "Replicate correlation", e))
 
         # ── 2. PCA batch dominance ────────────────────────────────────────
         from aria.utils.design_matrix import resolve_design_contract
@@ -106,8 +121,9 @@ class AuditAgent(BaseAgent):
                     files, design, exp_context=exp_context
                 )
                 findings.extend(batch_findings)
-            except Exception as e:
+            except Exception as e:  # aria: allow-broad-except surface failed audit check as CP3.5 warning
                 log.warning(f"PCA batch dominance check failed: {e}")
+                findings.append(_check_error_finding("pca_batch_dominance", "PCA batch dominance", e))
 
         # ── 2b. Design-matrix sanity ────────────────────────────────────
         try:
@@ -115,15 +131,17 @@ class AuditAgent(BaseAgent):
                 files, design, exp_context=exp_context
             )
             findings.extend(design_findings)
-        except Exception as e:
+        except Exception as e:  # aria: allow-broad-except surface failed audit check as CP3.5 warning
             log.warning(f"Design-matrix sanity check failed: {e}")
+            findings.append(_check_error_finding("design_matrix_sanity", "Design-matrix sanity", e))
 
         # ── 3. STAR alignment rate ────────────────────────────────────────
         try:
             star_findings = self._check_star_alignment(files)
             findings.extend(star_findings)
-        except Exception as e:
+        except Exception as e:  # aria: allow-broad-except surface failed audit check as CP3.5 warning
             log.warning(f"STAR alignment check failed: {e}")
+            findings.append(_check_error_finding("star_alignment", "STAR alignment", e))
 
         dispatch = capability_matrix.get("dispatch", {})
         integration_readiness = capability_matrix.get("integration_readiness") or {}
@@ -488,7 +506,21 @@ class AuditAgent(BaseAgent):
 
         findings = []
         for sample_name, log_path in star_logs.items():
-            pct = _parse_star_unique_pct(log_path)
+            try:
+                pct = _parse_star_unique_pct(log_path)
+            except (OSError, UnicodeDecodeError, ValueError) as exc:
+                findings.append({
+                    "severity": "warning",
+                    "check": "star_alignment_parse_failed",
+                    "message": (
+                        f"Could not parse STAR alignment log for sample "
+                        f"'{sample_name}' ({log_path}): {type(exc).__name__}: {exc}."
+                    ),
+                    "recommendation": (
+                        "Inspect the STAR Log.final.out file to verify mapping rate."
+                    ),
+                })
+                continue
             if pct is None:
                 continue
             if pct < _ALIGN_WARN_THR:
@@ -514,15 +546,36 @@ class AuditAgent(BaseAgent):
 
 # ── Module-level helpers (no bus, pure computation) ───────────────────────────
 
-def _load_count_matrix(files: list):
-    """Load and merge count files into a single (genes × samples) DataFrame."""
-    try:
-        from aria.utils.count_classifier import load_count_table
+_NON_COUNT_SUFFIXES = (
+    ".bam", ".bai", ".cram", ".sam",
+    ".fastq", ".fastq.gz", ".fq", ".fq.gz",
+    ".h5ad", ".h5mu", ".h5", ".hdf5", ".loom", ".mtx", ".mtx.gz",
+    ".cool", ".mcool", ".hic", ".pairs", ".pairs.gz",
+    ".bw", ".bigwig", ".bed", ".bed.gz", ".bedgraph", ".bedgraph.gz",
+    ".narrowpeak", ".narrowpeak.gz", ".broadpeak", ".broadpeak.gz",
+    ".gtf", ".gtf.gz", ".gff", ".gff.gz", ".gff3", ".gff3.gz",
+    ".fa", ".fa.gz", ".fasta", ".fasta.gz", ".fna", ".fna.gz",
+    ".png", ".svg", ".pdf", ".html", ".json", ".yaml", ".yml",
+    ".sqlite", ".db", ".zip", ".tar", ".tar.gz", ".tgz", ".log", ".out",
+)
 
-        return load_count_table(files)
-    except Exception as e:
-        log.warning(f"_load_count_matrix failed: {e}")
+
+def _load_count_matrix(files: list):
+    """Load and merge count files into a single (genes × samples) DataFrame.
+
+    Skips non-count files (BAM/FASTQ/h5ad/BED/peaks/logs) and lets parse errors
+    on candidate count tables propagate to ``run_audit`` so corrupt count files
+    surface as explicit CP3.5 warnings.
+    """
+    from aria.utils.count_classifier import load_count_table
+
+    tabular = [
+        f for f in (files or [])
+        if f and not str(f).lower().endswith(_NON_COUNT_SUFFIXES)
+    ]
+    if not tabular:
         return None
+    return load_count_table(tabular)
 
 
 def _match_columns_to_map(columns, sample_map: dict) -> dict[str, str]:
@@ -625,9 +678,6 @@ def _find_star_logs(files: list) -> dict:
 
 def _parse_star_unique_pct(log_path: Path) -> Optional[float]:
     """Parse 'Uniquely mapped reads %' from a STAR Log.final.out file."""
-    try:
-        text = Path(log_path).read_text()
-        m = re.search(r"Uniquely mapped reads %\s*\|\s*([\d.]+)%", text)
-        return float(m.group(1)) if m else None
-    except Exception:
-        return None
+    text = Path(log_path).read_text(encoding="utf-8")
+    m = re.search(r"Uniquely mapped reads %\s*\|\s*([\d.]+)%", text)
+    return float(m.group(1)) if m else None
