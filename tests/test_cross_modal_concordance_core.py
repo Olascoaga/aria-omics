@@ -105,8 +105,8 @@ def test_contract_production_and_optional_inputs(tmp_path):
     assert contract.validate_params({}) == []
     assert {f.name for f in contract.inputs} == {
         "rna_results", "chromatin_results", "rna_cpm_path", "atac_cpm_path", "sample_id_map",
-        "gtf_path", "organism", "genome", "output_dir", "padj_threshold", "cis_distance_bp",
-        "promoter_bp", "min_matched_samples", "n_permutations", "seed", "resume"}
+        "sample_covariates", "gtf_path", "organism", "genome", "output_dir", "padj_threshold",
+        "cis_distance_bp", "promoter_bp", "min_matched_samples", "n_permutations", "seed", "resume"}
     assert contract.validate_params({"sample_id_map": "invalid"})
     result = cross_modal_concordance({"output_dir": str(tmp_path)})
     assert result["ran"] is False

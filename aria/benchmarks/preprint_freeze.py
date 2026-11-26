@@ -125,18 +125,18 @@ LANES: tuple[dict[str, Any], ...] = (
         ),
     ),
     _lane(
-        "c1_h9_fastq_e2e", ("claim_1",),
-        "Clean-checkout FASTQ-to-report bulk-RNA E2E with frozen checkpoint policy.",
-        "conda run -n aria-env python scripts/run_c1_h9_fastq_e2e.py "
-        "--output-dir docs/benchmark_results/preprint_v1/claim_1/h9_e2e",
+        "c1_public_fastq_e2e", ("claim_1",),
+        "Clean-checkout public paired GSE52778 FASTQ-to-report bulk-RNA E2E (~ donor + condition) with frozen checkpoint policy.",
+        "conda run -n aria-env python scripts/run_c1_public_fastq_e2e.py "
+        "--output-dir docs/benchmark_results/preprint_v1/claim_1/public_fastq_e2e",
         "aria-env -> aria-rnaseq-env + aria-rna-env",
-        ("env:aria-env", "env:aria-rnaseq-env", "env:aria-rna-env", "data:h9_fastq"),
+        ("env:aria-env", "env:aria-rnaseq-env", "env:aria-rna-env", "data:gse52778_fastq"),
         (
-            "claim_1/h9_e2e/capsule.json",
-            "claim_1/h9_e2e/report.html",
-            "claim_1/h9_e2e/methodology.json",
-            "claim_1/h9_e2e/de_results.tsv",
-            "claim_1/h9_e2e/fig1_h9_bulk_de.svg",
+            "claim_1/public_fastq_e2e/capsule.json",
+            "claim_1/public_fastq_e2e/report.html",
+            "claim_1/public_fastq_e2e/methodology.json",
+            "claim_1/public_fastq_e2e/de_results.tsv",
+            "claim_1/public_fastq_e2e/fig1_gse52778_bulk_de.svg",
         ),
         evidence_kind="e2e_capsule",
     ),
@@ -173,16 +173,14 @@ LANES: tuple[dict[str, Any], ...] = (
     ),
     _lane(
         "c2_scatac_donor_aware", ("claim_2",),
-        "Fresh donor-aware scATAC DA concordance on the real multi-donor matrix.",
+        "Fresh donor-aware scATAC DA concordance on the public GSE278576 multi-donor cohort.",
         "conda run -n aria-rna-env python "
         "scripts/run_scatac_multisample_da_concordance.py "
-        "--data-dir ~/Samael/Oligos/data/interim/paired "
         "--young hc937,hc5579,hc13344,hc935,hc5614 "
         "--old hc26,hc98,hc35,hc40,hc73 "
         "--rna-env aria-rna-env --bench-env aria-bench-env "
         "--output-dir docs/benchmark_results/preprint_v1/claim_2/scatac_donor "
-        "--manifest-name scatac_donor_da_concordance.json "
-        "--work-dir /tmp/c2_scatac_donor",
+        "--manifest-name scatac_donor_da_concordance.json",
         "aria-rna-env + aria-bench-env",
         ("env:aria-rna-env", "env:aria-bench-env", "data:gse278576"),
         ("claim_2/scatac_donor/scatac_donor_da_concordance.json",),
@@ -322,15 +320,14 @@ def _resource_defaults(output_root: Path) -> dict[str, tuple[str, Path | None]]:
         "data:seqc_multisite": ("benchmark-data://seqc_maqc_{BGI,CNL,MAY,AGR,NVS}", home / ".aria/benchmarks/seqc_maqc_NVS/counts.tsv"),
         "data:seqc_ercc": ("benchmark-data://seqc_maqc_BGI/ercc_truth.tsv", home / ".aria/benchmarks/seqc_maqc_BGI/ercc_truth.tsv"),
         "data:kang_muscat": ("benchmark-data://kang_muscat/clusters.json", home / ".aria/benchmarks/kang_muscat/clusters.json"),
-        "data:h9_fastq": ("validation-data://h9_bulk_fastq", home / "Samael/H9-RNA/raw_fastq"),
+        "data:gse52778_fastq": (
+            "public-atlas://02_bulk_rna_raw_fastq/GSE52778",
+            Path(os.environ.get("ARIA_GSE52778_FASTQ_DIR", home / ".aria/public_atlas_datasets/02_bulk_rna_raw_fastq/inputs")),
+        ),
         "data:pbmc3k": ("validation-data://pbmc3k_test", home / "aria-data/pbmc3k_test"),
         "data:gse278576": (
-            "validation-data://gse278576_scatac_donor_h5mu",
-            (
-                home / "Samael/Oligos/data/interim/paired/hc937_paired.h5mu"
-                if (home / "Samael/Oligos/data/interim/paired/hc937_paired.h5mu").exists()
-                else home / "Samael/Single/prueba/muon_processed/hc937_paired.h5mu"
-            ),
+            "public-benchmark://gse278576_scatac_donor_h5mu",
+            Path(os.environ.get("ARIA_SCATAC_DA_DATA", home / ".aria/benchmarks/gse278576_paired")) / "hc937_paired.h5mu",
         ),
         "human:b2_annotators": ("freeze-input://human/b2_annotator_{1,2}.csv+adjudicator", output_root / "human/b2_adjudicator.csv"),
         "human:design_gold": ("freeze-input://human/design_gold.csv", output_root / "human/design_gold.csv"),
@@ -537,6 +534,11 @@ def execute_lane(
 
     tokens = shlex.split(str(lane["command"]))
     env = os.environ.copy()
+    try:
+        rel_out = output_root.resolve().relative_to(repo_root.resolve()).as_posix()
+        env["ARIA_PROVENANCE_EXCLUDE_PATH"] = rel_out
+    except ValueError:
+        pass
     while tokens and re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*=.*", tokens[0]):
         key, value = tokens.pop(0).split("=", 1)
         env[key] = os.path.expanduser(value)

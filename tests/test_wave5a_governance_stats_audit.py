@@ -799,8 +799,11 @@ def test_d5c4_orchestrator_replay_preserves_specification_sha_and_fork_index(mon
     assert fl1["fork_index"] == 0
     assert m1_committed["locked_parameter_decisions"] == {}
 
-    # Simulate post-run realized_parameter_decisions recorded in methodology.json
-    replayed_dm = {**m1_committed, "realized_parameter_decisions": {"leiden_clustering.resolution": 0.6}}
+    from aria.utils.decision_manifest import seal_realized_parameter_decisions
+    # Simulate post-run realized_parameter_decisions cryptographically sealed in methodology.json
+    replayed_dm = seal_realized_parameter_decisions(
+        m1_committed, {"leiden_clustering.resolution": 0.6}
+    )
 
     captured: dict = {}
 

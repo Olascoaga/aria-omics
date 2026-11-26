@@ -49,14 +49,20 @@ its evidence card** — not against outside knowledge of the biology.
 - **causal-overreach rate** = `causal_inflation` claims that survive / total causal
   claims.
 
-## Arms (4-arm ablation — finalized in the protocol, see the B2 plan)
+## Arms (4-arm label-blind component ablation — v4.9.4)
 
-- **naive-LLM** — claims emitted as-is, no governance.
-- **guards-off** — ARIA's narrative pipeline with the evidence verifier, causal
-  guard, and claim compiler disabled.
-- **governed** — ARIA full governance (`verify_block_claim_support` + `classify_claim`
-  + causal guard).
-- **template-only** — deterministic descriptive templates (no free interpretation).
+All `b2_*` gold metadata keys are stripped from every `NarrativeBlock` before any
+arm executes (`strip_b2_metadata`); gold labels are used solely for post-hoc scoring.
+
+- **naive-LLM** (`naive_llm`) — emits all candidate claims verbatim (ungoverned baseline).
+- **guards-off** (`guards_off`) — runs ARIA's structured evidence-card verifier
+  (`verify_block_claim_support`) only, with the Claim Compiler (`annotate_claim_tiers`)
+  and causal guard (`validate_block`) disabled.
+- **governed** (`governed`) — runs ARIA's full governance stack
+  (`annotate_claim_tiers` + `validate_block` + `verify_block_claim_support`).
+- **template-only** (`template_only`) — deterministic quantitative readouts only:
+  emits only governed blocks carrying structured numeric `metrics` and verified
+  measured quantities (no free qualitative interpretation).
 
 The released supplement contains: this rubric, the full claim corpus (claims +
 evidence summaries), both annotators' sheets, the adjudicated gold, and the κ/α.

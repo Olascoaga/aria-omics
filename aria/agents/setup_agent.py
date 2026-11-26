@@ -381,8 +381,11 @@ class SetupAgent(BaseAgent):
             envs.extend([
                 by_stack["chromatin"],
                 by_stack["rna"],
-                by_stack["tobias"],
             ])
+            # TOBIAS Tn5 footprinting applies only to ATAC / multiome lanes,
+            # never to ChIP-seq / CUT&RUN / CUT&TAG.
+            if ({"scATAC", "bulk_ATAC"} & modality_set) or has_multiome_manifest:
+                envs.append(by_stack["tobias"])
             if has_fastq or has_multiome_manifest:
                 envs.extend([by_stack["rnaseq"], by_stack["atacseq"]])
         if {"HiC", "Micro-C"} & modality_set:
@@ -413,7 +416,8 @@ class SetupAgent(BaseAgent):
     def _ensure_env(self, env_name: str, conda_cmd: str,
                      experiment_id: str,
                      actions: list, warnings: list):
-        """Create aria conda env from bundled YAML if not present."""
+        """Create aria conda env from exact lockfiles (preferred on Linux x64)
+        or bundled YAML fallback if not present."""
         installed = self._list_envs(conda_cmd)
         if env_name in installed:
             log.debug(f"Env '{env_name}' already installed.")
@@ -431,31 +435,30 @@ class SetupAgent(BaseAgent):
         )
         log.info(f"Creating conda env: {env_name}")
 
-        yml_path = Path(env_def["yml_path"])
-        if not yml_path.exists():
-            warnings.append(
-                f"Versioned environment spec missing for {env_name}: {yml_path}"
-            )
-            return
+        from aria.setup_cli import install_environment
 
-        try:
-            r = subprocess.run(
-                [conda_cmd, "env", "create",
-                 "-f", str(yml_path), "--name", env_name, "-y"],
-                capture_output=True, text=True,
-                timeout=1800,   # 30 min
+        air_gapped = bool(
+            getattr(self, "_egress_policy", None)
+            and getattr(self._egress_policy, "air_gapped", False)
+        ) or (os.environ.get("ARIA_AIR_GAPPED", "").strip().lower() in {"1", "true", "yes"})
+
+        res = install_environment(
+            env_name,
+            conda_cmd,
+            use_locks=True,
+            force=False,
+            dry_run=False,
+            air_gapped=air_gapped,
+            timeout=1800,
+            installed_envs=installed,
+        )
+        if res["status"] == "installed":
+            actions.append(f"created:{env_name}")
+            log.info(f"Created env: {env_name} via {res.get('method')}")
+        elif res["status"] != "already_installed":
+            warnings.append(
+                f"Failed to create {env_name}: {res.get('error', res['status'])}"
             )
-            if r.returncode == 0:
-                actions.append(f"created:{env_name}")
-                log.info(f"Created env: {env_name}")
-            else:
-                warnings.append(
-                    f"Failed to create {env_name}: {r.stderr[-200:]}"
-                )
-        except subprocess.TimeoutExpired:
-            warnings.append(f"Timeout creating {env_name} (>30 min)")
-        except Exception as e:
-            warnings.append(f"Error creating {env_name}: {e}")
 
     # ── Reference genome ─────────────────────────────────────────────────
 

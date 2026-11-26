@@ -38,15 +38,18 @@ def test_b2_four_arm_ablation_is_coherent():
 
     m = score_b2()
     a = m["arms"]
+    assert m["label_blind_execution"] is True
     assert set(a) == set(ARMS)
     # false-narrative is monotone: full system never worse than its ablation,
-    # and structure already beats the ungoverned LLM.
+    # and structured numeric/entity verification beats ungoverned emission.
     assert (a["governed"]["false_narrative_rate"]
             <= a["guards_off"]["false_narrative_rate"]
-            <= a["naive_llm"]["false_narrative_rate"])
-    # the guards are what kill causal overreach (structure alone does not).
+            < a["naive_llm"]["false_narrative_rate"])
+    # the Claim Compiler + causal guard eliminate causal overreach (whereas
+    # guards_off still permits unverified causal verbs through).
     assert a["naive_llm"]["causal_overreach_rate"] == 1.0
-    assert a["guards_off"]["causal_overreach_rate"] == 1.0
+    assert a["guards_off"]["causal_overreach_rate"] >= 0.8
+    assert a["guards_off"]["causal_overreach_rate"] > a["governed"]["causal_overreach_rate"]
     assert a["governed"]["causal_overreach_rate"] == 0.0
     assert a["template_only"]["causal_overreach_rate"] == 0.0
     # template-only is safe but rigid; governance preserves real interpretation.
@@ -54,6 +57,33 @@ def test_b2_four_arm_ablation_is_coherent():
     assert (a["governed"]["informative_coverage"]
             > a["template_only"]["informative_coverage"])
     assert m["axis_pass"]["preserves_informative_coverage"] is True
+    # Exact numerators, denominators, Wilson CIs, and missing_caveat tracking
+    for arm_name in ARMS:
+        entry = a[arm_name]
+        assert entry["false_narrative_denominator"] == m["summary"]["n_claims"]
+        assert entry["causal_overreach_denominator"] == m["summary"]["n_causal_labelled"]
+        assert entry["clean_denominator"] == m["summary"]["n_clean_labelled"]
+        assert len(entry["false_narrative_rate_ci95"]) == 2
+        assert "missing_caveat_emitted" in entry
+
+
+def test_b2_arms_are_strictly_label_blind():
+    """Shuffling/poisoning all b2_* metadata MUST NOT change any arm decision."""
+    import copy
+    from aria.benchmarks.governance_b2 import ARMS, _arm_emits, build_claim_corpus
+
+    corpus = build_claim_corpus()
+    poison_labels = ["clean", "causal_inflation", "fabricated", "overclaim", "unsupported", "missing_caveat"]
+    for idx, block in enumerate(corpus):
+        poisoned = copy.deepcopy(block)
+        poisoned.metadata["b2_label"] = poison_labels[(idx + 2) % len(poison_labels)]
+        poisoned.metadata["b2_failure_mechanism"] = "fabrication" if idx % 2 == 0 else "none"
+        poisoned.metadata["b2_interpretive"] = not bool(block.metadata.get("b2_interpretive"))
+        poisoned.metadata["b2_claim_type"] = "causal" if idx % 3 == 0 else "comparative"
+        for arm in ARMS:
+            assert _arm_emits(arm, block) == _arm_emits(arm, poisoned), (
+                f"Label leakage detected in arm={arm} for block={block.id}"
+            )
 
 
 def test_b2_labeling_rows_do_not_leak_gold():

@@ -240,7 +240,7 @@ fi
 cat > "$ARIA_CONFIG_DIR/config.yaml" << YAML
 # ARIA Configuration
 # Edit this file to change providers or models
-# Documentation: https://github.com/aria-omics/aria
+# Documentation: https://github.com/Olascoaga/aria-omics
 
 llm:
   # Heavy tier: complex biological reasoning, multimodal integration
@@ -334,15 +334,20 @@ else
 fi
 
 echo ""
-info "Running legacy mock component checks..."
+echo -e "  ${BLD}Primary scientific stack (aria-rna-env):${RST}"
+echo -e "  Covers Bulk RNA matrices, scRNA-seq, pseudobulk DE, ORA/GSEA, LIANA, and trajectory."
+echo -e "  Additional modality stacks (chromatin, multiome, hic, raw-rna) install on demand"
+echo -e "  or anytime via: ${CYN}aria setup <profile>${RST} (see ${CYN}aria setup --list${RST})."
 echo ""
-
-if python "$ARIA_DIR/tests/test_integration.py"; then
-    echo ""
-    success "Legacy mock component checks passed"
+read -p "  Install aria-rna-env now from its exact lockfile? (Y/n): " INSTALL_RNA
+if [[ ! "$INSTALL_RNA" =~ ^[nN]$ ]]; then
+    if aria setup rna; then
+        success "Primary scientific stack (aria-rna-env) is ready"
+    else
+        warn "aria setup rna did not complete -- retry anytime with: aria setup rna"
+    fi
 else
-    warn "Some legacy mock checks failed -- review errors above"
-    warn "ARIA may still run, but the installation is not fully verified"
+    info "Skipped aria-rna-env; run 'aria setup rna' whenever ready."
 fi
 
 # ── Done ──────────────────────────────────────────────────────────────────────

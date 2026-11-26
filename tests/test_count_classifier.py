@@ -126,3 +126,23 @@ def test_classifier_reports_required_score_evidence_keys():
         "tool_signature",
     }
     assert "score_basis" in info
+
+
+def test_parent_directory_name_never_triggers_false_nonraw_veto():
+    """Random temp or project parent directories containing substrings like
+    'tpm' or 'cpm' must never veto genuine raw integer counts."""
+    info = classify_matrix(
+        _raw_counts(),
+        source_hint="/tmp/aria_x6_rand_tpm_cpm/synthetic.h5ad",
+    )
+    assert info["is_raw_counts"] is True
+    assert info["kind"] == "raw"
+    assert info["sub_scores"]["tool_signature"] == 0.5
+
+    # Explicit non-raw filename still flags as non-raw
+    tpm_info = classify_matrix(
+        _raw_counts(),
+        source_hint="/data/project/expression_tpm.tsv",
+    )
+    assert tpm_info["is_raw_counts"] is False
+    assert tpm_info["sub_scores"]["tool_signature"] == 0.0

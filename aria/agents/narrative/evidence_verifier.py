@@ -50,6 +50,7 @@ _ANALYSIS_FAMILY = {
     "pseudobulk_de": "expression",
     "pathway_enrichment": "pathway",
     "pseudobulk_pathways": "pathway",
+    "gsea": "pathway",
     "gsea_preranked": "pathway",
     "peak_ora": "pathway",
     "differential_abundance": "abundance",
@@ -58,6 +59,16 @@ _ANALYSIS_FAMILY = {
     "qc": "descriptive",
     "sample_qc": "descriptive",
     "power": "descriptive",
+    "preprocessing": "descriptive",
+    "scatac_preprocessing": "descriptive",
+    "bulk_atac_preprocessing": "descriptive",
+    "dimensionality_reduction": "descriptive",
+    "peak_calling": "descriptive",
+    "peak_count_matrix": "descriptive",
+    "peak_annotation": "descriptive",
+    "matrix_pipeline": "descriptive",
+    "regulatory_layers": "descriptive",
+    "data_quality": "descriptive",
     "paired_qc": "descriptive",
     "wnn": "descriptive",
     "mofa": "latent_program",
@@ -128,7 +139,10 @@ def _fact_predicate_for_analysis(analysis: str | None) -> str:
         return "differential_3d"
     return _DE_PREDICATE
 _TOP_GENE_RE = re.compile(r"^top\s+(?:shared\s+)?gene\s+(.+)$", re.IGNORECASE)
-_GENERIC_DE_SUBJECTS = {"gene", "genes", "feature", "features", "none"}
+_GENERIC_DE_SUBJECTS = {
+    "gene", "genes", "feature", "features", "peak", "peaks",
+    "locus", "loci", "region", "regions", "none",
+}
 
 
 @dataclass

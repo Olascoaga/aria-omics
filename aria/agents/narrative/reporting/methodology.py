@@ -202,10 +202,10 @@ class MethodologyMixin:
         raw_dm = (exp_ctx or {}).get("decision_manifest")
         decision_manifest_out = None
         if isinstance(raw_dm, dict):
-            decision_manifest_out = {
-                **raw_dm,
-                "realized_parameter_decisions": realized_param_decisions,
-            }
+            from aria.utils.decision_manifest import seal_realized_parameter_decisions
+            decision_manifest_out = seal_realized_parameter_decisions(
+                raw_dm, realized_param_decisions
+            )
 
         return {
             "provenance": provenance,

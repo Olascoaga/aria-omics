@@ -8,9 +8,22 @@ current `main`.
 
 ---
 
-## [v4.9.3] — 2026-11-20 (Current Release)
+## [v4.9.4] — 2026-11-25 (Current Release)
 
-Full release notes: [`docs/release_notes_v4.9.3.md`](docs/release_notes_v4.9.3.md)
+Full release notes: [`docs/release_notes_v4.9.4.md`](docs/release_notes_v4.9.4.md)
+
+### Highlights
+- **Fail-Closed `DecisionManifest` Commitment & `realized_decisions_sha256` Integrity (`aria/agents/orchestrator_agent.py`, `aria/utils/decision_manifest.py`, `aria/agents/narrative/reporting/methodology.py`):** Removed warning-only swallowing of manifest commitment errors so any `DecisionManifest` verification or write failure halts dispatch fail-closed before compute runs, and cryptographically bound post-lock `realized_parameter_decisions` to `manifest_sha256` via `seal_realized_parameter_decisions` / `realized_decisions_sha256` (rejecting unsealed or tampered replays).
+- **Strictly Label-Blind `B2` 4-Arm Component Ablation (`aria/benchmarks/governance_b2.py`, `docs/benchmark_results/b2_claim/B2_RUBRIC.md`):** Stripped all gold annotation metadata before any arm runs, converting `B2` into a true component ablation (`naive_llm` -> `guards_off` verifier-only -> `governed` full compiler + causal licensing -> `template_only` quantitative readout) with exact numerators/denominators and 95% Wilson intervals.
+- **Paired Cross-Arm `CP2.5` Detection, Preprocessing Tier Fix & Covariate-Aware Cross-Modal CPM Guard (`design_agent.py`, `bulk_rna_agent.py`, `headless.py`, `claim_compiler.py`, `evidence_verifier.py`, `cross_modal_concordance.py`):** Automatically detects cross-arm matched biological units at `CP2.5` (`~ donor + condition`, fixing unattended `GSE52778` airway pairing) while failing closed on ambiguous within-group technical collisions; reclassifies chromatin preprocessing and dimensionality-reduction summaries strictly as `descriptive`; and adds OLS `sample_covariates` residualization plus mandatory unadjusted-covariate and sex-chromosome (`chrX`/`chrY`) link warnings to Layer D of `cross_modal_concordance.py`.
+- **100% Public & Path-Portable Preprint Freeze (`19 / 19`), Real-Data Pseudoreplication Null & Scope-Gated `CodeAct` Control (`preprint_freeze.py`, `run_c1_public_fastq_e2e.py`, `run_kang_real_pseudoreplication_null.py`, `run_bixbench_scope_gated_control.py`, `aria/version.py`):** Replaced the restricted chr21 H9 smoke lane with 100% public paired `GSE52778` FASTQ-to-report E2E (`c1_public_fastq_e2e`), scrubbed all machine-local paths from `preprint_freeze.py` / `inventory.json`, added `ARIA_PROVENANCE_EXCLUDE_PATH` so sequential freeze writes stay clean (`git_dirty=false`), added the real-data 8-donor `Kang GSE96583` 210-split pseudoreplication null benchmark (`37.5×–37.9×` fewer FPs than cell-level Welch/Wilcoxon), and added the deterministic `CodeAct + ARIA scope gate` ablation over frozen `v4.9.0` `BixBench-60` receipts.
+- **One-Command Lock-First Environment Setup (`aria setup` & `SetupAgent`) + Count-Classifier Path Hygiene (`aria/setup_cli.py`, `aria/agents/setup_agent.py`, `aria/utils/count_classifier.py`):** Added `aria setup <profile>` (`rna` default = 1 env covering Bulk RNA matrices & scRNA-seq; `raw-rna`, `chromatin`, `tobias`, `multiome`, `hic`, `all`, `--list`, `--dry-run`) using `@EXPLICIT` Linux lockfiles first, upgraded `SetupAgent._ensure_env()` to prefer lockfiles and stop requesting `aria-tobias-env` on ChIP/CUT&RUN/CUT&TAG, and restricted `count_classifier._tool_signature_score` to filenames so random temp directory names never falsely veto raw integer counts.
+
+---
+
+## [v4.9.3] — 2026-11-20
+
+Full release notes: [`docs/releases/release_notes_v4.9.3.md`](docs/releases/release_notes_v4.9.3.md)
 
 ### Highlights
 - **100% Green `release-repro` Docker & CycloneDX SBOM Supply-Chain Fix (`docker/Dockerfile.chromatin`):** Pre-installed prebuilt `bioconda::macs3=3.0.4` (and `conda-forge::cykhash`) before solving `envs/aria-chromatin-env.yml` in `docker/Dockerfile.chromatin` so `pip` does not attempt to compile `MACS3`/`cykhash` from source without `gcc`, turning the full tag-triggered `release-repro` pipeline (`Dockerfile.base`, `Dockerfile.rna`, `Dockerfile.atacseq`, `Dockerfile.chromatin`, `Dockerfile.tobias`, in-container `test_benchmark_synthetic_de.py`, and CycloneDX SBOM) 100% green.

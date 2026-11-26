@@ -176,3 +176,130 @@ def test_design_state_machine_cancels_on_reject(tmp_path):
             break
 
     assert result["status"] == "cancelled", result
+
+
+def test_v494_cp25_paired_donor_block_auto_selected_in_headless(tmp_path):
+    """Cross-arm paired biological units (e.g. GSE52778 untreated_rep1..4 vs
+    dexamethasone_rep1..4) must surface paired donor blocking at CP2.5 and wire
+    '~ donor + condition' cleanly into BulkRNAAgent metadata."""
+    import pandas as pd
+    from aria.agents.bulk_rna_agent import BulkRNAAgent
+    from aria.agents.design_agent import DesignAgent
+    from aria.bus.message_bus import bus
+    from aria.memory.memory import ARIAMemory
+
+    fastqs = []
+    for cond in ("untreated", "dexamethasone"):
+        for i in range(1, 5):
+            for mate in (1, 2):
+                p = tmp_path / f"{cond}_rep{i}_R{mate}.fastq.gz"
+                p.touch()
+                fastqs.append(str(p))
+
+    inferred_design = {
+        "source": "filename_inferred",
+        "confidence": "high",
+        "organism": "Homo sapiens",
+        "genome": "hg38",
+        "groups": {
+            "untreated": [f"untreated_rep{i}" for i in range(1, 5)],
+            "dexamethasone": [f"dexamethasone_rep{i}" for i in range(1, 5)],
+        },
+        "main_factor": "condition",
+        "batch_covariate": None,
+    }
+    agent = DesignAgent(memory=ARIAMemory(db_path=str(tmp_path / "paired.db")), llm=None)
+    result = agent.start_design(
+        experiment_id="exp_paired_gse52778",
+        exp_context={
+            "modalities": {"bulk_RNA_raw": fastqs},
+            "inferred_design": inferred_design,
+            "organism": "Homo sapiens",
+            "genome": "hg38",
+        },
+        biological_intent={"question": "dexamethasone vs untreated paired donors"},
+    )
+    decisions = []
+    for _ in range(20):
+        pending = [
+            m for m in bus.get_pending_checkpoints(experiment_id="exp_paired_gse52778")
+            if not m.payload.get("resolved")
+        ]
+        if not pending:
+            break
+        msg = pending[-1]
+        cp_num = msg.payload.get("checkpoint")
+        choice = default_answer_policy(cp_num, msg.payload.get("question", ""), msg.payload.get("options", []))
+        decisions.append((cp_num, choice))
+        bus.resolve_checkpoint(msg.id, {"choice": choice})
+        result = agent.handle_user_response("exp_paired_gse52778", cp_num, choice)
+        if result.get("status") in {"done", "cancelled"}:
+            break
+
+    assert result["status"] == "done", result
+    design = result["design"]
+    assert design["batch_covariate"] == "donor"
+    assert design["design_formula"] == "~ donor + condition"
+    assert design["replicate_handling"]["mode"] == "paired_biological_block"
+    assert design["nominal_residual_df"] == 3  # 8 samples - 2 groups - (4-1) donor df
+    assert "Paired biological replicates" in dict(decisions)[2.5]
+
+    group_labels = {
+        s: grp for grp, mems in design["groups"].items() for s in mems
+    }
+    meta_path = BulkRNAAgent._write_design_metadata(
+        group_labels, "condition", tmp_path, covariates=["donor"], design=design
+    )
+    meta = pd.read_csv(meta_path, sep="\t", index_col=0)
+    assert list(meta.columns) == ["condition", "donor"]
+    assert set(meta["donor"].unique()) == {"rep1", "rep2", "rep3", "rep4"}
+
+
+def test_v494_cp25_ambiguous_technical_replicates_fail_closed_in_headless(tmp_path):
+    """Within-group technical replicate collisions without cross-arm pairing
+    must fail closed in unattended headless mode rather than declaring
+    independent biological replicates."""
+    from aria.agents.design_agent import DesignAgent
+    from aria.bus.message_bus import bus
+    from aria.memory.memory import ARIAMemory
+
+    inferred_design = {
+        "source": "filename_inferred",
+        "confidence": "high",
+        "organism": "Homo sapiens",
+        "genome": "hg38",
+        "groups": {
+            "ctrl": ["ctrl_unit1_rep1", "ctrl_unit1_rep2", "ctrl_unit2_rep1", "ctrl_unit2_rep2"],
+            "stim": ["stim_unit1_rep1", "stim_unit1_rep2", "stim_unit2_rep1", "stim_unit2_rep2"],
+        },
+        "main_factor": "condition",
+        "batch_covariate": None,
+    }
+    agent = DesignAgent(memory=ARIAMemory(db_path=str(tmp_path / "tech.db")), llm=None)
+    result = agent.start_design(
+        experiment_id="exp_tech_fail_closed",
+        exp_context={
+            "modalities": {"bulk_RNA": ["/synthetic/counts.tsv"]},
+            "inferred_design": inferred_design,
+            "organism": "Homo sapiens",
+            "genome": "hg38",
+        },
+        biological_intent={"question": "stim vs ctrl"},
+    )
+    for _ in range(20):
+        pending = [
+            m for m in bus.get_pending_checkpoints(experiment_id="exp_tech_fail_closed")
+            if not m.payload.get("resolved")
+        ]
+        if not pending:
+            break
+        msg = pending[-1]
+        cp_num = msg.payload.get("checkpoint")
+        choice = default_answer_policy(cp_num, msg.payload.get("question", ""), msg.payload.get("options", []))
+        bus.resolve_checkpoint(msg.id, {"choice": choice})
+        result = agent.handle_user_response("exp_tech_fail_closed", cp_num, choice)
+        if result.get("status") in {"done", "cancelled"}:
+            break
+
+    assert result["status"] == "cancelled"
+    assert result["reason"] == "replicate_structure_unresolved"

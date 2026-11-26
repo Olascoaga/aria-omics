@@ -1,6 +1,6 @@
 # Validation Status
 
-Last updated: November 20, 2026.
+Last updated: November 25, 2026.
 
 ARIA uses explicit validation boundaries so users can distinguish mature
 workflows from beta analysis paths and implementation scaffolds.
@@ -39,7 +39,7 @@ provenance-stamped, and missing or low-power results stay visible.
 | Area | Status | Evidence |
 |---|---|---|
 | Bulk RNA-seq count matrix | Validated | Synthetic ground-truth DE benchmark (recall 1.0 / empirical FDR 0.0) + H9 three-condition workflow |
-| Bulk RNA-seq raw FASTQ (`bulk_RNA_raw`, ADR-075) | Validated (`production`) | Universal multi-platform raw FASTQ engine validated end-to-end across `full_length` (SE/PE/multi-lane STAR 2-pass + `pysam` fail-closed auto-strand + `featureCounts`), `tag_3prime` (QuantSeq/SMART-3Seq poly(X) trimming + CPM export / TPM suppression), `tag_5prime` (CAGE/RAMPAGE), `umi_bulk` (`fastp --umi` + directional 1-Hamming `pysam` UMI collapse), and `pooled_plate_bulk` (BRB-seq/DRUG-seq/Prime-seq `STARsolo CB_UMI_Simple 1MM_Directional_UMItools`), plus H9 real chr21 raw FASTQ E2E (`c1_h9_fastq_e2e`), hermetic `aria-rnaseq-env` lockfile, `Dockerfile.rnaseq`, and C3 `bulk.preprocessing` ledger linkage |
+| Bulk RNA-seq raw FASTQ (`bulk_RNA_raw`, ADR-075) | Validated (`production`) | Universal multi-platform raw FASTQ engine validated end-to-end across `full_length` (SE/PE/multi-lane STAR 2-pass + `pysam` fail-closed auto-strand + `featureCounts`), `tag_3prime` (QuantSeq/SMART-3Seq poly(X) trimming + CPM export / TPM suppression), `tag_5prime` (CAGE/RAMPAGE), `umi_bulk` (`fastp --umi` + directional 1-Hamming `pysam` UMI collapse), and `pooled_plate_bulk` (BRB-seq/DRUG-seq/Prime-seq `STARsolo CB_UMI_Simple 1MM_Directional_UMItools`), plus public paired `GSE52778` (`~ donor + condition`) raw FASTQ E2E (`c1_public_fastq_e2e`), hermetic `aria-rnaseq-env` lockfile, `Dockerfile.rnaseq`, and C3 `bulk.preprocessing` ledger linkage |
 | scRNA single-sample | Validated | PBMC 3k and GSE278576 single-sample runs |
 | scRNA multi-sample | Validated | GSE278576 3-donor concat + Harmony workflow |
 | Processed h5ad pseudobulk | Validated | 40-donor hippocampus rerun; report review confirmed pseudobulk, ORA, LIANA, trajectory, figures, and TSV exports |
@@ -52,7 +52,7 @@ provenance-stamped, and missing or low-power results stay visible.
 | 3D genome architecture engine (`HiC` / Micro-C, ADR-082) | Validated (`production`) | Promoted `HiC` (`GenomeArchAgent`), all 5 Hi-C `ScriptContract`s (`hic_preprocess`, `hic_inspect`, `hic_qc_and_balance`, `hic_topology`, `hic_figure`), locked `aria-hic-env` (`cooler 0.10.4`, `cooltools 0.7.1`, `pairtools 1.1.3`, `hic2cool 1.0.1`), `Dockerfile.hic` (`ARIA_IMAGE_VALIDATION=validated`), and `HiCAuditAgent` to `production`: universal intake across `.mcool`, `.cool`, `.hic`, `.pairs(.gz)`, chimeric BAM, and raw paired Hi-C FASTQs (`bwa-mem2 mem -SP5M` + `pairtools` + `cooler zoomify` with `A4` resume); exact `clr.pixels()` contact accounting, ICE balancing, $P(s)$ polymer decay slope, and multi-replicate symmetric sparse Yang et al. (2017) HiCRep `SCC` (`0.9845` within-condition vs `0.5937` between-condition); GC/gene-density-phased `cooltools.eigs_cis` A/B compartments (`pc1_validated=True`, Pearson `r = 1.0000` vs standalone `cooltools`), Crane et al. (2015) `insulation` TADs (`r = 1.0000`, `100%` boundary recall), `expected_cis` + `dotfinder.dots` chromatin loops with GTF anchor annotation (`100%` recall), empirical-Bayes moderated multi-replicate `differential_3d` (`100%` `A_to_B` / `B_to_A` switch recall + $\Delta\text{Insulation}$, downgrading `n < 3` to `descriptive_only`, `0` false switches & `0` false boundaries across balanced `4v4` null permutations in `docs/benchmark_results/hic/adr082_hic_3d_genome_validation.json`), dual PNG+SVG figures, `HiCNarrator` + `C3` `ledger://hic/*` linkage, and the 7th deterministic `HypothesisAgent` adapter (`adapters/hic.py`, `HIC_LOOP_ASSOCIATIVE`) |
 | Integrated RNA biological discussion | Validated for RNA-only reports | Bulk RNA and scRNA synthesis blocks are generated from structured ARIA outputs, evidence-verified, claim-tiered, and rendered through the normal NarrativeAgent governance |
 
-Current analytical/reporting baseline: release `v4.9.3` (container supply-chain patch over `v4.9.2`, `v4.9.1`, and `v4.9.0`,
+Current analytical/reporting baseline: release `v4.9.4` (pre-submission governance, public-freeze hygiene, and one-command lock-first `aria setup` hardening over `v4.9.3`, `v4.9.2`, `v4.9.1`, and `v4.9.0`,
 building on `v4.8.0` and `v4.7.0` with all `9/9` single-assay modalities and `3` cross-cutting
 multi-modal engines promoted to `production`, `ADR-083`/`ADR-084`
 `DecisionManifest` + Zero-LLM Replay + live biological-unit LOBO falsification

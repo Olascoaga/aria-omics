@@ -440,11 +440,29 @@ class DesignAgent(BaseAgent):
 
     def _handle_pseudorep_response(self, choice: str) -> dict:
         choice_l = str(choice or "").lower()
-        if choice_l.startswith("yes") and "independent" in choice_l:
+        detected_pairing = getattr(self, "_detected_paired_units", None) or {}
+        if choice_l.startswith("paired") or "matched donor" in choice_l or "model matched" in choice_l:
+            pair_cov = str(detected_pairing.get("covariate_name") or "donor")
+            sample_to_pair = dict(detected_pairing.get("sample_to_pair") or {})
+            if not sample_to_pair:
+                return {
+                    "status": "cancelled",
+                    "reason": "paired_unit_mapping_unavailable",
+                }
+            self._batch_covariate = pair_cov
+            self._paired_covariate_values = {pair_cov: sample_to_pair}
+            self._replicate_handling = self._build_replicate_handling(
+                technical=False,
+                paired_covariate=pair_cov,
+                sample_to_pair=sample_to_pair,
+            )
+        elif choice_l.startswith("yes") and "independent" in choice_l:
+            self._paired_covariate_values = {}
             self._replicate_handling = self._build_replicate_handling(
                 technical=False
             )
         elif choice_l.startswith("no") and "technical" in choice_l:
+            self._paired_covariate_values = {}
             self._replicate_handling = self._build_replicate_handling(
                 technical=True
             )
@@ -667,15 +685,96 @@ class DesignAgent(BaseAgent):
         )
         self._pending_escalation_id = msg.id
 
+    def _detect_cross_arm_paired_units(self) -> dict | None:
+        """Detect repeated biological units (donors/cell lines) spanning >=2 groups.
+
+        Recognizes two deterministic cases:
+        1. Explicit sample-sheet / inferred-design donor/subject/pair column
+           with ``classify_pairing`` status in ``{"complete", "partial"}`` (only
+           when not already modeled via ``self._batch_covariate`` and when the
+           design is not single-cell pseudobulk with ``from_obs=True``, where
+           ``rna_pseudobulk_de`` models donor pairing natively).
+        2. Sample stems across >=2 confirmed groups whose group-stripped unit
+           identifiers (e.g., ``untreated_rep1..4`` vs ``dexamethasone_rep1..4``,
+           or ``donor1_ctrl`` vs ``donor1_treated``) match 1-to-1 across groups
+           (1 library per (group, unit), >=2 shared units).
+        """
+        groups = self._confirmed_groups or {}
+        if len(groups) < 2 or self._batch_covariate:
+            return None
+        # Single-cell h5ad_obs pseudobulk handles donor pairing natively in
+        # rna_pseudobulk_de via replicate_col; do not double-prompt at CP2.5.
+        if (self._pseudobulk_design or {}).get("from_obs"):
+            return None
+
+        # Check filename-derived cross-arm unit match (e.g. group_rep1..4 or donor1_group).
+        per_group_units: dict[str, dict[str, list[str]]] = {}
+        for group, members in groups.items():
+            g_low = str(group).strip().lower()
+            unit_map: dict[str, list[str]] = {}
+            for member in members or []:
+                m_str = str(member)
+                m_low = m_str.lower()
+                unit = None
+                if m_low.startswith(g_low + "_") or m_low.startswith(g_low + "-"):
+                    unit = m_str[len(g_low) + 1:].strip("_- ")
+                elif m_low.endswith("_" + g_low) or m_low.endswith("-" + g_low):
+                    unit = m_str[: -(len(g_low) + 1)].strip("_- ")
+                if not unit:
+                    return None
+                unit_map.setdefault(unit.lower(), []).append(m_str)
+            # Each (group, unit) must have exactly 1 sample for a clean paired block;
+            # >1 sample per (group, unit) is within-unit technical replication!
+            if any(len(v) != 1 for v in unit_map.values()):
+                return None
+            # If the stripped unit IDs themselves still collapse under technical
+            # suffix stripping (e.g., unit1_rep1 & unit1_rep2 -> unit1), those are
+            # within-group technical replicates, NOT 1-to-1 cross-arm paired donors.
+            if len({self._technical_replicate_root(u) for u in unit_map}) < len(unit_map):
+                return None
+            per_group_units[str(group)] = unit_map
+
+        unit_sets = [set(u.keys()) for u in per_group_units.values()]
+        shared_units = set.intersection(*unit_sets) if unit_sets else set()
+        if len(shared_units) < 2:
+            return None
+
+        # Only fire when every group's units overlap meaningfully (>=2 shared units,
+        # and at least half of each group's members belong to shared units).
+        if not all(len(shared_units) * 2 >= len(u) for u in unit_sets):
+            return None
+
+        sample_to_pair: dict[str, str] = {}
+        for unit_map in per_group_units.values():
+            for unit_key, sample_list in unit_map.items():
+                for s in sample_list:
+                    sample_to_pair[s] = unit_key
+        return {
+            "covariate_name": "donor",
+            "shared_units": sorted(shared_units),
+            "sample_to_pair": sample_to_pair,
+            "pairing_status": (
+                "complete"
+                if all(set(u.keys()) == shared_units for u in per_group_units.values())
+                else "partial"
+            ),
+        }
+
     def _publish_pseudorep_checkpoint(self):
-        # Heuristic pseudoreplication check
+        # First check for cross-arm matched/paired biological units (e.g.
+        # GSE52778 untreated_rep1..4 vs dexamethasone_rep1..4).
+        paired_info = self._detect_cross_arm_paired_units()
+        self._detected_paired_units = paired_info
+
+        # Heuristic within-group technical-replicate check
         warning_groups = []
         for group, members in (self._confirmed_groups or {}).items():
             roots = {self._technical_replicate_root(m) for m in members}
             if len(roots) < len(members):
                 warning_groups.append(group)
 
-        if not warning_groups:
+        if not warning_groups and not paired_info:
+            self._paired_covariate_values = {}
             self._replicate_handling = self._build_replicate_handling(
                 technical=False
             )
@@ -683,20 +782,37 @@ class DesignAgent(BaseAgent):
             self._publish_confirm_checkpoint()
             return
 
-        question = (
-            f"Group(s) {', '.join(warning_groups)} appear to have samples derived "
-            f"from the same biological source (e.g., technical replicates).\n\n"
-            "Are these truly independent biological replicates?"
-        )
+        if paired_info:
+            shared = ", ".join(paired_info["shared_units"][:6])
+            question = (
+                f"Detected matched biological unit identifiers ({shared}) spanning "
+                f"multiple experimental groups ({', '.join(self._confirmed_groups or {})}).\n\n"
+                "Are these paired biological replicates from the same donors/lines "
+                "(requiring a blocking covariate '~ donor + condition'), independent "
+                "biological replicates, or technical replicates?"
+            )
+            options = [
+                "Paired biological replicates — model matched donor/unit block",
+                "Yes — they are independent biological replicates",
+                "No — technical replicates; merge by biological unit",
+                "Not sure — stop and provide a sample sheet",
+            ]
+        else:
+            question = (
+                f"Group(s) {', '.join(warning_groups)} appear to have samples derived "
+                f"from the same biological source (e.g., technical replicates).\n\n"
+                "Are these truly independent biological replicates?"
+            )
+            options = [
+                "Yes — they are independent biological replicates",
+                "No — technical replicates; merge by biological unit",
+                "Not sure — stop and provide a sample sheet",
+            ]
         msg = self.publish_escalation(
             experiment_id=self._experiment_id,
             checkpoint=2.5,
             question=question,
-            options=[
-                "Yes — they are independent biological replicates",
-                "No — technical replicates; merge by biological unit",
-                "Not sure — stop and provide a sample sheet",
-            ],
+            options=options,
         )
         self._pending_escalation_id = msg.id
 
@@ -886,7 +1002,15 @@ class DesignAgent(BaseAgent):
         )
         n_units = sum(replicates.values())
         n_groups = sum(1 for count in replicates.values() if count > 0)
-        nominal_residual_df = max(0, n_units - n_groups)
+        paired_cov_values = dict(getattr(self, "_paired_covariate_values", None) or {})
+        n_paired_levels = 0
+        if handling["mode"] == "paired_biological_block":
+            pair_cov = handling.get("pair_covariate") or self._batch_covariate
+            if pair_cov and pair_cov in paired_cov_values:
+                n_paired_levels = len(set(paired_cov_values[pair_cov].values()))
+        nominal_residual_df = max(
+            0, n_units - n_groups - max(0, n_paired_levels - 1)
+        )
         blocking_groups = (
             {
                 group: count for group, count in replicates.items() if count < 2
@@ -899,6 +1023,9 @@ class DesignAgent(BaseAgent):
                 f"sum technical libraries by biological_unit; {formula}"
             )
             experimental_unit = "biological_unit"
+        elif handling["mode"] == "paired_biological_block":
+            analysis_design_formula = formula
+            experimental_unit = "paired_biological_unit"
         else:
             analysis_design_formula = formula
             experimental_unit = "sample"
@@ -932,6 +1059,7 @@ class DesignAgent(BaseAgent):
             "main_factor":     main_factor,
             "design_formula":  formula,
             "batch_covariate": self._batch_covariate,
+            "paired_covariate_values": paired_cov_values,
             "pseudobulk":      pseudobulk_design,
             "source":          self._inferred_design.get("source"),
             "sample_aliases":  self._inferred_design.get("sample_aliases", {}),
@@ -982,9 +1110,20 @@ class DesignAgent(BaseAgent):
         )
         return root or value
 
-    def _build_replicate_handling(self, *, technical: bool) -> dict:
+    def _build_replicate_handling(
+        self,
+        *,
+        technical: bool,
+        paired_covariate: str | None = None,
+        sample_to_pair: dict[str, str] | None = None,
+    ) -> dict:
         """Build the CP2.5 execution contract without changing raw group membership."""
-        mode = "technical_aggregate" if technical else "independent_biological"
+        if paired_covariate and sample_to_pair:
+            mode = "paired_biological_block"
+        elif technical:
+            mode = "technical_aggregate"
+        else:
+            mode = "independent_biological"
         units: list[dict] = []
         sample_to_unit: dict[str, str] = {}
         conflicts: list[str] = []
@@ -1009,14 +1148,22 @@ class DesignAgent(BaseAgent):
                     if technical and prior is not None and prior != unit_id:
                         conflicts.append(member)
                     sample_to_unit[member] = unit_id
-        return {
+        payload = {
             "mode": mode,
-            "source": "user_confirmed_cp2.5" if technical else "cp2.5_independent",
+            "source": (
+                "user_confirmed_cp2.5"
+                if mode in {"technical_aggregate", "paired_biological_block"}
+                else "cp2.5_independent"
+            ),
             "aggregation": "sum_raw_counts" if technical else "none",
             "units": units,
             "sample_to_unit": sample_to_unit,
             "conflicts": sorted(set(conflicts)),
         }
+        if mode == "paired_biological_block":
+            payload["pair_covariate"] = paired_covariate
+            payload["sample_to_pair"] = dict(sample_to_pair or {})
+        return payload
 
     def _store_design(self, design: dict):
         try:

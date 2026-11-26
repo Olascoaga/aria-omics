@@ -34,8 +34,10 @@
 | `run_a1_seqc_maqc_benchmark.py` | Single-site (`BGI`) SEQC/MAQC bulk DE vs TaqMan qPCR truth (`Claim 1`). |
 | `run_a1_seqc_multisite_benchmark.py` | Five-site (`BGI`, `CNL`, `MAY`, `AGR`, `NVS`) cross-lab SEQC reproducibility (`Claim 1`). |
 | `run_a1_ercc_dose_response.py` | ERCC 92 spike-in fold-change recovery and 6.3-order dynamic-range linearity (`Claim 1`). |
-| `run_c1_h9_fastq_e2e.py` | Real 9-sample paired-FASTQ -> STAR -> featureCounts -> DESeq2 -> governed report capsule E2E (`Claim 1`). |
+| `run_c1_public_fastq_e2e.py` | 100% public paired `GSE52778` (4v4 airway smooth muscle) FASTQ -> STAR -> featureCounts -> paired pyDESeq2 (`~ donor + condition`) -> governed report capsule E2E (`Claim 1`, `v4.9.4+`). |
+| `run_c1_h9_fastq_e2e.py` | Legacy local H9 paired-FASTQ bulk-RNA E2E harness (superseded in the public preprint freeze by `run_c1_public_fastq_e2e.py`). |
 | `run_a2_pseudobulk_benchmark.py` | Donor-aware scRNA pseudobulk DE vs naive cell-level pseudoreplication anti-pattern (`Claim 2`). |
+| `run_kang_real_pseudoreplication_null.py` | Real-data global null across all 35 balanced 4v4 donor splits on unstimulated Kang et al. (`GSE96583`) PBMCs comparing naive cell-level Wilcoxon/Welch vs ARIA donor-aware pseudobulk pyDESeq2 (`v4.9.4+`). |
 | `run_a2_external_comparators.py` | Real Kang et al. 2018 (8v8 PBMC IFN-$\beta$) ARIA pseudobulk DE vs `muscat` (`edgeR-QLF`) (`Claim 2`). |
 | `aria_pseudobulk_da_from_tsv.py` | Shared TSV-to-`_run_deseq2` bridge used by multi-donor chromatin DA comparators (`Claim 2` / `Claim 5`). |
 | `aria_atac_pseudobulk_matrix.py` | Builds donor-by-peak pseudobulk count matrices for chromatin null and DA benchmarks (`Claim 5`). |
@@ -48,7 +50,8 @@
 | :--- | :--- |
 | `run_b1_design_governance.py` | 23-case adversarial experimental design inference/escalation/refusal matrix (`Claim 3`). |
 | `run_c3_design_blind_gold.py` | Exports blind sheets and scores independent human design-gold CSVs (`Claim 3`). |
-| `run_b2_claim_narrative.py` | 4-arm claim faithfulness & causal-overreach ablation (`governed`, `guards_off`, `naive`, `template`) (`Claim 4`). |
+| `run_b2_claim_narrative.py` | 100% label-blind 4-arm claim faithfulness & causal-overreach component ablation (`naive_llm`, `guards_off`, `governed`, `template_only`) (`Claim 4`, `v4.9.4+`). |
+| `external_benchmarks/run_bixbench_scope_gated_control.py` | Zero-API deterministic Scope-Gated `CodeAct` companion ablation over frozen `v4.9.0` BixBench-60 receipts decoupling pre-execution contract gating from closed-grammar execution (`v4.9.4+`). |
 | `run_b2_annotation_kit.py` | Exports blind multi-annotator CSVs and computes Cohen's $\kappa$, Krippendorff's $\alpha$, and adjudicated gold (`Claim 4`). |
 | `run_c4_report_e2e_false_narrative.py` | End-to-end bus -> claim compiler -> HTML report faithfulness harness + human scoring CLI (`Claim 4`). |
 | `run_b4_null_narrative.py` | Null-evidence narrative fabrication and false-flag calibration (`Claim 5`). |

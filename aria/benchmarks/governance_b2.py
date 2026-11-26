@@ -1,49 +1,53 @@
-"""Benchmark B2: claim/narrative governance (false narrative + causal overreach +
-informative coverage), 4-arm ablation across modalities.
+"""Benchmark B2: label-blind 4-arm claim/narrative governance component ablation.
 
-A hand-labelled claim corpus (the independent gold) scores four systems that turn a
-real analysis result into a biological claim:
+Evaluates four strictly label-blind systems over the 48-claim multimodal corpus
+(bulk DE, scRNA pseudobulk, pathway/GSEA, scATAC DA, trajectory, cell-cell
+communication). Every gold annotation metadata key (``b2_label``,
+``b2_failure_mechanism``, ``b2_interpretive``, ``b2_claim_type``) is stripped
+from each ``NarrativeBlock`` BEFORE any arm inspects it; gold labels are used
+solely by the post-hoc scorer.
 
-- ``naive_llm``    — emits every candidate claim (an ungoverned free-text LLM).
-- ``guards_off``   — ARIA's evidence-bound narrative pipeline with the verifier,
-                     causal guard, and claim compiler DISABLED. ARIA's STRUCTURE
-                     (claims are bound to the evidence card) still prevents pure
-                     fabrication, but nothing stops interpretive/causal overreach.
-- ``governed``     — ARIA's REAL governance (``verify_block_claim_support`` +
-                     ``classify_claim`` + the causal guard). This arm is the system
-                     under test: emission is computed by running ARIA, not assigned.
-- ``template_only``— deterministic descriptive templates over the evidence: it never
-                     produces a failure, but it also cannot make interpretive claims.
+Four label-blind arms:
+- ``naive_llm``    — emits every candidate claim verbatim (ungoverned baseline).
+- ``guards_off``   — ARIA's evidence-card verifier (``verify_block_claim_support``)
+                     ONLY, with Claim Compiler tiering and causal-language
+                     licensing disabled (no ``annotate_claim_tiers`` /
+                     ``validate_block``). Tests what numeric/entity/semantic
+                     grounding catches on its own.
+- ``governed``     — ARIA's FULL governance stack (``annotate_claim_tiers`` +
+                     ``validate_block`` + ``verify_block_claim_support``),
+                     100% blind to gold labels.
+- ``template_only``— deterministic quantitative readout policy: emits only
+                     governed blocks backed by structured numeric ``metrics``
+                     with verified measured quantities in the claim text
+                     (safe, zero interpretive prose).
 
-Three axes (per arm):
-  false_narrative_rate  = (unsupported+fabricated+overclaim) EMITTED / total
-  causal_overreach_rate = causal_inflation EMITTED / total causal
-  informative_coverage  = clean claims EMITTED / total clean   (governed must stay
-                          high here while template_only collapses — governance that
-                          preserves real interpretation, not censorship)
+Metrics (per arm, reported with exact numerators/denominators and Wilson 95% CIs):
+  false_narrative_rate  = (unsupported + fabricated + overclaim) EMITTED / total claims
+  causal_overreach_rate = causal_inflation EMITTED / total causal claims
+  informative_coverage  = clean claims EMITTED / total clean claims
+  missing_caveat_rate   = missing_caveat EMITTED / total missing_caveat claims
+                          (tracked transparently as a separate disclosure axis)
 
-The ``governed`` arm runs ARIA for real. The other three arms are DISCLOSED
-deterministic policies over each claim's structural attributes (failure mechanism /
-interpretive flag); the policy is part of the published protocol (see
-``docs/benchmark_results/b2_claim/B2_RUBRIC.md``), not a hidden judgement.
-
-The preliminary inline labels here are a scaffold; the preprint gold is the
-multi-annotator adjudication built in ``aria.benchmarks.b2_annotation`` (≥2 raters,
-Cohen's κ / Krippendorff's α, adjudication).
+The preliminary inline labels here are a scaffold; the independent multi-rater
+gold (≥2 raters, Cohen's κ / Krippendorff's α, adjudication) is built in
+``aria.benchmarks.b2_annotation`` and tracked separately for the v2 reader study.
 """
 from __future__ import annotations
 
+import copy
+import math
 from typing import Any
 
 __all__ = ["build_claim_corpus", "score_b2", "score_b2_arms",
            "corpus_rows_for_labeling", "run_b2_benchmark", "write_b2_figure",
-           "ARMS"]
+           "ARMS", "strip_b2_metadata"]
 
 _FALSE_LABELS = {"unsupported", "fabricated", "overclaim"}
+_FABRICATION_LABELS = {"unsupported", "fabricated"}
+_OVERCLAIM_LABELS = {"overclaim"}
 _CAUSAL_LABELS = {"causal_inflation"}
-_CAUSAL_LICENSED_TIERS = {
-    "weak_mechanistic", "strong_mechanistic", "mechanistic",
-    "causal", "causal_experimental"}
+_MISSING_CAVEAT_LABELS = {"missing_caveat"}
 
 ARMS = ("naive_llm", "guards_off", "governed", "template_only")
 
@@ -242,42 +246,126 @@ def build_claim_corpus():
 
 
 # --------------------------------------------------------------------------- #
-# Arm emission policies                                                        #
+# Label-blind arm emission policies                                            #
 # --------------------------------------------------------------------------- #
 
-def _governed_emits(block) -> bool:
-    """Run ARIA's REAL governance; a claim survives if it stays supported and the
-    causal guard does not reject it (this is the system under test)."""
-    from aria.benchmarks.governance_b4 import govern_block
-    g = govern_block(block)
-    label = block.metadata.get("b2_label")
-    if label in _CAUSAL_LABELS:
-        # causal overreach survives only if ARIA licenses a causal/mechanistic tier
-        return (not g["causal_blocked"]) and str(g["tier"]) in _CAUSAL_LICENSED_TIERS
-    return bool(g["supported"]) and (not g["causal_blocked"])
+def _wilson_ci95(k: int, n: int) -> list[float]:
+    """Two-sided 95% Wilson score interval for binomial proportion k/n."""
+    if n <= 0:
+        return [0.0, 1.0]
+    z = 1.959963984540054
+    p = k / n
+    denom = 1.0 + (z * z) / n
+    center = (p + (z * z) / (2.0 * n)) / denom
+    half = (z / denom) * math.sqrt((p * (1.0 - p) + (z * z) / (4.0 * n)) / n)
+    return [round(max(0.0, center - half), 4), round(min(1.0, center + half), 4)]
+
+
+def strip_b2_metadata(block):
+    """Return a deep copy of ``block`` with ALL B2 gold/annotation keys removed.
+
+    Guarantees that no arm evaluator can ever inspect gold labels, failure
+    mechanisms, interpretive flags, or claim-type annotations.
+    """
+    clean = copy.deepcopy(block)
+    for key in list((clean.metadata or {}).keys()):
+        if str(key).startswith("b2_") or key in {"claim", "claim_verification"}:
+            del clean.metadata[key]
+    return clean
+
+
+def _eval_guards_off(clean_block) -> tuple[bool, dict[str, Any]]:
+    """Run ONLY ARIA's structured evidence-card verifier (no compiler/causal guard)."""
+    from aria.agents.narrative.evidence_verifier import (
+        EvidenceVerificationError,
+        verify_block_claim_support,
+    )
+
+    blk = copy.deepcopy(clean_block)
+    try:
+        manifest = verify_block_claim_support(blk, strict=False)
+        supported = manifest.get("status") == "supported" and not manifest.get("unsupported")
+        reasons = [u.get("reason", "") for u in (manifest.get("unsupported") or [])]
+    except EvidenceVerificationError as exc:
+        supported = False
+        reasons = [str(exc)]
+    return bool(supported), {"supported": bool(supported), "reasons": reasons}
+
+
+def _eval_governed(clean_block) -> tuple[bool, dict[str, Any]]:
+    """Run ARIA's FULL claim governance stack (100% label-blind)."""
+    from aria.agents.narrative.claim_compiler import annotate_claim_tiers
+    from aria.agents.narrative.evidence_verifier import (
+        EvidenceVerificationError,
+        verify_block_claim_support,
+    )
+    from aria.agents.narrative.validators import (
+        NarrativeValidationError,
+        validate_block,
+    )
+
+    blk = copy.deepcopy(clean_block)
+    annotate_claim_tiers([blk], exp_ctx={})
+    val_blocked = False
+    reasons: list[str] = []
+    try:
+        validate_block(blk)
+    except NarrativeValidationError as exc:
+        val_blocked = True
+        reasons.append(str(exc))
+
+    try:
+        manifest = verify_block_claim_support(blk, strict=False)
+        supported = manifest.get("status") == "supported" and not manifest.get("unsupported")
+        reasons.extend(u.get("reason", "") for u in (manifest.get("unsupported") or []))
+    except EvidenceVerificationError as exc:
+        supported = False
+        reasons.append(str(exc))
+
+    claim_meta = blk.metadata.get("claim") or {}
+    violation = claim_meta.get("language_violation")
+    if violation:
+        reasons.append(f"language_violation:{violation}")
+    emitted = (not val_blocked) and bool(supported) and (violation is None)
+    return emitted, {
+        "supported": bool(supported),
+        "tier": claim_meta.get("tier"),
+        "licensed_language": claim_meta.get("licensed_language"),
+        "language_violation": violation,
+        "reasons": reasons,
+    }
+
+
+def _eval_template_only(clean_block) -> tuple[bool, dict[str, Any]]:
+    """Label-blind deterministic quantitative readout arm: emits only governed
+    blocks carrying structured numeric ``metrics`` and verified measured values."""
+    from aria.agents.narrative.evidence_verifier import _claim_numbers
+
+    gov_ok, info = _eval_governed(clean_block)
+    has_structured_metrics = bool(clean_block.metrics)
+    has_measured_numbers = len(_claim_numbers(clean_block.claim or "")) > 0
+    emitted = gov_ok and has_structured_metrics and has_measured_numbers
+    return emitted, {
+        **info,
+        "has_structured_metrics": has_structured_metrics,
+        "has_measured_numbers": has_measured_numbers,
+    }
 
 
 def _arm_emits(arm: str, block) -> bool:
-    """Whether ``arm`` emits ``block``'s claim. ``governed`` runs ARIA for real;
-    the other arms are disclosed deterministic policies over structural attributes."""
-    mech = block.metadata.get("b2_failure_mechanism", "none")
-    interp = bool(block.metadata.get("b2_interpretive", False))
-    label = block.metadata.get("b2_label")
+    """Whether ``arm`` emits ``block``'s claim — strictly 100% label-blind."""
+    clean = strip_b2_metadata(block)
     if arm == "naive_llm":
         return True
     if arm == "guards_off":
-        # ARIA's evidence binding prevents pure fabrication even with guards off;
-        # interpretation/causal/caveat failures are not caught.
-        return mech != "fabrication"
+        ok, _ = _eval_guards_off(clean)
+        return ok
     if arm == "governed":
-        # Governed is guards_off PLUS the real guards, so it can only emit a SUBSET
-        # of what guards_off emits (full system never worse than its ablation). From
-        # the evidence-bound set, ARIA's real governance is applied.
-        return _arm_emits("guards_off", block) and _governed_emits(block)
+        ok, _ = _eval_governed(clean)
+        return ok
     if arm == "template_only":
-        # deterministic descriptive templates: only correct, non-interpretive
-        # readouts are ever produced (never a failure, never interpretation).
-        return label == "clean" and not interp
+        ok, _ = _eval_template_only(clean)
+        return ok
     raise ValueError(f"unknown arm {arm!r}")
 
 
@@ -285,41 +373,98 @@ def score_b2_arms(corpus=None) -> dict[str, Any]:
     corpus = corpus if corpus is not None else build_claim_corpus()
     n = len(corpus)
     n_false = sum(1 for b in corpus if b.metadata["b2_label"] in _FALSE_LABELS)
+    n_fab = sum(1 for b in corpus if b.metadata["b2_label"] in _FABRICATION_LABELS)
+    n_overclaim = sum(1 for b in corpus if b.metadata["b2_label"] in _OVERCLAIM_LABELS)
     n_causal = sum(1 for b in corpus if b.metadata["b2_label"] in _CAUSAL_LABELS)
     n_clean = sum(1 for b in corpus if b.metadata["b2_label"] == "clean")
+    n_missing_cav = sum(
+        1 for b in corpus if b.metadata["b2_label"] in _MISSING_CAVEAT_LABELS
+    )
 
     arms: dict[str, Any] = {}
     per_claim: list = []
     emitted_by_arm = {a: [] for a in ARMS}
     for b in corpus:
         label = b.metadata["b2_label"]
-        rec = {"id": b.id, "modality": b.modality, "analysis": b.analysis,
-               "label": label, "mechanism": b.metadata["b2_failure_mechanism"],
-               "interpretive": b.metadata["b2_interpretive"]}
+        clean = strip_b2_metadata(b)
+        go_ok, go_info = _eval_guards_off(clean)
+        gov_ok, gov_info = _eval_governed(clean)
+        tmpl_ok, _ = _eval_template_only(clean)
+        arm_decisions = {
+            "naive_llm": True,
+            "guards_off": go_ok,
+            "governed": gov_ok,
+            "template_only": tmpl_ok,
+        }
+        rec = {
+            "id": b.id,
+            "modality": b.modality,
+            "analysis": b.analysis,
+            "label": label,
+            "mechanism": b.metadata.get("b2_failure_mechanism", "none"),
+            "interpretive": bool(b.metadata.get("b2_interpretive", False)),
+            "governed_tier": gov_info.get("tier"),
+            "governed_language_violation": gov_info.get("language_violation"),
+            "governed_rejection_reasons": gov_info.get("reasons", []),
+            "guards_off_rejection_reasons": go_info.get("reasons", []),
+        }
         for a in ARMS:
-            em = _arm_emits(a, b)
+            em = arm_decisions[a]
             rec[f"emit_{a}"] = em
             emitted_by_arm[a].append((label, em))
         per_claim.append(rec)
 
     for a in ARMS:
+        n_emitted = sum(1 for _, em in emitted_by_arm[a] if em)
         false_emitted = sum(1 for lab, em in emitted_by_arm[a]
                             if em and lab in _FALSE_LABELS)
+        fab_emitted = sum(1 for lab, em in emitted_by_arm[a]
+                          if em and lab in _FABRICATION_LABELS)
+        overclaim_emitted = sum(1 for lab, em in emitted_by_arm[a]
+                                if em and lab in _OVERCLAIM_LABELS)
         causal_emitted = sum(1 for lab, em in emitted_by_arm[a]
                              if em and lab in _CAUSAL_LABELS)
         clean_emitted = sum(1 for lab, em in emitted_by_arm[a]
                             if em and lab == "clean")
+        missing_cav_emitted = sum(1 for lab, em in emitted_by_arm[a]
+                                  if em and lab in _MISSING_CAVEAT_LABELS)
         arms[a] = {
+            "n_emitted": n_emitted,
+            "false_narrative_emitted": false_emitted,
+            "false_narrative_denominator": n,
             "false_narrative_rate": round(false_emitted / max(n, 1), 4),
+            "false_narrative_rate_ci95": _wilson_ci95(false_emitted, n),
+            "fabrication_emitted": fab_emitted,
+            "fabrication_denominator": n_fab,
+            "fabrication_rate": round(fab_emitted / max(n_fab, 1), 4),
+            "overclaim_emitted": overclaim_emitted,
+            "overclaim_denominator": n_overclaim,
+            "overclaim_rate": round(overclaim_emitted / max(n_overclaim, 1), 4),
+            "causal_overreach_emitted": causal_emitted,
+            "causal_overreach_denominator": n_causal,
             "causal_overreach_rate": round(causal_emitted / n_causal, 4) if n_causal else 0.0,
+            "causal_overreach_rate_ci95": _wilson_ci95(causal_emitted, n_causal),
+            "clean_emitted": clean_emitted,
+            "clean_denominator": n_clean,
             "informative_coverage": round(clean_emitted / n_clean, 4) if n_clean else 1.0,
+            "informative_coverage_ci95": _wilson_ci95(clean_emitted, n_clean),
+            "missing_caveat_emitted": missing_cav_emitted,
+            "missing_caveat_denominator": n_missing_cav,
+            "missing_caveat_rate": round(missing_cav_emitted / n_missing_cav, 4) if n_missing_cav else 0.0,
         }
 
     return {
-        "n_claims": n, "n_false_labelled": n_false,
-        "n_causal_labelled": n_causal, "n_clean_labelled": n_clean,
+        "n_claims": n,
+        "n_false_labelled": n_false,
+        "n_fabrication_labelled": n_fab,
+        "n_overclaim_labelled": n_overclaim,
+        "n_causal_labelled": n_causal,
+        "n_clean_labelled": n_clean,
+        "n_missing_caveat_labelled": n_missing_cav,
         "n_modalities": len({b.modality for b in corpus}),
-        "arms": arms, "per_claim": per_claim,
+        "label_blind_execution": True,
+        "arms": arms,
+        "per_claim": per_claim,
     }
 
 
@@ -366,26 +511,49 @@ def score_b2(corpus=None) -> dict[str, Any]:
     return {
         "status": status,
         "benchmark": "B2_claim_narrative",
-        "benchmark_version": "v2-multimodal-4arm",
+        "benchmark_version": "v3-label-blind-4arm",
         "scope": "governance_claim_ablation_4arm",
-        "method_under_test": "ARIA verify_block_claim_support + classify_claim + causal guard",
+        "label_blind_execution": True,
+        "method_under_test": (
+            "ARIA annotate_claim_tiers + validate_block + verify_block_claim_support "
+            "(100% label-blind execution)"
+        ),
         "arms_definition": {
-            "naive_llm": "emit all candidate claims (ungoverned LLM)",
-            "guards_off": "ARIA evidence-bound pipeline, guards disabled (structure "
-                          "blocks fabrication; interpretation/causal not caught)",
-            "governed": "ARIA full governance (system under test; run for real)",
-            "template_only": "deterministic descriptive templates (safe but no interpretation)",
+            "naive_llm": "emit all candidate claims verbatim (ungoverned baseline)",
+            "guards_off": (
+                "ARIA verify_block_claim_support only (numeric/entity/semantic "
+                "grounding; Claim Compiler & causal guard disabled; label-blind)"
+            ),
+            "governed": (
+                "ARIA full governance: annotate_claim_tiers + validate_block + "
+                "verify_block_claim_support (100% label-blind)"
+            ),
+            "template_only": (
+                "deterministic quantitative readouts only: governed blocks with "
+                "structured numeric metrics and verified measured quantities "
+                "(100% label-blind)"
+            ),
         },
         "axis_pass": axis_pass,
-        "summary": summary,
+        "summary": {
+            **summary,
+            "n_clean_labelled": multi["n_clean_labelled"],
+            "n_fabrication_labelled": multi["n_fabrication_labelled"],
+            "n_overclaim_labelled": multi["n_overclaim_labelled"],
+            "n_missing_caveat_labelled": multi["n_missing_caveat_labelled"],
+            "governed_fabrication_rate": a["governed"]["fabrication_rate"],
+            "governed_overclaim_rate": a["governed"]["overclaim_rate"],
+            "governed_missing_caveat_rate": a["governed"]["missing_caveat_rate"],
+        },
         "arms": a,
         "per_claim": multi["per_claim"],
         "messages": [
-            "B2 v2: multimodal hand-labelled corpus, 4-arm ablation. The governed arm "
-            "runs ARIA for real; naive/guards-off/template-only are disclosed policies "
-            "(see B2_RUBRIC.md). The full multi-annotator gold (>=2 raters + kappa/alpha "
-            "+ adjudication) is built in aria.benchmarks.b2_annotation and remains "
-            "preprint labeling work."
+            "B2 v3: 100% label-blind 4-arm component ablation over the 48-claim "
+            "multimodal corpus. All gold metadata keys are stripped before any "
+            "arm evaluates a block. Qualitative hype (overclaim), English word "
+            "numbers, and unflagged missing caveats are reported transparently "
+            "as deterministic-verifier boundaries; the independent multi-rater "
+            "gold remains deferred to the v2 reader study."
         ],
     }
 
@@ -423,12 +591,11 @@ def write_b2_figure(manifest: dict[str, Any], path: str) -> str:
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" '
         f'viewBox="0 0 {width} {height}"><rect width="100%" height="100%" fill="#ffffff"/>'
         '<text x="16" y="32" font-size="19" font-weight="700" fill="#111827">'
-        'Fig. 4: B2 claim governance — 4-arm ablation</text>'
+        'Fig. 4: B2 claim governance — label-blind 4-arm ablation</text>'
         f'<text x="640" y="32" font-size="15" font-weight="700" fill="#2F6F73">{status}</text>'
         f'<text x="16" y="54" font-size="12" fill="#4b5563">'
-        f'{s.get("n_claims", 0)} hand-labelled claims across modalities. Governed '
-        f'removes false narrative + causal overreach AND preserves interpretation '
-        f'(vs the rigid template-only baseline).</text>'
+        f'{s.get("n_claims", 0)} claims across 6 modalities (100% label-blind execution). '
+        f'Governed cuts fabrication + eliminates causal overreach while preserving interpretation.</text>'
         + "".join(rows) + "</svg>")
     out = Path(path)
     out.parent.mkdir(parents=True, exist_ok=True)

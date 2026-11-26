@@ -839,17 +839,126 @@ def _standardize(matrix):
     return np.divide(centered, norms, out=np.zeros_like(centered), where=norms > 0)
 
 
+def _residualize_covariates(matrix, shared_samples, sample_covariates):
+    """OLS-residualize rows of `matrix` (n_features x n_samples) against covariates.
+
+    Returns (residual_matrix, adjustment_meta). Fails closed (returns original
+    matrix and adjusted=False) if covariates are missing, incomplete, constant,
+    or leave fewer than 3 residual degrees of freedom.
+    """
+    n_samples = len(shared_samples)
+    if not isinstance(sample_covariates, dict) or not sample_covariates:
+        return matrix, {
+            "adjusted": False,
+            "covariates_adjusted": [],
+            "reason": "no_covariates_supplied",
+            "unadjusted_confounding_risk": True,
+        }
+
+    cols = [np.ones(n_samples, dtype=float)]
+    used_covs: list[str] = []
+    skipped_covs: dict[str, str] = {}
+    for cov_name in sorted(sample_covariates.keys()):
+        raw_map = sample_covariates.get(cov_name)
+        if not isinstance(raw_map, dict):
+            skipped_covs[str(cov_name)] = "invalid_mapping"
+            continue
+        vals = [raw_map.get(s) for s in shared_samples]
+        if any(v is None or (isinstance(v, float) and not math.isfinite(v)) or str(v).strip() == "" for v in vals):
+            skipped_covs[str(cov_name)] = "missing_values_for_shared_samples"
+            continue
+        # Try numeric first; fall back to categorical dummy encoding (drop first level).
+        is_num = True
+        num_arr = []
+        for v in vals:
+            if isinstance(v, bool):
+                is_num = False
+                break
+            try:
+                fv = float(v)
+                if not math.isfinite(fv):
+                    is_num = False
+                    break
+                num_arr.append(fv)
+            except (TypeError, ValueError):
+                is_num = False
+                break
+        if is_num:
+            arr = np.asarray(num_arr, dtype=float)
+            std = float(np.std(arr))
+            if std <= 1e-12:
+                skipped_covs[str(cov_name)] = "constant_covariate"
+                continue
+            cols.append((arr - float(np.mean(arr))) / std)
+            used_covs.append(str(cov_name))
+        else:
+            cats = [str(v).strip() for v in vals]
+            levels = sorted(set(cats))
+            if len(levels) < 2:
+                skipped_covs[str(cov_name)] = "constant_covariate"
+                continue
+            for lvl in levels[1:]:
+                cols.append(np.asarray([1.0 if c == lvl else 0.0 for c in cats], dtype=float))
+            used_covs.append(str(cov_name))
+
+    if not used_covs:
+        return matrix, {
+            "adjusted": False,
+            "covariates_adjusted": [],
+            "skipped_covariates": skipped_covs,
+            "reason": "no_estimable_covariates",
+            "unadjusted_confounding_risk": True,
+        }
+
+    design = np.column_stack(cols)
+    u, s, _ = np.linalg.svd(design, full_matrices=False)
+    tol = max(design.shape) * np.finfo(float).eps * (float(s[0]) if s.size else 1.0)
+    rank = int(np.sum(s > tol))
+    residual_df = n_samples - rank
+    if residual_df < 3:
+        return matrix, {
+            "adjusted": False,
+            "covariates_adjusted": [],
+            "candidate_covariates": used_covs,
+            "design_rank": rank,
+            "residual_df": residual_df,
+            "reason": "insufficient_residual_df_for_covariates",
+            "unadjusted_confounding_risk": True,
+        }
+
+    # Orthogonal projector onto Col(design)^perp (rank-safe via thin SVD).
+    # matrix: (n_features, n_samples), proj_perp: (n_samples, n_samples).
+    u_orth = u[:, :rank]
+    proj_perp = np.eye(n_samples, dtype=float) - (u_orth @ u_orth.T)
+    resid = matrix @ proj_perp
+    return resid, {
+        "adjusted": True,
+        "covariates_adjusted": used_covs,
+        "skipped_covariates": skipped_covs,
+        "design_rank": rank,
+        "residual_df": residual_df,
+        "method": "ols_residualization_on_log2_cpm",
+        "permutation_method": "freedman_lane_residual_reprojection",
+        "unadjusted_confounding_risk": False,
+        "_proj_perp": proj_perp,
+    }
+
+
 def sample_matched_layer(rna_cpm, atac_cpm, models, params, warnings):
     """Cis correlations with a pooled empirical sample-label permutation null.
 
     Each null draw applies one common permutation to RNA biological units,
-    preserving feature covariance. Absolute Pearson correlations define the
-    preregistered empirical family; Spearman and analytical p-values accompany it.
-    A separate permuted draw is evaluated against that family as a diagnostic.
+    preserving feature covariance. When ``params['sample_covariates']`` is
+    provided with sufficient residual df, both RNA and ATAC log2(CPM+1) matrices
+    are OLS-residualized before correlation; otherwise an explicit unadjusted
+    covariate warning and sex-chromosome link audit are emitted.
     """
     result = {"ran": False, "reason": "cpm_matrices_unavailable", "n_shared_samples": 0, "shared_sample_ids": [],
               "cis_distance_bp": params["cis_distance_bp"], "min_required": params["min_matched_samples"],
               "n_pairs_tested": 0, "n_significant_links": 0, "n_positive_links": 0, "n_negative_links": 0,
+              "n_sex_chromosome_significant_links": 0, "sex_chromosome_significant_fraction": 0.0,
+              "covariate_adjustment": {"adjusted": False, "covariates_adjusted": [], "reason": "layer_not_run",
+                                       "unadjusted_confounding_risk": True},
               "permutation_null": {}, "top_links": []}
     if rna_cpm.empty or atac_cpm.empty:
         return pd.DataFrame(), result
@@ -878,6 +987,23 @@ def sample_matched_layer(rna_cpm, atac_cpm, models, params, warnings):
     if len(atac) > 50_000:
         atac = atac.loc[atac.var(axis=1).sort_values(ascending=False, kind="stable").head(50_000).index]
         warnings.append("sample_link_candidate_cap: top_50000_variable_peaks")
+
+    sample_covariates = params.get("sample_covariates")
+    rna_arr, cov_adj = _residualize_covariates(rna.to_numpy(dtype=float), shared, sample_covariates)
+    proj_perp = cov_adj.pop("_proj_perp", None)
+    if cov_adj.get("adjusted") and proj_perp is not None:
+        atac_arr = atac.to_numpy(dtype=float) @ proj_perp
+        rna_keep = np.var(rna_arr, axis=1) > 1e-12
+        atac_keep = np.var(atac_arr, axis=1) > 1e-12
+        rna = rna.iloc[rna_keep]
+        atac = atac.iloc[atac_keep]
+        rna_arr = rna_arr[rna_keep]
+        atac_arr = atac_arr[atac_keep]
+    else:
+        atac_arr = atac.to_numpy(dtype=float)
+        warnings.append("cpm_sample_matched_layer_unadjusted_for_covariates")
+
+    result["covariate_adjustment"] = cov_adj
     rlookup = {str(g).upper(): i for i, g in enumerate(rna.index)}
     # Search sorted peak centers for every measured gene TSS, retaining every
     # cis candidate rather than only the nearest gene.
@@ -890,7 +1016,9 @@ def sample_matched_layer(rna_cpm, atac_cpm, models, params, warnings):
     rows, ri, ai, seen = [], [], [], set()
     window = params["cis_distance_bp"]
     for chrom, genes in models.items():
-        peaks = sorted(chrom_peaks.get(_norm_chrom(chrom), []))
+        norm_c = _norm_chrom(chrom)
+        is_sex_chrom = norm_c in {"X", "Y"}
+        peaks = sorted(chrom_peaks.get(norm_c, []))
         centers = np.array([x[0] for x in peaks])
         for gene in genes:
             gene_index = rlookup.get(gene["gene"].upper())
@@ -905,14 +1033,19 @@ def sample_matched_layer(rna_cpm, atac_cpm, models, params, warnings):
                 ri.append(gene_index)
                 ai.append(peak_index)
                 distance = center - gene["tss"]
-                rows.append({"gene": str(rna.index[gene_index]), "peak": str(atac.index[peak_index]),
-                             "distance_to_tss": distance if gene["strand"] != "-" else -distance})
+                rows.append({
+                    "gene": str(rna.index[gene_index]),
+                    "peak": str(atac.index[peak_index]),
+                    "chrom": norm_c,
+                    "is_sex_chromosome": is_sex_chrom,
+                    "distance_to_tss": distance if gene["strand"] != "-" else -distance,
+                })
     if not rows:
         result["reason"] = "no_variable_cis_pairs"
         return pd.DataFrame(), result
     ri, ai = np.asarray(ri), np.asarray(ai)
-    rz, az = _standardize(rna.to_numpy()), _standardize(atac.to_numpy())
-    rrank, arank = _standardize(rankdata(rna.to_numpy(), axis=1)), _standardize(rankdata(atac.to_numpy(), axis=1))
+    rz, az = _standardize(rna_arr), _standardize(atac_arr)
+    rrank, arank = _standardize(rankdata(rna_arr, axis=1)), _standardize(rankdata(atac_arr, axis=1))
     observed = np.clip(np.einsum("ij,ij->i", rz[ri], az[ai]), -1, 1)
     rho = np.clip(np.einsum("ij,ij->i", rrank[ri], arank[ai]), -1, 1)
     rng = np.random.default_rng(params["seed"])
@@ -923,25 +1056,39 @@ def sample_matched_layer(rna_cpm, atac_cpm, models, params, warnings):
             perm = rng.permutation(len(shared))
         return perm
     # Chunk pairs so temporary sample arrays do not scale with the full family.
+    # Under covariate adjustment, re-project permuted RNA residuals back onto
+    # Col(design)^perp and re-normalize (Freedman-Lane) so null draws inhabit
+    # the exact same (n - rank) subspace as observed partial correlations.
     null = np.empty((draws, len(rows)), dtype=float)
     for draw in range(draws):
         perm = permutation()
+        rz_draw = (
+            _standardize(rz[:, perm] @ proj_perp)
+            if proj_perp is not None
+            else rz[:, perm]
+        )
         for start in range(0, len(rows), 4096):
             end = start + 4096
-            null[draw, start:end] = np.abs(np.einsum("ij,ij->i", rz[ri[start:end]][:, perm], az[ai[start:end]]))
+            null[draw, start:end] = np.abs(np.einsum("ij,ij->i", rz_draw[ri[start:end]], az[ai[start:end]]))
     pool = np.sort(null.ravel())
     empirical = lambda values: (len(pool) - np.searchsorted(pool, np.maximum(0, np.abs(values) - 1e-12), side="left") + 1) / (len(pool) + 1)
     p_emp = empirical(observed)
     adjusted = bh_adjust(p_emp)
     held_perm = permutation()
+    rz_held = (
+        _standardize(rz[:, held_perm] @ proj_perp)
+        if proj_perp is not None
+        else rz[:, held_perm]
+    )
     held_r = np.empty(len(rows), dtype=float)
     for start in range(0, len(rows), 4096):
         end = start + 4096
-        held_r[start:end] = np.einsum("ij,ij->i", rz[ri[start:end]][:, held_perm], az[ai[start:end]])
+        held_r[start:end] = np.einsum("ij,ij->i", rz_held[ri[start:end]], az[ai[start:end]])
     held_padj = bh_adjust(empirical(held_r))
+    df_corr = max(1, (cov_adj["residual_df"] - 1) if cov_adj.get("adjusted") else (len(shared) - 2))
     def analytical(r):
-        stat = np.abs(r) * np.sqrt((len(shared) - 2) / np.maximum(1 - r * r, np.finfo(float).eps))
-        return 2 * t.sf(stat, df=len(shared) - 2)
+        stat = np.abs(r) * np.sqrt(df_corr / np.maximum(1 - r * r, np.finfo(float).eps))
+        return 2 * t.sf(stat, df=df_corr)
     frame = pd.DataFrame(rows)
     frame["pearson_r"], frame["spearman_r"] = observed, rho
     frame["pearson_pvalue"], frame["spearman_pvalue"] = analytical(observed), analytical(rho)
@@ -949,6 +1096,10 @@ def sample_matched_layer(rna_cpm, atac_cpm, models, params, warnings):
     frame["n_samples"] = len(shared)
     frame = frame.sort_values(["padj", "empirical_pvalue", "gene", "peak"], kind="stable")
     significant = frame[frame.padj < params["padj_threshold"]]
+    n_sex_sig = int(significant["is_sex_chromosome"].sum()) if len(significant) > 0 else 0
+    sex_sig_frac = round(float(n_sex_sig) / float(len(significant)), 4) if len(significant) > 0 else 0.0
+    if not cov_adj.get("adjusted") and n_sex_sig > 0:
+        warnings.append(f"unadjusted_sex_chromosome_links_detected:{n_sex_sig}/{len(significant)}")
     held_n = int((held_padj < params["padj_threshold"]).sum())
     empirical_fdr_at_padj = (
         min(1.0, float(held_n) / float(len(significant)))
@@ -957,6 +1108,9 @@ def sample_matched_layer(rna_cpm, atac_cpm, models, params, warnings):
     )
     result.update(ran=True, reason=None, n_pairs_tested=len(frame), n_significant_links=len(significant),
                   n_positive_links=int((significant.pearson_r > 0).sum()), n_negative_links=int((significant.pearson_r < 0).sum()),
+                  n_sex_chromosome_significant_links=n_sex_sig,
+                  sex_chromosome_significant_fraction=sex_sig_frac,
+                  covariate_adjustment=cov_adj,
                   permutation_null={"n_permutations": draws, "seed": params["seed"], "method": "pooled_absolute_pearson_sample_permutation",
                                     "n_null_statistics": len(pool), "held_out_n_significant": held_n,
                                     "held_out_discovery_fraction": float(np.mean(held_padj < params["padj_threshold"])),

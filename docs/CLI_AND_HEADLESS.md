@@ -38,7 +38,19 @@ aria reproduce <CAPSULE.zip>
 
 ---
 
-## 3. System & Environment Diagnostics (`aria doctor`)
+## 3. Environment Setup (`aria setup`) & Diagnostics (`aria doctor`)
+
+Install only the scientific environments you need using committed `@EXPLICIT` Linux lockfiles (`aria setup` defaults to `rna` — a single environment covering Bulk RNA matrices and scRNA-seq):
+
+```bash
+aria setup --list         # Inspect available profiles and installed stacks
+aria setup rna            # Install aria-rna-env (Bulk RNA matrices + scRNA-seq)
+aria setup chromatin      # Install chromatin & epigenomics stacks (ATAC/ChIP/CUT&RUN/CUT&TAG)
+aria setup multiome       # Install paired 10x Multiome & cross-modal stacks
+aria setup hic            # Install 3D genome Hi-C / Micro-C stacks
+aria setup all            # Install all 8 user-facing scientific stacks
+aria setup rna --dry-run  # Preview exact lockfile commands without executing
+```
 
 Run `aria doctor` (or `aria-doctor`) before sensitive or archival analyses:
 

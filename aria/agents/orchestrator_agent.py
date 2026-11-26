@@ -1001,24 +1001,32 @@ class OrchestratorAgent(BaseAgent):
             intent.setdefault("organism", exp_context["organism"])
 
         # P0 Layer 3: Commit pre-execution DecisionManifest & Analytical Fork Ledger
-        # BEFORE any setup/ingestion/modality compute stage executes.
+        # BEFORE any setup/ingestion/modality compute stage executes (fail-closed).
         try:
             from aria.utils.decision_manifest import (
                 build_decision_manifest,
                 commit_decision_manifest,
                 resolve_fork_ledger_path,
+                verify_decision_manifest,
             )
             replayed_dm = exp_context.get("replayed_decision_manifest")
             manifest_locked_params = None
             runtime_locked_params = None
             commitment_status = "locked_before_execution"
             replayed_sha = None
-            if isinstance(replayed_dm, dict):
+            if replayed_dm is not None:
+                if not isinstance(replayed_dm, dict):
+                    raise ValueError("replayed_decision_manifest must be a dict")
+                ok_dm, dm_reason = verify_decision_manifest(replayed_dm)
+                if not ok_dm:
+                    raise ValueError(
+                        f"Refusing to replay unverified DecisionManifest: {dm_reason}"
+                    )
                 commitment_status = "replay_locked"
                 replayed_sha = replayed_dm.get("manifest_sha256")
                 # Keep core specification's locked_parameter_decisions identical to the
                 # replayed manifest so specification_sha256 and fork_index stay invariant,
-                # while forwarding realized_parameter_decisions to runtime ParameterAdvisor.
+                # while forwarding digest-verified realized_parameter_decisions to runtime.
                 manifest_locked_params = dict(
                     replayed_dm.get("locked_parameter_decisions") or {}
                 )
@@ -1036,7 +1044,12 @@ class OrchestratorAgent(BaseAgent):
                 locked_parameter_decisions=manifest_locked_params,
                 replayed_from_manifest_sha256=replayed_sha,
             )
-            ws_dir = Path.home() / ".aria" / "workspace" / experiment_id
+            ws_override = exp_context.get("workspace_dir")
+            ws_dir = (
+                Path(ws_override)
+                if ws_override is not None and str(ws_override).strip()
+                else Path.home() / ".aria" / "workspace" / experiment_id
+            )
             ledger_file = resolve_fork_ledger_path(getattr(self.memory, "db_path", None))
             committed_manifest, fork_summary = commit_decision_manifest(
                 pre_manifest,
@@ -1052,7 +1065,56 @@ class OrchestratorAgent(BaseAgent):
             if runtime_locked_params:
                 intent["locked_parameter_decisions"] = runtime_locked_params
         except Exception as exc:
-            log.warning(f"Could not commit pre-execution DecisionManifest: {exc}", exc_info=True)
+            log.error(
+                "Halting dispatch fail-closed: pre-execution DecisionManifest "
+                "verification/commitment failed: %s",
+                exc,
+                exc_info=True,
+            )
+            self.publish_finding(
+                experiment_id,
+                {
+                    "summary": (
+                        "Dispatch halted fail-closed: pre-execution "
+                        f"DecisionManifest commitment failed ({exc})."
+                    ),
+                    "status": "error",
+                    "reason": "decision_manifest_commitment_failed",
+                    "error_type": type(exc).__name__,
+                    "details": str(exc),
+                },
+                Confidence.INSUFFICIENT,
+            )
+            self.publish_status(
+                experiment_id,
+                f"Halted fail-closed: DecisionManifest commitment failed ({exc})",
+                1.0,
+            )
+            try:
+                bus.publish(
+                    Message(
+                        id=str(uuid.uuid4())[:8],
+                        sender=self.name,
+                        receiver="all",
+                        type=MessageType.ERROR,
+                        confidence=Confidence.INSUFFICIENT,
+                        payload={
+                            "status": "error",
+                            "reason": "decision_manifest_commitment_failed",
+                            "error_type": type(exc).__name__,
+                            "details": str(exc),
+                        },
+                        experiment_id=experiment_id,
+                    )
+                )
+            except Exception:
+                pass
+            return {
+                "status": "error",
+                "reason": "decision_manifest_commitment_failed",
+                "error_type": type(exc).__name__,
+                "details": str(exc),
+            }
 
         agent_results = {}
 

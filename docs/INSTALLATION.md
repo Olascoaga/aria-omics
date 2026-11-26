@@ -8,7 +8,7 @@ not release-validated installation targets.
 ## Choose the snapshot first
 
 ARIA's package version and source revision are separate reproducibility fields.
-The current package version is `4.9.3` (latest release tag `v4.9.3`; previous minor baseline `v4.9.0`).
+The current package version is `4.9.4` (latest release tag `v4.9.4`; previous minor baseline `v4.9.0`).
 
 ```bash
 git clone https://github.com/Olascoaga/aria-omics.git
@@ -18,7 +18,7 @@ cd aria-omics
 git switch main
 
 # Or a release baseline
-git checkout v4.9.3
+git checkout v4.9.4
 
 # Or the exact revision supplied by a collaborator
 git checkout <commit-sha>
@@ -129,9 +129,31 @@ ARIA dispatches heavy scripts to isolated environments and fails if the exact
 registered stack is missing. It never falls back to `aria-env` for scientific
 compute.
 
-Install only the stacks required by the intended workflow. Each exact Conda
-lock is an `@EXPLICIT` Linux artifact list; a matching `.pip.lock` adds only the
-PyPI packages that were part of the validated environment.
+**You do NOT need to install all 9 environments up front.** For Bulk RNA count
+matrices and scRNA-seq (`.h5ad` / 10x), **1 environment (`aria-rna-env`)** is
+all you need. Additional stacks install on demand during your first run of that
+modality (`SetupAgent` uses committed `@EXPLICIT` lockfiles on Linux `x86_64`)
+or anytime with one command via `aria setup`:
+
+```bash
+# Recommended default — installs ONLY aria-rna-env from its exact lockfile
+aria setup rna
+
+# See all profiles and which environments are already installed
+aria setup --list
+
+# Optional modality profiles (install only what you use)
+aria setup raw-rna      # adds STAR / featureCounts / kb-python for raw RNA FASTQs
+aria setup chromatin    # adds scATAC, bulk ATAC, ChIP, CUT&RUN, CUT&TAG
+aria setup tobias       # adds optional TOBIAS TF footprinting
+aria setup multiome     # adds paired 10x Multiome (WNN, MOFA+, peak2gene, eRegulons)
+aria setup hic          # adds 3D genome Hi-C / Micro-C
+aria setup all          # installs all 8 user-facing scientific stacks
+aria setup rna --dry-run  # preview exact lockfile commands without executing
+```
+
+Under the hood, `aria setup` runs the exact two-step lock reconstruction for
+each requested stack (which you can also run manually if preferred):
 
 ```bash
 conda create --name aria-rna-env \

@@ -699,6 +699,17 @@ class BulkRNAAgent(BaseAgent):
             exp_ctx.get("sample_metadata_path"),
             design.get("metadata_file"),
         ]
+        # CP2.5 paired biological block values confirmed in DesignAgent (e.g. ~ donor + condition)
+        paired_covs = design.get("paired_covariate_values")
+        if isinstance(paired_covs, dict) and paired_covs:
+            synthesized_rows: dict[str, dict[str, object]] = {}
+            for cov_name, s_map in paired_covs.items():
+                if not cov_name or not isinstance(s_map, dict):
+                    continue
+                for s_id, val in s_map.items():
+                    synthesized_rows.setdefault(str(s_id), {"sample": str(s_id)})[str(cov_name)] = val
+            if synthesized_rows:
+                raw_sources.insert(0, list(synthesized_rows.values()))
         parsed_sources = [
             rows for src in raw_sources
             if (rows := cls._load_sample_metadata_rows(src))

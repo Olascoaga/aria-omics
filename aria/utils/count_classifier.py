@@ -142,7 +142,15 @@ def _gene_id_type_score(gene_ids) -> tuple[float, dict]:
 
 
 def _tool_signature_score(source_hint: str | None) -> tuple[float, dict]:
-    text = str(source_hint or "").lower()
+    raw_hint = str(source_hint or "").strip()
+    if not raw_hint:
+        return 0.5, {"tool_signature": "unknown"}
+    # Match tool/normalization hints against the filename basename only so
+    # arbitrary parent directories (e.g. random mkdtemp paths like
+    # `/tmp/aria_x6_abc_tpm_/synthetic.h5ad`) never trigger false non-raw vetoes.
+    from pathlib import Path
+
+    text = Path(raw_hint).name.lower()
     if not text:
         return 0.5, {"tool_signature": "unknown"}
     if any(h in text for h in NONRAW_TOOL_HINTS):

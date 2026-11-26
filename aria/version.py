@@ -9,7 +9,7 @@ import subprocess
 from pathlib import Path
 from typing import Any
 
-__version__ = "4.9.3"
+__version__ = "4.9.4"
 
 VERSION_SOURCE = "aria.version.__version__"
 
@@ -79,6 +79,18 @@ def _fallback_source_hash(repo_root: Path) -> str:
     return digest.hexdigest()
 
 
+def _status_and_diff_pathspec(repo_root: Path) -> list[str]:
+    """Optional pathspec excluding a dedicated freeze output root during clean freeze runs."""
+    excl = os.environ.get("ARIA_PROVENANCE_EXCLUDE_PATH", "").strip()
+    if not excl:
+        return []
+    # Validate exclusion stays relative and inside repo_root (never arbitrary git args).
+    rel = Path(excl)
+    if rel.is_absolute() or ".." in rel.parts:
+        return []
+    return ["--", ".", f":(exclude){rel.as_posix()}"]
+
+
 def workflow_hash(repo_root: str | Path | None = None) -> str:
     """Return a deterministic hash for the code workflow behind this checkout."""
     root = _repo_root(repo_root)
@@ -87,9 +99,11 @@ def workflow_hash(repo_root: str | Path | None = None) -> str:
     if git_sha == "unknown" and git_tree_sha == "unknown":
         return _fallback_source_hash(root)
 
-    status = _git_text(["status", "--porcelain"], root)
-    diff_tracked = _git_bytes(["diff", "--binary", "HEAD", "--", "."], root)
-    diff_cached = _git_bytes(["diff", "--cached", "--binary", "--", "."], root)
+    pspec = _status_and_diff_pathspec(root)
+    status = _git_text(["status", "--porcelain", *pspec], root)
+    diff_spec = pspec if pspec else ["--", "."]
+    diff_tracked = _git_bytes(["diff", "--binary", "HEAD", *diff_spec], root)
+    diff_cached = _git_bytes(["diff", "--cached", "--binary", *diff_spec], root)
     payload = {
         "version": __version__,
         "git_sha": git_sha,
@@ -192,17 +206,22 @@ def collect_environment_metadata(repo_root: str | Path | None = None) -> dict[st
 def collect_version_metadata(repo_root: str | Path | None = None) -> dict[str, Any]:
     """Collect version and source-control metadata for reports and releases."""
     root = _repo_root(repo_root)
-    status = _git_text(["status", "--porcelain"], root)
+    pspec = _status_and_diff_pathspec(root)
+    status = _git_text(["status", "--porcelain", *pspec], root)
     git_sha = _git_text(["rev-parse", "HEAD"], root)
+    git_dirty = bool(status and status != "unknown")
+    git_describe = _git_text(["describe", "--tags", "--dirty", "--always"], root)
+    if not git_dirty and git_describe.endswith("-dirty"):
+        git_describe = git_describe[:-6]
     return {
         "aria_version": __version__,
         "version": __version__,
         "version_source": VERSION_SOURCE,
         "git_sha": git_sha,
         "git_commit": git_sha,
-        "git_dirty": bool(status and status != "unknown"),
+        "git_dirty": git_dirty,
         "git_tree_sha": _git_text(["rev-parse", "HEAD^{tree}"], root),
-        "git_describe": _git_text(["describe", "--tags", "--dirty", "--always"], root),
+        "git_describe": git_describe,
         "workflow_hash": workflow_hash(root),
         "workflow_hash_algorithm": (
             "sha256(version+git_sha+git_tree_sha+git_dirty+git_status+git_diff)"

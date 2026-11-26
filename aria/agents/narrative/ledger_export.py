@@ -119,6 +119,7 @@ _DECISION_MANIFEST_UNHASHED_KEYS = frozenset({
     "experiment_id",
     "committed_at_utc",
     "realized_parameter_decisions",
+    "realized_decisions_sha256",
     "fork_ledger_summary",
 })
 

@@ -212,7 +212,11 @@ jobs:
             tests/test_v48_i9_cross_modal_hypotheses.py \
             tests/test_cross_modal_concordance_core.py \
             tests/test_cross_modal_synthesis_and_narrative.py \
-            tests/test_cross_modal_production_e2e.py
+            tests/test_cross_modal_production_e2e.py \
+            tests/test_v494_pre_submission_hardening.py \
+            tests/test_setup_cli.py \
+            tests/test_setup_agent_envs.py \
+            tests/test_count_classifier.py
 
       - name: Integration smoke suite (importorskip-gated)
         run: python -m pytest -q tests/test_pytest_smoke.py

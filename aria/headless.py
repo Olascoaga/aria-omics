@@ -83,9 +83,19 @@ def default_answer_policy(cp_num, question: str, options: list) -> str:
     if cp_num == 2.4:
         return first_matching("ignore batch") or first_matching("no") or first_opt
 
-    # CP2.5 — pseudoreplication: treat as independent biological replicates
+    # CP2.5 — replicate structure: preserve detected cross-arm paired donor
+    # blocking; never silently declare ambiguous technical replicates independent
+    # in unattended headless mode (fail closed to sample-sheet confirmation).
     if cp_num == 2.5:
-        return first_matching("independent biological replicates") or first_opt
+        paired = first_matching("paired biological replicates")
+        if paired:
+            return paired
+        return (
+            first_matching("not sure")
+            or first_matching("sample sheet")
+            or first_matching("technical replicates")
+            or first_opt
+        )
 
     # CP2.6 — confirm assembled design
     if cp_num == 2.6:

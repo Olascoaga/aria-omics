@@ -90,8 +90,14 @@ def _valid_params(params):
                 return False
             params[key] = int(value)
         params["padj_threshold"] = alpha
+        cov_map = params.get("sample_covariates")
+        cov_ok = cov_map is None or (
+            isinstance(cov_map, dict)
+            and all(isinstance(k, str) and isinstance(v, dict) for k, v in cov_map.items())
+        )
         return (params["cis_distance_bp"] >= 0 and params["promoter_bp"] >= 0 and params["min_matched_samples"] >= 3
                 and params["n_permutations"] >= 1 and params["seed"] >= 0
+                and cov_ok
                 and isinstance(params.get("sample_id_map", {}), dict)
                 and all(isinstance(k, str) and isinstance(v, str) for k, v in params.get("sample_id_map", {}).items()))
     except (ValueError, TypeError, OverflowError):

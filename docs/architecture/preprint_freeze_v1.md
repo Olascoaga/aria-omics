@@ -1,7 +1,7 @@
 ---
 status: active
 source_of_truth_for: preprint_v1_freeze_protocol
-last_updated: 2026-11-20
+last_updated: 2026-11-25
 ---
 
 # ARIA preprint-v1 evidence freeze
@@ -66,9 +66,11 @@ evidence.
 
 ## Current closure boundary
 
-On `v4.9.3` (`ADR-083`), all **19 of 19** machine-verifiable freeze lanes under
-`automated_v1_gate` are verified (`Claims 1–7` machine lanes complete, including
-`c4_metamorphic_600_falsification`). The remaining **3 of 22** lanes require
+On `v4.9.4` (`ADR-083`), all **19 of 19** machine-verifiable freeze lanes under
+`automated_v1_gate` are verified using 100% public or synthetic inputs (`Claims 1–7`
+machine lanes complete, including `c1_public_fastq_e2e` on paired public `GSE52778`,
+label-blind `c4_b2_governance_ablation`, and `c4_metamorphic_600_falsification`).
+The remaining **3 of 22** lanes require
 independent human annotation and adjudication and are recorded verbatim as
 `deferred_to_v2_reader_study`:
 

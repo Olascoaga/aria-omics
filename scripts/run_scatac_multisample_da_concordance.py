@@ -24,8 +24,10 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 import numpy as np
@@ -62,7 +64,11 @@ def _conda_run(env: str, cmd: list[str]) -> None:
 
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("--data-dir", required=True, help="dir holding the per-donor h5mu files")
+    p.add_argument(
+        "--data-dir",
+        default=None,
+        help="dir holding the per-donor h5mu files (defaults to $ARIA_SCATAC_DA_DATA or ~/.aria/benchmarks/gse278576_paired)",
+    )
     p.add_argument("--h5mu-template", default="{donor}_paired.h5mu",
                    help="filename template within --data-dir; {donor} is substituted")
     p.add_argument("--young", required=True, help="comma-separated reference-group donors (COND_A)")
@@ -70,7 +76,10 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--atac-mod", default="atac", help="ATAC modality key inside the h5mu")
     p.add_argument("--output-dir", default="docs/benchmark_results/scatac_concordance")
     p.add_argument("--manifest-name", default="p3_multisample_aging_da_concordance.json")
-    p.add_argument("--work-dir", default="/tmp/p3_multisample")
+    p.add_argument(
+        "--work-dir",
+        default=str(Path(tempfile.gettempdir()) / "aria_scatac_multisample_da"),
+    )
     p.add_argument("--rna-env", default="aria-rna-env")
     p.add_argument("--bench-env", default="aria-bench-env")
     p.add_argument("--min-detect", type=int, default=3, help="keep peaks detected in >= this many donors")
@@ -84,7 +93,15 @@ def main(argv: list[str] | None = None) -> int:
     young = [d.strip() for d in args.young.split(",") if d.strip()]
     old = [d.strip() for d in args.old.split(",") if d.strip()]
     donors = young + old
-    data_dir = Path(args.data_dir)
+    raw_dir = (
+        args.data_dir
+        or os.environ.get("ARIA_SCATAC_DA_DATA", "").strip()
+        or str(Path.home() / ".aria" / "benchmarks" / "gse278576_paired")
+    )
+    data_dir = Path(raw_dir).expanduser()
+    if not data_dir.is_dir():
+        print(f"ERROR: scATAC donor data directory not found: {data_dir}", file=sys.stderr)
+        return 1
     work = Path(args.work_dir); work.mkdir(parents=True, exist_ok=True)
 
     # 1) per-donor pseudobulk -> consensus matrix

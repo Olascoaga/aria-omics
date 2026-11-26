@@ -1078,6 +1078,14 @@ def main():
             raise SystemExit(code)
         return
 
+    if args and args[0] == "setup":
+        from aria.setup_cli import main as setup_main
+
+        code = setup_main(args[1:])
+        if code:
+            raise SystemExit(code)
+        return
+
     # W-LEDGER/S14: `aria diff`, `aria export`, and `aria reproduce`.
     if args and args[0] in ("diff", "export", "reproduce"):
         from aria.agents.narrative.ledger_export import cli_main

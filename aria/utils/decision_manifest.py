@@ -431,6 +431,33 @@ def build_decision_manifest(
     return manifest_body
 
 
+def seal_realized_parameter_decisions(
+    manifest: dict[str, Any],
+    realized_decisions: dict[str, Any] | None,
+) -> dict[str, Any]:
+    """Attach `realized_parameter_decisions` with a tamper-evident SHA-256 digest.
+
+    Binds the realized parameter map to the pre-execution `manifest_sha256` so
+    `manifest_sha256` remains invariant across pre- and post-execution snapshots
+    while replay verification rejects any unsealed or tampered realized decisions.
+    """
+    if not isinstance(manifest, dict):
+        raise ValueError("manifest must be a dict")
+    recorded_manifest_sha = str(manifest.get("manifest_sha256") or "")
+    if not recorded_manifest_sha:
+        raise ValueError("cannot seal realized decisions onto manifest without manifest_sha256")
+    clean_realized = _sanitize_json_value(dict(realized_decisions or {}))
+    realized_sha = hash_params({
+        "manifest_sha256": recorded_manifest_sha,
+        "realized_parameter_decisions": clean_realized,
+    })
+    return {
+        **manifest,
+        "realized_parameter_decisions": clean_realized,
+        "realized_decisions_sha256": realized_sha,
+    }
+
+
 def verify_decision_manifest(manifest: dict[str, Any]) -> tuple[bool, str]:
     """Verify cryptographic integrity of a serialized `DecisionManifest`."""
     if not isinstance(manifest, dict):
@@ -447,6 +474,7 @@ def verify_decision_manifest(manifest: dict[str, Any]) -> tuple[bool, str]:
             "experiment_id",
             "committed_at_utc",
             "realized_parameter_decisions",
+            "realized_decisions_sha256",
             "fork_ledger_summary",
         }
     }
@@ -468,6 +496,26 @@ def verify_decision_manifest(manifest: dict[str, Any]) -> tuple[bool, str]:
     core_spec = {k: manifest.get(k) for k in core_keys}
     if hash_params(core_spec) != manifest.get("specification_sha256"):
         return False, "specification_sha256_mismatch"
+
+    has_realized = "realized_parameter_decisions" in manifest and manifest.get("realized_parameter_decisions") is not None
+    recorded_realized_sha = str(manifest.get("realized_decisions_sha256") or "")
+    if has_realized:
+        realized_payload = manifest.get("realized_parameter_decisions")
+        if not isinstance(realized_payload, dict):
+            return False, "invalid_realized_parameter_decisions"
+        if realized_payload and not recorded_realized_sha:
+            return False, "missing_realized_decisions_sha256"
+    if recorded_realized_sha:
+        realized_payload = manifest.get("realized_parameter_decisions")
+        if not isinstance(realized_payload, dict):
+            return False, "invalid_realized_parameter_decisions"
+        expected_realized_sha = hash_params({
+            "manifest_sha256": recorded_manifest_sha,
+            "realized_parameter_decisions": realized_payload,
+        })
+        if recorded_realized_sha != expected_realized_sha:
+            return False, "realized_decisions_sha256_mismatch"
+
     return True, "verified"
 
 

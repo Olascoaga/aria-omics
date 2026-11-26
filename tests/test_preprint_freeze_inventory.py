@@ -51,7 +51,7 @@ def test_missing_implementation_and_human_inputs_are_explicit(tmp_path):
     payload = build_inventory(Path.cwd(), tmp_path, resource_overrides=_all_available())
     by_id = {lane["lane_id"]: lane for lane in payload["lanes"]}
 
-    assert by_id["c1_h9_fastq_e2e"]["status"] == "ready_to_run"
+    assert by_id["c1_public_fastq_e2e"]["status"] == "ready_to_run"
     assert by_id["c2_scatac_donor_aware"]["status"] == "ready_to_run"
     assert by_id["c3_blind_multifactorial_corpus"]["status"] == "ready_to_run"
     assert by_id["c4_b2_multi_annotator_gold"]["status"] == "ready_to_run"

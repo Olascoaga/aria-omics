@@ -836,6 +836,30 @@ def main() -> int:
             work_dir,
             "04b_arm_b_cm",
         )
+        # v4.9.4 covariate-adjusted Arm B Layer D check (~ sex residualization)
+        arm_b_sex_map = {row["donor_id"]: row["sex"] for row in DONOR_COHORT}
+        arm_b_sex_adj_dir = work_dir / "04b_arm_b_cross_modal_sex_adjusted"
+        arm_b_cm_sex_adj, _ = _run_ipc(
+            "aria-rna-env",
+            "aria/scripts/cross_modal_concordance.py",
+            {
+                "rna_cpm_path": arm_b_rna_cpm_path,
+                "atac_cpm_path": prep["arm_b"]["atac_cpm_path"],
+                "sample_covariates": {"sex": arm_b_sex_map},
+                "gtf_path": str(args.gtf),
+                "organism": "Homo sapiens",
+                "genome": "hg38",
+                "output_dir": str(arm_b_sex_adj_dir),
+                "padj_threshold": 0.05,
+                "cis_distance_bp": 100000,
+                "min_matched_samples": 6,
+                "n_permutations": 200,
+                "seed": 42,
+                "resume": False,
+            },
+            work_dir,
+            "04b_arm_b_sex_adj",
+        )
         arm_b_null_dir = work_dir / "04b_arm_b_donor_null"
         arm_b_cm_null, _ = _run_ipc(
             "aria-rna-env",
@@ -1002,6 +1026,7 @@ def main() -> int:
         mc_b0 = (arm_b_cm.get("matched_contrasts") or [{}])[0]
         de_da_b = mc_b0.get("de_da_summary") or {}
         sm_b_real = arm_b_cm.get("sample_matched_links") or {}
+        sm_b_sex_adj = arm_b_cm_sex_adj.get("sample_matched_links") or {}
         sm_b_null = arm_b_cm_null.get("sample_matched_links") or {}
 
         exact_rev_match = (
@@ -1184,7 +1209,17 @@ def main() -> int:
                     "n_shared_donors": sm_b_real.get("n_shared_samples"),
                     "n_pairs_tested": sm_b_real.get("n_pairs_tested"),
                     "n_significant_links": n_b_real,
+                    "n_sex_chromosome_significant_links": sm_b_real.get("n_sex_chromosome_significant_links"),
+                    "covariate_adjustment": sm_b_real.get("covariate_adjustment"),
+                    "warnings": arm_b_cm.get("warnings") or [],
                     "top_links": (sm_b_real.get("top_links") or [])[:5],
+                    "sex_adjusted_control": {
+                        "covariate_adjustment": sm_b_sex_adj.get("covariate_adjustment"),
+                        "n_pairs_tested": sm_b_sex_adj.get("n_pairs_tested"),
+                        "n_significant_links": int(sm_b_sex_adj.get("n_significant_links") or 0),
+                        "n_sex_chromosome_significant_links": sm_b_sex_adj.get("n_sex_chromosome_significant_links"),
+                        "top_links": (sm_b_sex_adj.get("top_links") or [])[:5],
+                    },
                     "donor_deranged_null_control": {
                         "deranged_mapping": prep["arm_b"]["deranged_mapping"],
                         "n_null_significant_links": n_b_null,

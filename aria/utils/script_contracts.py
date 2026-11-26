@@ -221,7 +221,8 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
             for name, kind in (
                 ("rna_results", "dict"), ("chromatin_results", "dict"),
                 ("rna_cpm_path", "path"), ("atac_cpm_path", "path"),
-                ("sample_id_map", "dict"), ("gtf_path", "path"),
+                ("sample_id_map", "dict"), ("sample_covariates", "dict"),
+                ("gtf_path", "path"),
                 ("organism", "str"), ("genome", "str"), ("output_dir", "path"),
                 ("padj_threshold", "float"), ("cis_distance_bp", "int"),
                 ("promoter_bp", "int"), ("min_matched_samples", "int"),

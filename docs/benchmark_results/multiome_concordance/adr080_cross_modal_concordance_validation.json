@@ -3,8 +3,8 @@
   "arm_a_disjoint_donor_glial_lineage": {
     "a4_stage_manifest": {
       "cache_hit_verified": true,
-      "primary_elapsed_sec": 16.961,
-      "resume_elapsed_sec": 0.652
+      "primary_elapsed_sec": 14.551,
+      "resume_elapsed_sec": 0.707
     },
     "de_da_summary": {
       "atac_scope": null,
@@ -151,9 +151,11 @@
       "n_significant_links": 18371,
       "top_links": [
         {
+          "chrom": "2",
           "distance_to_tss": -60220,
           "empirical_pvalue": 3.5585667673064935e-08,
           "gene": "ACKR3",
+          "is_sex_chromosome": false,
           "n_samples": 20,
           "padj": 5.263157707443854e-05,
           "peak": "chr2:236507080-236508054",
@@ -163,9 +165,11 @@
           "spearman_r": 0.7566754954064429
         },
         {
+          "chrom": "1",
           "distance_to_tss": 39495,
           "empirical_pvalue": 3.5585667673064935e-08,
           "gene": "ACOT11",
+          "is_sex_chromosome": false,
           "n_samples": 20,
           "padj": 5.263157707443854e-05,
           "peak": "chr1:54581298-54582206",
@@ -175,9 +179,11 @@
           "spearman_r": 0.9187969924812031
         },
         {
+          "chrom": "7",
           "distance_to_tss": -9095,
           "empirical_pvalue": 3.5585667673064935e-08,
           "gene": "ADCYAP1R1",
+          "is_sex_chromosome": false,
           "n_samples": 20,
           "padj": 5.263157707443854e-05,
           "peak": "chr7:31042736-31043690",
@@ -187,9 +193,11 @@
           "spearman_r": 0.8736842105263158
         },
         {
+          "chrom": "19",
           "distance_to_tss": 1642,
           "empirical_pvalue": 3.5585667673064935e-08,
           "gene": "ADGRE2",
+          "is_sex_chromosome": false,
           "n_samples": 20,
           "padj": 5.263157707443854e-05,
           "peak": "chr19:14776397-14777440",
@@ -199,9 +207,11 @@
           "spearman_r": 0.9332493617350555
         },
         {
+          "chrom": "8",
           "distance_to_tss": 125,
           "empirical_pvalue": 3.5585667673064935e-08,
           "gene": "ADRA1A",
+          "is_sex_chromosome": false,
           "n_samples": 20,
           "padj": 5.263157707443854e-05,
           "peak": "chr8:26866681-26867625",
@@ -211,9 +221,11 @@
           "spearman_r": 0.7759398496240602
         },
         {
+          "chrom": "7",
           "distance_to_tss": -38586,
           "empirical_pvalue": 3.5585667673064935e-08,
           "gene": "AEBP1",
+          "is_sex_chromosome": false,
           "n_samples": 20,
           "padj": 5.263157707443854e-05,
           "peak": "chr7:44065239-44066280",
@@ -223,9 +235,11 @@
           "spearman_r": 0.8751879699248122
         },
         {
+          "chrom": "7",
           "distance_to_tss": 73568,
           "empirical_pvalue": 3.5585667673064935e-08,
           "gene": "AEBP1",
+          "is_sex_chromosome": false,
           "n_samples": 20,
           "padj": 5.263157707443854e-05,
           "peak": "chr7:44177407-44178420",
@@ -235,9 +249,11 @@
           "spearman_r": 0.8902255639097745
         },
         {
+          "chrom": "15",
           "distance_to_tss": 10,
           "empirical_pvalue": 3.5585667673064935e-08,
           "gene": "AKAP13",
+          "is_sex_chromosome": false,
           "n_samples": 20,
           "padj": 5.263157707443854e-05,
           "peak": "chr15:85380126-85381037",
@@ -247,9 +263,11 @@
           "spearman_r": 0.7428571428571427
         },
         {
+          "chrom": "3",
           "distance_to_tss": 17152,
           "empirical_pvalue": 3.5585667673064935e-08,
           "gene": "ALDH1L1",
+          "is_sex_chromosome": false,
           "n_samples": 20,
           "padj": 5.263157707443854e-05,
           "peak": "chr3:126180306-126181378",
@@ -259,9 +277,11 @@
           "spearman_r": 0.7684210526315789
         },
         {
+          "chrom": "3",
           "distance_to_tss": -15252,
           "empirical_pvalue": 3.5585667673064935e-08,
           "gene": "ALDH1L1",
+          "is_sex_chromosome": false,
           "n_samples": 20,
           "padj": 5.263157707443854e-05,
           "peak": "chr3:126212765-126213727",
@@ -532,7 +552,7 @@
     },
     "single_modality_inputs": {
       "bulk_atac_da": {
-        "elapsed_sec": 148.867,
+        "elapsed_sec": 158.913,
         "motif_enrichment_ran": true,
         "n_peaks_tested": 44958,
         "n_significant_peaks": 10363,
@@ -540,7 +560,7 @@
         "peak_ora_ran": true
       },
       "bulk_rna_de": {
-        "elapsed_sec": 56.453,
+        "elapsed_sec": 57.777,
         "n_downregulated": 3767,
         "n_genes_tested": 17857,
         "n_significant_genes": 6413,
@@ -815,6 +835,12 @@
       "spearman_r": 0.11841528485677415
     },
     "donor_matched_10donor_cpm_links": {
+      "covariate_adjustment": {
+        "adjusted": false,
+        "covariates_adjusted": [],
+        "reason": "no_covariates_supplied",
+        "unadjusted_confounding_risk": true
+      },
       "donor_deranged_null_control": {
         "deranged_mapping": {
           "hc11": "hc935",
@@ -832,13 +858,105 @@
         "per_test_fp_rate": 0.0
       },
       "n_pairs_tested": 143266,
+      "n_sex_chromosome_significant_links": 1,
       "n_shared_donors": 10,
       "n_significant_links": 1,
+      "sex_adjusted_control": {
+        "covariate_adjustment": {
+          "adjusted": true,
+          "covariates_adjusted": [
+            "sex"
+          ],
+          "design_rank": 2,
+          "method": "ols_residualization_on_log2_cpm",
+          "permutation_method": "freedman_lane_residual_reprojection",
+          "residual_df": 8,
+          "skipped_covariates": {},
+          "unadjusted_confounding_risk": false
+        },
+        "n_pairs_tested": 143266,
+        "n_sex_chromosome_significant_links": 0,
+        "n_significant_links": 3,
+        "top_links": [
+          {
+            "chrom": "19",
+            "distance_to_tss": 61828,
+            "empirical_pvalue": 3.1410103185329974e-07,
+            "gene": "RLN3",
+            "is_sex_chromosome": false,
+            "n_samples": 10,
+            "padj": 0.027499999040246845,
+            "peak": "chr19:14089547-14090406",
+            "pearson_pvalue": 1.1279873075175847e-07,
+            "pearson_r": -0.9926215075947855,
+            "spearman_pvalue": 0.001176046816854442,
+            "spearman_r": -0.8932821728530949
+          },
+          {
+            "chrom": "11",
+            "distance_to_tss": -6732,
+            "empirical_pvalue": 3.83901261154033e-07,
+            "gene": "TEX54",
+            "is_sex_chromosome": false,
+            "n_samples": 10,
+            "padj": 0.027499999040246845,
+            "peak": "chr11:62839075-62840072",
+            "pearson_pvalue": 1.7807307561346413e-07,
+            "pearson_r": -0.9915909341180816,
+            "spearman_pvalue": 0.004963668004727634,
+            "spearman_r": -0.8362641618199186
+          },
+          {
+            "chrom": "2",
+            "distance_to_tss": 82495,
+            "empirical_pvalue": 9.423030955598992e-07,
+            "gene": "TCF7L1",
+            "is_sex_chromosome": false,
+            "n_samples": 10,
+            "padj": 0.04499999842949484,
+            "peak": "chr2:85215353-85216421",
+            "pearson_pvalue": 4.731641315986478e-07,
+            "pearson_r": 0.988874035189011,
+            "spearman_pvalue": 6.379977192915525e-07,
+            "spearman_r": 0.9878787878787878
+          },
+          {
+            "chrom": "3",
+            "distance_to_tss": 63293,
+            "empirical_pvalue": 3.175910433183364e-06,
+            "gene": "TMEM89",
+            "is_sex_chromosome": false,
+            "n_samples": 10,
+            "padj": 0.09857142513127441,
+            "peak": "chr3:48558109-48558844",
+            "pearson_pvalue": 1.5717034284016322e-06,
+            "pearson_r": -0.9843017374152299,
+            "spearman_pvalue": 0.00035397075383585144,
+            "spearman_r": -0.9249588456493039
+          },
+          {
+            "chrom": "17",
+            "distance_to_tss": 1095,
+            "empirical_pvalue": 3.455111350386297e-06,
+            "gene": "TMEM95",
+            "is_sex_chromosome": false,
+            "n_samples": 10,
+            "padj": 0.09857142513127441,
+            "peak": "chr17:7355753-7356683",
+            "pearson_pvalue": 1.7981190437630885e-06,
+            "pearson_r": -0.9836835385084458,
+            "spearman_pvalue": 0.0036069708702683827,
+            "spearman_r": -0.8511944217628684
+          }
+        ]
+      },
       "top_links": [
         {
+          "chrom": "X",
           "distance_to_tss": 1457,
           "empirical_pvalue": 3.490011465036664e-08,
           "gene": "XIST",
+          "is_sex_chromosome": true,
           "n_samples": 10,
           "padj": 0.004999999825499427,
           "peak": "chrX:73850803-73851729",
@@ -848,9 +966,11 @@
           "spearman_r": 0.8876253645985945
         },
         {
+          "chrom": "19",
           "distance_to_tss": 61828,
           "empirical_pvalue": 3.385311121085564e-06,
           "gene": "RLN3",
+          "is_sex_chromosome": false,
           "n_samples": 10,
           "padj": 0.1716666606754803,
           "peak": "chr19:14089547-14090406",
@@ -860,9 +980,11 @@
           "spearman_r": -0.5222329678670934
         },
         {
+          "chrom": "11",
           "distance_to_tss": -6732,
           "empirical_pvalue": 3.594711808987764e-06,
           "gene": "TEX54",
+          "is_sex_chromosome": false,
           "n_samples": 10,
           "padj": 0.1716666606754803,
           "peak": "chr11:62839075-62840072",
@@ -872,9 +994,11 @@
           "spearman_r": -0.6941056083938048
         },
         {
+          "chrom": "17",
           "distance_to_tss": 1095,
           "empirical_pvalue": 1.2389540700880157e-05,
           "gene": "TMEM95",
+          "is_sex_chromosome": false,
           "n_samples": 10,
           "padj": 0.17377272120803916,
           "peak": "chr17:7355753-7356683",
@@ -884,9 +1008,11 @@
           "spearman_r": -0.7006490497453708
         },
         {
+          "chrom": "4",
           "distance_to_tss": -44365,
           "empirical_pvalue": 1.2738541847383823e-05,
           "gene": "CXCL10",
+          "is_sex_chromosome": false,
           "n_samples": 10,
           "padj": 0.17377272120803916,
           "peak": "chr4:76067398-76068326",
@@ -895,18 +1021,22 @@
           "spearman_pvalue": 0.06237750785945922,
           "spearman_r": -0.6076819803790378
         }
+      ],
+      "warnings": [
+        "cpm_sample_matched_layer_unadjusted_for_covariates",
+        "unadjusted_sex_chromosome_links_detected:1/1"
       ]
     },
-    "elapsed_sec": 11.921,
+    "elapsed_sec": 12.454,
     "formula": "~ sex + age_group",
     "single_modality_inputs": {
       "bulk_atac_da": {
-        "elapsed_sec": 28.161,
+        "elapsed_sec": 29.328,
         "n_peaks_tested": 45000,
         "n_significant_peaks": 44
       },
       "bulk_rna_de": {
-        "elapsed_sec": 45.381,
+        "elapsed_sec": 49.522,
         "n_downregulated": 48,
         "n_genes_tested": 25265,
         "n_significant_genes": 71,
@@ -914,7 +1044,7 @@
       }
     }
   },
-  "cohort_merge_elapsed_sec": 54.734,
+  "cohort_merge_elapsed_sec": 60.107,
   "dataset": {
     "accession": "GSE278576",
     "design": "10 balanced human brains (5 young 20-39 [3M/2F], 5 aged 80-100 [3M/2F]); Arm A = disjoint-donor split cohort (5 brains RNA-only x 5 disjoint brains ATAC-only, Oligo_vs_Astro); Arm B = 10-donor matched aging (~ sex + age_group, 80-100_vs_20-39) + donor-deranged null",
@@ -1075,7 +1205,7 @@
       "chr17",
       "chr19"
     ],
-    "elapsed_sec": 13.846,
+    "elapsed_sec": 14.466,
     "n_disjoint_donor_de_da_concordant_genes": 2007,
     "n_recovered_by_any_non_same_cell_layer": 10,
     "n_recovered_by_disjoint_donor_de_da": 8,
@@ -1098,5 +1228,5 @@
     ]
   },
   "schema": "aria.adr080_cross_modal_concordance_validation.v1",
-  "total_elapsed_sec": 439.094
+  "total_elapsed_sec": 469.293
 }
