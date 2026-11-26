@@ -410,7 +410,7 @@ def _resolve_mofa_loadings_map(
                     factors = payload.get("factors")
                     if isinstance(factors, dict):
                         return factors
-        except Exception as exc:
+        except Exception as exc:  # aria: allow-broad-except log MOFA+ loadings read error without aborting other signals
             log.warning(
                 "Could not read MOFA+ factor_loadings_path for hypothesis "
                 "adapter (%s); omitting MOFA+ loadings.",

@@ -306,6 +306,7 @@ class ReportRenderMixin:
                 agent_results, run_ledger, exp_ctx, proposer=proposer,
                 verification=verification,
             )
+            manifest_warn = ""
             if report_dir is not None and section is not None:
                 # Auditable, non-promotable manifest — separate from the audited
                 # claim manifest. A persist failure must not lose the HTML.
@@ -314,17 +315,47 @@ class ReportRenderMixin:
                         section, report_dir,
                         reproducible=bool(exp_ctx.get("reproducible_mode")),
                     )
-                except Exception as exc:
+                except Exception as exc:  # aria: allow-broad-except surface speculative manifest persistence failure
                     log.warning(
                         "Persisting speculative manifest failed: %s",
                         exc, exc_info=True,
                     )
-            return render_speculative_section_html(section)
-        except Exception as exc:
+                    manifest_warn = (
+                        "<div class='warning'><strong>Speculative manifest persistence failed:</strong> "
+                        f"{_html.escape(f'{type(exc).__name__}: {exc}')}</div>"
+                    )
+            return render_speculative_section_html(section) + manifest_warn
+        except Exception as exc:  # aria: allow-broad-except surface speculative hypotheses error in HTML and manifest
             log.warning(
                 f"Speculative hypotheses section failed: {exc}", exc_info=True
             )
-            return ""
+            err_msg = f"{type(exc).__name__}: {exc}"
+            if report_dir is not None:
+                try:
+                    err_manifest = {
+                        "schema_version": "aria.speculative_hypotheses.v1",
+                        "status": "error",
+                        "promotable": False,
+                        "error": err_msg,
+                        "hypotheses": [],
+                    }
+                    (Path(report_dir) / "speculative_hypotheses.json").write_text(
+                        json.dumps(err_manifest, indent=2, sort_keys=True),
+                        encoding="utf-8",
+                    )
+                except Exception as write_exc:  # aria: allow-broad-except best-effort speculative error manifest write
+                    log.warning(
+                        "Could not write speculative error manifest: %s",
+                        write_exc,
+                    )
+            return (
+                "<div class='card warning'>"
+                "<h3>Speculative Hypotheses (Error)</h3>"
+                f"<p>Speculative hypothesis generation failed "
+                f"(<code>{_html.escape(err_msg)}</code>); "
+                "no hypotheses were generated or promoted.</p>"
+                "</div>"
+            )
 
     def _render_html_report(self, experiment_id: str,
                              exp_ctx: dict,
@@ -1021,7 +1052,7 @@ class ReportRenderMixin:
         try:
             from aria.agents.narrative.ledger_export import write_ro_crate
             write_ro_crate(report_dir)
-        except Exception as exc:
+        except Exception as exc:  # aria: allow-broad-except record non-fatal RO-Crate export failure
             log.warning(f"RO-Crate export failed: {exc}", exc_info=True)
         log.info(f"Report written to {report_path}")
         return report_path

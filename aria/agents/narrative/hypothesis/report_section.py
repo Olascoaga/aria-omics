@@ -80,7 +80,7 @@ def _chromatin_signals(agent_results, run_ledger, exp_ctx):
         if _is_bulk_chromatin(findings):
             return bulk_atac_evidence(agent_results, run_ledger, exp_ctx)
         return scatac_evidence(agent_results, run_ledger, exp_ctx)
-    except Exception as exc:
+    except Exception as exc:  # aria: allow-broad-except log chromatin adapter failure without aborting other modalities
         # A chromatin-adapter failure must NOT silently masquerade as "no
         # evidence"; log it so the missing speculative input is visible.
         log.warning(

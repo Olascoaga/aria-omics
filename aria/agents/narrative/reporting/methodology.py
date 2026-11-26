@@ -31,15 +31,15 @@ class MethodologyMixin:
                 # in-memory or export is unavailable.
                 if dest.exists() and dest.stat().st_size == 0:
                     dest.unlink(missing_ok=True)
-        except Exception as exc:
+        except Exception as exc:  # aria: allow-broad-except fail closed on memory snapshot export without leaking full DB
             log.warning(f"Could not write scoped memory snapshot: {exc}")
             # Fail closed: never fall back to the full lab DB and never leave a
             # 0-byte placeholder file that breaks capsule verification or disk polling.
             try:
                 if dest.exists() and dest.stat().st_size == 0:
                     dest.unlink(missing_ok=True)
-            except Exception:
-                pass
+            except Exception as unlink_exc:  # aria: allow-broad-except cosmetic cleanup of empty snapshot placeholder
+                log.debug(f"Could not unlink empty snapshot placeholder: {unlink_exc}")
 
     def _build_methodology_json(self, provenance: dict, exp_ctx: dict,
                                 agent_results: dict, decisions: list,
