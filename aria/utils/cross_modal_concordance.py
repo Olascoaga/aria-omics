@@ -299,16 +299,75 @@ def load_rna_table(comp, aliases, warnings, alpha=.05):
         direction = finite(raw.get("_direction_sign"))
         if direction is None and raw.get("direction") in ("up", "down"):
             direction = 1 if raw["direction"] == "up" else -1
+        raw_gid = next(
+            (str(raw[c]).split(".")[0].strip() for c in ("gene_id", "Gene ID")
+             if c in raw and pd.notna(raw[c]) and str(raw[c]).strip()),
+            None,
+        )
         rows.append({"gene": gene, "gene_key": gene.upper(), "rna_log2fc": lfc, "rna_padj": padj,
                      "rna_direction": int(np.sign(lfc)) if lfc is not None else direction,
                      "rna_known_sig": raw.get("_known_sig") is True,
-                     "best_cell_group": comp.get("group")})
+                     "best_cell_group": comp.get("group"),
+                     "_locus_id": raw_gid})
     result = pd.DataFrame(rows)
     if not result.empty:
-        # Merge partial in-memory lists without replacing measured effects.
-        known = result.groupby("gene_key").rna_known_sig.any()
-        result = result.sort_values("rna_padj", na_position="last").groupby("gene_key", sort=False, as_index=False).first()
-        result["rna_known_sig"] = result.gene_key.map(known)
+        # Row-preserving deduplication per gene_key (D4-011): never splice
+        # columns across distinct loci via groupby().first() and never OR
+        # rna_known_sig across opposing directions or finite non-sig padj.
+        deduped_rows = []
+        ambiguous_keys: list[str] = []
+        dup_locus_keys: list[str] = []
+        for gkey, grp in result.groupby("gene_key", sort=False):
+            if len(grp) == 1:
+                deduped_rows.append(grp.iloc[0].to_dict())
+                continue
+            ordered = grp.sort_values("rna_padj", na_position="last", kind="mergesort")
+            dirs = {
+                int(d) for d in ordered["rna_direction"].dropna().tolist()
+                if int(d) != 0
+            }
+            loci = {
+                str(x) for x in ordered["_locus_id"].dropna().tolist()
+                if str(x).strip()
+            }
+            finite_padjs = ordered["rna_padj"].dropna().tolist()
+            has_sig = bool(
+                any(p < alpha for p in finite_padjs)
+                or ordered["rna_known_sig"].any()
+            )
+            has_nonsig = bool(any(p >= alpha for p in finite_padjs))
+            if len(dirs) > 1 or (has_sig and has_nonsig):
+                ambiguous_keys.append(str(gkey))
+                continue
+            if len(loci) > 1:
+                dup_locus_keys.append(str(gkey))
+            winner = ordered.iloc[0].to_dict()
+            # Only propagate rna_known_sig from compatible in-memory lists when
+            # the winning row itself has no conflicting non-significant padj.
+            w_padj = winner.get("rna_padj")
+            if (
+                ordered["rna_known_sig"].any()
+                and (w_padj is None or pd.isna(w_padj) or float(w_padj) < alpha)
+            ):
+                winner["rna_known_sig"] = True
+            deduped_rows.append(winner)
+        if ambiguous_keys:
+            warnings.append(
+                f"rna_ambiguous_symbol_collisions_excluded: n={len(ambiguous_keys)} "
+                f"({', '.join(sorted(ambiguous_keys)[:10])})"
+            )
+        if dup_locus_keys:
+            warnings.append(
+                f"rna_duplicate_symbol_loci_deduplicated: n={len(dup_locus_keys)} "
+                f"({', '.join(sorted(dup_locus_keys)[:10])})"
+            )
+        cols = ["gene", "gene_key", "rna_log2fc", "rna_padj", "rna_direction",
+                "rna_known_sig", "best_cell_group"]
+        result = (
+            pd.DataFrame(deduped_rows)[cols]
+            if deduped_rows
+            else pd.DataFrame(columns=cols)
+        )
     return result, "all_tested_genes" if full else "reported_genes_only"
 
 
