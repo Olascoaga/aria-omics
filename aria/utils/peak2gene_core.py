@@ -36,35 +36,9 @@ from aria.utils.genomic_coords import (
     bed_interval_clamped,
     canonical_contig,
     is_standard_contig,
+    parse_peak_coord,
 )
 from aria.utils.stats import bh_correct
-
-_PEAK_SEP_RE = re.compile(r"^([^:\-_\t]+)[:\-_](\d+)[\-_](\d+)$")
-
-
-def parse_peak_coord(name: str) -> tuple[str, int, int] | None:
-    """Parse a peak identifier (`chr1:100-200`, `chr1-100-200`, or BED tab line)."""
-    text = str(name).strip()
-    if not text:
-        return None
-    try:
-        if "\t" in text:
-            parts = text.split("\t")
-            if len(parts) >= 3:
-                s, e = int(parts[1]), int(parts[2])
-                return parts[0].strip(), min(s, e), max(s, e)
-        if ":" in text and "-" in text:
-            chrom, pos = text.split(":", 1)
-            s_txt, e_txt = pos.replace("_", "-").split("-", 1)
-            s, e = int(s_txt), int(e_txt)
-            return chrom.strip(), min(s, e), max(s, e)
-        m = _PEAK_SEP_RE.match(text)
-        if m:
-            s, e = int(m.group(2)), int(m.group(3))
-            return m.group(1).strip(), min(s, e), max(s, e)
-    except Exception:
-        return None
-    return None
 
 
 def _gtf_attr(attrs: str, key: str) -> str | None:

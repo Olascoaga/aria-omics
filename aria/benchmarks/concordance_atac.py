@@ -106,18 +106,7 @@ def normalized_mutual_info(a: Sequence[Any], b: Sequence[Any]) -> float:
 # DA-peak overlap (exact + genomic)                                           #
 # --------------------------------------------------------------------------- #
 
-_PEAK_RE = re.compile(r"^(chr[\w]+)[:\-_](\d+)[\-_](\d+)$")
-
-
-def _parse_peak(name: Any) -> tuple[str, int, int] | None:
-    """Parse ``chr1:100-200`` / ``chr1-100-200`` / ``chr1_100_200`` -> interval."""
-    m = _PEAK_RE.match(str(name).strip())
-    if not m:
-        return None
-    start, end = int(m.group(2)), int(m.group(3))
-    if end < start:
-        start, end = end, start
-    return (m.group(1), start, end)
+from aria.utils.genomic_coords import parse_peak_coord as _parse_peak
 
 
 def _count_genomic_matches(

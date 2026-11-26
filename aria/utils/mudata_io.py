@@ -528,12 +528,14 @@ def paired_input_files(role, path):
 
 
 def _canonical_peak(name):
-    match = re.fullmatch(r"(.+?)(?::|_)(\d+)[_-](\d+)", str(name))
-    if not match or int(match[2]) < 0 or int(match[3]) <= int(match[2]):
+    from aria.utils.genomic_coords import parse_peak_coord
+
+    parsed = parse_peak_coord(name, allow_reversed=False)
+    if parsed is None or parsed[2] <= parsed[1]:
         raise MultiomeInputError(
             "NonGenomicPeakFeatures", f"Invalid peak interval: {name}"
         )
-    return f"{match[1]}:{int(match[2])}-{int(match[3])}"
+    return f"{parsed[0]}:{parsed[1]}-{parsed[2]}"
 
 
 def _read_10x_matrix(path, *, require_paired=False):

@@ -107,3 +107,38 @@ def test_d8_007_chromatin_peaks_consensus_and_qc_jsd_contig_convergence(tmp_path
     assert removed == 1 and jsd_same is not None and frip_mixed == 1.0
     assert max_support == 2
     assert jsd_mixed == jsd_same
+
+
+def test_d8_004_peak_coordinate_parsers_converge(tmp_path: Path):
+    """D8-004: all 5 peak coordinate parsers must accept Signac, Ensembl, and unplaced scaffold peaks."""
+    from aria.benchmarks.bulk_atac_marker_mapping import parse_peak_interval
+    from aria.benchmarks.concordance_atac import _parse_peak as conc_parse
+    from aria.scripts.benchmark_peak2gene_export import _parse_peak as exp_parse
+    from aria.scripts.chromatin_peak_annotation import annotate_peaks, parse_gtf_gene_models
+    from aria.utils.mudata_io import _canonical_peak
+    from aria.utils.peak2gene_core import genes_to_peak_indices, parse_gtf_tss, parse_peak_coord
+
+    gtf = tmp_path / "g.gtf"
+    gtf.write_text(
+        'chr1\tHAVANA\tgene\t1000\t5000\t.\t+\t.\tgene_id "ENSG1"; gene_name "GENE1";\n'
+        'chr1\tHAVANA\texon\t1000\t1600\t.\t+\t.\tgene_id "ENSG1"; gene_name "GENE1";\n',
+        encoding="utf-8",
+    )
+    signac_peak = "chr1-1100-1500"
+    assert parse_peak_coord(signac_peak) == ("chr1", 1100, 1500)
+    assert genes_to_peak_indices([signac_peak], parse_gtf_tss(str(gtf)), window_bp=5000) == {"GENE1": [0]}
+    assert parse_peak_coord("1:1000-1500") == ("1", 1000, 1500)
+    assert parse_peak_coord("chr1_KI270706v1_random:1000-1500") == ("chr1_KI270706v1_random", 1000, 1500)
+
+    ann = annotate_peaks([signac_peak], parse_gtf_gene_models(str(gtf)))
+    assert parse_peak_interval(signac_peak) == ("chr1", 1100, 1500)
+    assert ann["n_annotated"] == 1
+    assert _canonical_peak(signac_peak) == "chr1:1100-1500"
+    assert conc_parse("1:1000-1500") == ("1", 1000, 1500)
+    assert exp_parse("chr1_KI270706v1_random:1000-1500") == ("chr1_KI270706v1_random", 1000, 1500)
+
+    from aria.utils.genomic_coords import parse_peak_coord as canonical_parse
+
+    assert parse_peak_coord is canonical_parse
+    assert conc_parse is canonical_parse
+    assert exp_parse is canonical_parse

@@ -19,15 +19,7 @@ import argparse
 import re
 from pathlib import Path
 
-_PEAK_RE = re.compile(r"^([^:\-_]+)[:\-_](\d+)[\-_](\d+)$")
-
-
-def _parse_peak(name: str):
-    m = _PEAK_RE.match(str(name).strip())
-    if not m:
-        return None
-    s, e = int(m.group(2)), int(m.group(3))
-    return (m.group(1), min(s, e), max(s, e))
+from aria.utils.genomic_coords import parse_peak_coord as _parse_peak
 
 
 def main(argv: list[str] | None = None) -> int:

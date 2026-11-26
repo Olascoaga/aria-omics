@@ -26,7 +26,12 @@ ARIA script, utility, or agent environment.
 
 from __future__ import annotations
 
+import re
+from typing import Any
+
 _STANDARD_AUTOSOMES = frozenset(str(i) for i in range(1, 23))
+_PEAK_HYPHEN_RE = re.compile(r"^(.+)-(\d+)-(\d+)$")
+_PEAK_UNDERSCORE_RE = re.compile(r"^(.+)_(\d+)_(\d+)$")
 
 
 def canonical_contig(chrom: str | None) -> str | None:
@@ -144,3 +149,62 @@ def bed_interval_clamped(
     s0 = max(0, min(length, int(start_0based)))
     e0 = max(s0, min(length, int(end_0based)))
     return s0, e0
+
+
+def parse_peak_coord(
+    name: Any,
+    *,
+    allow_reversed: bool = True,
+    require_str: bool = False,
+) -> tuple[str, int, int] | None:
+    """Parse a genomic peak coordinate string into ``(chrom, start, end)``.
+
+    Supports UCSC/Ensembl ``chr1:100-200`` / ``1:100-200`` / ``chr1:100_200``,
+    GRCh38 unplaced scaffolds (``chr1_KI270706v1_random:1000-1500``), Signac/10x
+    hyphen-delimited ``chr1-1100-1500``, underscore-delimited ``chr1_1000_1500``,
+    and BED tab lines (``chr1\\t100\\t200``). Rejects negative coordinates,
+    whitespace contigs, and malformed extra-colon strings.
+    """
+    if name is None:
+        return None
+    if require_str and not isinstance(name, str):
+        return None
+    text = str(name).strip()
+    if not text:
+        return None
+    try:
+        if "\t" in text:
+            parts = text.split("\t")
+            if len(parts) < 3:
+                return None
+            chrom, s, e = parts[0].strip(), int(parts[1]), int(parts[2])
+        elif ":" in text:
+            if text.count(":") != 1:
+                return None
+            chrom, pos = text.split(":", 1)
+            chrom = chrom.strip()
+            pos = pos.strip()
+            if "-" in pos:
+                s_txt, e_txt = pos.split("-", 1)
+            elif "_" in pos:
+                s_txt, e_txt = pos.split("_", 1)
+            else:
+                return None
+            s, e = int(s_txt), int(e_txt)
+        else:
+            m = _PEAK_HYPHEN_RE.match(text) or _PEAK_UNDERSCORE_RE.match(text)
+            if not m:
+                return None
+            chrom = m.group(1).strip()
+            s, e = int(m.group(2)), int(m.group(3))
+    except ValueError:
+        return None
+    if not chrom or any(ch.isspace() for ch in chrom):
+        return None
+    if s < 0 or e < 0:
+        return None
+    if e < s:
+        if not allow_reversed:
+            return None
+        s, e = e, s
+    return chrom, s, e
