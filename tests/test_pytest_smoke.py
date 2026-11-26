@@ -811,6 +811,9 @@ def test_cockpit_is_selected_on_interactive_tty(monkeypatch):
 
 
 def test_cockpit_front_door_builds_context_before_legacy_prompt(monkeypatch, tmp_path):
+    # Optional [tui] extra: runs in pr-checks (pip install -e ".[tui]"); the conda
+    # science lanes deliberately omit textual.
+    pytest.importorskip("textual")
     litellm_stub = types.ModuleType("litellm")
     litellm_stub.completion = lambda *args, **kwargs: None
     monkeypatch.setitem(sys.modules, "litellm", litellm_stub)
