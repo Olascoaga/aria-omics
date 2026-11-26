@@ -401,3 +401,80 @@ class TestComputeDifferential3DCoolerOracle:
         desc_df = pd.read_csv(res_2v2["comparisons"][0]["descriptive_csv"])
         assert "pvalue" not in desc_df.columns
         assert "delta_E1" in desc_df.columns
+
+    def test_moderated_linear_contrast_and_parse_comparisons_mutant_killers(self):
+        from scipy import stats as sp_stats
+        from aria.scripts.hic_topology import (
+            _moderated_linear_contrast,
+            _parse_comparisons,
+        )
+
+        # 1. _parse_comparisons: 2-str list, list of dicts/tuples, single dict, missing keys, invalid
+        assert _parse_comparisons(["KO", "WT"]) == [("KO", "WT")]
+        assert _parse_comparisons(("KO", "WT")) == [("KO", "WT")]
+        assert _parse_comparisons([{"numerator": "A", "denominator": "B"}, ["C", "D"], {"test": "E"}]) == [
+            ("A", "B"),
+            ("C", "D"),
+        ]
+        assert _parse_comparisons({"numerator": "X", "denominator": "Y"}) == [("X", "Y")]
+        assert _parse_comparisons({"test": "X"}) == []
+        assert _parse_comparisons(None) == []
+
+        # 2. Third-group exclusion (keep_samples), constant numeric + constant categorical covariates
+        #    dropped, bool covariate treated as categorical, exact mean_test / mean_ref, and partial NaN
+        #    bin matching independent OLS + rank-deficient partial NaN bin skipped!
+        conds = ["WT", "WT", "WT", "KO", "KO", "KO", "OTHER", "OTHER"]
+        cov_rows = [
+            {"const_num": 5.0, "const_cat": "X", "flag": True, "age": 10.0},
+            {"const_num": 5.0, "const_cat": "X", "flag": False, "age": 20.0},
+            {"const_num": 5.0, "const_cat": "X", "flag": True, "age": 30.0},
+            {"const_num": 5.0, "const_cat": "X", "flag": False, "age": 10.0},
+            {"const_num": 5.0, "const_cat": "X", "flag": True, "age": 20.0},
+            {"const_num": 5.0, "const_cat": "X", "flag": False, "age": 30.0},
+            # OTHER samples have NaN covariates that MUST be ignored since keep_samples excludes OTHER!
+            {"const_num": None, "const_cat": "", "flag": None, "age": float("nan")},
+            {"const_num": None, "const_cat": "", "flag": None, "age": float("nan")},
+        ]
+        mat = np.array([
+            [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 999.0, -999.0],   # complete bin
+            [1.0, 2.2, 2.9, 4.1, 5.1, 6.2, 500.0, 500.0],    # complete bin with noise
+            [1.0, 2.0, 3.0, 4.0, 5.0, np.nan, 0.0, 0.0],     # partial bin: 5 obs > 4 params -> testable
+            [1.0, np.nan, 3.0, 4.0, np.nan, 6.0, 0.0, 0.0],  # partial bin: 4 obs == 4 params -> skipped
+            [1.0, np.nan, np.nan, 4.0, 5.0, 6.0, 0.0, 0.0],  # only 1 valid WT -> untestable (<2)
+        ], dtype=float)
+        res = _moderated_linear_contrast(
+            mat, conds, test_group="KO", ref_group="WT", covariate_rows=cov_rows, prior_df=4.0
+        )
+        assert "const_num:constant_within_contrast" in res["dropped_covariates"]
+        assert "const_cat:constant_within_contrast" in res["dropped_covariates"]
+        assert res["mean_test"][0] == pytest.approx(5.0, abs=1e-12)
+        assert res["mean_ref"][0] == pytest.approx(2.0, abs=1e-12)
+        assert res["delta"][0] == pytest.approx(3.0, abs=1e-10)
+        assert np.isfinite(res["delta"][2]) and res["mean_test"][2] == pytest.approx(4.5, abs=1e-12)
+        assert res["mean_ref"][2] == pytest.approx(2.0, abs=1e-12)
+        assert np.isnan(res["delta"][3])
+        assert np.isnan(res["delta"][4])
+
+        # 3. Missing/blank/None covariate value inside active contrast -> raises ValueError
+        for bad_val in (None, float("nan"), "   "):
+            bad_cov = [{"batch": "B1"}, {"batch": "B2"}, {"batch": "B1"}, {"batch": "B2"}, {"batch": "B1"}, {"batch": bad_val}]
+            with pytest.raises(ValueError, match="missing/NaN"):
+                _moderated_linear_contrast(
+                    mat[:2, :6], conds[:6], "KO", "WT", covariate_rows=bad_cov
+                )
+
+        # 4. Exact-zero all-bins -> prior_s0_sq defaults to 1e-4; tiny-variance -> floored at 1e-6
+        res_zero = _moderated_linear_contrast(np.zeros((3, 6)), conds[:6], "KO", "WT", prior_df=4.0)
+        assert res_zero["prior_s0_sq"] == pytest.approx(1e-4, abs=1e-12)
+        assert res_zero["delta"][0] == pytest.approx(0.0, abs=1e-12)
+
+        tiny_mat = np.array([
+            [1.0, 1.0 + 1e-5, 1.0, 2.0, 2.0, 2.0],
+            [1.0, 1.0, 1.0 + 1e-5, 2.0, 2.0, 2.0],
+        ])
+        res_tiny = _moderated_linear_contrast(tiny_mat, conds[:6], "KO", "WT", prior_df=4.0)
+        assert res_tiny["prior_s0_sq"] == pytest.approx(1e-6, abs=1e-12)
+
+        # 5. Rank-deficient base design (only 1 obs per group -> df_resid=0) -> ValueError
+        with pytest.raises(ValueError, match="rank-deficient|zero residual"):
+            _moderated_linear_contrast(np.ones((2, 2)), ["KO", "WT"], "KO", "WT")

@@ -446,3 +446,127 @@ class TestPseudobulkDESeq2Oracles:
         })
         assert res_1rep["status"] == "success"
         assert res_1rep["per_group"]["Tcell"]["status"] == "skipped"
+
+
+class TestPseudobulkHelperMutantKillers:
+    """Targeted boundary & analytical tests killing surviving mutants in
+    rna_pseudobulk_de pure helpers (_fdr_filtering_basis, _detect_shrink_sign_flip,
+    _shrink_coeff, _abs_corr, _expressed_background, _effective_alpha_from_significant,
+    _composition_covariate_decision, _build_design_formula)."""
+
+    def test_fdr_filtering_basis_counts_and_disclosures(self):
+        from aria.scripts.rna_pseudobulk_de import _fdr_filtering_basis
+
+        # Empty / None / missing results / missing pvalue blocks
+        empty = _fdr_filtering_basis(None)
+        assert empty["same_base_hypothesis_set"] is True
+        assert empty["n_global_pool_tests"] == 0
+        assert empty["n_independent_filtered_into_global"] == 0
+        assert "independent filtering" in empty["local_family"]
+        assert "finite p-value" in empty["global_family"]
+        assert "conservative cross-family" in empty["note"]
+
+        # Mixed blocks: block without pvalue skipped; block without padj_local counts pool only;
+        # block with NaN/inf pvalue & padj_local counts independent-filtered accurately.
+        b_no_p = {"results": pd.DataFrame({"log2FoldChange": [1.0]})}
+        b_none = {"results": None}
+        b_no_local = {"results": pd.DataFrame({"pvalue": [0.01, np.nan, 0.2]})}
+        b_mixed = {
+            "results": pd.DataFrame({
+                "pvalue": [0.001, 0.05, 0.4, np.nan, np.inf],
+                "padj_local": [0.01, np.nan, np.inf, np.nan, 0.9],
+            })
+        }
+        out = _fdr_filtering_basis([b_no_p, b_none, b_no_local, b_mixed])
+        # Finite p-values: 2 from b_no_local + 3 from b_mixed = 5
+        assert out["n_global_pool_tests"] == 5
+        # Finite pvalue & non-finite padj_local in b_mixed: idx 1 (nan) and idx 2 (inf) -> 2
+        assert out["n_independent_filtered_into_global"] == 2
+        assert out["same_base_hypothesis_set"] is False
+
+        # All finite padj_local -> same_base_hypothesis_set True
+        b_same = {"results": pd.DataFrame({"pvalue": [0.01, 0.2], "padj_local": [0.02, 0.2]})}
+        out_same = _fdr_filtering_basis([b_same])
+        assert out_same["same_base_hypothesis_set"] is True
+        assert out_same["n_global_pool_tests"] == 2
+        assert out_same["n_independent_filtered_into_global"] == 0
+
+    def test_detect_shrink_sign_flip_exact_thresholds(self):
+        from aria.scripts.rna_pseudobulk_de import _detect_shrink_sign_flip
+
+        # Empty / mismatched shapes -> False
+        assert _detect_shrink_sign_flip([], []) is False
+        assert _detect_shrink_sign_flip([1.0, 2.0], [1.0]) is False
+        # Below clear thresholds (|raw| < 0.5 or |shrunk| < 0.1 or non-finite) -> False
+        assert _detect_shrink_sign_flip([0.49, np.nan, np.inf], [-0.49, -1.0, -1.0]) is False
+        assert _detect_shrink_sign_flip([2.0, -2.0], [-0.09, 0.09]) is False
+        # Exact boundary: |raw| == 0.5 and |shrunk| == 0.1 with n_clear == 3 and 2/3 flipped (>0.5) -> True
+        assert _detect_shrink_sign_flip([0.5, -0.5, 0.5], [-0.1, 0.1, 0.1]) is True
+        # Exactly 50% flipped (2 of 4) -> False (strict `flip_frac > 0.5`)
+        assert _detect_shrink_sign_flip([1.0, 1.0, 1.0, 1.0], [-0.5, -0.5, 0.5, 0.5]) is False
+        # n_clear == 2, 100% flipped, max |raw| == 1.0 -> True
+        assert _detect_shrink_sign_flip([1.0, -0.6], [-0.2, 0.2]) is True
+        # n_clear == 2, 100% flipped, max |raw| == 0.99 (< 1.0) -> False
+        assert _detect_shrink_sign_flip([0.99, -0.6], [-0.2, 0.2]) is False
+        # n_clear == 2, 1/2 flipped -> False
+        assert _detect_shrink_sign_flip([2.0, 2.0], [-0.5, 0.5]) is False
+
+    def test_shrink_coeff_all_formats_and_prefix_safety(self):
+        from aria.scripts.rna_pseudobulk_de import _shrink_coeff
+
+        class _FakeDDS:
+            def __init__(self, cols):
+                self.varm = {"LFC": pd.DataFrame(columns=cols)}
+
+        assert _shrink_coeff(object(), "condition", "KO") is None
+        # Plain exact vs prefix trap (KO_ctrl must NOT match KO)
+        assert _shrink_coeff(_FakeDDS(["Intercept", "condition[T.KO_ctrl]"]), "condition", "KO") is None
+        assert _shrink_coeff(_FakeDDS(["condition[T.KO_ctrl]", "condition[T.KO]"]), "condition", "KO") == "condition[T.KO]"
+        # Backtick-quoted non-identifier column
+        assert _shrink_coeff(_FakeDDS(["`treat group`[T.KO]"]), "treat group", "KO") == "`treat group`[T.KO]"
+        # Formulaic C(...) with and without extra args; ensure prefix column doesn't false-match
+        c_col = "C(condition, Treatment(reference='WT'))[T.KO]"
+        assert _shrink_coeff(_FakeDDS(["C(condition_other, Treatment(reference='WT'))[T.KO]", c_col]), "condition", "KO") == c_col
+        assert _shrink_coeff(_FakeDDS(["C(condition)[T.KO]"]), "condition", "KO") == "C(condition)[T.KO]"
+        assert _shrink_coeff(_FakeDDS(["C(`treat group`, Treatment(reference='WT'))[T.KO]"]), "treat group", "KO") == "C(`treat group`, Treatment(reference='WT'))[T.KO]"
+        assert _shrink_coeff(_FakeDDS(["other_col[T.KO]"]), "condition", "KO") is None
+
+    def test_abs_corr_effective_alpha_and_expressed_background_edges(self):
+        from scipy import sparse
+        from aria.scripts.rna_pseudobulk_de import (
+            _abs_corr,
+            _composition_covariate_decision,
+            _effective_alpha_from_significant,
+            _expressed_background,
+        )
+
+        # _abs_corr: NaNs filtered, <2 finite -> None, zero variance -> None, exact negative corr -> +1.0
+        assert _abs_corr([1.0], [2.0]) is None
+        assert _abs_corr([1.0, np.nan], [2.0, 3.0]) is None
+        assert _abs_corr([5.0, 5.0, 5.0], [1.0, 2.0, 3.0]) is None
+        assert _abs_corr([1.0, 2.0, 3.0], [4.0, 4.0, 4.0]) is None
+        assert _abs_corr([1.0, 2.0, 3.0, np.nan], [6.0, 4.0, 2.0, 9.0]) == pytest.approx(1.0, abs=1e-12)
+
+        # _composition_covariate_decision boundary: corr == max_corr -> dropped (>=)
+        use_eq, reason_eq = _composition_covariate_decision([0.0, 1.0, 2.0], [0.0, 1.0, 2.0], 1.0)
+        assert use_eq is False and "collinear_with_condition" in reason_eq
+        use_ok, reason_ok = _composition_covariate_decision([0.0, 1.0, 0.0, 1.0], [0.0, 0.0, 1.0, 1.0], 0.8)
+        assert use_ok is True and reason_ok is None
+        use_nan, reason_nan = _composition_covariate_decision([1.0, 1.0, 1.0], [0.0, 1.0, 0.0], 0.8)
+        assert use_nan is False and reason_nan == "collinearity_unmeasurable"
+
+        # _effective_alpha_from_significant
+        assert _effective_alpha_from_significant(None) == 0.0
+        assert _effective_alpha_from_significant(pd.DataFrame()) == 0.0
+        assert _effective_alpha_from_significant(pd.DataFrame({"log2fc": [1.0]})) == 0.0
+        assert _effective_alpha_from_significant(pd.DataFrame({"pvalue": [np.nan, np.inf]})) == 0.0
+        assert _effective_alpha_from_significant(pd.DataFrame({"pvalue": [1e-4, 0.012, np.nan]})) == pytest.approx(0.012)
+
+        # _expressed_background: dense, sparse, and exception fallback
+        dense = np.array([[0, 2, 0], [0, 0, 5]])
+        genes_d, deg_d = _expressed_background(dense, ["G0", "G1", "G2"])
+        assert genes_d == ["G1", "G2"] and deg_d is False
+        genes_s, deg_s = _expressed_background(sparse.csr_matrix(dense), ["G0", "G1", "G2"])
+        assert genes_s == ["G1", "G2"] and deg_s is False
+        genes_err, deg_err = _expressed_background("not_a_matrix", ["G0", "G1"])
+        assert genes_err == ["G0", "G1"] and deg_err is True

@@ -246,3 +246,73 @@ class TestSyntheticBenchmarkScoringOracle:
         cond_counts = ds.adata.obs["condition"].value_counts().to_dict()
         assert cond_counts == {"COND_A": 80, "COND_B": 80}
         assert math.isfinite(float(ds.adata.X.sum()))
+
+    def test_check_calibration_optional_fp_fraction_and_baseline_sanitization(self):
+        # Kills remaining mutants in check_calibration: n_called=0 clamping max(0,1)=1,
+        # rounding to 4 decimals, optional skip when either n_fp or n_called is None,
+        # and stripping 'provenance' from the returned baseline dict.
+        bounds = baseline_bounds("bulk_atac_da")
+        max_fp_frac = bounds["max_false_positive_fraction"]
+
+        # Both counts omitted -> optional check skipped, measured lacks false_positive_fraction.
+        r_opt = check_calibration(
+            "bulk_atac_da",
+            {"recall": bounds["min_recall"], "empirical_fdr": bounds["max_empirical_fdr"]},
+        )
+        assert r_opt["status"] == "pass"
+        assert "false_positive_fraction" not in r_opt["measured"]
+        assert "provenance" not in r_opt["baseline"]
+        assert r_opt["benchmark"] == "bulk_atac_da"
+
+        # Only ONE of n_false_positive / n_called supplied -> still skipped (requires BOTH).
+        for partial in ({"n_false_positive": 5}, {"n_called": 10}):
+            r_half = check_calibration(
+                "bulk_atac_da",
+                {
+                    "recall": bounds["min_recall"],
+                    "empirical_fdr": bounds["max_empirical_fdr"],
+                    **partial,
+                },
+            )
+            assert r_half["status"] == "pass"
+            assert "false_positive_fraction" not in r_half["measured"]
+
+        # n_called == 0 with n_false_positive == 0 -> denom clamped to 1.0, frac == 0.0
+        r_zero = check_calibration(
+            "bulk_atac_da",
+            {
+                "recall": bounds["min_recall"],
+                "empirical_fdr": 0.0,
+                "n_false_positive": 0,
+                "n_called": 0,
+            },
+        )
+        assert r_zero["status"] == "pass"
+        assert r_zero["measured"]["false_positive_fraction"] == 0.0
+
+        # Exact rounding to 4 decimals: 1/30 = 0.033333... -> 0.0333
+        r_round = check_calibration(
+            "bulk_atac_da",
+            {
+                "recall": bounds["min_recall"],
+                "empirical_fdr": 0.0,
+                "n_false_positive": 1,
+                "n_called": 30,
+            },
+        )
+        assert r_round["measured"]["false_positive_fraction"] == 0.0333
+        assert (r_round["status"] == "pass") == (1 / 30 <= max_fp_frac)
+
+        # Violation message contains exact formatted numbers
+        r_fail = check_calibration(
+            "bulk_atac_da",
+            {
+                "recall": bounds["min_recall"],
+                "empirical_fdr": 0.0,
+                "n_false_positive": 1,
+                "n_called": 0,  # 1 / max(0, 1) = 1.0 > max_fp_frac
+            },
+        )
+        assert r_fail["status"] == "fail"
+        assert r_fail["measured"]["false_positive_fraction"] == 1.0
+        assert any("false-positive fraction 1.0000 >" in v for v in r_fail["violations"])

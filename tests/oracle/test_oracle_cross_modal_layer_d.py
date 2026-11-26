@@ -351,3 +351,278 @@ class TestSampleMatchedLayerDOracle:
         )
         assert summary["n_pairs_tested"] == 1
         assert list(frame["gene"]) == ["G_pos"]
+
+    def test_residualize_covariates_and_layer_d_boundary_mutant_killers(self):
+        from aria.utils.cross_modal_concordance import _residualize_covariates, _standardize
+
+        # 1. _standardize on zero-variance row returns all zeros; unit norm otherwise
+        s_mat = _standardize(np.array([[3.0, 3.0, 3.0, 3.0], [1.0, 2.0, 3.0, 4.0]]))
+        np.testing.assert_allclose(s_mat[0], 0.0, atol=1e-12)
+        assert float(np.linalg.norm(s_mat[1])) == pytest.approx(1.0, abs=1e-12)
+        assert float(s_mat[1].mean()) == pytest.approx(0.0, abs=1e-12)
+
+        # 2. _residualize_covariates: none/invalid/missing/constant-num/constant-cat/bool/insufficient-df/valid
+        samples = [f"S{i}" for i in range(8)]
+        mat = np.arange(16, dtype=float).reshape(2, 8)
+        m0, meta0 = _residualize_covariates(mat, samples, None)
+        assert meta0["adjusted"] is False and meta0["reason"] == "no_covariates_supplied"
+        assert meta0["unadjusted_confounding_risk"] is True
+        np.testing.assert_array_equal(m0, mat)
+
+        # All covariates invalid/unestimable -> no_estimable_covariates with exact skip reasons
+        bad_covs = {
+            "not_dict": [1, 2, 3],
+            "has_none": {s: (None if i == 0 else float(i)) for i, s in enumerate(samples)},
+            "has_nan": {s: (float("nan") if i == 1 else float(i)) for i, s in enumerate(samples)},
+            "has_blank": {s: ("  " if i == 2 else "A") for i, s in enumerate(samples)},
+            "const_num": {s: 5.0 for s in samples},
+            "const_cat": {s: "only" for s in samples},
+        }
+        _, meta_bad = _residualize_covariates(mat, samples, bad_covs)
+        assert meta_bad["adjusted"] is False
+        assert meta_bad["reason"] == "no_estimable_covariates"
+        sk = meta_bad["skipped_covariates"]
+        assert sk["not_dict"] == "invalid_mapping"
+        assert sk["has_none"] == "missing_values_for_shared_samples"
+        assert sk["has_nan"] == "missing_values_for_shared_samples"
+        assert sk["has_blank"] == "missing_values_for_shared_samples"
+        assert sk["const_num"] == "constant_covariate"
+        assert sk["const_cat"] == "constant_covariate"
+
+        # Insufficient residual df: 6 samples, 4-level categorical (rank 4 -> df=2 < 3) -> fails closed
+        s6 = [f"S{i}" for i in range(6)]
+        _, meta_df = _residualize_covariates(
+            mat[:, :6], s6, {"cat4": {"S0": "A", "S1": "B", "S2": "C", "S3": "D", "S4": "A", "S5": "B"}}
+        )
+        assert meta_df["adjusted"] is False
+        assert meta_df["reason"] == "insufficient_residual_df_for_covariates"
+        assert meta_df["design_rank"] == 4 and meta_df["residual_df"] == 2
+
+        # Mixed numeric + bool (treated as categorical!) + 3-level categorical -> exact rank & orthogonal residuals
+        mixed_covs = {
+            "age": {s: float(20 + i * 5) for i, s in enumerate(samples)},
+            "is_male": {s: (i % 2 == 0) for i, s in enumerate(samples)},
+            "site": {s: ("X" if i < 3 else ("Y" if i < 6 else "Z")) for i, s in enumerate(samples)},
+        }
+        resid, meta_ok = _residualize_covariates(mat, samples, mixed_covs)
+        assert meta_ok["adjusted"] is True
+        assert meta_ok["covariates_adjusted"] == ["age", "is_male", "site"]
+        assert meta_ok["design_rank"] == 5 and meta_ok["residual_df"] == 3
+        assert meta_ok["unadjusted_confounding_risk"] is False
+        assert meta_ok["method"] == "ols_residualization_on_log2_cpm"
+        assert meta_ok["permutation_method"] == "freedman_lane_residual_reprojection"
+        # Residuals must be orthogonal to intercept, age, and site indicators
+        np.testing.assert_allclose(resid.mean(axis=1), 0.0, atol=1e-10)
+        age_v = np.array([20 + i * 5 for i in range(8)], dtype=float)
+        np.testing.assert_allclose(resid @ (age_v - age_v.mean()), 0.0, atol=1e-10)
+
+        # 3. sample_matched_layer edge returns & sex-chrom/negative-strand/negative-link reporting
+        empty_df, empty_res = sample_matched_layer(
+            pd.DataFrame(), pd.DataFrame(), {}, _default_layer_d_params(), []
+        )
+        assert empty_df.empty and empty_res["ran"] is False
+        assert empty_res["reason"] == "cpm_matrices_unavailable"
+
+        # Negative strand distance sign, sex chromosome link accounting, negative correlation link,
+        # and explicit sample_id_map
+        rng = np.random.default_rng(77)
+        rna_s = [f"R{i}" for i in range(10)]
+        atac_s = [f"A{i}" for i in range(10)]
+        smap = dict(zip(rna_s, atac_s))
+        x = np.linspace(1.0, 10.0, 10)
+        rna_df = pd.DataFrame(
+            {
+                s: [
+                    float(np.exp2(2.0 + 0.5 * x[i]) - 1.0),
+                    float(np.exp2(8.0 - 0.5 * x[i]) - 1.0),
+                    -5.0,  # negative CPM must be dropped!
+                ]
+                for i, s in enumerate(rna_s)
+            },
+            index=["G_POS_X", "G_NEG_MINUS", "G_BAD_NEG"],
+        )
+        atac_df = pd.DataFrame(
+            {
+                s: [
+                    float(np.exp2(1.0 + 0.6 * x[i]) - 1.0),
+                    float(np.exp2(1.0 + 0.5 * x[i]) - 1.0),
+                ]
+                for i, s in enumerate(atac_s)
+            },
+            index=["chrX:12000-12400", "chr1:12000-12400"],
+        )
+        models = {
+            "chrX": [{"gene": "G_POS_X", "tss": 10_000, "strand": "+"}],
+            "chr1": [
+                {"gene": "G_NEG_MINUS", "tss": 10_000, "strand": "-"},
+                {"gene": "G_BAD_NEG", "tss": 10_000, "strand": "+"},
+            ],
+        }
+        p = _default_layer_d_params(n_permutations=100, seed=5)
+        p["sample_id_map"] = smap
+        warns: list[str] = []
+        df_out, summ = sample_matched_layer(rna_df, atac_df, models, p, warns)
+        assert summ["ran"] is True
+        assert summ["n_pairs_tested"] == 2  # G_BAD_NEG dropped
+        assert summ["n_positive_links"] == 1
+        assert summ["n_negative_links"] == 1
+        assert summ["n_sex_chromosome_significant_links"] == 1
+        assert summ["sex_chromosome_significant_fraction"] == pytest.approx(0.5)
+        assert any("cpm_sample_matched_layer_unadjusted_for_covariates" in w for w in warns)
+        by_gene = df_out.set_index("gene")
+        # Minus strand flips distance_to_tss sign: center=12200, tss=10000 -> -2200
+        assert int(by_gene.loc["G_NEG_MINUS", "distance_to_tss"]) == -2200
+        assert int(by_gene.loc["G_POS_X", "distance_to_tss"]) == 2200
+        assert bool(by_gene.loc["G_POS_X", "is_sex_chromosome"]) is True
+        assert bool(by_gene.loc["G_NEG_MINUS", "is_sex_chromosome"]) is False
+
+        # No cis pairs within tiny window -> no_variable_cis_pairs
+        p_tiny = _default_layer_d_params(cis_distance_bp=50)
+        p_tiny["sample_id_map"] = smap
+        df_tiny, summ_tiny = sample_matched_layer(rna_df, atac_df, models, p_tiny, [])
+        assert df_tiny.empty and summ_tiny["ran"] is False
+        assert summ_tiny["reason"] == "no_variable_cis_pairs"
+
+    def test_layer_d_batching_cap_covariate_collinearity_and_schema_mutant_killers(self):
+        from aria.utils.cross_modal_concordance import _residualize_covariates, bh_adjust
+
+        # 1. Direct bh_adjust clipping on out-of-range inputs
+        np.testing.assert_allclose(bh_adjust(np.array([-0.2, 0.01, 1.4])), [0.0, 0.015, 1.0], atol=1e-12)
+
+        # 2. _residualize_covariates: empty dict, non-dict, collinearity, large-scale numeric standardization
+        samples = [f"S{i}" for i in range(8)]
+        mat = np.arange(16, dtype=float).reshape(2, 8)
+        for empty_cov in ({}, "not_a_dict"):
+            m_e, meta_e = _residualize_covariates(mat, samples, empty_cov)  # type: ignore[arg-type]
+            assert meta_e["adjusted"] is False
+            assert meta_e["covariates_adjusted"] == []
+            assert meta_e["unadjusted_confounding_risk"] is True
+            np.testing.assert_array_equal(m_e, mat)
+
+        # Collinear numeric covariates + huge scale (1e5) -> SVD rank stays 2 (not 3), residual_df == 6
+        x_base = np.linspace(1.0, 8.0, 8)
+        col_covs = {
+            "cov_a": {s: float(1e5 * x_base[i]) for i, s in enumerate(samples)},
+            "cov_b": {s: float(2e5 * x_base[i] + 7.0) for i, s in enumerate(samples)},
+            "near_const": {s: float(5.0 + (1e-14 if i == 0 else 0.0)) for i, s in enumerate(samples)},
+        }
+        resid_c, meta_c = _residualize_covariates(mat, samples, col_covs)
+        assert meta_c["adjusted"] is True
+        assert meta_c["design_rank"] == 2
+        assert meta_c["residual_df"] == 6
+        assert meta_c["covariates_adjusted"] == ["cov_a", "cov_b"]
+        assert meta_c["skipped_covariates"]["near_const"] == "constant_covariate"
+        np.testing.assert_allclose(resid_c @ (x_base - x_base.mean()), 0.0, atol=1e-9)
+
+        # Insufficient residual df also exposes candidate_covariates
+        s6 = [f"S{i}" for i in range(6)]
+        _, meta_df_cand = _residualize_covariates(
+            mat[:, :6], s6, {"cat4": {"S0": "A", "S1": "B", "S2": "C", "S3": "D", "S4": "A", "S5": "B"}}
+        )
+        assert meta_df_cand["candidate_covariates"] == ["cat4"]
+
+        # 3. sample_matched_layer full schema keys on ran=False AND ran=True + adjusted sex-chr link
+        #    (adjusted=True with sex-chr hit MUST NOT emit unadjusted warning!) + NaN/neg atac filter
+        _, empty_res = sample_matched_layer(
+            pd.DataFrame(), pd.DataFrame(), {}, _default_layer_d_params(), []
+        )
+        assert empty_res["n_pairs_tested"] == 0
+        assert empty_res["n_significant_links"] == 0
+        assert empty_res["n_positive_links"] == 0
+        assert empty_res["n_negative_links"] == 0
+        assert empty_res["n_sex_chromosome_significant_links"] == 0
+        assert empty_res["sex_chromosome_significant_fraction"] == 0.0
+        assert empty_res["covariate_adjustment"]["reason"] == "layer_not_run"
+        assert empty_res["covariate_adjustment"]["unadjusted_confounding_risk"] is True
+        assert empty_res["permutation_null"] == {}
+        assert empty_res["top_links"] == []
+
+        rng = np.random.default_rng(123)
+        s8 = [f"S{i}" for i in range(8)]
+        batch = np.array([0, 0, 0, 0, 1, 1, 1, 1], dtype=float)
+        sig = np.array([-2.0, -0.5, 0.5, 2.0, -2.0, -0.5, 0.5, 2.0])
+        rna8 = pd.DataFrame(
+            {
+                s: [
+                    float(np.exp2(5.0 + 1.0 * sig[i] + 0.5 * batch[i]) - 1.0),
+                    float("nan") if i == 0 else 5.0 + i,
+                ]
+                for i, s in enumerate(s8)
+            },
+            index=["GX_OK", "G_NAN"],
+        )
+        atac8 = pd.DataFrame(
+            {
+                s: [
+                    float(np.exp2(5.0 + 1.0 * sig[i] + 0.5 * batch[i]) - 1.0),
+                    -1.0 if i == 0 else 5.0 + i,
+                    float("nan") if i == 1 else 5.0 + i,
+                ]
+                for i, s in enumerate(s8)
+            },
+            index=["chrX:10500-10800", "chrX:11000-11200", "chrX:11500-11700"],
+        )
+        models8 = {"chrX": [{"gene": "GX_OK", "tss": 10_000, "strand": "+"}, {"gene": "G_NAN", "tss": 10_000, "strand": "+"}]}
+        p8 = _default_layer_d_params(n_permutations=40, seed=9)
+        p8["sample_covariates"] = {"batch": {s: ("B0" if i < 4 else "B1") for i, s in enumerate(s8)}}
+        w8: list[str] = []
+        df8, summ8 = sample_matched_layer(rna8, atac8, models8, p8, w8)
+        assert summ8["ran"] is True
+        assert summ8["n_pairs_tested"] == 1  # G_NAN & negative/NaN atac peaks dropped
+        assert summ8["shared_sample_ids"] == s8
+        assert summ8["sample_id_pairs"] == [{"rna": s, "atac": s} for s in s8]
+        assert summ8["covariate_adjustment"]["adjusted"] is True
+        assert summ8["n_sex_chromosome_significant_links"] == 1
+        assert not any("sex_chromosome_links_without_covariate_adjustment" in w for w in w8)
+        pn = summ8["permutation_null"]
+        assert pn["n_permutations"] == 40
+        assert pn["seed"] == 9
+        assert pn["method"] == "pooled_absolute_pearson_sample_permutation"
+        assert pn["held_out_draw_independent"] is True
+        assert len(summ8["top_links"]) == 1
+        assert int(df8.iloc[0]["n_samples"]) == 8
+
+        # 4. >4096 cis pairs exercises multi-batch chunking (range(0, len(rows), 4096))
+        s6 = [f"B{i}" for i in range(6)]
+        x6 = np.linspace(1.0, 6.0, 6)
+        rna_b = pd.DataFrame(
+            {s: [float(np.exp2(2.0 + 0.4 * x6[i] + 0.1 * g) - 1.0) for g in range(5)] for i, s in enumerate(s6)},
+            index=[f"GB_{g}" for g in range(5)],
+        )
+        n_pk_b = 850  # 5 * 850 = 4250 > 4096 pairs!
+        atac_vals = rng.uniform(5.0, 50.0, size=(n_pk_b, 6))
+        atac_vals[-1] = np.exp2(2.0 + 0.4 * x6) - 1.0  # last peak sits in batch 2 (>4096)
+        atac_b = pd.DataFrame(
+            atac_vals,
+            index=[f"chr1:{1000 + p*20}-{1010 + p*20}" for p in range(n_pk_b)],
+            columns=s6,
+        )
+        models_b = {"chr1": [{"gene": f"GB_{g}", "tss": 10_000, "strand": "+"} for g in range(5)]}
+        df_b, summ_b = sample_matched_layer(
+            rna_b, atac_b, models_b, _default_layer_d_params(cis_distance_bp=50_000, n_permutations=10, seed=3), []
+        )
+        assert summ_b["ran"] is True
+        assert summ_b["n_pairs_tested"] == 4250
+        assert len(df_b) == 4250
+        assert len(summ_b["top_links"]) == 20
+
+        # 5. >50,000 ATAC peaks triggers top_50000_variable_peaks cap & warning
+        s6_c = [f"C{i}" for i in range(6)]
+        n_cap = 50_005
+        # Give peak 0 huge variance (retained in top 50,000) and peaks 1..50004 tiny variance
+        cap_mat = rng.uniform(10.0, 10.5, size=(n_cap, 6))
+        cap_mat[0] = [1.0, 5.0, 20.0, 80.0, 300.0, 1000.0]
+        atac_cap = pd.DataFrame(
+            cap_mat,
+            index=["chr1:10100-10300"] + [f"chr2:{i*100}-{i*100+50}" for i in range(1, n_cap)],
+            columns=s6_c,
+        )
+        rna_cap = pd.DataFrame([[1.0, 5.0, 20.0, 80.0, 300.0, 1000.0]], index=["GCAP"], columns=s6_c)
+        w_cap: list[str] = []
+        p_cap = _default_layer_d_params(min_samples=6, n_permutations=5, seed=1)
+        df_cap, summ_cap = sample_matched_layer(
+            rna_cap, atac_cap, {"chr1": [{"gene": "GCAP", "tss": 10_000, "strand": "+"}]}, p_cap, w_cap
+        )
+        assert summ_cap["ran"] is True
+        assert summ_cap["n_pairs_tested"] == 1
+        assert any("sample_link_candidate_cap: top_50000_variable_peaks" in w for w in w_cap)

@@ -505,3 +505,154 @@ class TestBulkDeseq2PyDeseq2Oracles:
         )
         assert res_nan["status"] == "error"
         assert res_nan["error_type"] == "DESeq2Failed"
+
+
+class TestContrastsAndDeseq2HelperMutantKillers:
+    """Comprehensive mutant-killing oracle tests for aria/scripts/rna_bulk/contrasts.py
+    and aria/scripts/rna_bulk/deseq2.py pure helpers."""
+
+    def test_slugify_and_format_top_genes_all_branches(self):
+        assert _slugify("  KO-1 vs WT (24h)! ") == "ko_1_vs_wt_24h"
+        assert _slugify("!!!") == "contrast"
+
+        assert _format_top_genes({}) == []
+        assert _format_top_genes({"results": pd.DataFrame()}) == []
+
+        # >30 genes capped at 30, missing gene skipped, non-finite & malformed skipped, lfc == 0 -> down
+        genes = [f"ENSG{i:05d}.1" for i in range(35)] + ["G_NAN", "G_INF", "G_ZERO", "G_BAD"]
+        df = pd.DataFrame(
+            {
+                "log2FoldChange": [1.2346] * 35 + [float("nan"), 1.0, 0.0, "not_float"],
+                "padj": [1e-5] * 35 + [1e-5, float("inf"), 1e-5, 1e-5],
+            },
+            index=genes,
+        )
+        top30 = _format_top_genes({"results": df, "sig_genes": genes[:35]}, symbol_map={"ENSG00000": "SYM0"})
+        assert len(top30) == 30
+        assert top30[0]["symbol"] == "SYM0" and top30[0]["log2fc"] == 1.235 and top30[0]["direction"] == "up"
+        assert top30[1]["symbol"] == "ENSG00001.1"
+
+        top_edge = _format_top_genes(
+            {"results": df, "sig_genes": ["MISSING_GENE", "G_NAN", "G_INF", "G_ZERO", "G_BAD"]},
+            symbol_map=None,
+        )
+        assert len(top_edge) == 1
+        assert top_edge[0]["gene"] == "G_ZERO"
+        assert top_edge[0]["direction"] == "down"
+
+    @pytest.mark.parametrize(
+        "ctrl_name",
+        [
+            "WT", "wildtype", "Control", "ctrl", "vehicle", "DMSO",
+            "untreated", "mock", "normal", "healthy", "baseline", "scramble",
+        ],
+    )
+    def test_suggest_contrasts_every_control_keyword_exact_match(self, ctrl_name):
+        meta = pd.DataFrame({"cond": [ctrl_name, "A_drug", "Z_drug"]})
+        out = _suggest_contrasts(meta, "cond")
+        assert [(c["numerator"], c["denominator"], c["name"]) for c in out] == [
+            ("A_drug", ctrl_name, f"A_drug vs {ctrl_name}"),
+            ("Z_drug", ctrl_name, f"Z_drug vs {ctrl_name}"),
+        ]
+
+    def test_suggest_and_auto_contrasts_substring_pairwise_and_single_group(self):
+        # Single group -> empty suggestions, empty warning list
+        meta_1 = pd.DataFrame({"cond": ["only", "only"]})
+        assert _suggest_contrasts(meta_1, "cond") == []
+        sugg_1, warns_1 = _auto_contrasts(meta_1, "cond")
+        assert sugg_1 == [] and warns_1 == []
+
+        # Substring fallback when no exact match
+        meta_sub = pd.DataFrame({"cond": ["cell_vehicle_24h", "cell_drugA", "cell_drugB"]})
+        out_sub = _suggest_contrasts(meta_sub, "cond")
+        assert all(c["denominator"] == "cell_vehicle_24h" for c in out_sub)
+        assert {c["numerator"] for c in out_sub} == {"cell_drugA", "cell_drugB"}
+
+        # Exact match takes precedence over substring match
+        meta_prec = pd.DataFrame({"cond": ["wt_line", "ctrl", "ko_line"]})
+        out_prec = _suggest_contrasts(meta_prec, "cond")
+        assert all(c["denominator"] == "ctrl" for c in out_prec)
+
+        # Pairwise fallback when no control keyword matches at all (sorted groups[0] is ref)
+        meta_none = pd.DataFrame({"cond": ["gamma", "alpha", "beta"]})
+        out_none = _suggest_contrasts(meta_none, "cond")
+        assert [(c["numerator"], c["denominator"]) for c in out_none] == [
+            ("beta", "alpha"),
+            ("gamma", "alpha"),
+        ]
+        sugg, warns = _auto_contrasts(meta_none, "cond")
+        assert sugg == out_none
+        assert len(warns) == 1 and "Automatic contrast generation is disabled" in warns[0]
+
+    def test_contrast_overlap_all_fallbacks_3way_cap50_and_empty_sets(self):
+        # 1. all_sig_genes fallback + top_genes fallback + 3-way pairs + rounding to 3 decimals
+        ov_sym = _contrast_overlap([
+            {"name": "A", "status": "success", "all_sig_genes": ["G1", "G2", "G3"]},
+            {"name": "B", "status": "success", "all_sig_genes": ["G1", "G4"]},
+            {"name": "C", "status": "success", "top_genes": [{"gene": "G1"}, {"gene": "G2"}, {"gene": "G5"}]},
+        ])
+        assert set(ov_sym.keys()) == {"A ∩ B", "A ∩ C", "B ∩ C"}
+        # A & B: shared={G1} (1), union=4 -> 0.25
+        assert ov_sym["A ∩ B"]["jaccard"] == 0.25
+        assert ov_sym["A ∩ B"]["n_in_first"] == 3 and ov_sym["A ∩ B"]["n_in_second"] == 2
+        # A & C: shared={G1, G2} (2), union=4 -> 0.5
+        assert ov_sym["A ∩ C"]["shared_genes"] == ["G1", "G2"]
+        # B & C: shared={G1} (1), union=4 -> 0.25
+        assert ov_sym["B ∩ C"]["n_shared"] == 1
+
+        # 2. 60 shared genes -> shared_genes sorted and capped at 50; Jaccard rounded to 3 decimals (60/61=0.984)
+        g60 = [f"G{i:03d}" for i in range(60)]
+        ov_cap = _contrast_overlap([
+            {"name": "X", "status": "success", "all_sig_gene_ids": g60 + ["EXTRA_X"]},
+            {"name": "Y", "status": "success", "all_sig_gene_ids": list(reversed(g60))},
+        ])
+        rec = ov_cap["X ∩ Y"]
+        assert rec["n_shared"] == 60
+        assert len(rec["shared_genes"]) == 50
+        assert rec["shared_genes"] == sorted(g60)[:50]
+        assert rec["jaccard"] == round(60 / 61, 3)
+
+        # 3. Both empty -> jaccard == 0.0 (no ZeroDivisionError)
+        ov_empty = _contrast_overlap([
+            {"name": "E1", "status": "success", "all_sig_gene_ids": []},
+            {"name": "E2", "status": "success", "all_sig_gene_ids": None},
+        ])
+        assert ov_empty["E1 ∩ E2"]["n_shared"] == 0 and ov_empty["E1 ∩ E2"]["jaccard"] == 0.0
+
+    def test_deseq2_helper_edge_cases_sign_flip_shrink_coeff_and_warnings(self):
+        import warnings as py_warnings
+        from aria.scripts.rna_bulk.deseq2 import (
+            _detect_shrink_sign_flip,
+            _serialize_fit_warnings,
+            _shrink_coeff,
+        )
+
+        # _detect_shrink_sign_flip exact boundaries
+        assert _detect_shrink_sign_flip([], []) is False
+        assert _detect_shrink_sign_flip([1.0], [1.0, 2.0]) is False
+        assert _detect_shrink_sign_flip([0.49, -0.49], [-0.49, 0.49]) is False
+        assert _detect_shrink_sign_flip([2.0, -2.0], [-0.09, 0.09]) is False
+        assert _detect_shrink_sign_flip([0.5, -0.5, 0.5], [-0.1, 0.1, 0.1]) is True
+        assert _detect_shrink_sign_flip([1.0, 1.0, 1.0, 1.0], [-0.5, -0.5, 0.5, 0.5]) is False
+        assert _detect_shrink_sign_flip([1.0, -0.6], [-0.2, 0.2]) is True
+        assert _detect_shrink_sign_flip([0.99, -0.6], [-0.2, 0.2]) is False
+
+        # _shrink_coeff backtick & C(...) without extra args & prefix guard
+        class _DDS:
+            def __init__(self, cols):
+                self.varm = {"LFC": pd.DataFrame(columns=cols)}
+
+        assert _shrink_coeff(object(), "cond", "KO") is None
+        assert _shrink_coeff(_DDS(["C(cond_x)[T.KO]", "C(cond)[T.KO]"]), "cond", "KO") == "C(cond)[T.KO]"
+        assert _shrink_coeff(_DDS(["`my cond`[T.KO]"]), "my cond", "KO") == "`my cond`[T.KO]"
+
+        # _serialize_fit_warnings preserves categories and messages
+        with py_warnings.catch_warnings(record=True) as caught:
+            py_warnings.simplefilter("always")
+            py_warnings.warn("first warning", UserWarning)
+            py_warnings.warn("second warning", RuntimeWarning)
+        ser = _serialize_fit_warnings(caught)
+        assert ser == [
+            "pydeseq2 fit warning [UserWarning]: first warning",
+            "pydeseq2 fit warning [RuntimeWarning]: second warning",
+        ]

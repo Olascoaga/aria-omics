@@ -42,21 +42,23 @@ class TestChromatinDiffAccPureHelpersOracle:
     def test_gate_da_by_convergence_exact_filtering_and_sorting(self):
         df = pd.DataFrame(
             {
-                "log2FoldChange": [2.0, -1.8, 0.01, 1.5, -2.1],
-                "padj": [0.02, 0.001, 0.0005, 0.20, 0.01],
-                "lfc_converged": [True, True, False, True, float("nan")],
+                "log2FoldChange": [2.0, -1.8, 1.4, 0.01, 1.5, -2.1, 3.0],
+                "padj": [0.02, 0.001, 0.03, 0.0005, 0.20, 0.01, 0.05],
+                "lfc_converged": [True, True, True, False, True, float("nan"), True],
             },
-            index=["P1", "P2", "P_nonconv", "P_ns", "P_nanconv"],
+            index=["P1", "P2", "P3", "P_nonconv", "P_ns", "P_nanconv", "P_exact_thr"],
         )
+        # Strict inequality `padj < padj_max` excludes P_exact_thr (padj == 0.05);
+        # 3 converged significant vs 2 non-converged excluded (unequal counts kill inversion).
         sig, info = _gate_da_by_convergence(df, padj_max=0.05)
         assert info == {"convergence_available": True, "n_nonconverged_excluded": 2}
-        assert list(sig.index) == ["P2", "P1"]
+        assert list(sig.index) == ["P2", "P1", "P3"]
 
         # Without lfc_converged column -> no fabrication, keeps all padj < 0.05 sorted
         df_no = df.drop(columns=["lfc_converged"])
         sig_no, info_no = _gate_da_by_convergence(df_no, padj_max=0.05)
         assert info_no == {"convergence_available": False, "n_nonconverged_excluded": 0}
-        assert list(sig_no.index) == ["P_nonconv", "P2", "P_nanconv", "P1"]
+        assert list(sig_no.index) == ["P_nonconv", "P2", "P_nanconv", "P1", "P3"]
 
     def test_binary_pct_dense_and_sparse_parity(self):
         X = np.array([[0, 2], [3, 0], [1, 0], [0, 5]], dtype=float)
@@ -523,3 +525,149 @@ class TestBulkAtacDiffAccOracles:
         assert comp["lfc_shrinkage"]["applied"] is True
         full = pd.read_csv(comp["full_results_csv"]).set_index("peak")
         assert float(full.loc[peaks[:48], "log2FoldChange"].median()) == pytest.approx(-2.0, abs=0.35)
+
+
+class TestBulkChromatinHelperMutantKillers:
+    """Comprehensive mutant-killing oracle tests for chromatin_bulk_diffacc pure helpers
+    (_normalise_comparisons, _load_counts_matrix, _load_sample_metadata, _prepare_replicate_matrix)."""
+
+    def test_normalise_comparisons_all_input_shapes_and_separators(self):
+        from aria.scripts.chromatin_bulk_diffacc import _normalise_comparisons
+
+        assert _normalise_comparisons(None) == []
+        assert _normalise_comparisons("") == []
+        assert _normalise_comparisons([]) == []
+        assert _normalise_comparisons("no_separator") == []
+        assert _normalise_comparisons("_vs_WT") == []
+        assert _normalise_comparisons("KO_vs_") == []
+        assert _normalise_comparisons("KO_vs_WT") == [{"test": "KO", "reference": "WT"}]
+        assert _normalise_comparisons("  KO vs WT ") == [{"test": "KO", "reference": "WT"}]
+        assert _normalise_comparisons("KO_VS_WT") == [{"test": "KO", "reference": "WT"}]
+        assert _normalise_comparisons("KO VS WT") == [{"test": "KO", "reference": "WT"}]
+        assert _normalise_comparisons({"numerator": "A", "denominator": "B"}) == [{"test": "A", "reference": "B"}]
+        assert _normalise_comparisons({"test": "A", "ref": "B"}) == [{"test": "A", "reference": "B"}]
+        assert _normalise_comparisons({"test": "A"}) == []
+        assert _normalise_comparisons([
+            ["T1", "C1"],
+            ("T2", "C2"),
+            {"test": "T3", "reference": "C3"},
+            "T4_vs_C4",
+            ["only_one"],
+        ]) == [
+            {"test": "T1", "reference": "C1"},
+            {"test": "T2", "reference": "C2"},
+            {"test": "T3", "reference": "C3"},
+            {"test": "T4", "reference": "C4"},
+        ]
+
+    def test_load_counts_matrix_and_metadata_validation_guards(self, tmp_path):
+        from aria.scripts.chromatin_bulk_diffacc import (
+            _load_counts_matrix,
+            _load_sample_metadata,
+        )
+
+        # Valid matrix with 'peak' / 'feature_id' header -> exact int DataFrame
+        ok_p = tmp_path / "ok.tsv"
+        ok_p.write_text("feature_id\ts1\ts2\nchr1:1-10\t5\t12\nchr1:20-30\t0\t3\n", encoding="utf-8")
+        c = _load_counts_matrix(ok_p)
+        assert list(c.index) == ["chr1:1-10", "chr1:20-30"]
+        assert list(c.columns) == ["s1", "s2"]
+        assert c.loc["chr1:1-10", "s2"] == 12 and np.issubdtype(c["s1"].dtype, np.integer)
+
+        # Reject empty / <2 cols / bad first col / dup peaks / empty peak / NaN / inf / negative / non-integer (>3 examples)
+        bad_cases = [
+            ("empty.tsv", "peak_id\ts1\n", "peak_id plus sample"),
+            ("onecol.tsv", "peak_id\np1\n", "peak_id plus sample"),
+            ("badhdr.tsv", "gene\ts1\np1\t5\n", "peak_id/peak"),
+            ("dup.tsv", "peak_id\ts1\np1\t5\np1\t6\n", "non-empty and unique"),
+            ("nan_pk.tsv", "peak_id\ts1\n\t5\n", "non-empty and unique"),
+            ("nan_val.tsv", "peak_id\ts1\np1\t\n", "missing count"),
+            ("inf_val.tsv", "peak_id\ts1\np1\tinf\n", "non-finite"),
+            ("neg_val.tsv", "peak_id\ts1\np1\t-1\n", "negative"),
+            ("frac.tsv", "peak_id\ts1\ts2\np1\t1.5\t2.5\np2\t3.5\t4.5\n", "non-integer"),
+        ]
+        for fname, content, err_sub in bad_cases:
+            fp = tmp_path / fname
+            fp.write_text(content, encoding="utf-8")
+            with pytest.raises(ValueError, match=err_sub):
+                _load_counts_matrix(fp)
+
+        # Verify non-integer error caps examples at 3
+        with pytest.raises(ValueError) as exc_info:
+            _load_counts_matrix(tmp_path / "frac.tsv")
+        assert "p1/s1=1.5" in str(exc_info.value)
+        assert str(exc_info.value).count("=") == 3
+
+        # _load_sample_metadata guards
+        m_ok = tmp_path / "m_ok.tsv"
+        m_ok.write_text("sample_id\tcondition\treplicate\n001\tKO\tr1\n002\tWT\tr1\n", encoding="utf-8")
+        meta = _load_sample_metadata(m_ok)
+        assert list(meta.index) == ["1", "2"] or len(meta) == 2
+
+        for fname, content, err_sub in [
+            ("m_no_id.tsv", "sample\tcondition\ns1\tKO\n", "sample_id column"),
+            ("m_nan.tsv", "sample_id\tcondition\n\tKO\n", "empty sample_id"),
+            ("m_dup.tsv", "sample_id\tcondition\ns1\tKO\ns1\tWT\n", "unique"),
+        ]:
+            fp = tmp_path / fname
+            fp.write_text(content, encoding="utf-8")
+            with pytest.raises(ValueError, match=err_sub):
+                _load_sample_metadata(fp)
+
+    def test_prepare_replicate_matrix_aggregation_covariates_and_errors(self):
+        from aria.scripts.chromatin_bulk_diffacc import _prepare_replicate_matrix
+
+        counts = pd.DataFrame(
+            {"c1a": [10, 2], "c1b": [5, 3], "c2": [20, 4], "t1": [80, 1]},
+            index=["p1", "p2"],
+        )
+        # Missing sample in metadata -> ValueError
+        meta_miss = pd.DataFrame(
+            {"condition": ["ctrl", "ctrl", "treated"], "replicate": ["r1", "r2", "r1"]},
+            index=["c1a", "c2", "t1"],
+        )
+        with pytest.raises(ValueError, match="missing count-matrix"):
+            _prepare_replicate_matrix(counts, meta_miss, "condition", "replicate", [])
+
+        # Missing required column -> ValueError
+        meta_nocol = pd.DataFrame({"condition": ["ctrl"] * 4}, index=counts.columns)
+        with pytest.raises(ValueError, match="required metadata column missing"):
+            _prepare_replicate_matrix(counts, meta_nocol, "condition", "replicate", [])
+
+        # Blank value in condition/replicate -> ValueError
+        meta_blank = pd.DataFrame(
+            {"condition": ["ctrl", "  ", "ctrl", "treated"], "replicate": ["r1", "r1", "r2", "r1"]},
+            index=counts.columns,
+        )
+        with pytest.raises(ValueError, match="empty values"):
+            _prepare_replicate_matrix(counts, meta_blank, "condition", "replicate", [])
+
+        # Full aggregation + usable, missing-column, non-constant, and missing-within-rep covariates
+        meta_full = pd.DataFrame(
+            {
+                "condition": ["ctrl", "ctrl", "ctrl", "treated"],
+                "replicate": ["r1", "r1", "r2", "r1"],
+                "lane": ["L1", "L1", "L2", "L1"],          # usable
+                "batch": ["b1", "b2", "b1", "b1"],         # non-constant within ctrl::r1
+                "plate": ["P1", "P1", "  ", "P1"],         # missing within ctrl::r2
+            },
+            index=counts.columns,
+        )
+        agg_c, agg_m, usable, dropped = _prepare_replicate_matrix(
+            counts, meta_full, "condition", "replicate",
+            ["lane", "lane", "", "batch", "plate", "absent_cov"],
+        )
+        assert list(agg_c.columns) == ["ctrl::r1", "ctrl::r2", "treated::r1"]
+        assert agg_c.loc["p1", "ctrl::r1"] == 15
+        assert agg_c.loc["p2", "ctrl::r1"] == 5
+        assert agg_m.loc["ctrl::r1", "n_technical_samples"] == 2
+        assert agg_m.loc["ctrl::r2", "n_technical_samples"] == 1
+        assert usable == ["lane"]
+        by_cov = {d["covariate"]: d for d in dropped}
+        assert set(by_cov) == {"absent_cov", "batch", "plate"}
+        assert by_cov["absent_cov"]["reason"] == "not present in the sample metadata"
+        assert by_cov["batch"]["affected_replicates"] == ["ctrl::r1"]
+        assert by_cov["batch"]["n_affected_replicates"] == 1
+        assert by_cov["plate"]["affected_replicates"] == ["ctrl::r2"]
+        assert by_cov["plate"]["n_affected_replicates"] == 1
+        assert "missing within biological replicate" in by_cov["plate"]["reason"]

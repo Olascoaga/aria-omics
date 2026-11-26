@@ -463,3 +463,75 @@ class TestRnaDiffAbundanceBHIntegration:
         assert ct0_rev["direction"] == "down"
         assert ct0_rev["clr_log_ratio"] == pytest.approx(-ct0["clr_log_ratio"], rel=1e-9, abs=1e-9)
         assert ct0_rev["padj"] == pytest.approx(ct0["padj"], rel=1e-9, abs=1e-9)
+
+    def test_stats_module_mutant_killers_preregister_disclosure_and_edges(self):
+        from aria.utils.stats import (
+            assert_fdr_family_not_post_hoc,
+            fdr_advanced_methods_disclosure,
+            preregister_contrast_family,
+            preregister_fdr_family,
+            primary_fdr_column,
+        )
+
+        # preregister_fdr_family & preregister_contrast_family normalization & exact fields
+        pf_g = preregister_fdr_family("  GLOBAL ")
+        assert pf_g["fdr_strategy"] == "global"
+        assert pf_g["preregistered"] is True
+        assert pf_g["selected_before_results"] is True
+        assert "not chosen post-hoc" in pf_g["note"]
+        assert preregister_fdr_family(None)["fdr_strategy"] == "per_cluster"
+        assert preregister_fdr_family("invalid")["fdr_strategy"] == "per_cluster"
+
+        pc_g = preregister_contrast_family("  GLOBAL ")
+        assert pc_g["fdr_family"] == "global"
+        assert pc_g["preregistered"] is True
+        assert pc_g["selected_before_results"] is True
+        assert "not chosen post-hoc" in pc_g["note"]
+        assert preregister_contrast_family(None)["fdr_family"] == "per_contrast"
+        assert preregister_contrast_family("bad")["fdr_family"] == "per_contrast"
+
+        # primary_fdr_column & assert_fdr_family_not_post_hoc
+        assert primary_fdr_column(" GLOBAL ") == "padj_global"
+        assert primary_fdr_column("per_cluster") == "padj_local"
+        assert_fdr_family_not_post_hoc("global", "padj_global")
+        with pytest.raises(ValueError, match="post-hoc switch"):
+            assert_fdr_family_not_post_hoc("global", "padj_local")
+
+        # fdr_advanced_methods_disclosure exact semantic contract
+        disc = fdr_advanced_methods_disclosure()
+        assert disc["ihw"]["status"] == "not_implemented"
+        assert disc["ihw"]["available"] is False
+        assert "Ignatiadis-Huber" in disc["ihw"]["reason"] and "ADR-002" in disc["ihw"]["reason"]
+        assert disc["s_values"]["status"] == "not_available"
+        assert disc["s_values"]["available"] is False
+        assert "pydeseq2 0.5.4" in disc["s_values"]["reason"]
+        assert disc["primary_method"] == "pre-registered Benjamini-Hochberg (local/global dual)"
+
+        # pooled_bh_across_groups: None/inf/empty-dict edges
+        assert pooled_bh_across_groups(None) == {}
+        inf_out = pooled_bh_across_groups({"c1": {"g_inf": float("inf"), "g_ok": 0.02}, "c2": None})
+        assert math.isnan(inf_out["c1"]["g_inf"])
+        assert inf_out["c1"]["g_ok"] == pytest.approx(0.02, abs=1e-12)
+        assert inf_out["c2"] == {}
+
+        # contrast_family_significance: lfc == 0.0 (neither up nor down), None lfc with lfc_min=None,
+        # inf lfc excluded, missing pvalue defaults padj=1.0, empty/None contrast dict.
+        cf = contrast_family_significance(
+            {
+                "c1": {
+                    "g_zero_lfc": {"pvalue": 1e-4, "log2fc": 0.0},
+                    "g_none_lfc": {"pvalue": 1e-4, "log2fc": None},
+                    "g_inf_lfc": {"pvalue": 1e-4, "log2fc": float("inf")},
+                    "g_no_p": {"pvalue": None, "log2fc": 3.0},
+                    "g_bool_p": {"pvalue": True, "log2fc": 3.0},
+                },
+                "c_empty": None,
+            },
+            padj_max=0.05,
+            lfc_min=None,
+        )
+        assert set(cf["c1"]["sig_genes"]) == {"g_zero_lfc", "g_none_lfc"}
+        assert cf["c1"]["n_sig"] == 2
+        assert cf["c1"]["n_up"] == 0 and cf["c1"]["n_down"] == 0
+        assert cf["c_empty"]["n_sig"] == 0
+        assert contrast_family_significance(None, padj_max=0.05, lfc_min=0.5) == {}

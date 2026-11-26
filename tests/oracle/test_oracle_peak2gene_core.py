@@ -476,3 +476,529 @@ class TestComputePeakToGeneLinksOracle:
         assert res_dist["status"] == "success"
         assert res_dist["links"][0]["background_scope"] == "same_chrom_distal"
         assert any("same_chrom_distal" in w for w in res_dist["warnings"])
+
+    def test_peak2gene_helper_and_parameter_mutant_killers(self, tmp_path):
+        import math
+        import scipy.sparse as sp
+        from aria.utils.peak2gene_core import (
+            _log1p_cp10k_csc,
+            _quantile_bin_labels,
+            _signac_tfidf_csc,
+            canonical_contig,
+            is_standard_contig,
+            parse_peak_coord,
+            scalar_pearson_corr,
+            vectorized_pearson_corr,
+        )
+
+        # 1. Contig canonicalization, standard check, and peak parsing edges
+        assert canonical_contig("") is None
+        assert canonical_contig("MT") == "chrM"
+        assert canonical_contig("M") == "chrM"
+        assert canonical_contig("chrMT") == "chrM"
+        assert canonical_contig("1") == "chr1"
+        assert canonical_contig("X") == "chrX"
+        assert canonical_contig("chr22") == "chr22"
+        assert canonical_contig("GL000195.1") == "GL000195.1"
+        assert is_standard_contig("chr1") is True
+        assert is_standard_contig("chrM") is False
+        assert is_standard_contig("GL000195.1") is False
+        assert parse_peak_coord("chr1:100-200") == ("chr1", 100, 200)
+        assert parse_peak_coord("chr1-100-200") == ("chr1", 100, 200)
+        assert parse_peak_coord("chr1:200-100") == ("chr1", 100, 200)
+        assert parse_peak_coord("bad_peak") is None
+
+        # 2. scalar & vectorized pearson edge cases (n<3, mismatched length, constant vector, 1D cols)
+        assert scalar_pearson_corr([1.0, 2.0], [1.0, 2.0]) is None
+        assert scalar_pearson_corr([1.0, 2.0, 3.0], [1.0, 2.0]) is None
+        assert scalar_pearson_corr([2.0, 2.0, 2.0], [1.0, 2.0, 3.0]) is None
+        assert scalar_pearson_corr([1.0, 2.0, 3.0], [2.0, 2.0, 2.0]) is None
+        assert scalar_pearson_corr([1.0, 2.0, 3.0], [3.0, 2.0, 1.0]) == -1.0
+        assert np.all(np.isnan(vectorized_pearson_corr([1.0, 2.0], np.ones((2, 3)))))
+        r_1d = vectorized_pearson_corr([1.0, 2.0, 3.0, 4.0], np.array([2.0, 4.0, 6.0, 8.0]))
+        np.testing.assert_allclose(r_1d, [1.0], atol=1e-12)
+        r_const = vectorized_pearson_corr([1.0, 2.0, 3.0], np.column_stack([[5, 5, 5], [1, 2, 3]]))
+        assert np.isnan(r_const[0]) and r_const[1] == pytest.approx(1.0, abs=1e-12)
+
+        # 3. _quantile_bin_labels empty & n_bins<=1
+        assert _quantile_bin_labels(np.array([]), 5).size == 0
+        np.testing.assert_array_equal(_quantile_bin_labels(np.array([1.0, 2.0, 3.0]), 1), [0, 0, 0])
+
+        # 4. Dense & sparse parity (including all-zero row/col!) for _log1p_cp10k_csc & _signac_tfidf_csc
+        mat = np.array([[0.0, 0.0, 0.0], [2.0, 8.0, 0.0], [5.0, 5.0, 0.0]], dtype=float)
+        d_cp = _log1p_cp10k_csc(mat, target_sum=1e4)
+        s_cp = _log1p_cp10k_csc(sp.csr_matrix(mat), target_sum=1e4).toarray()
+        np.testing.assert_allclose(d_cp, s_cp, rtol=1e-12, atol=1e-12)
+        assert d_cp[0].sum() == 0.0
+        assert d_cp[1, 0] == pytest.approx(math.log1p(2000.0), rel=1e-12)
+
+        d_tf = _signac_tfidf_csc(mat, scale_factor=1e4)
+        s_tf = _signac_tfidf_csc(sp.csr_matrix(mat), scale_factor=1e4).toarray()
+        np.testing.assert_allclose(d_tf, s_tf, rtol=1e-12, atol=1e-12)
+        assert d_tf[0].sum() == 0.0 and d_tf[:, 2].sum() == 0.0
+        # Row 1 col 0: tf=2/10=0.2, idf=3/7, scaled=0.2*(3/7)*1e4
+        assert d_tf[1, 0] == pytest.approx(math.log1p(0.2 * (3.0 / 7.0) * 1e4), rel=1e-12)
+
+        # 5. compute_peak_to_gene_links options: standard_chroms_only, unparseable peaks,
+        #    min_cells_detected on small (<50) and large (>=50) cohorts, min_distance_bp,
+        #    distance_mode="endpoint_min", max_padj, max_pvalue_signac, gc_and_accessibility FASTA!
+        fa = tmp_path / "mini.fa"
+        # chr1: 30kb alternating GC regions; chr2: 40kb
+        seq1 = ("GCGC" * 2500) + ("ATAT" * 2500) + ("ACGT" * 2500)
+        seq2 = ("GCAT" * 10000)
+        with open(fa, "wb") as fh:
+            off1 = len(b">chr1\n")
+            fh.write(b">chr1\n" + seq1.encode() + b"\n")
+            off2 = fh.tell() + len(b">chr2\n")
+            fh.write(b">chr2\n" + seq2.encode() + b"\n")
+        (tmp_path / "mini.fa.fai").write_text(
+            f"chr1\t{len(seq1)}\t{off1}\t{len(seq1)}\t{len(seq1)+1}\n"
+            f"chr2\t{len(seq2)}\t{off2}\t{len(seq2)}\t{len(seq2)+1}\n",
+            encoding="utf-8",
+        )
+        rng = np.random.default_rng(707)
+        n_cells = 60
+        z = rng.normal(0.0, 1.0, size=n_cells)
+        rna_m = np.column_stack([
+            np.maximum(0, np.round(20 + 10 * z + rng.normal(0, 1, n_cells))),
+            np.zeros(n_cells),  # unexpressed gene skipped
+        ])
+        atac_cols = [
+            np.maximum(0, np.round(15 + 8 * z + rng.normal(0, 1, n_cells))),   # overlaps TSS!
+            np.maximum(0, np.round(15 - 8 * z + rng.normal(0, 1, n_cells))),   # negative link at 5kb!
+            np.ones(n_cells),                                                  # unparseable peak
+            np.ones(n_cells),                                                  # nonstandard contig
+        ] + [rng.poisson(5, size=n_cells).astype(float) for _ in range(20)]
+        atac_m = np.column_stack(atac_cols)
+        atac_names = [
+            "chr1:9800-10200",
+            "chr1:15000-15400",
+            "BAD_PEAK_NAME",
+            "chrUn_gl000220:100-500",
+        ] + [f"chr2:{1000 + i*1000}-{1400 + i*1000}" for i in range(20)]
+        g_recs = {
+            "G1": {"gene": "G1", "chrom": "chr1", "canon_chrom": "chr1", "tss": 10000, "strand": "-"},
+            "G_ZERO": {"gene": "G_ZERO", "chrom": "chr1", "canon_chrom": "chr1", "tss": 10000, "strand": "+"},
+            "G_CHR2": {"gene": "G_CHR2", "chrom": "chr2", "canon_chrom": "chr2", "tss": 1000, "strand": "+"},
+        }
+        res_gc = compute_peak_to_gene_links(
+            rna_matrix=sp.csr_matrix(rna_m),
+            rna_var_names=["G1", "G_ZERO"],
+            atac_matrix=sp.csr_matrix(atac_m),
+            atac_var_names=atac_names,
+            gene_records=g_recs,
+            distance_bp=20_000,
+            min_distance_bp=0,
+            min_corr=0.2,
+            max_padj=0.05,
+            max_pvalue_signac=0.05,
+            preprocess="paired",
+            rna_is_raw_counts=False,
+            atac_is_raw_counts=False,
+            min_cells_detected=5,
+            standard_chroms_only=True,
+            background_null=True,
+            genome_fasta=str(fa),
+            n_bg_bins_per_axis=2,
+            n_bg_per_bin=5,
+            min_bg_peaks=5,
+            distance_mode="endpoint_min",
+            seed=0,
+        )
+        assert res_gc["status"] == "success", res_gc
+        assert res_gc["background_match"] == "gc_and_accessibility"
+        assert res_gc["background_method"] == "binned_matched_background"
+        assert res_gc["n_unparseable_peaks"] == 1
+        assert res_gc["n_nonstandard_peaks_dropped"] == 1
+        assert res_gc["min_cells_detected_effective"] == 5
+        assert res_gc["rna_normalization"] == "pre_normalized_input"
+        assert res_gc["atac_normalization"] == "pre_normalized_input"
+        assert res_gc["n_positive"] == 1 and res_gc["n_negative"] == 1
+        assert res_gc["n_promoter_proximal"] == 1 and res_gc["n_distal_cis"] == 1
+        by_pk = {lk["peak"]: lk for lk in res_gc["links"]}
+        # endpoint_min on chr1:9800-10200 vs tss=10000 gives dist=200 (not 0!)
+        assert by_pk["chr1:9800-10200"]["distance_bp"] == 200
+        assert by_pk["chr1:9800-10200"]["correlation"] > 0.7
+        assert by_pk["chr1:15000-15400"]["correlation"] < -0.7
+        assert by_pk["chr1:15000-15400"]["direction"] == "negative"
+        # Minus strand: midpoint 15200 > tss 10000 -> tss_offset_bp == -5200
+        assert by_pk["chr1:15000-15400"]["tss_offset_bp"] == -5200
+        assert by_pk["chr1:15000-15400"]["distance_kb"] == pytest.approx(5.0, abs=1e-3)
+        assert by_pk["chr1:15000-15400"]["p_value_signac"] == pytest.approx(
+            0.5 * by_pk["chr1:15000-15400"]["p_value"], rel=1e-6, abs=1e-12
+        )
+
+    def test_peak2gene_dense_sorting_thresholds_and_contig_mutant_killers(self):
+        import math
+        import scipy.sparse as sp
+        from aria.utils.peak2gene_core import (
+            _log1p_cp10k_csc,
+            _quantile_bin_labels,
+            _signac_tfidf_csc,
+            canonical_contig,
+            is_standard_contig,
+            parse_peak_coord,
+            vectorized_pearson_corr,
+        )
+
+        # 1. Contig canonicalization & standard checks (chr0, chr99, chr100, chrY, chrM, non-chr)
+        assert canonical_contig("chrM") == "chrM"
+        assert canonical_contig("chrY") == "chrY"
+        assert canonical_contig("Y") == "chrY"
+        assert canonical_contig("chr1") == "chr1"
+        assert canonical_contig("99") == "chr99"
+        assert canonical_contig("0") == "0"
+        assert canonical_contig("100") == "100"
+        assert is_standard_contig("chrY") is True
+        assert is_standard_contig("chrX") is True
+        assert is_standard_contig("") is False
+        assert is_standard_contig("unplaced_scaffold") is False
+
+        # 2. parse_peak_coord tab-3, tab-4, underscore, extra colon
+        assert parse_peak_coord("chr1\t10\t20") == ("chr1", 10, 20)
+        assert parse_peak_coord("chr1\t10\t20\textra_name") == ("chr1", 10, 20)
+        assert parse_peak_coord("chr1:10_20") == ("chr1", 10, 20)
+        assert parse_peak_coord("chr1:10:20") is None
+
+        # 3. _quantile_bin_labels non-trivial exact bins + n_bins==0
+        np.testing.assert_array_equal(_quantile_bin_labels(np.array([1.0, 2.0]), 0), [0, 0])
+        np.testing.assert_array_equal(
+            _quantile_bin_labels(np.array([10.0, 20.0, 30.0, 40.0, 50.0, 60.0]), 3),
+            [0, 0, 1, 1, 2, 2],
+        )
+
+        # 4. Non-square (4 cells x 6 peaks) _signac_tfidf_csc & _log1p_cp10k_csc (kills shape[0] vs shape[1]!)
+        rect = np.array([
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            [2.0, 8.0, 0.0, 1.0, 0.0, 3.0],
+            [0.0, 4.0, 6.0, 0.0, 0.0, 1.0],
+            [5.0, 0.0, 5.0, 0.0, 0.0, 2.0],
+        ], dtype=float)
+        tf_d = _signac_tfidf_csc(rect, scale_factor=1e4)
+        tf_s = _signac_tfidf_csc(sp.csr_matrix(rect), scale_factor=1e4).toarray()
+        np.testing.assert_allclose(tf_d, tf_s, rtol=1e-12, atol=1e-12)
+        # Cell 1 total=14, peak 0 total=7, n_cells=4 -> tf=2/14, idf=4/7
+        assert tf_d[1, 0] == pytest.approx(math.log1p((2.0 / 14.0) * (4.0 / 7.0) * 1e4), rel=1e-12)
+        assert tf_d[:, 4].sum() == 0.0 and tf_d[0, :].sum() == 0.0
+
+        # 5. vectorized_pearson_corr constant x -> all NaN of exact length k
+        r_cx = vectorized_pearson_corr(np.ones(5), np.arange(15, dtype=float).reshape(5, 3))
+        assert r_cx.shape == (3,) and np.all(np.isnan(r_cx))
+        r_n2_1d = vectorized_pearson_corr([1.0, 2.0], np.array([1.0, 2.0]))
+        assert r_n2_1d.shape == (1,) and np.isnan(r_n2_1d[0])
+
+        # 6. Dense ndarray inputs, exact n_cells==49 vs 50 eff_min_cells boundary + > vs >= peak_nnz,
+        #    raw_counts label, gene_id preservation, zero-count peak drop, background_null=False,
+        #    and descending |zscore| sort!
+        rng = np.random.default_rng(808)
+        for n_c, exp_eff, exp_tested in [(49, 9, 3), (50, 10, 2)]:
+            z = rng.normal(0.0, 1.0, size=n_c)
+            rna_d = np.column_stack([
+                np.maximum(0.0, np.round(20 + 10 * z + rng.normal(0, 0.5, n_c))),
+            ])
+            # Peak with exact nnz == exp_eff: kept when n_cells < 50 (>=), dropped when n_cells >= 50 (>)!
+            edge_pk = np.zeros(n_c)
+            edge_pk[:exp_eff] = 5.0 + np.arange(exp_eff)
+            atac_d = np.column_stack([
+                np.maximum(0.0, np.round(20 + 10 * z + rng.normal(0, 0.5, n_c))),  # strong +
+                np.maximum(0.0, np.round(20 + 5 * z + rng.normal(0, 2.0, n_c))),   # moderate +
+                edge_pk,                                                           # exact boundary peak
+                np.zeros(n_c),                                                     # all-zero peak -> dropped
+            ] + [rng.poisson(5, size=n_c).astype(float) for _ in range(12)])
+            pk_names = ["chr1:12000-12400", "chr1:18000-18400", "chr1:16000-16400", "chr1:14000-14400"] + [
+                f"chr2:{1000 + i*2000}-{1400 + i*2000}" for i in range(12)
+            ]
+            g_recs = {
+                "G_PLUS": {
+                    "gene": "G_PLUS",
+                    "gene_id": "ENSG000001",
+                    "chrom": "chr1",
+                    "canon_chrom": "chr1",
+                    "tss": 10000,
+                    "strand": "+",
+                }
+            }
+            res = compute_peak_to_gene_links(
+                rna_matrix=rna_d,
+                rna_var_names=["G_PLUS"],
+                atac_matrix=atac_d,
+                atac_var_names=pk_names,
+                gene_records=g_recs,
+                distance_bp=50_000,
+                min_corr=0.0,
+                preprocess="paired",
+                rna_is_raw_counts=True,
+                atac_is_raw_counts=True,
+                atac_transform="tfidf",
+                min_cells_detected=10,
+                background_null=True,
+                n_bg_bins_per_axis=2,
+                n_bg_per_bin=10,
+                min_bg_peaks=5,
+                seed=0,
+            )
+            assert res["status"] == "success"
+            assert res["min_cells_detected_effective"] == exp_eff
+            assert res["rna_normalization"] == "log1p_cp10k"
+            assert res["atac_normalization"] == "signac_tfidf"
+            assert res["background_match"] == "accessibility_and_length"
+            assert res["gc_matching"] == {"available": False, "reason": "no_genome_fasta"}
+            assert res["n_tested"] == exp_tested
+            assert res["links"][0]["gene_id"] == "ENSG000001"
+            assert res["links"][0]["tss_offset_bp"] > 0
+            # Sorted by padj asc then |zscore| desc
+            z_abs = [abs(lk["zscore"]) for lk in res["links"]]
+            p_vals = [lk["padj"] for lk in res["links"]]
+            if p_vals[0] == p_vals[1]:
+                assert z_abs[0] >= z_abs[1]
+
+        # preprocess="paired" with min_cells_detected=1 drops all-zero peak via peak_raw_sums <= 0.0
+        res_m1 = compute_peak_to_gene_links(
+            rna_matrix=rna_d,
+            rna_var_names=["G_PLUS"],
+            atac_matrix=atac_d[:, [0, 3]],
+            atac_var_names=["chr1:12000-12400", "chr1:14000-14400"],
+            gene_records=g_recs,
+            distance_bp=50_000,
+            min_corr=0.0,
+            preprocess="paired",
+            rna_is_raw_counts=True,
+            atac_is_raw_counts=True,
+            min_cells_detected=1,
+            background_null=False,
+        )
+        assert res_m1["status"] == "success"
+        assert res_m1["n_tested"] == 1
+        assert res_m1["atac_normalization"] == "raw_counts"
+        assert res_m1["background_method"] == "none"
+        assert res_m1["gc_matching"] == {"available": False, "reason": "not_requested"}
+        assert all(lk["zscore"] is None for lk in res_m1["links"])
+
+    def test_peak2gene_loop_continues_as_is_sorting_and_bg_boundaries(self):
+        import scipy.sparse as sp
+        from aria.utils.peak2gene_core import (
+            canonical_contig,
+            vectorized_pearson_corr,
+        )
+
+        # 1. vectorized_pearson_corr n<3 with 2D cols (shape (2,4)) returns shape (4,) of NaNs
+        r_short = vectorized_pearson_corr([1.0, 2.0], np.ones((2, 4)))
+        assert r_short.shape == (4,) and np.all(np.isnan(r_short))
+        # Mixed-case & zero-padded contigs require stripping "chr" prefix to canonicalize!
+        assert canonical_contig("CHR22") == "chr22"
+        assert canonical_contig("chr01") == "chr1"
+        assert canonical_contig("CHRX") == "chrX"
+        assert canonical_contig("chrX") == "chrX" and canonical_contig("chr2") == "chr2"
+
+        # 1b. Dense pre-normalized inputs in preprocess="paired" (kills issparse/asarray branch mutants)
+        #     AND exact padj tie at 0.0 (n_c=80, r~0.99 vs r~0.95) kills -(abs(zscore)) sort mutant!
+        rng_tie = np.random.default_rng(910)
+        n_tie = 80
+        zt = rng_tie.normal(0.0, 1.0, size=n_tie)
+        rna_tie = np.column_stack([2.0 + zt + rng_tie.normal(0, 0.01, n_tie)])
+        # Peak 0 has tiny r (~0.02) placed BEFORE Peak 1 (slightly larger r ~0.12); BOTH have
+        # p_value > 0.5 so BH padj clips BOTH to 1.0 (exact tie!), and secondary sort key
+        # -(abs(zscore)) MUST put Peak 1 first!
+        orth = rng_tie.normal(0.0, 1.0, size=n_tie)
+        orth = orth - (np.dot(orth, zt) / np.dot(zt, zt)) * zt
+        orth /= np.linalg.norm(orth)
+        zt_u = zt / np.linalg.norm(zt)
+        pk_t0 = 2.0 + 0.02 * zt_u + np.sqrt(1.0 - 0.02**2) * orth
+        pk_t1 = 2.0 + 0.10 * zt_u + np.sqrt(1.0 - 0.10**2) * orth
+        atac_tie = np.column_stack([pk_t0, pk_t1] + [rng_tie.normal(2.0, 1.0, n_tie) for _ in range(15)])
+        atac_tie_names = ["chr1:12000-12400", "chr1:15000-15400"] + [
+            f"chr2:{1000 + i*1000}-{1400 + i*1000}" for i in range(15)
+        ]
+        res_tie = compute_peak_to_gene_links(
+            rna_matrix=rna_tie,
+            rna_var_names=["GT"],
+            atac_matrix=atac_tie,
+            atac_var_names=atac_tie_names,
+            gene_records={
+                "GT": {"gene": "GT", "chrom": "chr1", "canon_chrom": "chr1", "tss": 10000, "strand": "+"},
+                "G2": {"gene": "G2", "chrom": "chr2", "canon_chrom": "chr2", "tss": 1000, "strand": "+"},
+            },
+            distance_bp=50_000,
+            min_corr=0.0,
+            preprocess="paired",
+            rna_is_raw_counts=False,
+            atac_is_raw_counts=False,
+            background_null=True,
+            n_bg_bins_per_axis=2,
+            n_bg_per_bin=10,
+            min_bg_peaks=5,
+            seed=0,
+        )
+        assert res_tie["status"] == "success"
+        assert res_tie["rna_normalization"] == "pre_normalized_input"
+        assert res_tie["atac_normalization"] == "pre_normalized_input"
+        assert len(res_tie["links"]) == 2
+        assert res_tie["links"][0]["padj"] == res_tie["links"][1]["padj"]
+        assert abs(res_tie["links"][0]["zscore"]) > abs(res_tie["links"][1]["zscore"])
+
+        # 1c. Integer dense inputs in preprocess="as_is" & background_null=True with zero-variance
+        #     peak + single-peak trans pool (idx_pool.size == 1 -> sd_bg fallback 0.0)
+        rna_int = np.array([[i % 5 + 1] for i in range(20)], dtype=np.int32)
+        atac_int = np.column_stack([
+            np.array([i % 5 + 1 for i in range(20)], dtype=np.int32),
+            np.zeros(20, dtype=np.int32),
+            np.zeros(20, dtype=np.int32),
+            np.zeros(20, dtype=np.int32),
+            np.array([(i * 3) % 7 + 1 for i in range(20)], dtype=np.int32),
+        ])
+        res_int = compute_peak_to_gene_links(
+            rna_matrix=rna_int,
+            rna_var_names=["GI"],
+            atac_matrix=atac_int,
+            atac_var_names=[
+                "chr1:12000-12400", "chr1:13000-13400", "chr1:14000-14400",
+                "chr1:15000-15400", "chr2:1000-1400",
+            ],
+            gene_records={
+                "GI": {"gene": "GI", "chrom": "chr1", "canon_chrom": "chr1", "tss": 10000, "strand": "+"},
+                "G2": {"gene": "G2", "chrom": "chr2", "canon_chrom": "chr2", "tss": 1000, "strand": "+"},
+            },
+            distance_bp=50_000,
+            min_corr=0.0,
+            preprocess="as_is",
+            background_null=True,
+            min_bg_peaks=5,
+            seed=0,
+        )
+        assert res_int["status"] == "success"
+        assert res_int["links"][0]["correlation"] == pytest.approx(1.0, abs=1e-12)
+
+        # 2. Leading skipped entries in BOTH peak and gene loops kill `continue -> break` mutants,
+        #    empty canon_chrom falls back to chrom, exact signed tss_offset_bp kills strand_sign=2,
+        #    odd peak start+end kills // 2 vs / 2, and weaker-z peak placed BEFORE stronger-z peak
+        #    with equal padj kills -(abs(zscore)) -> +(abs(zscore)) sort mutant!
+        rng = np.random.default_rng(909)
+        n_c = 50
+        z = rng.normal(0.0, 1.0, size=n_c)
+        # Gene order: [0] unannotated, [1] all-zero, [2] exact nnz==10 (dropped when n_cells>=50), [3] valid
+        g_edge = np.zeros(n_c)
+        g_edge[:10] = 5.0 + np.arange(10)
+        g_valid = np.maximum(0.0, np.round(30.0 + 12.0 * z + rng.normal(0, 0.4, n_c)))
+        rna_mat = np.column_stack([g_valid, np.zeros(n_c), g_edge, g_valid])
+        rna_names = ["G_MISSING", "G_ZERO", "G_EDGE_10", "G_TARGET"]
+
+        # Peak order: [0] unparseable, [1] nonstandard, [2] nnz==10 edge, [3] weaker + link, [4] stronger + link,
+        #             [5..24] 20 trans background peaks on chr2 (odd end coord for // 2 check!)
+        pk_edge = np.zeros(n_c)
+        pk_edge[:10] = 5.0 + np.arange(10)
+        pk_weak = np.maximum(0.0, np.round(30.0 + 4.0 * z + rng.normal(0, 3.0, n_c)))
+        pk_strong = np.maximum(0.0, np.round(30.0 + 12.0 * z + rng.normal(0, 0.2, n_c)))
+        bg_cols = [rng.poisson(8, size=n_c).astype(float) for _ in range(20)]
+        atac_mat = np.column_stack([pk_strong, pk_strong, pk_edge, pk_weak, pk_strong] + bg_cols)
+        atac_names = [
+            "NOT_A_COORD",
+            "chrUn_gl000220:10-200",
+            "chr1:11000-11200",
+            "chr1:12000-12401",  # midpoint = (12000+12401)//2 = 12200 (odd sum!), weaker z
+            "chr1:15000-15400",  # midpoint = 15200, stronger z -> MUST sort first if padj ties
+        ] + [f"chr2:{1000 + i*1000}-{1401 + i*1000}" for i in range(20)]
+
+        gene_records = {
+            "G_ZERO": {"gene": "G_ZERO", "chrom": "chr1", "canon_chrom": "", "tss": 10000, "strand": "+"},
+            "G_EDGE_10": {"gene": "G_EDGE_10", "chrom": "chr1", "canon_chrom": "", "tss": 10000, "strand": "+"},
+            "G_TARGET": {"gene": "G_TARGET", "chrom": "chr1", "canon_chrom": "", "tss": 10000, "strand": "+"},
+            "G_CHR2": {"gene": "G_CHR2", "chrom": "chr2", "canon_chrom": "chr2", "tss": 1000, "strand": "+"},
+        }
+        res50 = compute_peak_to_gene_links(
+            rna_matrix=rna_mat,
+            rna_var_names=rna_names,
+            atac_matrix=atac_mat,
+            atac_var_names=atac_names,
+            gene_records=gene_records,
+            distance_bp=50_000,
+            min_corr=0.0,
+            preprocess="as_is",
+            min_cells_detected=10,
+            standard_chroms_only=True,
+            background_null=True,
+            n_bg_bins_per_axis=2,
+            n_bg_per_bin=10,
+            min_bg_peaks=20,
+            seed=0,
+        )
+        assert res50["status"] == "success"
+        assert res50["rna_normalization"] == "as_is"
+        assert res50["atac_normalization"] == "as_is"
+        assert res50["n_unparseable_peaks"] == 1
+        assert res50["n_nonstandard_peaks_dropped"] == 1
+        # Only G_TARGET passes (G_MISSING, G_ZERO, G_EDGE_10 all skipped) and only 2 cis peaks pass
+        assert res50["n_tested"] == 2
+        assert {lk["gene"] for lk in res50["links"]} == {"G_TARGET"}
+        by_pk = {lk["peak"]: lk for lk in res50["links"]}
+        # Exact integer midpoint (12000+12401)//2 = 12200 -> exact tss_offset_bp == +2200
+        assert by_pk["chr1:12000-12401"]["tss_offset_bp"] == 2200
+        assert isinstance(by_pk["chr1:12000-12401"]["tss_offset_bp"], int)
+        assert by_pk["chr1:15000-15400"]["tss_offset_bp"] == 5200
+        # Stronger peak placed AFTER weaker peak in input MUST sort first!
+        assert res50["links"][0]["peak"] == "chr1:15000-15400"
+
+        # Same matrix truncated to n_cells=49: G_EDGE_10 (nnz=10 >= 9) and pk_edge (nnz=10 >= 9) ARE KEPT!
+        res49 = compute_peak_to_gene_links(
+            rna_matrix=sp.csr_matrix(rna_mat[:49]),
+            rna_var_names=rna_names,
+            atac_matrix=sp.csr_matrix(atac_mat[:49]),
+            atac_var_names=atac_names,
+            gene_records=gene_records,
+            distance_bp=50_000,
+            min_corr=0.0,
+            preprocess="as_is",
+            min_cells_detected=10,
+            standard_chroms_only=True,
+            background_null=False,
+        )
+        assert res49["status"] == "success"
+        assert res49["background_match"] == "none"
+        assert res49["background_method"] == "none"
+        assert {lk["gene"] for lk in res49["links"]} == {"G_TARGET", "G_EDGE_10"}
+        assert res49["n_tested"] == 6  # 2 genes x 3 cis peaks
+
+        # Boundary: background_null=True with <5 valid peaks (4 peaks) vs ==5 valid peaks + zero-count peak in as_is
+        res_lt5 = compute_peak_to_gene_links(
+            rna_matrix=np.column_stack([g_valid, np.full(n_c, 3.0)]),
+            rna_var_names=["G_TARGET", "G_CONST"],
+            atac_matrix=np.column_stack([pk_strong, pk_weak, np.zeros(n_c), bg_cols[0]]),
+            atac_var_names=["chr1:15000-15400", "chr1:12000-12401", "chr2:100-500", "chr2:2000-2400"],
+            gene_records={
+                "G_TARGET": {"gene": "G_TARGET", "chrom": "chr1", "canon_chrom": "chr1", "tss": 10000, "strand": "+"},
+                "G_CONST": {"gene": "G_CONST", "chrom": "chr1", "canon_chrom": "chr1", "tss": 10000, "strand": "+"},
+            },
+            distance_bp=50_000,
+            min_corr=0.0,
+            preprocess="as_is",
+            background_null=True,
+            seed=0,
+        )
+        assert res_lt5["status"] == "success"
+        assert res_lt5["background_method"] == "none"
+        assert res_lt5["background_match"] == "none"
+
+        # Exactly 5 valid peaks (including zero-count peak in as_is) enables background_null!
+        # With 3 trans peaks (< 5), background_method is initialized even though per-link pool falls short.
+        res_eq5 = compute_peak_to_gene_links(
+            rna_matrix=np.column_stack([g_valid, np.full(n_c, 3.0)]),
+            rna_var_names=["G_TARGET", "G_CONST"],
+            atac_matrix=np.column_stack([pk_strong, pk_weak, np.zeros(n_c), bg_cols[0], bg_cols[1]]),
+            atac_var_names=[
+                "chr1:15000-15400", "chr1:12000-12401",
+                "chr2:100-500", "chr2:2000-2400", "chr2:4000-4400",
+            ],
+            gene_records={
+                "G_TARGET": {"gene": "G_TARGET", "chrom": "chr1", "canon_chrom": "chr1", "tss": 10000, "strand": "+"},
+                "G_CONST": {"gene": "G_CONST", "chrom": "chr1", "canon_chrom": "chr1", "tss": 10000, "strand": "+"},
+                "G_CHR2": {"gene": "G_CHR2", "chrom": "chr2", "canon_chrom": "chr2", "tss": 1000, "strand": "+"},
+            },
+            distance_bp=50_000,
+            min_corr=0.0,
+            preprocess="as_is",
+            background_null=True,
+            min_bg_peaks=5,
+            seed=0,
+        )
+        assert res_eq5["status"] == "success"
+        assert res_eq5["background_method"] == "binned_matched_background"
+        assert res_eq5["background_match"] == "accessibility_and_length"
