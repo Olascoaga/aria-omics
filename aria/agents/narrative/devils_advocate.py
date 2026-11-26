@@ -19,6 +19,7 @@ QC/technical vocabulary). It reuses the Claim Compiler tiers and adds an
 from __future__ import annotations
 
 import json
+import math
 import re
 from typing import Any
 
@@ -29,12 +30,22 @@ from aria.utils.design_matrix import resolve_design_contract
 _CHALLENGEABLE_TIERS = {"associative", "weak_mechanistic", "strong_mechanistic"}
 
 
+def _safe_int(val: Any, default: int = 0) -> int:
+    if val is None or isinstance(val, bool):
+        return default
+    try:
+        num = float(val)
+        return int(num) if math.isfinite(num) else default
+    except (TypeError, ValueError):
+        return default
+
+
 def _scrna_findings(agent_results: dict) -> dict:
     sc = (agent_results or {}).get("scrna_agent", {})
     try:
         from aria.agents import _narrative_scrna
         return _narrative_scrna.unwrap_scrna_findings(sc) or {}
-    except Exception:
+    except Exception:  # aria: allow-broad-except defensive unwrap fallback for legacy scRNA shape
         if isinstance(sc, dict):
             return sc.get("findings", sc) or {}
         return {}
@@ -50,7 +61,7 @@ def _ran(val: Any) -> bool:
 def _contains(blob: Any, *needles: str) -> bool:
     try:
         text = json.dumps(blob, default=str).lower()
-    except Exception:
+    except Exception:  # aria: allow-broad-except fallback to str() for non-JSON-serializable objects
         text = str(blob).lower()
     return any(n in text for n in needles)
 
@@ -59,8 +70,12 @@ def _run_signals(agent_results: dict, exp_ctx: dict) -> dict:
     f = _scrna_findings(agent_results)
     integration_ran = _ran(f.get("integration"))
     iqc = f.get("integration_qc") or {}
-    integration_issue = bool(iqc.get("issues") or iqc.get("flags")
-                             or iqc.get("residual_batch"))
+    bqc = f.get("batch_qc") or {}
+    integration_issue = bool(
+        iqc.get("issues") or iqc.get("flags") or iqc.get("residual_batch")
+        or str(iqc.get("status") or "").lower() == "error"
+        or str(bqc.get("status") or "").lower() == "error"
+    )
     da = f.get("differential_abundance") or {}
     # D7-004: read batch_covariate / covariates / design_formula through the
     # shared design contract instead of masking DesignAgent outputs behind
@@ -130,8 +145,8 @@ def _multiome_signals(agent_results: dict) -> dict:
     ereg = findings.get("eregulons") if isinstance(findings, dict) else {}
     guard = str((wnn or {}).get("guardrail_status") or "skipped")
     mofa_ran = _ran(mofa)
-    ereg_depth = int((ereg or {}).get("n_depth_confounded") or 0)
-    ereg_paralog = int((ereg or {}).get("n_paralog_ambiguous") or 0)
+    ereg_depth = _safe_int((ereg or {}).get("n_depth_confounded"), 0)
+    ereg_paralog = _safe_int((ereg or {}).get("n_paralog_ambiguous"), 0)
     return {
         "wnn_guardrail_pass": guard == "pass",
         "wnn_guardrail_status": guard,

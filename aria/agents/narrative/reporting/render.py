@@ -399,14 +399,37 @@ class ReportRenderMixin:
         # info caveats appear in the HTML blocks (claim tiers were annotated when
         # the blocks were collected). P-LEDGER: build the planned-vs-run manifest
         # for the provenance section.
+        governance_alerts: list[str] = []
         try:
             from aria.agents.narrative.devils_advocate import build_devils_advocate
             devils_advocate = build_devils_advocate(
                 narrative_blocks, agent_results, exp_ctx
             )
-        except Exception as exc:
+        except Exception as exc:  # aria: allow-broad-except surface failed devil's-advocate governance pass
             log.warning(f"Devil's-advocate pass failed: {exc}", exc_info=True)
-            devils_advocate = []
+            da_err = f"{type(exc).__name__}: {exc}"
+            devils_advocate = {
+                "status": "error",
+                "error": da_err,
+                "entries": [],
+            }
+            governance_alerts.append(
+                f"Devil's-advocate confound review pass failed ({da_err}); "
+                "associative claims carry a blocking unverified-confound caveat."
+            )
+            from aria.agents.narrative.types import Caveat
+            for blk in narrative_blocks or []:
+                tier = ((getattr(blk, "metadata", None) or {}).get("claim") or {}).get("tier")
+                if getattr(blk, "status", None) == "success" and tier in {
+                    "associative", "weak_mechanistic", "strong_mechanistic",
+                }:
+                    blk.caveats.append(Caveat(
+                        text=(
+                            "Devil's-advocate confound review failed "
+                            f"({da_err}); technical alternatives could not be evaluated."
+                        ),
+                        severity="blocking",
+                    ))
         try:
             from aria.agents.narrative.run_ledger import build_run_ledger
             run_ledger = build_run_ledger(exp_ctx, agent_results)
@@ -475,16 +498,18 @@ class ReportRenderMixin:
                 })
         # Filter devil's advocate entries to surviving compiled claims so
         # withheld claim_ids never leak into methodology.json["devils_advocate"].
+        # Preserve dict error payloads when the devil's-advocate pass failed.
         surviving_claim_ids = {
             str(c.get("claim_id"))
             for c in public_claims
             if isinstance(c, dict) and c.get("claim_id")
         }
-        devils_advocate = [
-            entry for entry in (devils_advocate or [])
-            if isinstance(entry, dict)
-            and str(entry.get("claim_id") or "") in surviving_claim_ids
-        ]
+        if isinstance(devils_advocate, list):
+            devils_advocate = [
+                entry for entry in devils_advocate
+                if isinstance(entry, dict)
+                and str(entry.get("claim_id") or "") in surviving_claim_ids
+            ]
         executive_summary_block = next(
             (
                 block for block in narrative_blocks
@@ -611,6 +636,15 @@ class ReportRenderMixin:
             narrative_blocks=narrative_blocks, report_dir=report_dir,
             n_withheld=n_withheld,
         )
+        governance_alerts_html = ""
+        if governance_alerts:
+            alert_items = "".join(
+                f"<li>{_html.escape(msg)}</li>" for msg in governance_alerts
+            )
+            governance_alerts_html = (
+                "<div class='warning'><strong>Governance Pass Alert:</strong>"
+                f"<ul style='margin:0.4rem 0 0 1.2rem'>{alert_items}</ul></div>"
+            )
         executive_summary_warning_html = ""
         if executive_summary_warning:
             executive_summary_warning_html = (
@@ -804,6 +838,7 @@ class ReportRenderMixin:
 </div>
 
 <h2>Executive Summary</h2>
+{governance_alerts_html}
 <div class="card">
   <p>{self._plain_text_to_html(executive_summary)}</p>
   {executive_summary_warning_html}

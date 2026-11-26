@@ -137,9 +137,13 @@ class MethodologyMixin:
                 devils_advocate = build_devils_advocate(
                     list(narrative_blocks or []), agent_results, exp_ctx
                 )
-            except Exception as exc:
+            except Exception as exc:  # aria: allow-broad-except surface failed devil's-advocate governance pass
                 log.warning(f"Devil's-advocate pass failed: {exc}", exc_info=True)
-                devils_advocate = []
+                devils_advocate = {
+                    "status": "error",
+                    "error": f"{type(exc).__name__}: {exc}",
+                    "entries": [],
+                }
         # W-LEDGER: link every compiled claim to its ledger node so each claim is
         # traceable to both an evidence card (W-CLAIM) and a run-ledger node. The
         # per-claim ledger_node_id/ledger_status are written in place; the summary

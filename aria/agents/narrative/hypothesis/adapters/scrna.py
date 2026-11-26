@@ -78,8 +78,13 @@ def _scrna_caveats(agent_results: dict, exp_ctx: dict | None) -> list[str]:
     """Global scRNA technical confounds the run did not address."""
     try:
         sig = _run_signals(agent_results, exp_ctx or {})
-    except Exception:
-        return []
+    except Exception as exc:  # aria: allow-broad-except fail conservative by inheriting all scRNA confound caveats
+        import logging
+        logging.getLogger(__name__).warning(
+            "scRNA confound signal extraction failed (%s); inheriting all technical caveats",
+            exc,
+        )
+        return [AMBIENT, DOUBLET, BATCH]
     caveats: list[str] = []
     if not sig.get("ambient_corrected"):
         caveats.append(AMBIENT)
