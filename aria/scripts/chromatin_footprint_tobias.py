@@ -730,7 +730,6 @@ def _write_group_bams(frag_file: str | list[str], barcode_groups: dict[str, str]
     if not targets:
         return reused
     refs = list(chrom_sizes.keys())
-    lens = [chrom_sizes[r] for r in refs]
     tid = {r: i for i, r in enumerate(refs)}
     header = {"HD": {"VN": "1.6", "SO": "coordinate"},
               "SQ": [{"SN": r, "LN": chrom_sizes[r]} for r in refs]}

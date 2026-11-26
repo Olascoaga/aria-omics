@@ -309,7 +309,6 @@ def _select_seacr_empirical_threshold(
             np.linspace(0.0, 0.999, min(2000, t_sorted.size + c_sorted.size)),
         )
     )
-    n_t = float(t_sorted.size)
     n_c = float(c_sorted.size)
     t_cum_above = np.concatenate([[0.0], np.cumsum(t_sorted[::-1])])[::-1]
     c_cum_above = np.concatenate([[0.0], np.cumsum(c_sorted[::-1])])[::-1]

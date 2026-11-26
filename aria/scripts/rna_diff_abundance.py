@@ -106,7 +106,6 @@ def _clr_transform_counts(counts):
     import numpy as np
 
     arr = counts.astype(float).to_numpy()
-    k = max(arr.shape[1], 1)
     smoothed = arr + 0.5
     props = smoothed / np.clip(smoothed.sum(axis=1, keepdims=True), 1e-12, None)
     log_props = np.log(props)

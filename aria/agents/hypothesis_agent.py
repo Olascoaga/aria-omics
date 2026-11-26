@@ -30,7 +30,6 @@ from aria.agents.narrative.hypothesis.gates import (
     check_language,
 )
 from aria.agents.narrative.hypothesis.grounding import (
-    build_evidence_index,
     build_signals_by_entity,
     verify_hypothesis_grounding,
 )
@@ -142,7 +141,6 @@ class HypothesisAgent:
             }
 
         signal_list = list(signals or [])
-        evidence_index = build_evidence_index(signal_list)
         # Entity -> ALL its context-distinct signals, so the adversarial gate
         # unions confounds across every context the entity was measured in (H4).
         signals_by_entity = build_signals_by_entity(signal_list)

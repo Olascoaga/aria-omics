@@ -335,7 +335,6 @@ def rna_starsolo_bulk(params: dict[str, Any]) -> dict[str, Any]:
     stage_manifest_path = output_dir / "starsolo_bulk.stage.json"
     metrics_cache_path = output_dir / "starsolo_bulk.metrics.json"
     matrix_file = output_dir / "counts_matrix.tsv"
-    symbols_file = output_dir / "counts_with_symbols.tsv"
     index_ref = (
         index_manifest if os.path.exists(index_manifest) else str(genome_dir / "SAindex")
     )

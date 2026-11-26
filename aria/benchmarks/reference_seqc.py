@@ -230,7 +230,6 @@ def score_seqc_maqc_a1(
     df.index = [str(i) for i in df.index]
     est_lfc = pd.to_numeric(df.get("log2FoldChange"), errors="coerce")
     pvalue = pd.to_numeric(df.get("pvalue"), errors="coerce")
-    padj = pd.to_numeric(df.get("padj"), errors="coerce")
 
     # 1. LFC concordance vs TaqMan on the overlap.
     overlap = [g for g in df.index if g in taqman]
@@ -858,7 +857,7 @@ def write_ercc_figure(manifest: dict[str, Any], path: str) -> str:
         for g, v in sorted(by.items())
     ]
     width = 760
-    left, mid, top = 300, 380, 80
+    mid, top = 380, 80
     row_h, gap = 36, 20
     span = 3.2  # log2 axis half-range for the centered bars
     rows = []

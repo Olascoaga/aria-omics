@@ -187,7 +187,7 @@ def make_ora_dotplot(pathways_list: list,
             vmax = vmax + 0.5
         norm = plt.Normalize(vmin, vmax)
 
-        scatter = sns.scatterplot(
+        sns.scatterplot(
             data=df,
             x="log2_OR",
             y="Term",

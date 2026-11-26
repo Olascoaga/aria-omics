@@ -131,7 +131,6 @@ def discover_10x_mtx_triplets(
         root = root.parent
     candidates: set[Path] = set()
     files_seen = 0
-    dirs_seen = 0
     last_report = 0
     for path in _walk_files(root):
         files_seen += 1

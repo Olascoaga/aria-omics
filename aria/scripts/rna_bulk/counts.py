@@ -551,7 +551,6 @@ def _load_or_infer_metadata(counts, metadata_file: str,
         design_factor: [groups[s] for s in samples],
     }, index=samples)
 
-    n_groups = len(set(groups.values()))
     warnings.append(
         f"Experimental groups inferred from sample names: "
         f"{dict(set((v,sum(1 for x in groups.values() if x==v)) for v in set(groups.values())))}. "

@@ -122,7 +122,7 @@ def _scatac_qc(files: list, genome: str,
     if frip_scan_limit is None:
         frip_scan_limit = _FRAG_SCAN_LIMIT
     try:
-        import muon as mu
+        import muon  # noqa: F401  # availability check for scATAC stack
         import anndata as ad
         import numpy as np
         from pathlib import Path
@@ -138,14 +138,6 @@ def _scatac_qc(files: list, genome: str,
             }
 
         frag_file = fragment_files[0]
-
-        # Create AnnData from fragments
-        # (in production: use cellranger output or snapatac2)
-        try:
-            mdata = mu.atac.tl.locate_fragments(None, frag_file)
-        except Exception:
-            # Fallback: basic fragment counting
-            pass
 
         # ── Key QC metrics ────────────────────────────────────────────────
         # Only metrics genuinely derivable from a fragments file are computed
