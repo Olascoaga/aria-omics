@@ -37,6 +37,11 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspa
 from aria.benchmarks.bulk_atac_marker_mapping import parse_peak_interval
 from aria.scripts.rna_bulk.gtf_io import _locate_gtf
 from aria.utils.csv_artifacts import persist_csv
+from aria.utils.genomic_coords import (
+    ensembl_contig,
+    gtf_to_bed_interval,
+    gtf_tss_0based,
+)
 
 _GENE_ID = re.compile(r'gene_id "([^"]+)"')
 _GENE_NAME = re.compile(r'gene_name "([^"]+)"')
@@ -53,11 +58,8 @@ DEFAULT_PROMOTER_DOWNSTREAM = 2000
 
 def _norm_chrom(chrom) -> str:
     """Reconcile UCSC (`chr1`/`chrX`/`chrM`) and Ensembl (`1`/`X`/`MT`) contig naming
-    so chr-prefixed ATAC peaks match an Ensembl GTF (and vice versa)."""
-    c = str(chrom)
-    if c[:3].lower() == "chr":
-        c = c[3:]
-    return "MT" if c in ("M", "MT") else c
+    via canonical genomic_coords helper so chr-prefixed ATAC peaks match an Ensembl GTF."""
+    return ensembl_contig(str(chrom))
 # How many TSS-sorted neighbors to consider as feature candidates around a peak.
 # Bounds the work per peak while still catching a long gene body whose TSS is not
 # the single closest one.
@@ -68,9 +70,10 @@ def parse_gtf_gene_models(gtf_path) -> dict:
     """Stream a GTF into per-chromosome gene models (low memory).
 
     Returns ``{chrom: [gene_dict, ...]}`` sorted by TSS, where each ``gene_dict`` has
-    ``gene`` (symbol or id), ``strand``, ``start``, ``end``, ``tss`` (1-based), and
-    ``exons`` (sorted ``[(start, end), ...]``). Mirrors the parsing conventions in
-    ``rna_bulk/gtf_io``. Raises on read/decompression errors (fail-closed).
+    ``gene`` (symbol or id), ``strand``, ``start``, ``end``, ``tss`` (0-based
+    half-open BED coordinates converted once from 1-based closed GTF), and
+    ``exons`` (sorted 0-based half-open ``[(start, end), ...]``). Mirrors the parsing
+    conventions in ``rna_bulk/gtf_io``. Raises on read/decompression errors (fail-closed).
     """
     genes: dict = {}
     exons = defaultdict(list)
@@ -91,7 +94,8 @@ def parse_gtf_gene_models(gtf_path) -> dict:
                 continue
             gid = gid_m.group(1)
             try:
-                start, end = int(fields[3]), int(fields[4])
+                start_1, end_1 = int(fields[3]), int(fields[4])
+                start_0, end_0 = gtf_to_bed_interval(start_1, end_1)
             except ValueError:
                 continue
             if feature == "gene":
@@ -101,12 +105,12 @@ def parse_gtf_gene_models(gtf_path) -> dict:
                     "gene": name_m.group(1) if name_m else gid.split(".")[0],
                     "chrom": _norm_chrom(fields[0]),
                     "strand": strand,
-                    "start": start,
-                    "end": end,
-                    "tss": start if strand != "-" else end,
+                    "start": start_0,
+                    "end": end_0,
+                    "tss": gtf_tss_0based(start_1, end_1, strand),
                 }
             else:  # exon
-                exons[gid].append((start, end))
+                exons[gid].append((start_0, end_0))
 
     by_chrom: dict = defaultdict(list)
     for gid, gene in genes.items():
@@ -128,7 +132,7 @@ def _signed_tss_distance(center: int, gene: dict) -> int:
 
 def _in_exon(center: int, exons: list) -> bool:
     for s, e in exons:
-        if s <= center <= e:
+        if s <= center < e:
             return True
         if s > center:
             break
@@ -182,14 +186,14 @@ def _overlapping_genes(
         idx = bisect.bisect_right(starts, hi_coord) - 1
         while idx >= 0 and prefix_max_end[idx] >= lo_coord:
             g = by_start[idx]
-            if (g["start"] <= center <= g["end"]) or (
+            if (g["start"] <= center < g["end"]) or (
                 end > start and start < g["end"] and end > g["start"]
             ):
                 out.append(g)
             idx -= 1
         return out
     for g in models_by_chrom.get(chrom) or []:
-        if (g["start"] <= center <= g["end"]) or (
+        if (g["start"] <= center < g["end"]) or (
             end > start and start < g["end"] and end > g["start"]
         ):
             out.append(g)
