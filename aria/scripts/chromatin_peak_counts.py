@@ -73,11 +73,7 @@ def _open_alignment(path, reference_fasta=None):
     )
 
 
-def _norm_contig(chrom: str | None) -> str:
-    """Normalize UCSC/Ensembl contig aliases (chr1 <-> 1, chrM/chrMT <-> MT)."""
-    from aria.utils.genomic_coords import ensembl_contig
-
-    return ensembl_contig(chrom)
+from aria.utils.genomic_coords import ensembl_contig as _norm_contig
 
 
 def _interval_index(rows):

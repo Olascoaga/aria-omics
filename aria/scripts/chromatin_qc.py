@@ -441,13 +441,7 @@ def _h5ad_atac_qc(h5ad_path: str, genome: str,
     }
 
 
-def _norm_contig(chrom) -> str:
-    """Reconcile UCSC (``chr1``/``chrM``) and Ensembl (``1``/``MT``) contig names so
-    BAM/fragment contigs match GTF/peak contigs regardless of naming convention."""
-    c = str(chrom).strip()
-    if c[:3].lower() == "chr":
-        c = c[3:]
-    return "MT" if c.upper() in ("M", "MT") else c
+from aria.utils.genomic_coords import ensembl_contig as _norm_contig
 
 
 def _is_mito_contig(chrom) -> bool:
@@ -697,10 +691,10 @@ def _compute_ip_control_jsd(
         chrom_order: list[tuple[str, int]] = []
         with _open_alignment(ip_bams[0], reference_fasta) as bam:
             for ref, length in zip(bam.header.references, bam.header.lengths, strict=True):
-                if ref.lower() in {"chrm", "mt", "m"} or ref.lower().startswith("chrm"):
+                if _is_mito_contig(ref):
                     continue
                 n_b = max(1, int(length) // bin_size)
-                chrom_order.append((str(ref), n_b))
+                chrom_order.append((_norm_contig(ref), n_b))
                 if sum(x[1] for x in chrom_order) >= max_bins:
                     break
         if not chrom_order:
@@ -708,6 +702,8 @@ def _compute_ip_control_jsd(
         offsets: dict[str, tuple[int, int]] = {}
         cursor = 0
         for ref, n_b in chrom_order:
+            if ref in offsets:
+                continue
             take = min(n_b, max_bins - cursor)
             if take <= 0:
                 break
@@ -723,7 +719,7 @@ def _compute_ip_control_jsd(
                     for read in bam.fetch(until_eof=True):
                         if not _primary_mapped(read) or read.is_duplicate:
                             continue
-                        info = offsets.get(read.reference_name)
+                        info = offsets.get(_norm_contig(read.reference_name))
                         if info is None:
                             continue
                         off, take = info

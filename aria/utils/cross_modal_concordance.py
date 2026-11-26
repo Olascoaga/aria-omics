@@ -886,10 +886,7 @@ def read_cpm(path, aliases, warnings):
 from aria.utils.stats import bh_correct as bh_adjust
 
 
-def _norm_chrom(chrom):
-    chrom = str(chrom)
-    chrom = chrom[3:] if chrom.lower().startswith("chr") else chrom
-    return "MT" if chrom in ("M", "MT") else chrom
+from aria.utils.genomic_coords import ensembl_contig as _norm_chrom
 
 
 def _standardize(matrix):

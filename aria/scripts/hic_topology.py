@@ -59,18 +59,7 @@ def _snap_window(window_bp: int, resolution_bp: int) -> int:
     return n_bins * res
 
 
-def _chrom_aliases(chrom: str) -> tuple[str, ...]:
-    c = str(chrom).strip()
-    if not c:
-        return ()
-    if c.lower().startswith("chr"):
-        bare = c[3:]
-        if bare.upper() in {"M", "MT"}:
-            return (c, "chrM", "chrMT", "MT", "M")
-        return (c, bare)
-    if c.upper() in {"M", "MT"}:
-        return (c, "chrM", "chrMT", "MT", "M")
-    return (c, f"chr{c}")
+from aria.utils.genomic_coords import contig_aliases as _chrom_aliases
 
 
 def _safe_ignore_diags(clr, view_df, actual_res: int) -> int:

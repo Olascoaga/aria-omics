@@ -64,15 +64,59 @@ def is_standard_contig(chrom: str | None) -> bool:
 
 
 def ensembl_contig(chrom: str | None) -> str:
-    """Normalize UCSC/Ensembl contig aliases to bare Ensembl form (``1``, ``X``, ``MT``)."""
+    """Normalize standard UCSC/Ensembl contig aliases to bare Ensembl form (``1``, ``X``, ``MT``).
+
+    Unplaced scaffolds and alternate contigs (e.g. ``chrUn_KI270442v1``) are
+    preserved verbatim rather than having their ``chr`` prefix stripped.
+    """
     canon = canonical_contig(chrom)
     if canon is None:
         return ""
     if canon == "chrM":
         return "MT"
     if canon.startswith("chr"):
-        return canon[3:]
+        body = canon[3:]
+        if (
+            body in _STANDARD_AUTOSOMES
+            or body in ("X", "Y")
+            or (body.isdigit() and 1 <= int(body) <= 99)
+        ):
+            return body
     return canon
+
+
+def contig_aliases(chrom: str | None) -> tuple[str, ...]:
+    """Return ordered unique UCSC/Ensembl aliases for ``chrom``."""
+    raw = str(chrom or "").strip()
+    if not raw:
+        return ()
+    canon = canonical_contig(raw)
+    ens = ensembl_contig(raw)
+    cands: list[str] = [raw]
+    if canon == "chrM":
+        cands.extend(("chrM", "chrMT", "MT", "M"))
+    else:
+        if canon:
+            cands.append(canon)
+        if ens:
+            cands.append(ens)
+    return tuple(dict.fromkeys(c for c in cands if c))
+
+
+def resolve_contig_in_valid(chrom: str | None, valid_chroms) -> str | None:
+    """Resolve ``chrom`` against ``valid_chroms`` using UCSC/Ensembl canonical aliasing."""
+    if not chrom or not valid_chroms:
+        return None
+    for cand in contig_aliases(chrom):
+        if cand in valid_chroms:
+            return cand
+    target = canonical_contig(chrom)
+    if target is None:
+        return None
+    for existing in valid_chroms:
+        if canonical_contig(existing) == target:
+            return existing
+    return None
 
 
 def gtf_to_bed_interval(start_1based: int, end_1based: int) -> tuple[int, int]:

@@ -841,16 +841,22 @@ def _read_peak_intervals(peaks_file: str) -> list[tuple[str, int, int]]:
 def _merge_intervals_with_support(
     peak_files: list[str],
 ) -> list[tuple[str, int, int, set[int]]]:
+    from aria.utils.genomic_coords import canonical_contig
+
     tagged: list[tuple[str, int, int, int]] = []
+    canon_to_raw: dict[str, str] = {}
     for idx, path in enumerate(peak_files):
-        tagged.extend((chrom, start, end, idx)
-                      for chrom, start, end in _read_peak_intervals(path))
+        for chrom, start, end in _read_peak_intervals(path):
+            norm = canonical_contig(chrom) or chrom
+            canon_to_raw.setdefault(norm, chrom)
+            tagged.append((norm, start, end, idx))
     tagged.sort(key=lambda item: (item[0], item[1], item[2], item[3]))
     merged: list[tuple[str, int, int, set[int]]] = []
-    for chrom, start, end, idx in tagged:
+    for norm, start, end, idx in tagged:
+        out_chrom = canon_to_raw[norm]
         # Half-open BED: book-ended [100,200) and [200,300) do not overlap.
-        if not merged or merged[-1][0] != chrom or start >= merged[-1][2]:
-            merged.append((chrom, start, end, {idx}))
+        if not merged or merged[-1][0] != out_chrom or start >= merged[-1][2]:
+            merged.append((out_chrom, start, end, {idx}))
             continue
         prev_chrom, prev_start, prev_end, support = merged[-1]
         support.add(idx)
