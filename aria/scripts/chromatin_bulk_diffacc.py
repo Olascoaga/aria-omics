@@ -78,8 +78,9 @@ def _normalise_comparisons(raw) -> list[dict[str, str]]:
 def _load_counts_matrix(path: str | Path):
     import numpy as np
     import pandas as pd
+    from aria.utils.count_classifier import detect_table_sep, strip_featurecounts_metadata
 
-    df = pd.read_csv(path, sep="\t")
+    df = pd.read_csv(path, sep=detect_table_sep(path), comment="#")
     if df.empty or df.shape[1] < 2:
         raise ValueError("counts matrix must contain peak_id plus sample columns.")
     peak_col = df.columns[0]
@@ -87,7 +88,9 @@ def _load_counts_matrix(path: str | Path):
         raise ValueError("first counts matrix column must be peak_id/peak.")
     if df[peak_col].isna().any() or df[peak_col].astype(str).duplicated().any():
         raise ValueError("peak IDs must be non-empty and unique.")
-    counts = df.set_index(peak_col)
+    counts = strip_featurecounts_metadata(df.set_index(peak_col))
+    if counts.shape[1] < 1:
+        raise ValueError("counts matrix must contain peak_id plus sample columns.")
     for col in counts.columns:
         counts[col] = pd.to_numeric(counts[col], errors="raise")
     if counts.isna().any().any():

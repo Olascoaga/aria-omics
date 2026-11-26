@@ -467,32 +467,9 @@ class AuditAgent(BaseAgent):
 def _load_count_matrix(files: list):
     """Load and merge count files into a single (genes × samples) DataFrame."""
     try:
-        import pandas as pd
+        from aria.utils.count_classifier import load_count_table
 
-        frames = []
-        for f in files:
-            if not f or not Path(f).exists():
-                continue
-            sep = "\t" if str(f).endswith((".tsv", ".txt")) else ","
-            df  = pd.read_csv(f, sep=sep, index_col=0, comment="#")
-            # Drop non-numeric columns (featureCounts metadata)
-            df  = df.select_dtypes(include="number")
-            frames.append(df)
-
-        if not frames:
-            return None
-
-        if len(frames) == 1:
-            return frames[0]
-
-        # Multiple files: each file is one sample (one numeric column)
-        combined = frames[0].copy()
-        for frame in frames[1:]:
-            for col in frame.columns:
-                if col not in combined.columns:
-                    combined[col] = frame[col]
-        return combined
-
+        return load_count_table(files)
     except Exception as e:
         log.warning(f"_load_count_matrix failed: {e}")
         return None
