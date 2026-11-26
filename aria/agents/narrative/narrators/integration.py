@@ -40,6 +40,7 @@ from aria.agents.narrative.types import (
     NarrativeBlock,
     SemanticFact,
 )
+from aria.agents.narrative.warning_router import routed_collect
 
 _OK_STATUSES = {"success", "ok", "done"}
 _NON_RUN_STATUSES = {"skipped", "not_run", "blocked", "error", "failed"}
@@ -542,6 +543,7 @@ class IntegrationNarrator:
             )
         )
 
+    @routed_collect
     def collect(
         self,
         agent_name: str,

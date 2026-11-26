@@ -49,7 +49,8 @@ def _enrichr_entries(results, padj_max=0.05, top=20):
 
 def _enrichr_enrichment(sig_symbols: list, db_labels: list, gene_sets: dict,
                         organism: str, background_symbols: list,
-                        allow_mock: bool, original_sig_genes: list) -> tuple:
+                        allow_mock: bool, original_sig_genes: list,
+                        failed_databases: dict | None = None) -> tuple:
     """Enrichr ORA for the given database labels (opt-in, network egress).
 
     Only invoked for databases that have no local versioned GMT, and only when
@@ -98,9 +99,12 @@ def _enrichr_enrichment(sig_symbols: list, db_labels: list, gene_sets: dict,
                         f"{db} returned empty results from Enrichr "
                         f"(0 of {len(sig_symbols)} symbols matched)."
                     )
-            except Exception as e:
+            except (OSError, ValueError, RuntimeError, KeyError, TypeError) as e:
+                err_txt = str(e)[:200]
+                if isinstance(failed_databases, dict):
+                    failed_databases[db] = err_txt
                 warnings.append(
-                    f"{db} Enrichr ERROR: {str(e)[:200]}. "
+                    f"{db} Enrichr ERROR: {err_txt}. "
                     f"(Sent {len(sig_symbols)} symbols, organism="
                     f"{_gseapy_organism(organism)}.)"
                 )
@@ -149,6 +153,7 @@ def _run_pathway_enrichment(sig_genes: list, up_genes: list,
         "databases_local": [],
         "databases_enrichr": [],
         "databases_skipped": [],
+        "failed_databases": {},
     }
 
     if not sig_genes:
@@ -199,13 +204,17 @@ def _run_pathway_enrichment(sig_genes: list, up_genes: list,
     # 2) Databases with no local GMT: Enrichr only when opted in + egress allowed.
     if missing:
         if _ora.enrichr_opt_in() and egress_allowed():
+            failed_dbs: dict[str, str] = {}
             enr_pw, enr_warn = _enrichr_enrichment(
                 sig_symbols, missing, gene_sets, organism,
                 background_symbols, allow_mock, sig_genes,
+                failed_databases=failed_dbs,
             )
             pathways.update(enr_pw)
             warnings.extend(enr_warn)
             ora_meta["databases_enrichr"] = list(enr_pw.keys())
+            if failed_dbs:
+                ora_meta["failed_databases"] = failed_dbs
             if enr_pw:
                 ora_meta["method"] = (
                     "mixed_local_enrichr" if local_results else "enrichr"

@@ -36,7 +36,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from aria.agents.narrative.types import NarrativeBlock
+from aria.agents.narrative.types import PUBLISHABLE_STATUSES, NarrativeBlock
 from aria.agents.narrative.evidence_verifier import verify_block_claim_support
 from aria.agents.narrative.validators import (
     _NEGATION_TAIL_RE,
@@ -291,8 +291,8 @@ def _block_evidence_category(block: NarrativeBlock) -> str | None:
     cat = _ANALYSIS_EVIDENCE.get(block.analysis)
     if cat:
         return cat
-    # Unknown successful result with evidence is at least associative.
-    if block.status == "success" and block.evidence:
+    # Unknown successful/warned result with evidence is at least associative.
+    if block.status in PUBLISHABLE_STATUSES and block.evidence:
         return "expression_change"
     return None
 

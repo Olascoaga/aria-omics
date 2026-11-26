@@ -34,6 +34,7 @@ import re
 from pathlib import Path
 
 from aria.agents.narrative.types import Caveat, EvidenceItem, NarrativeBlock
+from aria.agents.narrative.warning_router import routed_collect
 
 
 def _safe_id(value) -> str:
@@ -194,6 +195,7 @@ class ChromatinNarrator:
             and bool(_iter_chromatin_modality_findings(agent_result))
         )
 
+    @routed_collect
     def collect(self, agent_name: str, agent_result: dict,
                 context: dict | None = None) -> list[NarrativeBlock]:
         entries = _iter_chromatin_modality_findings(agent_result)
@@ -696,8 +698,6 @@ class ChromatinNarrator:
                 "called peak universe as a pooled/discovery set unless the "
                 "overlap metrics show adequate replicate support.",
                 severity="warning"))
-        for warning in peaks.get("warnings") or []:
-            caveats.append(Caveat(str(warning), severity="warning"))
 
         claim = f"{caller_label} for {label} identified {n_peaks} peaks."
         return NarrativeBlock(
@@ -763,8 +763,6 @@ class ChromatinNarrator:
                 "reads, call peaks, or count overlaps for this run, so read-level "
                 "QC and peak-calling provenance come from the upstream source.",
                 severity="warning"))
-        for warning in counts.get("warnings") or []:
-            caveats.append(Caveat(str(warning), severity="warning"))
 
         mod_title = (
             "Bulk ATAC" if data_type == "bulk_ATAC"
@@ -1035,8 +1033,6 @@ class ChromatinNarrator:
             f"{'accessibility' if is_atac else 'binding'} was not run: {reason}.",
             severity="warning",
         )]
-        for warning in da.get("warnings") or []:
-            caveats.append(Caveat(str(warning), severity="warning"))
         return NarrativeBlock(
             id=block_id,
             modality="chromatin",

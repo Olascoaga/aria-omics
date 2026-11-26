@@ -13,6 +13,7 @@ from aria.agents.narrative.types import (
     NarrativeBlock,
     SemanticFact,
 )
+from aria.agents.narrative.warning_router import routed_collect
 
 
 def _safe_id(value) -> str:
@@ -36,6 +37,7 @@ class BulkRnaNarrator:
             and bool(agent_result.get("findings", agent_result))
         )
 
+    @routed_collect
     def collect(self, agent_name: str, agent_result: dict,
                 context: dict | None = None) -> list[NarrativeBlock]:
         findings = agent_result.get("findings", {}) or {}

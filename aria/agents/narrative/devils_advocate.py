@@ -21,7 +21,7 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from aria.agents.narrative.types import Caveat, NarrativeBlock
+from aria.agents.narrative.types import PUBLISHABLE_STATUSES, Caveat, NarrativeBlock
 
 
 _CHALLENGEABLE_TIERS = {"associative", "weak_mechanistic", "strong_mechanistic"}
@@ -238,7 +238,10 @@ def build_devils_advocate(blocks: list[NarrativeBlock],
     manifest: list[dict] = []
 
     for block in blocks:
-        if block.status != "success":
+        if (
+            block.status not in PUBLISHABLE_STATUSES
+            or block.block_type in {"limitation", "error"}
+        ):
             continue
         tier = ((block.metadata.get("claim") or {}).get("tier"))
         if tier not in _CHALLENGEABLE_TIERS:
