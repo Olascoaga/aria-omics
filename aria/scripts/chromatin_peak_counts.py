@@ -252,7 +252,7 @@ def _metadata_rows(files: list[str], sample_ids: list[str],
                    sample_metadata: Any = None) -> list[dict[str, Any]]:
     rows = [
         {"sample_id": sample_id, "file": str(file)}
-        for sample_id, file in zip(sample_ids, files)
+        for sample_id, file in zip(sample_ids, files, strict=True)
     ]
     if sample_metadata is None:
         return rows

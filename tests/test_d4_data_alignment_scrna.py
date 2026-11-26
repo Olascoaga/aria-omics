@@ -89,3 +89,45 @@ def test_d4_006_pseudobulk_drops_nan_donors_and_rejects_noninvariant_covariates(
     assert any("batch" in w and "within" in w.lower() for w in out2.get("warnings", [])), (
         f"Expected warning about within-pseudosample non-invariant 'batch': {out2.get('warnings')}"
     )
+
+
+def test_d4_b905_scrna_helpers_strict_zip(tmp_path: Path):
+    """B905 (rna_pseudobulk_de.py:295, rna_celltypist.py:207, rna_de_per_cluster.py:142):
+    mismatched parallel arrays must raise ValueError (or flag degraded=True) instead
+    of silently truncating."""
+    from aria.scripts.rna_celltypist import _summarize_annotation_confidence
+    from aria.scripts.rna_pseudobulk_de import _expressed_background
+
+    # 1. _expressed_background: gene_names length != counts.shape[1] -> degraded=True.
+    counts = np.ones((5, 3), dtype=np.int32)
+    _, degraded = _expressed_background(counts, ["G1", "G2", "G3", "G4"])
+    assert degraded is True, "Mismatched gene_names length silently truncated with degraded=False"
+
+    # 2. _summarize_annotation_confidence: mismatched sequence lengths -> ValueError.
+    with pytest.raises(ValueError):
+        _summarize_annotation_confidence(
+            ["0", "0", "1"],
+            ["T", "T"],
+            ["T", "T", "B"],
+            [0.9, 0.8, 0.7],
+        )
+
+    # 3. rna_de_per_cluster: mismatched rank_genes_groups arrays -> ValueError.
+    ad = pytest.importorskip("anndata")
+    from aria.scripts.rna_de_per_cluster import rna_de_per_cluster
+
+    adata = ad.AnnData(
+        X=np.ones((6, 3), dtype=np.float32),
+        obs=pd.DataFrame({"leiden": ["0", "0", "0", "1", "1", "1"]}, index=[f"c{i}" for i in range(6)]),
+        var=pd.DataFrame(index=["G0", "G1", "G2"]),
+    )
+    adata.uns["rank_genes_groups"] = {
+        "params": {"groupby": "leiden", "use_raw": False, "method": "wilcoxon"},
+        "names": np.array([("G0", "G1"), ("G1", "G0"), ("G2", "G2")], dtype=[("0", "U4"), ("1", "U4")]),
+        "logfoldchanges": np.array([(2.0, -2.0), (1.5, -1.5)], dtype=[("0", "f4"), ("1", "f4")]),
+        "pvals_adj": np.array([(0.001, 0.001), (0.01, 0.01), (0.5, 0.5)], dtype=[("0", "f4"), ("1", "f4")]),
+    }
+    h5 = tmp_path / "rgg_mismatch.h5ad"
+    adata.write_h5ad(h5)
+    with pytest.raises(ValueError):
+        rna_de_per_cluster({"data_path": str(h5), "groupby": "leiden", "output_dir": str(tmp_path / "out")})

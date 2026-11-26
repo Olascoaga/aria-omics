@@ -95,3 +95,44 @@ def test_d4_009_hic_qc_and_topology_fail_closed_on_missing_file_or_sample_id_mis
         str(tmp_path / "out_d3_len"),
     )
     assert res_d3_len["status"] == "error" and res_d3_len.get("error_type") == "SampleIdLengthMismatch"
+
+
+def test_d4_019_hic_moderated_linear_contrast_strict_zip():
+    """D4-019 / B905 (hic_topology.py:1230): _moderated_linear_contrast must raise
+    ValueError when covariate_rows length differs from conditions/samples."""
+    from aria.scripts.hic_topology import _moderated_linear_contrast
+
+    mat = np.array([[1.0, 1.1, 0.9, -1.0, -1.1, -0.9], [0.5, 0.6, 0.4, -0.5, -0.4, -0.6]])
+    conds = ["A", "A", "A", "B", "B", "B"]
+    covs_shifted = [{"batch": b} for b in ("B0", "B1", "B2", "B1", "B2", "B1", "B2")]
+    with pytest.raises(ValueError):
+        _moderated_linear_contrast(mat, conds, "A", "B", covariate_rows=covs_shifted)
+
+
+def test_d4_b905_hic_qc_preprocess_sample_id_mismatch_strict_zip(tmp_path: Path, monkeypatch):
+    """B905 (hic_qc_and_balance.py:743): zip(sample_ids, valid_files) must raise
+    ValueError if hic_preprocess returns a mismatched cooler_files count."""
+    pytest.importorskip("cooler")
+    from aria.scripts import hic_preprocess as hp_mod
+    from aria.scripts.hic_qc_and_balance import hic_qc_and_balance
+
+    p1, p2 = tmp_path / "a.pairs", tmp_path / "b.pairs"
+    p1.write_text("## pairs format v1.0\n", encoding="utf-8")
+    p2.write_text("## pairs format v1.0\n", encoding="utf-8")
+    c1 = tmp_path / "a.cool"
+    _make_cooler(c1, 1)
+
+    # Simulate hic_preprocess returning only 1 cooler for 2 input samples.
+    monkeypatch.setattr(
+        hp_mod,
+        "hic_preprocess",
+        lambda params: {"status": "success", "cooler_files": [str(c1)]},
+    )
+    with pytest.raises(ValueError):
+        hic_qc_and_balance({
+            "files": [str(p1), str(p2)],
+            "sample_ids": ["S1", "S2"],
+            "resolution": 100_000,
+            "output_dir": str(tmp_path / "out"),
+            "resume": False,
+        })

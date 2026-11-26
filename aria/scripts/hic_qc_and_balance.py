@@ -757,7 +757,7 @@ def hic_qc_and_balance(params: dict) -> dict:
     sample_uris_for_scc: list[tuple[str, str]] = []
     scc_res_used: int | None = None
 
-    for sid, fpath in zip(sample_ids, valid_files):
+    for sid, fpath in zip(sample_ids, valid_files, strict=True):
         try:
             extra_res: list[int] = []
             if fpath.lower().endswith(".mcool"):

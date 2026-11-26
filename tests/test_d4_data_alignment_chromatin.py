@@ -227,3 +227,12 @@ def test_d4_015_tobias_duplicate_donor_id_fails_closed():
     assert inf["status"] == "descriptive_only"
     assert inf["reason"] == "duplicate_replicate_ids_within_condition"
     assert "D1" in (inf.get("duplicate_replicate_ids") or {}).get("A", {})
+
+
+def test_d4_b905_chromatin_peak_counts_metadata_rows_strict_zip():
+    """B905 (chromatin_peak_counts.py:259): _metadata_rows must raise ValueError
+    when sample_ids length differs from files length."""
+    from aria.scripts.chromatin_peak_counts import _metadata_rows
+
+    with pytest.raises(ValueError):
+        _metadata_rows(["a.bam", "b.bam"], ["s1"])

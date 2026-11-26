@@ -205,7 +205,7 @@ def _summarize_annotation_confidence(cluster_ids, raw_labels, assigned_labels,
     by_cluster_assigned: dict = defaultdict(list)
     by_cluster_conf: dict = defaultdict(list)
     for cl, raw, assigned, conf in zip(
-        cluster_ids, raw_labels, assigned_labels, conf_scores
+        cluster_ids, raw_labels, assigned_labels, conf_scores, strict=True
     ):
         cl = str(cl)
         by_cluster_raw[cl].append(str(raw))

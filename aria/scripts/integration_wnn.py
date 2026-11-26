@@ -370,7 +370,7 @@ def _count_discordant_clusters(
     from collections import Counter, defaultdict
 
     buckets: dict[str, list[str]] = defaultdict(list)
-    for w_lbl, r_lbl in zip(wnn_labels, rna_labels):
+    for w_lbl, r_lbl in zip(wnn_labels, rna_labels, strict=True):
         buckets[str(w_lbl)].append(str(r_lbl))
 
     n_discordant = 0

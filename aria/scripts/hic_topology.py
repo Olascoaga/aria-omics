@@ -1272,7 +1272,7 @@ def _moderated_linear_contrast(
     df_design = pd.DataFrame({"intercept": 1.0, "is_test": is_test})
     dropped_covariates: list[str] = []
     if covariate_rows:
-        cov_sub = [row for row, kp in zip(covariate_rows, keep_samples) if kp]
+        cov_sub = [row for row, kp in zip(covariate_rows, keep_samples, strict=True) if kp]
         cov_df = pd.DataFrame(cov_sub)
         for col in cov_df.columns:
             raw_vals = list(cov_df[col])

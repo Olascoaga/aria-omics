@@ -292,7 +292,7 @@ def _expressed_background(counts, gene_names):
             expressed_mask = np.asarray((counts > 0).sum(axis=0)).ravel() > 0
         else:
             expressed_mask = (np.asarray(counts) > 0).sum(axis=0) > 0
-        genes = [str(g) for g, keep in zip(gene_names, expressed_mask) if keep]
+        genes = [str(g) for g, keep in zip(gene_names, expressed_mask, strict=True) if keep]
         return genes, False
     except Exception:
         return list(map(str, gene_names)), True

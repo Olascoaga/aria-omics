@@ -1,6 +1,8 @@
 """Regression tests for D4 silent data misalignment fixes in multiome / integration."""
 from __future__ import annotations
 
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -125,3 +127,57 @@ def test_d4_013_wnn_diagnostics_applies_fin_both_mask():
     assert abs(wa_partial["global_mean_rna_weight"] + wa_partial["global_mean_atac_weight"] - 1.0) < 1e-6
     for cl_info in wa_partial["clusters"].values():
         assert abs(cl_info["mean_rna_weight"] + cl_info["mean_atac_weight"] - 1.0) < 1e-6
+
+
+def test_d4_018_mudata_io_h5_obs_length_mismatch_and_strict_zips(tmp_path: Path):
+    """D4-018 / B905: Mismatched HDF5 /obs dataset lengths (values/mask or col/_index)
+    must fail closed rather than silently truncating labels."""
+    h5py = pytest.importorskip("h5py")
+    from aria.utils.mudata_io import _read_h5_obs_series, join_obs_labels_from_h5ad
+
+    # 1. Truncated /obs/<col> vs /obs/_index -> join_obs_labels_from_h5ad returns status='error'.
+    h5_path = tmp_path / "ref_trunc.h5ad"
+    with h5py.File(h5_path, "w") as f:
+        obs = f.create_group("obs")
+        obs.attrs["_index"] = "_index"
+        dt = h5py.string_dtype(encoding="utf-8")
+        obs.create_dataset("_index", data=np.array(["BC1", "BC2", "BC3", "BC4"], dtype=object), dtype=dt)
+        obs.create_dataset("cell_type", data=np.array(["T_cell", "B_cell"], dtype=object), dtype=dt)
+    res = join_obs_labels_from_h5ad(["BC1", "BC2", "BC3", "BC4"], str(h5_path), label_col="cell_type")
+    assert res["status"] == "error", f"Mismatched HDF5 obs length silently truncated: {res}"
+
+    # 2. Nullable group values/mask length mismatch -> _read_h5_obs_series raises ValueError.
+    h5_null = tmp_path / "ref_null.h5ad"
+    with h5py.File(h5_null, "w") as f:
+        obs = f.create_group("obs")
+        grp = obs.create_group("cell_type")
+        dt = h5py.string_dtype(encoding="utf-8")
+        grp.create_dataset("values", data=np.array(["T_cell", "B_cell", "Mono"], dtype=object), dtype=dt)
+        grp.create_dataset("mask", data=np.array([False, False], dtype=bool))
+    with h5py.File(h5_null, "r") as f:
+        with pytest.raises(ValueError):
+            _read_h5_obs_series(f["obs"], "cell_type")
+
+    # 3. Sample-scoped join with truncated sample_col -> status='error'.
+    h5_sc = tmp_path / "ref_scoped.h5ad"
+    with h5py.File(h5_sc, "w") as f:
+        obs = f.create_group("obs")
+        obs.attrs["_index"] = "_index"
+        dt = h5py.string_dtype(encoding="utf-8")
+        obs.create_dataset("_index", data=np.array(["BC1", "BC2", "BC3"], dtype=object), dtype=dt)
+        obs.create_dataset("cell_type", data=np.array(["T", "B", "M"], dtype=object), dtype=dt)
+        obs.create_dataset("sample", data=np.array(["S1"], dtype=object), dtype=dt)
+    res_sc = join_obs_labels_from_h5ad(
+        ["BC1", "BC2"], str(h5_sc), label_col="cell_type",
+        sample_id="S1", reference_sample_col="sample",
+    )
+    assert res_sc["status"] == "error"
+
+
+def test_d4_b905_wnn_count_discordant_clusters_strict_zip():
+    """B905 (integration_wnn.py:373): _count_discordant_clusters must raise ValueError
+    on mismatched wnn_labels / rna_labels lengths."""
+    from aria.scripts.integration_wnn import _count_discordant_clusters
+
+    with pytest.raises(ValueError):
+        _count_discordant_clusters(["0", "0", "1"], ["0", "0"])

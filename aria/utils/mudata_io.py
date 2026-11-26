@@ -1148,7 +1148,7 @@ def _read_h5_obs_series(obs_obj: Any, col: str) -> tuple[bool, list[str | None] 
             mask = np.asarray(item["mask"][:], dtype=bool)
             out = [
                 None if bool(m) else v
-                for v, m in zip(vals, mask)
+                for v, m in zip(vals, mask, strict=True)
             ]
             return True, out
         return False, f"Unsupported HDF5 group encoding for /obs/{col}: keys={list(item.keys())}."
@@ -1256,6 +1256,8 @@ def read_h5ad_obs_columns(
                         "details": str(series_or_err),
                     }
                 assert isinstance(series_or_err, list)
+                if len(series_or_err) != len(obs_names):
+                    raise ValueError(f"Column '{col}' length ({len(series_or_err)}) != obs_names length ({len(obs_names)})")
                 col_data[col] = series_or_err
     except Exception as exc:
         return {
@@ -1312,7 +1314,7 @@ def join_obs_labels_from_h5ad(
         ref_samples = loaded["columns"][reference_sample_col]
         scoped_pairs = [
             (bc, lbl)
-            for bc, lbl, smp in zip(ref_barcodes, ref_labels, ref_samples)
+            for bc, lbl, smp in zip(ref_barcodes, ref_labels, ref_samples, strict=True)
             if smp == sid
         ]
         if not scoped_pairs:
@@ -1327,7 +1329,7 @@ def join_obs_labels_from_h5ad(
                 matched_level = ci_levels[0]
                 scoped_pairs = [
                     (bc, lbl)
-                    for bc, lbl, smp in zip(ref_barcodes, ref_labels, ref_samples)
+                    for bc, lbl, smp in zip(ref_barcodes, ref_labels, ref_samples, strict=True)
                     if smp == matched_level
                 ]
             elif len(ci_levels) > 1:
@@ -1447,7 +1449,7 @@ def join_obs_labels_from_h5ad(
             continue
 
         ref_buckets: dict[str, list[str | None]] = {}
-        for r_bc, r_lbl in zip(ref_barcodes, ref_labels):
+        for r_bc, r_lbl in zip(ref_barcodes, ref_labels, strict=True):
             rk = r_fn(r_bc)
             if rk is None:
                 continue
