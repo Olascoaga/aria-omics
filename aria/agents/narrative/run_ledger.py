@@ -611,6 +611,28 @@ def _reconcile_integration(findings: dict, phrases: list[str]) -> list[dict]:
     return entries
 
 
+def _mark_crashed_agent_entries(entries: list[dict], raw_agent_res: Any) -> list[dict]:
+    """Propagate a top-level crashed modality agent status into its ledger nodes (D5-005)."""
+    if not isinstance(raw_agent_res, dict):
+        return entries
+    st = str(raw_agent_res.get("status") or "").lower().strip()
+    if st not in _ERROR_FINDING_STATUSES:
+        return entries
+    reason = (
+        raw_agent_res.get("error")
+        or raw_agent_res.get("error_type")
+        or raw_agent_res.get("details")
+        or raw_agent_res.get("reason")
+        or st
+    )
+    for entry in entries:
+        if entry.get("status") == "not_run":
+            entry["status"] = "error"
+            entry["reason"] = str(reason)
+            entry["divergence"] = bool(entry.get("planned"))
+    return entries
+
+
 def build_run_ledger(exp_ctx: dict, agent_results: dict) -> dict:
     """Reconcile planned vs executed analyses into an auditable manifest.
 
@@ -622,35 +644,41 @@ def build_run_ledger(exp_ctx: dict, agent_results: dict) -> dict:
     phrases = _plan_phrases(exp_ctx)
     entries: list[dict] = []
     modalities: list[str] = []
+    ar = agent_results or {}
 
-    sc_findings = _scrna_findings(agent_results)
-    if bool(sc_findings) or "scrna_agent" in (agent_results or {}):
-        entries += _entries_for("scRNA", _SCRNA_ANALYSES, sc_findings, phrases)
+    sc_findings = _scrna_findings(ar)
+    if bool(sc_findings) or "scrna_agent" in ar:
+        sc_entries = _entries_for("scRNA", _SCRNA_ANALYSES, sc_findings, phrases)
+        entries += _mark_crashed_agent_entries(sc_entries, ar.get("scrna_agent"))
         modalities.append("scRNA")
 
-    ch_findings = _chromatin_findings(agent_results)
-    if bool(ch_findings) or "chromatin_agent" in (agent_results or {}):
-        entries += _reconcile_chromatin(ch_findings, phrases)
+    ch_findings = _chromatin_findings(ar)
+    if bool(ch_findings) or "chromatin_agent" in ar:
+        ch_entries = _reconcile_chromatin(ch_findings, phrases)
+        entries += _mark_crashed_agent_entries(ch_entries, ar.get("chromatin_agent"))
         modalities.append("chromatin")
 
-    bk_findings = _bulk_findings_normalized(agent_results)
-    if bool(bk_findings) or "bulk_rna_agent" in (agent_results or {}):
-        entries += _entries_for("bulk", _BULK_ANALYSES, bk_findings, phrases)
+    bk_findings = _bulk_findings_normalized(ar)
+    if bool(bk_findings) or "bulk_rna_agent" in ar:
+        bk_entries = _entries_for("bulk", _BULK_ANALYSES, bk_findings, phrases)
+        entries += _mark_crashed_agent_entries(bk_entries, ar.get("bulk_rna_agent"))
         modalities.append("bulk")
 
-    int_findings = _integration_findings_normalized(agent_results, exp_ctx)
-    if bool(int_findings) or "integration_agent" in (agent_results or {}):
-        entries += _reconcile_integration(int_findings, phrases)
+    int_findings = _integration_findings_normalized(ar, exp_ctx)
+    if bool(int_findings) or "integration_agent" in ar:
+        int_entries = _reconcile_integration(int_findings, phrases)
+        entries += _mark_crashed_agent_entries(int_entries, ar.get("integration_agent"))
         modalities.append("integration")
 
-    cm_findings = cross_modal_findings(agent_results)
-    if cm_findings or "cross_modal_concordance" in (agent_results or {}):
+    cm_findings = cross_modal_findings(ar)
+    if cm_findings or "cross_modal_concordance" in ar:
         entries += _reconcile_cross_modal(cm_findings, phrases)
         modalities.append("cross_modal")
 
-    hic_findings = _hic_findings_normalized(agent_results)
-    if bool(hic_findings) or "genome_arch_agent" in (agent_results or {}):
-        entries += _reconcile_hic(hic_findings, phrases)
+    hic_findings = _hic_findings_normalized(ar)
+    if bool(hic_findings) or "genome_arch_agent" in ar:
+        hic_entries = _reconcile_hic(hic_findings, phrases)
+        entries += _mark_crashed_agent_entries(hic_entries, ar.get("genome_arch_agent"))
         modalities.append("hic")
 
     divergences = [e for e in entries if e["divergence"]]

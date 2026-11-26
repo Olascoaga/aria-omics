@@ -68,16 +68,19 @@ class NarrativeRegistry:
         blocks: list[NarrativeBlock] = []
         ctx = {**(context or {}), "agent_results": agent_results or {}}
         for agent_name, result in (agent_results or {}).items():
+            accepted = False
             for narrator in self._narrators:
                 try:  # isolate narrator failures per modality (D5-001)
                     if not narrator.accepts(agent_name, result or {}):
                         continue
+                    accepted = True
                     agent_blocks = narrator.collect(agent_name, result or {}, ctx)
                     routed = route_degradation_signals(
                         agent_name, result or {}, agent_blocks
                     )
                     blocks.extend(validate_blocks(routed))
                 except Exception as exc:  # aria: allow-broad-except isolate narrator failure per modality
+                    accepted = True
                     log.warning(
                         "Narrator %s failed for %s: %s",
                         getattr(narrator, "name", type(narrator).__name__),
@@ -87,6 +90,14 @@ class NarrativeRegistry:
                     )
                     blocks.extend(validate_blocks([_narrator_error_block(agent_name, exc)]))
                 break
+            if (
+                not accepted
+                and isinstance(result, dict)
+                and str(result.get("status") or "").strip().lower() in {"error", "failed"}
+            ):
+                routed = route_degradation_signals(agent_name, result, [])
+                if routed:
+                    blocks.extend(validate_blocks(routed))
         return blocks
 
 

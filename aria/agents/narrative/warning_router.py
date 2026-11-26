@@ -104,6 +104,8 @@ def _iter_stage_dicts(agent_name: str, agent_result: dict) -> list[tuple[str, di
 
     if root is not agent_result and isinstance(agent_result.get("warnings"), (list, tuple)):
         out.append(("__root__", {"warnings": agent_result["warnings"]}, None))
+    if root is not agent_result and str(agent_result.get("status") or "").strip().lower() in _FAILED_STATUSES:
+        out.append(("__root__", agent_result, None))
     if agent_name in {"scrna_agent", "rna_agent"}:
         sc = root.get("scRNA") if isinstance(root.get("scRNA"), dict) else None
         inner = (sc.get("findings") if isinstance(sc.get("findings"), dict) else sc) if sc else root
@@ -162,8 +164,9 @@ def _extract_signals(scope: str, stage: dict[str, Any], id_hint: str | None) -> 
         errs = stage.get("_errors")
         for item in (errs if isinstance(errs, (list, tuple)) else ([f"{k}: {v}" if v else str(k) for k, v in errs.items()] if isinstance(errs, dict) else ())):
             _emit("figures._errors", "warning", item)
-    if (err_val := stage.get("error")) and not isinstance(err_val, bool):
-        _emit("error", "blocking" if (stage_failed and scope not in _AUXILIARY_SCOPES and scope != "__root__") else "warning", err_val)
+    err_val = stage.get("error") or (stage.get("details") if (stage_failed and scope == "__root__") else None)
+    if err_val and not isinstance(err_val, bool):
+        _emit("error", "blocking" if (stage_failed and scope not in _AUXILIARY_SCOPES) else "warning", err_val)
     for k, v in stage.items():
         if isinstance(k, str) and k.endswith("_error") and v and not isinstance(v, bool):
             _emit(k, "warning", f"{k}: {v}")
@@ -277,14 +280,15 @@ def route_degradation_signals(agent_name: str, agent_result: dict, blocks: list[
     existing_ids = {b.id for b in out}
     for (scope, id_hint), group in orphans.items():
         is_blocking = any(s.severity == "blocking" for s in group)
-        base_id = id_hint if (id_hint and "." in id_hint) else f"{prefix}.{_safe_id(scope)}"
+        root_err = scope == "__root__" and is_blocking
+        base_id = id_hint if (id_hint and "." in id_hint) else f"{prefix}.{'agent_error' if root_err else _safe_id(scope)}"
         bid = base_id if base_id not in existing_ids else f"{base_id}.degradation"
         existing_ids.add(bid)
         seen_cav: set[tuple[str, str]] = set()
         caveats = [Caveat(text=s.message, severity=s.severity) for s in group if not ((k := (s.severity, _norm(s.message))) in seen_cav or seen_cav.add(k))]
         out.append(NarrativeBlock(
-            id=bid, modality=modality, analysis=_STAGE_TO_ANALYSES.get(scope, (scope,))[0],
-            block_type="error" if is_blocking else "limitation", title=f"{modality} {scope.replace('_', ' ')}",
+            id=bid, modality=modality, analysis="agent_error" if root_err else _STAGE_TO_ANALYSES.get(scope, (scope,))[0],
+            block_type="error" if is_blocking else "limitation", title=f"{modality} execution error" if root_err else f"{modality} {scope.replace('_', ' ')}",
             status="error" if is_blocking else "limitation", confidence="insufficient", claim="", caveats=caveats,
             error=next((s.message for s in group if s.severity == "blocking"), None),
             metadata={"degradation_signals": [{"scope": s.scope, "field": s.field, "severity": s.severity, "message": s.message} for s in group]},

@@ -1441,9 +1441,15 @@ class OrchestratorAgent(BaseAgent):
             )
             with use_egress_policy(session.egress_policy):
                 return agent.run(experiment_id, context)
-        except Exception as e:
+        except Exception as e:  # aria: allow-broad-except surface crashed modality agent payload to report and RunLedger
             log.error(f"{agent_name} raised: {e}", exc_info=True)
-            return {"status": "error", "error_type": type(e).__name__, "details": str(e), "agent": agent_name}
+            return {
+                "status": "error",
+                "error_type": type(e).__name__,
+                "error": f"{type(e).__name__}: {e}",
+                "details": str(e),
+                "agent": agent_name,
+            }
 
     @staticmethod
     def _experimental_override_active(meta: dict) -> bool:
@@ -1660,13 +1666,14 @@ class OrchestratorAgent(BaseAgent):
                 script_path="aria/scripts/cross_modal_concordance.py",
                 params=params,
             )
-        except Exception as exc:
+        except Exception as exc:  # aria: allow-broad-except surface cross-modal crash payload to report and RunLedger
             log.warning("cross_modal_concordance failed: %s", exc, exc_info=True)
             return {
                 "status": "error",
                 "ran": False,
                 "analysis": "cross_modal_concordance",
                 "error_type": type(exc).__name__,
+                "error": f"{type(exc).__name__}: {exc}",
                 "details": str(exc),
             }
 
