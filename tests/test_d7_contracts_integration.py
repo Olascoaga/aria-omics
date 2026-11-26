@@ -75,3 +75,47 @@ mdata.write_h5mu({str(h5mu_path)!r})
     ), f"Expected structured batch_condition_confounded caveat, got {warn_caveats}"
     sig_fields = {s["field"] for s in mofa_block.metadata.get("degradation_signals", [])}
     assert "batch_condition_confounded" in sig_fields
+
+
+def test_d7_021_integration_agent_mofa_resolves_design_main_factor_and_batch_key(tmp_path: Path):
+    """D7-021: DesignAgent._build_design stores condition column under main_factor
+    and blocking covariate under batch_covariate (never top-level condition_col).
+    IntegrationAgent._run_mofa must resolve condition_col (and fallback batch_key)
+    via resolve_design_contract."""
+    pytest.importorskip("litellm")
+    from aria.agents.design_agent import DesignAgent
+    from aria.agents.integration_agent import IntegrationAgent
+    from aria.memory.memory import ARIAMemory
+
+    da = DesignAgent(ARIAMemory(":memory:"), llm=None)
+    da._organism = "Homo sapiens"
+    da._genome = "hg38"
+    da._confirmed_groups = {"armA": ["s1", "s2"], "armB": ["s3", "s4"]}
+    da._main_factor = "perturbation_arm"
+    da._batch_covariate = "donor"
+    da._inferred_design = {"source": "sample_sheet"}
+    design = da._build_design()
+    assert design["main_factor"] == "perturbation_arm"
+    assert "condition_col" not in design
+
+    captured: dict = {}
+
+    class _CapEnv:
+        def run_in_stack(self, stack, script_path, params):
+            captured["params"] = dict(params)
+            return {"status": "skipped", "reason": "captured"}
+
+    agent = IntegrationAgent(ARIAMemory(":memory:"), llm=None)
+    agent.env = _CapEnv()
+    agent._advise_mofa_factors = lambda exp_id, intent, mods: 5
+    fake_h5mu = tmp_path / "paired.h5mu"
+    fake_h5mu.write_bytes(b"")
+    agent._run_mofa(
+        "exp_mofa",
+        {"design": design, "h5mu_path": str(fake_h5mu), "mofa_output_dir": str(tmp_path / "out")},
+        intent={},
+        mods={"scRNA": [str(fake_h5mu)], "scATAC": [str(fake_h5mu)]},
+    )
+    assert captured["params"].get("condition_col") == "perturbation_arm", captured["params"]
+    assert captured["params"].get("batch_key") == "donor", captured["params"]
+

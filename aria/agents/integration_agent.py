@@ -1636,11 +1636,12 @@ class IntegrationAgent(BaseAgent):
             mofa_params["h5mu_path"] = str(h5mu_cand)
         if isinstance(exp_ctx.get("cell_cycle_genes"), dict):
             mofa_params["cell_cycle_genes"] = exp_ctx["cell_cycle_genes"]
-        if exp_ctx.get("batch_key"):
-            mofa_params["batch_key"] = str(exp_ctx["batch_key"])
-        cond_col = exp_ctx.get("condition_col") or (
-            (exp_ctx.get("design") or {}).get("condition_col")
-        )
+        from aria.utils.design_matrix import resolve_design_contract
+        design_contract = resolve_design_contract(exp_ctx.get("design"), exp_ctx)
+        batch_key = exp_ctx.get("batch_key") or design_contract.get("batch_covariate")
+        if batch_key:
+            mofa_params["batch_key"] = str(batch_key)
+        cond_col = design_contract.get("condition_col")
         if cond_col:
             mofa_params["condition_col"] = str(cond_col)
         mofa_params.update(mofa_overrides)
