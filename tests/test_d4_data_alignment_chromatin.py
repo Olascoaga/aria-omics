@@ -58,3 +58,37 @@ def test_d4_007_seacr_and_broad_domains_fail_closed_on_scale_factor_length_misma
         "write_bigwig": True,
     })
     assert res_cp.get("status") == "error" and res_cp.get("error_type") == "InvalidScaleFactors"
+
+
+def test_d4_008_broad_domains_normalizes_contigs_and_fails_on_zero_control_overlap(tmp_path: Path):
+    """D4-008: call_broad_domains must match UCSC chr1 vs Ensembl 1 controls via
+    canonical contig normalization, and fail closed if control_bams share 0 contigs."""
+    pytest.importorskip("pysam")
+    from aria.utils.seacr_idr import call_broad_domains
+
+    pos = [
+        (b * 10_000 + k * 50, 50)
+        for b in range(20)
+        for k in range(100 if 5 <= b <= 7 else 2)
+    ]
+    ip_bam = tmp_path / "ip.bam"
+    ctrl_ucsc = tmp_path / "ctrl_ucsc.bam"
+    ctrl_ens = tmp_path / "ctrl_ens.bam"
+    ctrl_other = tmp_path / "ctrl_chr2.bam"
+    _write_bam(ip_bam, "chr1", 200_000, pos)
+    _write_bam(ctrl_ucsc, "chr1", 200_000, pos)
+    _write_bam(ctrl_ens, "1", 200_000, pos)
+    _write_bam(ctrl_other, "chr2", 200_000, pos)
+
+    res_ok = call_broad_domains([str(ip_bam)], tmp_path / "ok.bed", control_bams=[str(ctrl_ucsc)])
+    assert res_ok["status"] == "success" and res_ok["n_peaks"] == 0
+
+    res_ens = call_broad_domains([str(ip_bam)], tmp_path / "ens.bed", control_bams=[str(ctrl_ens)])
+    assert res_ens["status"] == "success" and res_ens["n_peaks"] == 0, (
+        f"Expected chr1 vs 1 control match (0 peaks), got {res_ens}"
+    )
+
+    res_disjoint = call_broad_domains(
+        [str(ip_bam)], tmp_path / "disjoint.bed", control_bams=[str(ctrl_other)]
+    )
+    assert res_disjoint["status"] == "error" and res_disjoint["error_type"] == "ControlContigMismatch"

@@ -16,6 +16,8 @@ from typing import Any
 
 import numpy as np
 
+from aria.utils.genomic_coords import canonical_contig
+
 
 def _open_alignment(path: str | Path, reference_fasta: str | None = None):
     import pysam
@@ -1076,15 +1078,30 @@ def call_broad_domains(
         if control_bams
         else {}
     )
+    ctrl_by_canon: dict[str, np.ndarray] = {}
+    for c_name, c_arr in ctrl_norm.items():
+        canon = canonical_contig(c_name)
+        if canon and canon not in ctrl_by_canon:
+            ctrl_by_canon[canon] = c_arr
 
     pseudo = 0.5
     domains: list[tuple[str, int, int, float]] = []
+    n_matched_ctrl = 0
+    unmatched_ctrl_chroms: list[str] = []
     for chrom in sorted(ip_norm):
         ip_arr = ip_norm[chrom]
         chrom_len = chrom_sizes.get(chrom, ip_arr.size * win)
-        if chrom in ctrl_norm and ctrl_norm[chrom].size == ip_arr.size:
-            bg_arr = ctrl_norm[chrom]
+        ctrl_arr = ctrl_norm.get(chrom)
+        if ctrl_arr is None and control_bams:
+            canon = canonical_contig(chrom)
+            if canon:
+                ctrl_arr = ctrl_by_canon.get(canon)
+        if ctrl_arr is not None and ctrl_arr.size == ip_arr.size:
+            bg_arr = ctrl_arr
+            n_matched_ctrl += 1
         else:
+            if control_bams:
+                unmatched_ctrl_chroms.append(chrom)
             nz = ip_arr[ip_arr > 0]
             bg_val = float(np.median(nz)) if nz.size else 1.0
             bg_arr = np.full_like(ip_arr, bg_val)
@@ -1112,6 +1129,25 @@ def call_broad_domains(
                 cur_s, cur_e, vals = s, e, [float(l2fc[int(idx)])]
         if cur_e - cur_s >= int(min_domain_bp):
             domains.append((chrom, cur_s, cur_e, float(np.mean(vals))))
+
+    if control_bams and ip_norm and n_matched_ctrl == 0:
+        return {
+            "status": "error",
+            "error_type": "ControlContigMismatch",
+            "details": (
+                f"Control BAM(s) matched 0 of {len(ip_norm)} IP chromosome(s) "
+                "after canonical contig normalization "
+                f"(IP contigs={sorted(ip_norm)[:10]}, "
+                f"control contigs={sorted(ctrl_norm)[:10]}). Verify IP and "
+                "control BAMs were aligned to compatible references."
+            ),
+        }
+    if unmatched_ctrl_chroms:
+        warnings_out.append(
+            f"Control BAM(s) lacked matched-length track for {len(unmatched_ctrl_chroms)} "
+            f"IP contig(s) ({unmatched_ctrl_chroms[:10]}); fell back to within-IP "
+            "median background on those contigs only."
+        )
 
     out_path = Path(output_bed)
     out_path.parent.mkdir(parents=True, exist_ok=True)
