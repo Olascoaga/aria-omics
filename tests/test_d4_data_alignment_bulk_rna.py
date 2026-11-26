@@ -144,3 +144,53 @@ def test_d4_001_bulk_narrator_surfaces_count_union_caveat_when_not_error():
         ]
         assert matching, f"Expected warning caveat mentioning {pol!r} in BulkRnaNarrator blocks"
         assert any("100" in c.text and "90" in c.text for c in matching)
+
+
+def test_d4_004_duplicate_metadata_and_count_ids_fail_closed(tmp_path: Path):
+    """D4-004: Duplicate sample IDs in metadata TSV or count columns must fail
+    closed rather than silently expanding rows and bypassing min_replicates=3."""
+    from aria.scripts.rna_bulk.counts import (
+        _enforce_metadata_correspondence,
+        _load_or_infer_metadata,
+    )
+
+    rng = np.random.default_rng(7)
+    mat = rng.poisson(200, size=(60, 5))
+    mat[:10, 3:] = rng.poisson(800, size=(10, 2))
+    counts = pd.DataFrame(
+        mat,
+        index=[f"ENSG{i:011d}" for i in range(60)],
+        columns=["ctrl_1", "ctrl_2", "ctrl_3", "treat_1", "treat_2"],
+    )
+    meta_tsv = tmp_path / "metadata.tsv"
+    dup_meta = pd.DataFrame(
+        {"condition": ["ctrl", "ctrl", "ctrl", "treat", "treat", "treat"]},
+        index=["ctrl_1", "ctrl_2", "ctrl_3", "treat_1", "treat_2", "treat_2"],
+    )
+    dup_meta.to_csv(meta_tsv, sep="\t")
+
+    # _load_or_infer_metadata must reject duplicate sample IDs naming 'treat_2'.
+    with pytest.raises(ValueError, match="treat_2"):
+        _load_or_infer_metadata(counts, str(meta_tsv), "condition")
+
+    # _enforce_metadata_correspondence must reject duplicate metadata index AND duplicate count cols.
+    with pytest.raises(ValueError, match="treat_2"):
+        _enforce_metadata_correspondence(counts, dup_meta)
+
+    dup_counts = counts[["ctrl_1", "ctrl_2", "ctrl_3", "treat_1", "treat_2", "treat_2"]]
+    clean_meta = pd.DataFrame(
+        {"condition": ["ctrl", "ctrl", "ctrl", "treat", "treat"]},
+        index=["ctrl_1", "ctrl_2", "ctrl_3", "treat_1", "treat_2"],
+    )
+    with pytest.raises(ValueError, match="treat_2"):
+        _enforce_metadata_correspondence(dup_counts, clean_meta)
+
+    # Direct _run_deseq2 call with duplicate metadata must also fail closed.
+    from aria.scripts.rna_bulk.deseq2 import _run_deseq2
+
+    res, _ = _run_deseq2(
+        counts, dup_meta, "condition", "treat", "ctrl", 0.05, 0.5,
+        min_replicates_per_condition=3,
+    )
+    assert res.get("status") == "error" and res.get("error_type") == "DuplicateSampleIds"
+

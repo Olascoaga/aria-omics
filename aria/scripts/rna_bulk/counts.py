@@ -321,7 +321,25 @@ def _enforce_metadata_correspondence(counts, metadata, excluded_samples=None):
     unauthorized or invalid correspondence gap.
     """
     count_cols = [str(c) for c in counts.columns]
-    have_meta = {str(i) for i in metadata.index}
+    if len(set(count_cols)) != len(count_cols):
+        dup_cols = sorted(
+            {c for c in count_cols if count_cols.count(c) > 1}
+        )
+        raise ValueError(
+            "Count matrix contains duplicate sample column names: "
+            f"{dup_cols}. Every count column must have a unique sample ID."
+        )
+    meta_ids = [str(i) for i in metadata.index]
+    if len(set(meta_ids)) != len(meta_ids):
+        dup_meta = sorted(
+            {i for i in meta_ids if meta_ids.count(i) > 1}
+        )
+        raise ValueError(
+            "Metadata table contains duplicate sample IDs: "
+            f"{dup_meta}. Collapse technical lanes or fix duplicate rows "
+            "before differential expression."
+        )
+    have_meta = set(meta_ids)
     orphans = [c for c in count_cols if c not in have_meta]
 
     # De-duplicate the requested exclusions while preserving order.
@@ -394,12 +412,37 @@ def _load_or_infer_metadata(counts, metadata_file: str,
     warnings = []
 
     counts.columns = counts.columns.astype(str)
+    if not counts.columns.is_unique:
+        dup_cols = sorted(set(counts.columns[counts.columns.duplicated()].tolist()))
+        raise ValueError(
+            "Count matrix contains duplicate sample column names: "
+            f"{dup_cols}. Every sample column must have a unique ID."
+        )
 
     # Try loading explicit metadata file
     if metadata_file and Path(metadata_file).exists():
+        meta = None
         try:
             meta = pd.read_csv(metadata_file, sep="\t", index_col=0)
             meta.index = meta.index.astype(str)
+        except Exception as e:
+            fallback = (
+                "Attempting automatic detection."
+                if allow_inference
+                else "Automatic detection is disabled in production."
+            )
+            warnings.append(
+                f"Metadata file load failed: {e}. "
+                f"{fallback}"
+            )
+        if meta is not None:
+            if not meta.index.is_unique:
+                dup_ids = sorted(set(meta.index[meta.index.duplicated()].tolist()))
+                raise ValueError(
+                    f"Metadata file '{metadata_file}' contains duplicate "
+                    f"sample IDs: {dup_ids}. Each sample must appear at most "
+                    "once before differential expression."
+                )
             # Align to count matrix samples
             common = [s for s in counts.columns if s in meta.index]
             if len(common) < 2:
@@ -414,16 +457,6 @@ def _load_or_infer_metadata(counts, metadata_file: str,
                 )
             else:
                 return meta.loc[common], warnings
-        except Exception as e:
-            fallback = (
-                "Attempting automatic detection."
-                if allow_inference
-                else "Automatic detection is disabled in production."
-            )
-            warnings.append(
-                f"Metadata file load failed: {e}. "
-                f"{fallback}"
-            )
     elif metadata_file:
         warnings.append(f"Metadata file not found: {metadata_file}.")
 

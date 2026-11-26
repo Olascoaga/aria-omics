@@ -189,6 +189,18 @@ def _run_deseq2(counts, metadata, design_factor: str,
 
     num_str = str(numerator)
     den_str = str(denominator)
+    if not metadata.index.is_unique or not counts.columns.is_unique:
+        dup_m = sorted(set(metadata.index[metadata.index.duplicated()].astype(str).tolist()))
+        dup_c = sorted(set(counts.columns[counts.columns.duplicated()].astype(str).tolist()))
+        return {
+            "status": "error",
+            "error_type": "DuplicateSampleIds",
+            "details": (
+                "DESeq2 requires unique sample identifiers in both metadata "
+                f"and counts (duplicate metadata IDs={dup_m}, "
+                f"duplicate count columns={dup_c})."
+            ),
+        }, warnings
     # Filter to comparison groups only
     mask      = metadata[design_factor].astype(str).isin([num_str, den_str])
     meta_sub  = metadata[mask].copy()

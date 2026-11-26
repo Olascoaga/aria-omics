@@ -230,10 +230,18 @@ def bulk_rna_de(params: dict) -> dict:
     count_union = count_meta.get("count_union")
 
     # ── 2. Load or infer metadata ─────────────────────────────────────────
-    metadata, meta_warn = _load_or_infer_metadata(
-        counts, metadata_file, design_factor,
-        allow_inference=metadata_inference_allowed,
-    )
+    try:
+        metadata, meta_warn = _load_or_infer_metadata(
+            counts, metadata_file, design_factor,
+            allow_inference=metadata_inference_allowed,
+        )
+    except ValueError as exc:
+        return {
+            "status":     "error",
+            "error_type": "DuplicateSampleIds",
+            "details":    str(exc),
+            "warnings":   warnings,
+        }
     warnings.extend(meta_warn)
     if metadata is None:
         return {
