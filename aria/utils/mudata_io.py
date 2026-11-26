@@ -313,6 +313,90 @@ def _inspect_count_matrix(matrix: Any) -> dict[str, Any]:
     }
 
 
+def _align_raw_counts_matrix(
+    adata: Any, raw_obj: Any
+) -> tuple[bool, Any, dict[str, Any], str | None]:
+    """Verify raw.X obs/var alignment against adata; reindex exact permutations, else reject."""
+    if getattr(raw_obj, "shape", None) != getattr(adata, "shape", None):
+        return False, None, {}, "raw_shape_mismatch"
+    ad_obs_obj = getattr(adata, "obs_names", None)
+    ad_var_obj = getattr(adata, "var_names", None)
+    raw_obs_obj = getattr(raw_obj, "obs_names", None)
+    raw_var_obj = getattr(raw_obj, "var_names", None)
+    if (
+        ad_obs_obj is None
+        or ad_var_obj is None
+        or raw_obs_obj is None
+        or raw_var_obj is None
+    ):
+        return False, None, {}, "raw_missing_axis_names"
+
+    ad_obs = [str(x) for x in ad_obs_obj]
+    ad_var = [str(x) for x in ad_var_obj]
+    raw_obs = [str(x) for x in raw_obs_obj]
+    raw_var = [str(x) for x in raw_var_obj]
+
+    obs_equal = raw_obs == ad_obs
+    var_equal = raw_var == ad_var
+    if obs_equal and var_equal:
+        return (
+            True,
+            raw_obj.X,
+            {
+                "raw_reindexed": False,
+                "obs_reordered": False,
+                "var_reordered": False,
+            },
+            None,
+        )
+
+    if not obs_equal and (
+        len(set(ad_obs)) != len(ad_obs) or len(set(raw_obs)) != len(raw_obs)
+    ):
+        return False, None, {}, "raw_non_unique_obs_names"
+    if not var_equal and (
+        len(set(ad_var)) != len(ad_var) or len(set(raw_var)) != len(raw_var)
+    ):
+        return False, None, {}, "raw_non_unique_var_names"
+
+    obs_same_set = obs_equal or (set(raw_obs) == set(ad_obs))
+    var_same_set = var_equal or (set(raw_var) == set(ad_var))
+    if not obs_same_set and not var_same_set:
+        return False, None, {}, "raw_obs_and_var_names_mismatch"
+    if not obs_same_set:
+        return False, None, {}, "raw_obs_names_mismatch"
+    if not var_same_set:
+        return False, None, {}, "raw_var_names_mismatch"
+
+    mat = raw_obj.X
+    if mat is None:
+        return False, None, {}, "missing"
+    from scipy import sparse
+
+    if sparse.issparse(mat) and not isinstance(
+        mat, (sparse.csr_matrix, sparse.csc_matrix)
+    ):
+        mat = mat.tocsr()
+    if not obs_equal:
+        obs_pos = {name: idx for idx, name in enumerate(raw_obs)}
+        obs_idx = [obs_pos[name] for name in ad_obs]
+        mat = mat[obs_idx, :]
+    if not var_equal:
+        var_pos = {name: idx for idx, name in enumerate(raw_var)}
+        var_idx = [var_pos[name] for name in ad_var]
+        mat = mat[:, var_idx]
+    return (
+        True,
+        mat,
+        {
+            "raw_reindexed": True,
+            "obs_reordered": not obs_equal,
+            "var_reordered": not var_equal,
+        },
+        None,
+    )
+
+
 def _select_raw_counts_matrix(
     adata: Any,
     *,
@@ -326,22 +410,48 @@ def _select_raw_counts_matrix(
         for layer_key in ("counts", "raw_counts"):
             if layer_key in layers:
                 candidates.append((f"layers['{layer_key}']", layers[layer_key]))
-    raw_obj = getattr(adata, "raw", None)
-    if raw_obj is not None and getattr(raw_obj, "shape", None) == adata.shape:
-        candidates.append(("raw.X", raw_obj.X))
 
     inspections: dict[str, dict[str, Any]] = {}
+    raw_alignment_meta: dict[str, Any] = {}
+    raw_obj = getattr(adata, "raw", None)
+    if raw_obj is not None:
+        raw_ok, aligned_raw, raw_alignment_meta, raw_reject_reason = (
+            _align_raw_counts_matrix(adata, raw_obj)
+        )
+        if raw_ok:
+            candidates.append(("raw.X", aligned_raw))
+        else:
+            inspections["raw.X"] = {
+                "present": True,
+                "is_raw_counts": False,
+                "is_finite": None,
+                "has_negative": None,
+                "is_integer_valued": None,
+                "is_binary": False,
+                "n_nonzero": 0,
+                "max_value": None,
+                "reason": raw_reject_reason or "raw_alignment_rejected",
+            }
+
     for source, mat in candidates:
         info = _inspect_count_matrix(mat)
+        if source == "raw.X" and raw_alignment_meta:
+            info = {**info, **raw_alignment_meta}
         inspections[source] = info
         if info["present"] and info["is_raw_counts"]:
-            return {
+            result: dict[str, Any] = {
                 "ok": True,
                 "source": source,
                 "matrix": mat,
                 "inspection": info,
                 "inspections": inspections,
             }
+            if source == "raw.X" and raw_alignment_meta:
+                result["raw_reindexed"] = bool(
+                    raw_alignment_meta.get("raw_reindexed", False)
+                )
+                result["raw_alignment"] = dict(raw_alignment_meta)
+            return result
 
     x_info = inspections.get("X", {})
     if not require_raw_counts and x_info.get("present") and x_info.get("is_finite"):
