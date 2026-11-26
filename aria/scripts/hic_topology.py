@@ -28,10 +28,8 @@ Zero imports from ``aria.agents.*``, ``litellm``, or ``pydantic``.
 
 from __future__ import annotations
 
-import gzip
 import math
 import os
-import re
 import shutil
 import sys
 from pathlib import Path
@@ -41,12 +39,11 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspa
 
 from aria.scripts._base import mocks_allowed, run_script
 from aria.scripts.hic_preprocess import _check_hic_stage_cache, _save_hic_stage_cache
+from aria.utils.genomic_coords import contig_aliases as _chrom_aliases, parse_gtf_tss_records
 from aria.utils.hic_constants import list_mcool_resolutions
 
 STAGE_VERSION = 1
 EXCLUDED_CHROMS = frozenset({"chrM", "MT", "chrMT", "M", "chrEBV", "EBV"})
-_ATTR_GENE_NAME_RE = re.compile(r'(?:gene_name|Name)[=\s]+"?([^";]+)"?')
-_ATTR_GENE_ID_RE = re.compile(r'(?:gene_id|ID)[=\s]+"?([^";]+)"?')
 
 
 # ── Shared helpers ───────────────────────────────────────────────────────────
@@ -57,9 +54,6 @@ def _snap_window(window_bp: int, resolution_bp: int) -> int:
     res = max(int(resolution_bp), 1)
     n_bins = max(3, int(round(int(window_bp) / float(res))))
     return n_bins * res
-
-
-from aria.utils.genomic_coords import contig_aliases as _chrom_aliases
 
 
 def _safe_ignore_diags(clr, view_df, actual_res: int) -> int:
@@ -210,43 +204,9 @@ def _build_view_df(clr, chroms: list[str]):
 
 
 def _parse_gtf_tss(gtf_path: str | None) -> list[tuple[str, int, str]]:
-    """Extract unique ``(chrom, tss_0based, gene_symbol)`` records from GTF/GFF."""
-    if not gtf_path or not Path(str(gtf_path)).is_file():
-        return []
-    p = Path(str(gtf_path))
-    opener = gzip.open if p.name.lower().endswith(".gz") else open
-    genes: list[tuple[str, int, str]] = []
-    seen: set[tuple[str, str]] = set()
-    with opener(p, "rt", encoding="utf-8", errors="replace") as fh:
-        for line in fh:
-            if not line or line.startswith("#"):
-                continue
-            parts = line.rstrip("\n").split("\t")
-            if len(parts) < 9:
-                continue
-            feat = parts[2].lower()
-            if feat not in {"gene", "transcript", "mrna"}:
-                continue
-            chrom = parts[0]
-            try:
-                start_1 = int(parts[3])
-                end_1 = int(parts[4])
-            except ValueError:
-                continue
-            strand = parts[6]
-            tss = max(0, (start_1 - 1) if strand != "-" else (end_1 - 1))
-            attrs = parts[8]
-            m_name = _ATTR_GENE_NAME_RE.search(attrs)
-            m_id = _ATTR_GENE_ID_RE.search(attrs)
-            gene = (m_name.group(1) if m_name else (m_id.group(1) if m_id else "")).strip()
-            if not gene:
-                continue
-            key = (chrom, gene)
-            if key in seen:
-                continue
-            seen.add(key)
-            genes.append((chrom, tss, gene))
-    return genes
+    """Extract unique ``(chrom, tss_0based, gene_symbol)`` records via canonical GTF parser."""
+    records, _ = parse_gtf_tss_records(gtf_path)
+    return [(rec["chrom"], int(rec["tss"]), rec["gene"]) for rec in records.values()]
 
 
 def _phasing_valid_chroms(phasing_df, chroms: list[str], clr=None) -> set[str]:

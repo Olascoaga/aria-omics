@@ -457,27 +457,18 @@ def _scatac_pass_qc(qc_failures, qc_complete):
 
 
 def _read_local_tss(gtf_path):
-    """Read deduplicated, strand-aware, zero-based 1-bp TSSs from local GTF."""
+    """Read deduplicated, strand-aware, zero-based 1-bp TSSs via canonical GTF parser."""
     from collections import defaultdict
-    import gzip
+    from aria.utils.genomic_coords import parse_gtf_tss_records
+
+    records, _ = parse_gtf_tss_records(gtf_path, allow_unnamed=True, require_strand=True)
     tss = defaultdict(set)
-    opener = gzip.open if str(gtf_path).endswith(".gz") else open
-    with opener(gtf_path, "rt") as handle:
-        for line in handle:
-            if line.startswith("#"):
-                continue
-            cols = line.rstrip().split("\t")
-            if len(cols) < 9 or cols[2] not in {"gene", "transcript"}:
-                continue
-            if cols[6] not in {"+", "-"}:
-                continue
-            try:
-                pos = int(cols[3]) - 1 if cols[6] == "+" else int(cols[4]) - 1
-                tss[cols[0]].add((pos, 1 if cols[6] == "+" else -1))
-            except ValueError:
-                continue
-    return {chrom: (sorted(rows), [p for p, strand in sorted(rows)])
-            for chrom, rows in tss.items()}
+    for rec in records.values():
+        tss[rec["chrom"]].add((int(rec["tss"]), 1 if rec["strand"] == "+" else -1))
+    return {
+        chrom: (sorted(rows), [p for p, _ in sorted(rows)])
+        for chrom, rows in tss.items()
+    }
 
 
 def _strand_cc_scores(cc, frag_lag, phantom_lag, hi_frag_lag, step, n_bins):

@@ -142,3 +142,93 @@ def test_d8_004_peak_coordinate_parsers_converge(tmp_path: Path):
     assert parse_peak_coord is canonical_parse
     assert conc_parse is canonical_parse
     assert exp_parse is canonical_parse
+
+
+def test_d8_005_gtf_tss_parsers_converge(tmp_path: Path):
+    """D8-005: all GTF gene/TSS parsers emit 0-based TSS, support transcript-only GTFs, and drop _PAR_Y."""
+    from aria.scripts.chromatin_peak_annotation import parse_gtf_gene_models
+    from aria.scripts.chromatin_qc import _read_local_tss
+    from aria.scripts.hic_topology import _parse_gtf_tss as hic_parse_tss
+    from aria.utils.peak2gene_core import parse_gtf_tss_detailed
+
+    gtf = tmp_path / "genes.gtf"
+    gtf.write_text(
+        'chr1\tHAVANA\tgene\t1000\t2000\t.\t+\t.\tgene_id "ENSG000001"; gene_name "GENE_PLUS"; gene_type "protein_coding";\n'
+        'chr1\tHAVANA\tgene\t5000\t6000\t.\t-\t.\tgene_id "ENSG000002"; gene_name "GENE_MINUS"; gene_type "protein_coding";\n'
+        'chrX\tHAVANA\tgene\t10000\t20000\t.\t+\t.\tgene_id "ENSG000003"; gene_name "CSF2RA"; gene_type "protein_coding";\n'
+        'chrY\tHAVANA\tgene\t10000\t20000\t.\t+\t.\tgene_id "ENSG000003_PAR_Y"; gene_name "CSF2RA"; tag "PAR";\n',
+        encoding="utf-8",
+    )
+    p2g_recs, _ = parse_gtf_tss_detailed(str(gtf))
+    ann_models = parse_gtf_gene_models(str(gtf))
+    qc_tss = _read_local_tss(str(gtf))
+    hic_tss = hic_parse_tss(str(gtf))
+
+    tx_gtf = tmp_path / "tx_only.gtf"
+    tx_gtf.write_text(
+        'chr1\tRefSeq\ttranscript\t1000\t2000\t.\t+\t.\tgene_id "TP53"; gene_name "TP53";\n'
+        'chr1\tRefSeq\texon\t1000\t1200\t.\t+\t.\tgene_id "TP53"; gene_name "TP53";\n',
+        encoding="utf-8",
+    )
+    tx_p2g, _ = parse_gtf_tss_detailed(str(tx_gtf))
+    tx_ann = parse_gtf_gene_models(str(tx_gtf))
+    tx_qc = _read_local_tss(str(tx_gtf))
+    tx_hic = hic_parse_tss(str(tx_gtf))
+
+    p2g_plus = p2g_recs["GENE_PLUS"]["tss"]
+    p2g_minus = p2g_recs["GENE_MINUS"]["tss"]
+    ann_plus = [g["tss"] for g in ann_models["1"] if g["gene"] == "GENE_PLUS"][0]
+    ann_minus = [g["tss"] for g in ann_models["1"] if g["gene"] == "GENE_MINUS"][0]
+    qc_plus = qc_tss["chr1"][1][0]
+    qc_minus = qc_tss["chr1"][1][1]
+    hic_plus = [t for _, t, g in hic_tss if g == "GENE_PLUS"][0]
+    hic_minus = [t for _, t, g in hic_tss if g == "GENE_MINUS"][0]
+
+    assert {p2g_plus, ann_plus, qc_plus, hic_plus} == {999}
+    assert {p2g_minus, ann_minus, qc_minus, hic_minus} == {5999}
+    assert len(tx_p2g) == 1 and len(tx_ann) == 1 and len(tx_qc) == 1 and len(tx_hic) == 1
+    assert not any(r["canon_chrom"] == "chrY" for r in p2g_recs.values())
+    assert "Y" not in ann_models
+    assert not any(c == "chrY" for c, _, _ in hic_tss)
+
+    from aria.utils.genomic_coords import (
+        parse_gtf_gene_models as canonical_gene_models,
+        parse_gtf_tss_records as canonical_tss_records,
+    )
+
+    assert parse_gtf_tss_detailed is canonical_tss_records
+    assert parse_gtf_gene_models is canonical_gene_models
+
+
+def test_d8_011_gtf_symbol_map_builders_converge(tmp_path: Path):
+    """D8-011: all GTF gene-ID-to-symbol builders must prefer gene over exon, support RefSeq/GFF3, and keep dotted IDs."""
+    from aria.scripts.rna_bulk.gtf_io import _gtf_to_symbol_map
+    from aria.scripts.rna_quantify import _build_ensembl_to_symbol_map
+    from aria.utils.cross_modal_concordance import gtf_symbols
+
+    gtf = tmp_path / "mixed.gtf"
+    gtf.write_text(
+        'chr1\tRefSeq\ttranscript\t100\t500\t.\t+\t.\tgene_id "ENSG00000141510.17"; gene_name "TP53";\n'
+        'chr1\tHAVANA\texon\t600\t700\t.\t+\t.\tgene_id "ENSG00000000003.15"; gene_name "OLD_EXON_SYM";\n'
+        'chr1\tHAVANA\tgene\t600\t900\t.\t+\t.\tgene_id "ENSG00000000003.15"; gene_name "TSPAN6";\n'
+        'chr1\tENSEMBL\tgene\t1000\t2000\t.\t+\t.\tgene_id "LOC100.1"; gene_name "DOTTED_GENE";\n'
+        "chr1\tGFF3\tgene\t3000\t4000\t.\t+\t.\tgene_id=ENSG00000100000.2; gene_name=BRCA1;\n",
+        encoding="utf-8",
+    )
+    m_bulk = _gtf_to_symbol_map(str(gtf))
+    m_quant = _build_ensembl_to_symbol_map(str(gtf), [])
+    m_xmodal = gtf_symbols(str(gtf))
+    expected = {
+        "ENSG00000141510": "TP53",
+        "ENSG00000000003": "TSPAN6",
+        "LOC100.1": "DOTTED_GENE",
+        "ENSG00000100000": "BRCA1",
+    }
+    assert m_bulk == expected
+    assert m_quant == expected
+    assert m_xmodal == expected
+
+    from aria.utils.genomic_coords import parse_gtf_symbol_map
+
+    assert _gtf_to_symbol_map is parse_gtf_symbol_map
+    assert gtf_symbols is parse_gtf_symbol_map

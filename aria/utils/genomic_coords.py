@@ -26,12 +26,17 @@ ARIA script, utility, or agent environment.
 
 from __future__ import annotations
 
+from collections import defaultdict
+import gzip
+from pathlib import Path
 import re
 from typing import Any
 
 _STANDARD_AUTOSOMES = frozenset(str(i) for i in range(1, 23))
 _PEAK_HYPHEN_RE = re.compile(r"^(.+)-(\d+)-(\d+)$")
 _PEAK_UNDERSCORE_RE = re.compile(r"^(.+)_(\d+)_(\d+)$")
+_ENS_VERSION_RE = re.compile(r"^(ENS[^.]+)\.\d+$")
+_GTF_ATTR_RE = re.compile(r'(?:^|;)\s*([\w]+)\s*(?:=|\s)\s*(?:"([^"]*)"|([^;]+))')
 
 
 def canonical_contig(chrom: str | None) -> str | None:
@@ -208,3 +213,275 @@ def parse_peak_coord(
             return None
         s, e = e, s
     return chrom, s, e
+
+
+def strip_gene_version(gene: str) -> str:
+    """Strip numeric Ensembl versions (e.g. ``ENSG00000141510.17``) without truncating dotted IDs."""
+    return _ENS_VERSION_RE.sub(r"\1", str(gene).strip())
+
+
+def parse_gtf_attributes(text: str) -> dict[str, str]:
+    """Parse quoted GTF2.2 (``key "val"``) or GFF3 (``key=val``) attribute strings."""
+    return {
+        m.group(1): (m.group(2) if m.group(2) is not None else m.group(3)).strip()
+        for m in _GTF_ATTR_RE.finditer(text)
+    }
+
+
+def gtf_has_tag(attrs: str, tag_value: str) -> bool:
+    """True when GTF/GFF3 attributes contain ``tag "<tag_value>"`` or ``tag=<tag_value>``."""
+    target = tag_value.lower()
+    for chunk in attrs.split(";"):
+        item = chunk.strip()
+        low = item.lower()
+        if low.startswith("tag ") or low.startswith("tag="):
+            val = item.split(None, 1)[-1] if " " in item else item.split("=", 1)[-1]
+            if val.strip().strip('"').lower() == target:
+                return True
+    return False
+
+
+def is_par_y_record(chrom: str, gene_id: str, attrs: str) -> bool:
+    """True for pseudoautosomal chrY duplicates (``_PAR_Y`` suffix or ``PAR`` tag on ``chrY``)."""
+    return gene_id.upper().endswith("_PAR_Y") or (
+        gtf_has_tag(attrs, "PAR") and canonical_contig(chrom) == "chrY"
+    )
+
+
+def parse_gtf_symbol_map(gtf_path: str | Path | None) -> dict[str, str]:
+    """Stream a GTF/GFF3 into ``{gene_id_without_ensembl_version: gene_symbol}``.
+
+    Prefers ``gene`` rows over ``transcript``/``exon`` rows while supporting
+    transcript-only RefSeq/UCSC GTFs and GFF3 ``=`` attributes. Preserves dotted
+    non-Ensembl IDs (e.g. ``LOC100.1``) verbatim.
+    """
+    if not gtf_path:
+        return {}
+    p = Path(str(gtf_path))
+    if not p.is_file():
+        return {}
+    opener = gzip.open if str(p).lower().endswith(".gz") else open
+    mapping: dict[str, str] = {}
+    try:
+        with opener(p, "rt", encoding="utf-8", errors="replace") as fh:
+            for line in fh:
+                if not line or line[0] == "#":
+                    continue
+                fields = line.rstrip("\n").split("\t")
+                if len(fields) < 9:
+                    continue
+                feat = fields[2].lower()
+                if feat not in ("gene", "transcript", "mrna", "exon"):
+                    continue
+                attrs = parse_gtf_attributes(fields[8])
+                gid = attrs.get("gene_id") or attrs.get("ID")
+                symbol = attrs.get("gene_name") or attrs.get("gene_symbol") or attrs.get("Name")
+                if gid and symbol:
+                    gid_clean = strip_gene_version(gid)
+                    if feat == "gene" or gid_clean not in mapping:
+                        mapping[gid_clean] = symbol
+    except (OSError, EOFError):
+        return {}
+    return mapping
+
+
+def parse_gtf_tss_records(
+    gtf_path: str | Path | None,
+    wanted: set[str] | None = None,
+    *,
+    allow_unnamed: bool = False,
+    require_strand: bool = False,
+) -> tuple[dict[str, dict[str, Any]], dict[str, Any]]:
+    """Parse canonical 0-based per-gene TSS records from a local GTF/GFF3 (``.gz`` ok).
+
+    Single-conversion invariant (GTF2.2/GFF3 -> 0-based half-open BED):
+      - ``start``, ``end`` are 0-based half-open ``[start_1based - 1, end_1based)``.
+      - ``tss`` is 0-based ``start_1based - 1`` (``+`` strand) or ``end_1based - 1`` (``-``).
+      - Falls back to ``transcript`` / ``mRNA`` rows when ``gene`` rows are absent.
+      - Drops pseudoautosomal Y duplicates (``_PAR_Y`` / ``PAR`` tag on ``chrY``).
+      - Deterministically resolves duplicate symbols by
+        ``(MANE_Select/Ensembl_canonical, protein_coding, basic, span, smallest gene_id)``.
+    """
+    stats: dict[str, Any] = {
+        "n_gene_rows_scanned": 0,
+        "n_par_y_dropped": 0,
+        "n_duplicate_symbols_resolved": 0,
+        "n_unique_genes": 0,
+    }
+    if not gtf_path or not Path(str(gtf_path)).is_file():
+        return {}, stats
+
+    opener = gzip.open if str(gtf_path).lower().endswith(".gz") else open
+    best_by_gene: dict[str, tuple[tuple[int, int, int, int], str, dict[str, Any]]] = {}
+
+    wanted_set = set(wanted) if wanted is not None else None
+    wanted_no_ver: dict[str, str] = {}
+    wanted_upper_unique: dict[str, str] = {}
+    if wanted_set is not None:
+        no_ver_buckets: dict[str, list[str]] = {}
+        upper_buckets: dict[str, list[str]] = {}
+        for w in wanted_set:
+            ws = str(w).strip()
+            if not ws:
+                continue
+            base = ws.split(".", 1)[0]
+            no_ver_buckets.setdefault(base, []).append(ws)
+            upper_buckets.setdefault(ws.upper(), []).append(ws)
+        wanted_no_ver = {k: v[0] for k, v in no_ver_buckets.items() if len(v) == 1}
+        wanted_upper_unique = {k: v[0] for k, v in upper_buckets.items() if len(v) == 1}
+
+    def _scan_features(target_features: frozenset[str]) -> None:
+        with opener(str(gtf_path), "rt", encoding="utf-8", errors="replace") as fh:
+            for line in fh:
+                if not line or line[0] == "#":
+                    continue
+                parts = line.rstrip("\n").split("\t")
+                if len(parts) < 9 or parts[2].lower() not in target_features:
+                    continue
+                stats["n_gene_rows_scanned"] += 1
+                attrs_raw = parts[8]
+                attrs = parse_gtf_attributes(attrs_raw)
+                gene_id = attrs.get("gene_id") or attrs.get("ID") or ""
+                gene_name = attrs.get("gene_name") or attrs.get("gene_symbol") or attrs.get("Name") or gene_id
+                try:
+                    start_1, end_1 = int(parts[3]), int(parts[4])
+                    start_0, end_0 = gtf_to_bed_interval(start_1, end_1)
+                except ValueError:
+                    continue
+                if require_strand and parts[6] not in {"+", "-"}:
+                    continue
+                strand = "-" if parts[6] == "-" else "+"
+                tss_0 = gtf_tss_0based(start_1, end_1, strand)
+                if not gene_name:
+                    if not allow_unnamed:
+                        continue
+                    gene_name = f"{parts[0].strip()}:{tss_0}:{strand}"
+
+                if wanted_set is not None:
+                    if gene_name in wanted_set:
+                        key_symbol = gene_name
+                    elif gene_id and gene_id in wanted_set:
+                        key_symbol = gene_id
+                    elif gene_id and gene_id.split(".", 1)[0] in wanted_no_ver:
+                        key_symbol = wanted_no_ver[gene_id.split(".", 1)[0]]
+                    elif gene_name.upper() in wanted_upper_unique:
+                        key_symbol = wanted_upper_unique[gene_name.upper()]
+                    elif gene_id and gene_id.upper() in wanted_upper_unique:
+                        key_symbol = wanted_upper_unique[gene_id.upper()]
+                    else:
+                        continue
+                else:
+                    key_symbol = gene_name
+
+                if is_par_y_record(parts[0], gene_id, attrs_raw):
+                    stats["n_par_y_dropped"] += 1
+                    continue
+
+                span = max(0, end_0 - start_0)
+                biotype = (attrs.get("gene_type") or attrs.get("gene_biotype") or "").lower()
+                is_mane = int(
+                    gtf_has_tag(attrs_raw, "MANE_Select")
+                    or gtf_has_tag(attrs_raw, "Ensembl_canonical")
+                )
+                is_pc = int(biotype == "protein_coding")
+                is_basic = int(gtf_has_tag(attrs_raw, "basic"))
+                prio = (is_mane, is_pc, is_basic, span)
+
+                rec = {
+                    "gene": key_symbol,
+                    "gene_id": gene_id or key_symbol,
+                    "chrom": parts[0].strip(),
+                    "canon_chrom": canonical_contig(parts[0]),
+                    "start": start_0,
+                    "end": end_0,
+                    "tss": tss_0,
+                    "strand": strand,
+                    "gene_biotype": biotype or None,
+                }
+                prev = best_by_gene.get(key_symbol)
+                if prev is None:
+                    best_by_gene[key_symbol] = (prio, rec["gene_id"], rec)
+                else:
+                    stats["n_duplicate_symbols_resolved"] += 1
+                    prev_prio, prev_gid, _ = prev
+                    if prio > prev_prio or (prio == prev_prio and rec["gene_id"] < prev_gid):
+                        best_by_gene[key_symbol] = (prio, rec["gene_id"], rec)
+
+    _scan_features(frozenset({"gene"}))
+    if not best_by_gene:
+        _scan_features(frozenset({"transcript", "mrna"}))
+
+    records = {k: v[2] for k, v in best_by_gene.items()}
+    stats["n_unique_genes"] = len(records)
+    return records, stats
+
+
+def parse_gtf_gene_models(gtf_path: str | Path) -> dict[str, list[dict[str, Any]]]:
+    """Stream a GTF/GFF3 into per-chromosome 0-based BED gene models with exons.
+
+    Raises on read/decompression errors (fail-closed, D1-021). Falls back to
+    ``transcript`` / ``mRNA`` rows when explicit ``gene`` rows are absent, and
+    drops pseudoautosomal ``_PAR_Y`` duplicates on ``chrY``.
+    """
+    genes: dict[str, dict[str, Any]] = {}
+    tx_genes: dict[str, dict[str, Any]] = {}
+    exons: dict[str, list[tuple[int, int]]] = defaultdict(list)
+    opener = gzip.open if str(gtf_path).lower().endswith(".gz") else open
+    with opener(gtf_path, "rt", encoding="utf-8", errors="replace") as handle:
+        for line in handle:
+            if not line or line[0] == "#":
+                continue
+            fields = line.rstrip("\n").split("\t")
+            if len(fields) < 9:
+                continue
+            feat = fields[2].lower()
+            if feat not in ("gene", "transcript", "mrna", "exon"):
+                continue
+            attrs_raw = fields[8]
+            attrs = parse_gtf_attributes(attrs_raw)
+            gid = attrs.get("gene_id") or attrs.get("ID")
+            if not gid:
+                continue
+            if is_par_y_record(fields[0], gid, attrs_raw):
+                continue
+            try:
+                start_1, end_1 = int(fields[3]), int(fields[4])
+                start_0, end_0 = gtf_to_bed_interval(start_1, end_1)
+            except ValueError:
+                continue
+            if feat == "exon":
+                exons[gid].append((start_0, end_0))
+                continue
+            strand = fields[6]
+            gname = attrs.get("gene_name") or attrs.get("gene_symbol") or attrs.get("Name") or strip_gene_version(gid)
+            rec = {
+                "gene": gname,
+                "chrom": ensembl_contig(fields[0]),
+                "strand": strand,
+                "start": start_0,
+                "end": end_0,
+                "tss": gtf_tss_0based(start_1, end_1, strand),
+            }
+            if feat == "gene":
+                genes[gid] = rec
+            else:
+                prev = tx_genes.get(gid)
+                if prev is None:
+                    tx_genes[gid] = rec
+                else:
+                    s0 = min(prev["start"], start_0)
+                    e0 = max(prev["end"], end_0)
+                    prev["start"], prev["end"] = s0, e0
+                    prev["tss"] = (e0 - 1) if prev["strand"] == "-" else s0
+
+    merged_genes = dict(tx_genes)
+    merged_genes.update(genes)
+
+    by_chrom: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for gid, gene in merged_genes.items():
+        gene["exons"] = sorted(exons.get(gid, []))
+        by_chrom[gene["chrom"]].append(gene)
+    return {
+        chrom: sorted(glist, key=lambda g: g["tss"])
+        for chrom, glist in by_chrom.items()
+    }

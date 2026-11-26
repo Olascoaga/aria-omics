@@ -6,7 +6,12 @@ Behavior-preserving extraction: these functions are re-exported from
 from __future__ import annotations
 
 from pathlib import Path
-import re
+
+from aria.utils.genomic_coords import (
+    parse_gtf_attributes as _gtf_attributes,
+    parse_gtf_symbol_map as _gtf_to_symbol_map,
+    strip_gene_version as _strip_gene_version,
+)
 
 
 def _normalize_species(organism: str) -> str:
@@ -27,17 +32,6 @@ def _normalize_species(organism: str) -> str:
         if value in names or species.split()[-1] in value:
             return species
     return str(organism or "").strip()
-
-
-def _strip_gene_version(gene: str) -> str:
-    """Strip numeric Ensembl versions without truncating dotted gene symbols."""
-    return re.sub(r"^(ENS[^.]+)\.\d+$", r"\1", gene.strip())
-
-
-def _gtf_attributes(text: str) -> dict:
-    """Read quoted or unquoted GTF attributes, including variable whitespace."""
-    return {m.group(1): (m.group(2) if m.group(2) is not None else m.group(3)).strip()
-            for m in re.finditer(r'(?:^|;)\s*([\w]+)\s*(?:=|\s)\s*(?:"([^"]*)"|([^;]+))', text)}
 
 
 def _load_symbol_map(files: list, warnings: list,
@@ -189,33 +183,6 @@ def _locate_gtf(counts_path: Path, hint: str = None,
             return c
     return None
 
-def _gtf_to_symbol_map(gtf_file: str) -> dict:
-    """
-    Parse a GTF for {ensembl_id (no version): gene_symbol}.
-    Streaming, low memory; also handles annotations lacking gene feature rows.
-    """
-    import gzip as _gzip
-
-    mapping = {}
-    opener = _gzip.open if str(gtf_file).endswith(".gz") else open
-    try:
-        with opener(gtf_file, "rt") as f:
-            for line in f:
-                if line.startswith("#"):
-                    continue
-                fields = line.rstrip("\n").split("\t")
-                if len(fields) < 9 or fields[2] not in ("gene", "transcript", "exon"):
-                    continue
-                attrs = _gtf_attributes(fields[8])
-                gid, symbol = attrs.get("gene_id"), attrs.get("gene_name") or attrs.get("gene_symbol")
-                if gid and symbol:
-                    gid = _strip_gene_version(gid)
-                    if fields[2] == "gene" or gid not in mapping:
-                        mapping[gid] = symbol
-    except Exception:
-        return {}
-
-    return mapping
 
 def _load_gene_annotation(files: list, warnings: list,
                           gtf_hint: str = None, genome: str = None,

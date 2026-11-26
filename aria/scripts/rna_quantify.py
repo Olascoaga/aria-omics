@@ -495,32 +495,13 @@ def _clean_counts_matrix(
 
 
 def _build_ensembl_to_symbol_map(gtf_file: str, warnings: list) -> dict:
-    """Parse a GTF to build ``{ensembl_id_without_version: gene_symbol}``."""
-    mapping = {}
-    opener = gzip.open if str(gtf_file).endswith(".gz") else open
+    """Parse a GTF/GFF3 via canonical ``genomic_coords.parse_gtf_symbol_map``."""
+    from aria.utils.genomic_coords import parse_gtf_symbol_map
 
-    try:
-        with opener(gtf_file, "rt", encoding="utf-8", errors="replace") as fh:
-            for line in fh:
-                if line.startswith("#"):
-                    continue
-                fields = line.rstrip("\n").split("\t")
-                if len(fields) < 9 or fields[2] not in ("gene", "exon"):
-                    continue
-                if fields[2] == "exon" and mapping:
-                    # Prefer gene lines when present, but allow exon-only mini GTFs
-                    pass
-                attrs = fields[8]
-                gid_match = re.search(r'gene_id "([^"]+)"', attrs)
-                sym_match = re.search(r'gene_name "([^"]+)"', attrs)
-                if gid_match and sym_match:
-                    gid = gid_match.group(1).split(".")[0]
-                    mapping.setdefault(gid, sym_match.group(1))
-    except Exception as exc:
-        warnings.append(f"GTF symbol mapping failed: {exc}")
+    if not gtf_file or not Path(str(gtf_file)).is_file():
+        warnings.append(f"GTF symbol mapping failed: file not found ({gtf_file})")
         return {}
-
-    return mapping
+    return parse_gtf_symbol_map(gtf_file)
 
 
 def _overlaps_sorted_intervals(
@@ -581,9 +562,10 @@ def _load_strand_intervals(gtf: str) -> tuple[dict[str, dict[str, Any]], str | N
                 if strand not in ("+", "-"):
                     continue
                 chrom = fields[0]
-                start = max(0, int(fields[3]) - 1)
-                end = int(fields[4])
-                if end <= start:
+                from aria.utils.genomic_coords import gtf_to_bed_interval
+                try:
+                    start, end = gtf_to_bed_interval(int(fields[3]), int(fields[4]))
+                except ValueError:
                     continue
                 if feat == "exon":
                     if exon_counts.get(chrom, 0) < MAX_EXONS_PER_CHROM:

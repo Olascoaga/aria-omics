@@ -24,7 +24,6 @@ from __future__ import annotations
 
 import bisect
 import csv
-import gzip
 import os
 import re
 import sys
@@ -37,14 +36,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspa
 from aria.benchmarks.bulk_atac_marker_mapping import parse_peak_interval
 from aria.scripts.rna_bulk.gtf_io import _locate_gtf
 from aria.utils.csv_artifacts import persist_csv
-from aria.utils.genomic_coords import (
-    ensembl_contig,
-    gtf_to_bed_interval,
-    gtf_tss_0based,
-)
-
-_GENE_ID = re.compile(r'gene_id "([^"]+)"')
-_GENE_NAME = re.compile(r'gene_name "([^"]+)"')
+from aria.utils.genomic_coords import ensembl_contig, parse_gtf_gene_models
 
 # Feature priority (highest first) when more than one candidate gene applies.
 FEATURE_PROMOTER = "Promoter"
@@ -60,67 +52,12 @@ def _norm_chrom(chrom) -> str:
     """Reconcile UCSC (`chr1`/`chrX`/`chrM`) and Ensembl (`1`/`X`/`MT`) contig naming
     via canonical genomic_coords helper so chr-prefixed ATAC peaks match an Ensembl GTF."""
     return ensembl_contig(str(chrom))
+
+
 # How many TSS-sorted neighbors to consider as feature candidates around a peak.
 # Bounds the work per peak while still catching a long gene body whose TSS is not
 # the single closest one.
 _NEIGHBORS = 25
-
-
-def parse_gtf_gene_models(gtf_path) -> dict:
-    """Stream a GTF into per-chromosome gene models (low memory).
-
-    Returns ``{chrom: [gene_dict, ...]}`` sorted by TSS, where each ``gene_dict`` has
-    ``gene`` (symbol or id), ``strand``, ``start``, ``end``, ``tss`` (0-based
-    half-open BED coordinates converted once from 1-based closed GTF), and
-    ``exons`` (sorted 0-based half-open ``[(start, end), ...]``). Mirrors the parsing
-    conventions in ``rna_bulk/gtf_io``. Raises on read/decompression errors (fail-closed).
-    """
-    genes: dict = {}
-    exons = defaultdict(list)
-    opener = gzip.open if str(gtf_path).endswith(".gz") else open
-    with opener(gtf_path, "rt") as handle:
-        for line in handle:
-            if line.startswith("#"):
-                continue
-            fields = line.rstrip("\n").split("\t")
-            if len(fields) < 9:
-                continue
-            feature = fields[2]
-            if feature not in ("gene", "exon"):
-                continue
-            attrs = fields[8]
-            gid_m = _GENE_ID.search(attrs)
-            if not gid_m:
-                continue
-            gid = gid_m.group(1)
-            try:
-                start_1, end_1 = int(fields[3]), int(fields[4])
-                start_0, end_0 = gtf_to_bed_interval(start_1, end_1)
-            except ValueError:
-                continue
-            if feature == "gene":
-                strand = fields[6]
-                name_m = _GENE_NAME.search(attrs)
-                genes[gid] = {
-                    "gene": name_m.group(1) if name_m else gid.split(".")[0],
-                    "chrom": _norm_chrom(fields[0]),
-                    "strand": strand,
-                    "start": start_0,
-                    "end": end_0,
-                    "tss": gtf_tss_0based(start_1, end_1, strand),
-                }
-            else:  # exon
-                exons[gid].append((start_0, end_0))
-
-    by_chrom: dict = defaultdict(list)
-    for gid, gene in genes.items():
-        gene["exons"] = sorted(exons.get(gid, []))
-        by_chrom[gene["chrom"]].append(gene)
-    out: dict = {}
-    for chrom, glist in by_chrom.items():
-        glist.sort(key=lambda g: g["tss"])
-        out[chrom] = glist
-    return out
 
 
 def _signed_tss_distance(center: int, gene: dict) -> int:

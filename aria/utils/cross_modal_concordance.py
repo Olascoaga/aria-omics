@@ -229,32 +229,30 @@ def rna_table_paths(comp):
     return paths
 
 
-def gtf_symbols(path):
-    """ID-to-symbol aliases from the same GTF as the genomic assignments."""
-    aliases = {}
-    if not path:
-        return aliases
-    opener = gzip.open if str(path).endswith(".gz") else open
-    try:
-        with opener(path, "rt") as handle:
-            for line in handle:
-                fields = line.rstrip().split("\t")
-                if len(fields) < 9 or fields[2] != "gene":
-                    continue
-                gid = re.search(r'gene_id "([^"]+)"', fields[8])
-                symbol = re.search(r'gene_name "([^"]+)"', fields[8])
-                if gid and symbol:
-                    aliases[gid[1].split(".")[0].upper()] = symbol[1]
-    except (OSError, EOFError):
-        return {}
-    return aliases
+from aria.utils.genomic_coords import (
+    parse_gtf_symbol_map as gtf_symbols,
+    strip_gene_version as _strip_gene_version,
+)
+
+
+def _lookup_alias(aliases: dict[str, str], raw_id: str) -> str:
+    """Resolve ``raw_id`` against ``aliases`` preserving non-Ensembl dotted IDs."""
+    text = str(raw_id).strip()
+    stripped = _strip_gene_version(text)
+    for cand in (text, stripped, stripped.upper(), text.split(".")[0].upper()):
+        if cand in aliases:
+            return aliases[cand]
+    return text
 
 
 def load_rna_table(comp, aliases, warnings, alpha=.05):
-    aliases = dict(aliases)
+    aliases_ci = {**{str(k).upper(): v for k, v in (aliases or {}).items()}, **(aliases or {})}
     for row in comp.get("top_genes") or []:
         if isinstance(row, dict) and row.get("gene") and row.get("symbol"):
-            aliases[str(row["gene"]).split(".")[0].upper()] = str(row["symbol"])
+            g_str = str(row["gene"]).strip()
+            g_clean = _strip_gene_version(g_str)
+            aliases_ci[g_clean] = str(row["symbol"])
+            aliases_ci[g_clean.upper()] = str(row["symbol"])
     df = pd.DataFrame()
     full = False
     for path in rna_table_paths(comp):
@@ -292,8 +290,7 @@ def load_rna_table(comp, aliases, warnings, alpha=.05):
                      if c in raw and pd.notna(raw[c]) and str(raw[c]).strip()), None)
         if gene is None:
             continue
-        gene = str(gene)
-        gene = aliases.get(gene.split(".")[0].upper(), gene)
+        gene = _lookup_alias(aliases_ci, str(gene))
         lfc = finite(_value(raw, "log2fc", "log2FoldChange", "log2_fold_change", "Log2 Fold Change"))
         padj = finite(_value(raw, "padj", "FDR", "adjusted_pvalue", "Adjusted P-value"))
         direction = finite(raw.get("_direction_sign"))
@@ -875,8 +872,10 @@ def read_cpm(path, aliases, warnings):
         warnings.append("cpm_matrix_skipped: duplicate_feature_or_sample_ids")
         return pd.DataFrame()
     df = df.apply(pd.to_numeric, errors="coerce")
-    eff_aliases = {**table_aliases, **aliases} if table_aliases else aliases
-    df.index = [eff_aliases.get(str(x).split(".")[0].upper(), str(x)) for x in df.index]
+    eff_aliases = {**{str(k).upper(): v for k, v in (aliases or {}).items()}, **(aliases or {})}
+    if table_aliases:
+        eff_aliases = {**table_aliases, **eff_aliases}
+    df.index = [_lookup_alias(eff_aliases, str(x)) for x in df.index]
     if df.index.duplicated().any():
         warnings.append("cpm_feature_alias_collisions: summed_mapped_loci")
         df = df.groupby(level=0, sort=False).sum(min_count=1)
