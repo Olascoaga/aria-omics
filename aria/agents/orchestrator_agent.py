@@ -1615,28 +1615,34 @@ class OrchestratorAgent(BaseAgent):
             Path(str(base_dir or ".")) / "cross_modal_concordance"
         )
 
+        from aria.utils.script_contracts import SCRIPT_CONTRACTS
+
+        padj_val = (
+            exp_context.get("padj_threshold")
+            if exp_context.get("padj_threshold") is not None
+            else exp_context.get("global_padj", 0.05)
+        )
         params: dict = {
             "rna_results": rna_res,
             "chromatin_results": chrom_res,
             "organism": exp_context.get("organism", "Homo sapiens"),
             "genome": exp_context.get("genome", "hg38"),
             "output_dir": out_dir,
-            "padj_threshold": float(exp_context.get("global_padj", 0.05)),
+            "padj_threshold": float(padj_val),
         }
-        for opt_key in (
-            "rna_cpm_path",
-            "atac_cpm_path",
-            "sample_id_map",
-            "gtf_path",
-            "cis_distance_bp",
-            "promoter_bp",
-            "min_matched_samples",
-            "n_permutations",
-            "seed",
-            "resume",
-        ):
-            if exp_context.get(opt_key) is not None:
-                params[opt_key] = exp_context[opt_key]
+        # D7-003: derive optional forwarded keys directly from the authoritative
+        # SCRIPT_CONTRACTS input schema so parameters like sample_covariates are
+        # never silently dropped by a hand-maintained tuple.
+        _cm_contract = SCRIPT_CONTRACTS["aria/scripts/cross_modal_concordance.py"]
+        _orchestrator_owned = {
+            "rna_results", "chromatin_results", "organism", "genome",
+            "output_dir", "padj_threshold",
+        }
+        for field in _cm_contract.inputs:
+            if field.name in _orchestrator_owned:
+                continue
+            if exp_context.get(field.name) is not None:
+                params[field.name] = exp_context[field.name]
 
         self.publish_status(
             experiment_id,
