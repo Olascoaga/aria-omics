@@ -103,7 +103,6 @@ def make_ora_dotplot(pathways_list: list,
         import seaborn as sns
         import numpy as np
         import pandas as pd
-        import re
 
         df = pd.DataFrame(pathways_list)
         if df.empty:
@@ -886,7 +885,6 @@ def export_de_table(de_results_df,
     Sorted by padj ascending.
     """
     try:
-        import pandas as pd
 
         df = de_results_df.dropna(subset=["padj"]).copy()
         df = df[df["padj"] < padj_thr].sort_values("padj")

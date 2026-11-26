@@ -334,7 +334,6 @@ def _build_phasing_track(
     triggered fallback to GTF or unphased mode.
     """
     import numpy as np
-    import pandas as pd
 
     bins_df = clr.bins()[:][["chrom", "start", "end"]].copy()
     bins_df["chrom"] = bins_df["chrom"].astype(str)

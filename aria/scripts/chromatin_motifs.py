@@ -249,7 +249,6 @@ def _resolve_modality_thresholds(params: dict):
 
 
 def chromatin_motifs(params: dict) -> dict:
-    import json
     from pathlib import Path
 
     data_path = params.get("data_path")

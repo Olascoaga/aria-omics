@@ -95,7 +95,6 @@ def _per_cluster_accessibility(adata, groupby, padj_max, lfc_min, top_n,
     """Wilcoxon marker peaks per cluster (cluster vs rest). Descriptive only."""
     import scanpy as sc
     import numpy as np
-    import pandas as pd
 
     n_clusters = int(adata.obs[groupby].astype(str).nunique())
     if n_clusters < 2:
@@ -571,7 +570,6 @@ def _pseudobulk_da(adata, condition_col, replicate_col, comparisons,
 
 
 def chromatin_diffacc(params: dict) -> dict:
-    import json
     from pathlib import Path
 
     data_path = params["data_path"]

@@ -34,8 +34,8 @@ from pathlib import Path
 from typing import Optional
 
 from aria.agents.base_agent import BaseAgent
-from aria.bus.message_bus import Confidence, MessageType, CavemanMode
-from aria.llm.provider import LLMProvider, TaskTier
+from aria.bus.message_bus import Confidence
+from aria.llm.provider import LLMProvider
 from aria.llm.parameter_advisor import ParameterAdvisor
 from aria.memory.memory import ARIAMemory
 from aria.agents.chromatin_helpers import (

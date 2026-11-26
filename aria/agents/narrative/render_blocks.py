@@ -15,7 +15,6 @@ from aria.agents.narrative.validators import (
     validate_blocks,
     NarrativeValidationError,
     _unnegated_causal_hit,
-    find_causal_language,
     collect_named_entities,
 )
 from aria.agents.narrative.evidence_verifier import (

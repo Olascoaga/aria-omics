@@ -169,7 +169,6 @@ class PseudobulkMixin:
         model with design ~ condition [+ batch], and runs ORA per
         (cell_type × comparison) on the top-N DE genes.
         """
-        from pathlib import Path
         design = (exp_ctx or {}).get("design", {}) or {}
         groups = design.get("groups", {}) or {}
         pb_cfg = design.get("pseudobulk", {}) or {}

@@ -378,7 +378,6 @@ def _plot_heatmap(genes: list, vst_matrix, counts_filt,
         matplotlib.use("Agg")
         import matplotlib.pyplot as plt
         import numpy as np
-        import pandas as pd
 
         if not genes:
             return None

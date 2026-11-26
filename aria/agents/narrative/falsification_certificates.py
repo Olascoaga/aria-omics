@@ -30,11 +30,7 @@ import math
 import re
 from typing import Any
 
-from aria.utils.lobo_jackknife import (
-    bh_adjust as _bh_adjust,
-    compute_counts_lobo_jackknife,
-    compute_lobo_jackknife,
-)
+from aria.utils.lobo_jackknife import compute_lobo_jackknife
 
 FALSIFICATION_SCHEMA_VERSION = "aria.falsification_certificates.v1"
 

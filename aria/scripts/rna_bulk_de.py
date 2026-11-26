@@ -52,7 +52,6 @@ from __future__ import annotations
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from aria.scripts._base import mocks_allowed, run_script
-from aria.utils.count_classifier import classify_matrix, validate_raw_count_matrix
 from aria.utils.stats import (
     contrast_family_significance,
     fdr_advanced_methods_disclosure,

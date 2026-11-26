@@ -30,7 +30,6 @@ import re
 import sys
 import uuid
 import time
-import threading
 import select
 from pathlib import Path
 
@@ -41,8 +40,6 @@ from rich.table import Table
 from rich.prompt import Prompt, Confirm
 from rich.rule import Rule
 from rich.align import Align
-from rich.live import Live
-from rich.spinner import Spinner
 from rich import box
 
 from aria.memory.memory import ARIAMemory

@@ -26,7 +26,7 @@ from pathlib import Path
 from typing import Optional
 
 from aria.agents.base_agent import BaseAgent
-from aria.bus.message_bus import Confidence, bus
+from aria.bus.message_bus import Confidence
 from aria.llm.provider import LLMProvider, TaskTier
 from aria.llm.prompt_boundary import (
     PromptDataField,

@@ -11,7 +11,6 @@ import json
 import re
 import uuid
 from abc import ABC, abstractmethod
-from typing import Optional
 
 from aria.bus.message_bus import (
     Message, MessageType, Confidence, CavemanMode, bus

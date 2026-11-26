@@ -35,7 +35,6 @@ def main(argv: list[str] | None = None) -> int:
     args = p.parse_args(argv)
 
     import muon as mu
-    import numpy as np
     import scipy.io as sio
     import scipy.sparse as sp
 

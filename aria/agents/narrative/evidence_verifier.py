@@ -19,7 +19,6 @@ import math
 from aria.agents.narrative.validators import (
     _unnegated_causal_hit,
     collect_named_entities,
-    find_causal_language,
 )
 
 

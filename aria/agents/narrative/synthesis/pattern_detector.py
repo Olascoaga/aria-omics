@@ -16,7 +16,7 @@ strict evidence verifier can confirm the discussion against the evidence card.
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from itertools import combinations
 from typing import Any
 

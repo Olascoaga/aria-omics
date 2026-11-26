@@ -25,7 +25,6 @@ import os
 import threading
 import uuid
 from pathlib import Path
-from typing import Optional
 
 from aria.agents.base_agent import BaseAgent
 from aria.bus.message_bus import Message, MessageType, Confidence

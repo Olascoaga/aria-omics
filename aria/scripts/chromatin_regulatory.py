@@ -276,7 +276,6 @@ def _peak_to_gene(adata, params: dict, out_dir: Path) -> dict[str, Any]:
     min_corr = _param_float(params, "min_peak_gene_corr", 0.3)
     distance_bp = _param_int(params, "peak_gene_distance_bp", 500_000)
 
-    import numpy as np
     from aria.utils.safe_h5ad import read_h5ad
 
     rna = read_h5ad(str(rna_path))

@@ -26,7 +26,6 @@ from typing import Optional
 
 from aria.agents.base_agent import BaseAgent
 from aria.agents.modality_audit import build_capability_matrix
-from aria.bus.message_bus import Confidence
 
 log = logging.getLogger("aria.audit")
 

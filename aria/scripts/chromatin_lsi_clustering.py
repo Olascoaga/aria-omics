@@ -477,7 +477,6 @@ def chromatin_lsi_clustering(params: dict) -> dict:
     from aria.utils.chromatin_robustness import (
         assess_atac_batch_embedding,
         assess_consensus_peak_provenance,
-        detect_atac_doublets,
         public_doublet_summary,
     )
 

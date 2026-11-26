@@ -35,8 +35,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from aria.scripts._base import run_script
 from pathlib import Path
 from aria.scripts.chromatin_peak_counts import (
-    file_record, load_valid_stage_result, stage_manifest_path, write_stage_manifest,
-    _save_stage_result, _open_alignment, _interval_index, _overlaps, _primary_mapped,
+    file_record, load_valid_stage_result, stage_manifest_path, _save_stage_result, _open_alignment, _interval_index, _overlaps, _primary_mapped,
 )
 
 

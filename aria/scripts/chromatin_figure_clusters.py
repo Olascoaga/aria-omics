@@ -50,7 +50,6 @@ def _marker_heatmap(adata, cluster_key, marker_peaks, top_per_cluster, out_path)
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
     import numpy as np
-    import pandas as pd
     from scipy import sparse
 
     # Ordered, de-duplicated peak list (top N per cluster).

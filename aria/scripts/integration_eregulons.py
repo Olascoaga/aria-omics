@@ -34,7 +34,6 @@ from typing import Any
 import uuid
 
 import numpy as np
-from scipy import sparse
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from aria.utils.mudata_io import (

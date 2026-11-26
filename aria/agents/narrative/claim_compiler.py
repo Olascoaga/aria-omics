@@ -32,7 +32,6 @@ from __future__ import annotations
 
 import math
 import logging
-import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -42,10 +41,8 @@ log = logging.getLogger("aria.narrative.claim_compiler")
 from aria.agents.narrative.types import NarrativeBlock
 from aria.agents.narrative.evidence_verifier import verify_block_claim_support
 from aria.agents.narrative.validators import (
-    _NEGATION_TAIL_RE,
     _unnegated_causal_hit,
     collect_named_entities,
-    find_causal_language,
 )
 
 

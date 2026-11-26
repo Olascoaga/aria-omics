@@ -49,10 +49,7 @@ def _sample_qc(counts, metadata, output_dir: str,
                 f"consider re-sequencing low-depth samples if >100×."
             )
 
-        import pandas as pd
         import numpy as np
-        from sklearn.decomposition import PCA
-        from sklearn.preprocessing import StandardScaler
 
         # ── (a) Replicate concordance ─────────────────────────────────────
         # Use log2(counts+1) so highly-expressed genes don't dominate.

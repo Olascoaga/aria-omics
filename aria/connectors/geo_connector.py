@@ -37,7 +37,6 @@ import signal
 import shutil
 import subprocess
 import tempfile
-import urllib.request
 from pathlib import Path
 from typing import Callable, Optional
 from urllib.parse import quote, unquote, urlencode

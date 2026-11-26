@@ -33,7 +33,7 @@ from __future__ import annotations
 import json
 import logging
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
 
@@ -43,7 +43,6 @@ from aria.llm.prompt_boundary import (
     build_untrusted_prompt,
     system_with_untrusted_boundary,
 )
-from aria.bus.message_bus import CavemanMode
 
 log = logging.getLogger("aria.debate")
 

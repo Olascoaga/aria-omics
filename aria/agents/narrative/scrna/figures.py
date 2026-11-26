@@ -92,7 +92,6 @@ def render_cellcomm_heatmap(findings: dict,
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
-    import numpy as np
     import pandas as pd
 
     df = pd.DataFrame(top)

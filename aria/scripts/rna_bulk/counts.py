@@ -3,7 +3,6 @@ inference, technical-replicate aggregation and comparison resolution (A7 split).
 
 Re-exported from aria.scripts.rna_bulk_de."""
 from __future__ import annotations
-import os
 import re
 import warnings
 
@@ -15,7 +14,6 @@ from aria.utils.count_classifier import (
     resolve_unique_sample_names as _resolve_unique_sample_names,
     validate_raw_count_matrix,
 )
-from aria.scripts.rna_bulk.deseq2 import _run_deseq2
 from aria.scripts.rna_bulk.gtf_io import _strip_gene_version
 
 VALID_COUNT_UNION_POLICIES = ("error", "intersect", "union_zero_fill")

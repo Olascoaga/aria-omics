@@ -29,7 +29,7 @@ try:
     )
 except ImportError:
     from aria.utils.stage_manifest import (
-        build_stage_manifest, stage_is_current, write_stage_manifest,
+        stage_is_current, write_stage_manifest,
     )
 
     def file_record(path):

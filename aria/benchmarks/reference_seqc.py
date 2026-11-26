@@ -150,7 +150,6 @@ def load_seqc_maqc_bundle(bundle_dir: str | Path) -> dict[str, Any] | None:
 def _group_means_cpm(counts, samples) -> dict[str, Any]:
     """Library-size-normalized (CPM) mean expression per group."""
     import numpy as np
-    import pandas as pd
 
     lib = counts.sum(axis=0).replace(0, np.nan)
     cpm = counts.div(lib, axis=1) * 1e6

@@ -55,7 +55,6 @@ from aria.scripts._base import run_script, mocks_allowed
 
 def chromatin_qc(params: dict) -> dict:
     from pathlib import Path
-    import numpy as np
 
     data_type   = params["data_type"]
     files       = params.get("files", [])
@@ -125,7 +124,6 @@ def _scatac_qc(files: list, genome: str,
         import muon  # noqa: F401  # availability check for scATAC stack
         import anndata as ad
         import numpy as np
-        from pathlib import Path
 
         # Load fragment file
         fragment_files = [f for f in files if "fragments" in f.lower()
