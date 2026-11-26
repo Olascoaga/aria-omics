@@ -141,7 +141,7 @@
         }
       },
       "capsule_id": "A1-01",
-      "decision_manifest_sha256": "c8833ea4cdd4ac6f76514f363dbc22ad9f115b687100a720a4f52733fa56bfc9",
+      "decision_manifest_sha256": "3755a667340fe38a7d44e0b8bb713fe9420187ff6fa5b8bc8ab6e4291d8c1053",
       "expected": {
         "decision": "abstain",
         "reason_family": "design_confounded"
@@ -278,7 +278,7 @@
         }
       },
       "capsule_id": "A1-02",
-      "decision_manifest_sha256": "228831f442448e55a3976f3c397f800ff8ec35ca6c7dbd789974967d81c96924",
+      "decision_manifest_sha256": "9e5fb80538d9ffbe35d9fec3d8f8aea2857de038b1026d60aeae911eb09acf75",
       "expected": {
         "decision": "abstain",
         "reason_family": "design_confounded"
@@ -861,7 +861,7 @@
         }
       },
       "capsule_id": "A1-05",
-      "decision_manifest_sha256": "61959d074276ccc6dd8c0067a8b1d7a6cff5ee2c9dc208f4aabe5d92c3adcb5d",
+      "decision_manifest_sha256": "839982a7042280342ddab82a6d08e876642df5a101e910aa4ac2d4e0048d300d",
       "expected": {
         "decision": "answer",
         "down": [
@@ -1080,7 +1080,7 @@
         }
       },
       "capsule_id": "A1-06",
-      "decision_manifest_sha256": "0b1b1c43252f7de61a92680b3ddc4f691d660ff0ec816c2f9eb0195af6e57de1",
+      "decision_manifest_sha256": "d24ba021a5ea2fa9c3d9309f6c6ee7e4175e71889f01e1565b2a0a95d1d695b1",
       "expected": {
         "decision": "answer",
         "down": [
@@ -1300,7 +1300,7 @@
         }
       },
       "capsule_id": "A1-07",
-      "decision_manifest_sha256": "315ec337e0b0b83a8bcc8be47d089c023a0869c264248b481094e11d5d00907e",
+      "decision_manifest_sha256": "e6293967600469ac94ee1eed30728c5c4c7c587095fb03e4ad602638e5a7670f",
       "expected": {
         "decision": "answer",
         "down": [
@@ -1520,7 +1520,7 @@
         }
       },
       "capsule_id": "A1-08",
-      "decision_manifest_sha256": "4573c7b936899ef9189388044d5c1564aa36225f37ac0458a826f3693389eba5",
+      "decision_manifest_sha256": "e0e32e9fc485f5d42e6fb1b737e10ae8e5bb665df37e72c52755a1b0e4925fcd",
       "expected": {
         "decision": "answer",
         "down": [
@@ -5433,7 +5433,7 @@
     "single_cell_test": "smyth_moderated_t_on_log2cpm_donor_pseudobulk",
     "single_cell_unit": "donor_pseudobulk_sum_counts"
   },
-  "receipt_sha256": "b29d59117a1ac14b581b2af4b7ad06b4a02ed62db73f370b690756dccbe7e828",
+  "receipt_sha256": "b685e65700dd856486f1f011e793663555a52b227e5475d9937bf9d612cb0e5b",
   "rng": "numpy.random.default_rng(PCG64)",
   "runtime": {
     "claim_gate_execution": "stack_isolated_subprocess:conda-env://aria-env",
