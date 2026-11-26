@@ -82,3 +82,45 @@ def test_d8_014_plot_neglog10_underflow_cap_converges(tmp_path):
     from aria.utils.stats import adaptive_neglog10
 
     assert _adaptive_neglog10 is adaptive_neglog10
+
+
+def test_d8_015_cpm_and_logcpm_zero_depth_converges(tmp_path):
+    """D8-015: CPM and log2(CPM+1) helpers must share full-library zero-depth handling without NaN crashes."""
+    import pandas as pd
+    import pytest
+
+    pytest.importorskip("litellm")
+    from aria.agents.audit_agent import AuditAgent
+    from aria.scripts.chromatin_figure_bulk import _pca as chrom_pca
+    from aria.scripts.rna_bulk.transforms import _compute_cpm
+
+    genes = [f"g{i}" for i in range(15)]
+    counts = pd.DataFrame(
+        {
+            "ctrl_1": [100 + i * 5 for i in range(15)],
+            "ctrl_2": [110 + i * 5 for i in range(15)],
+            "treat_1": [400 - i * 5 for i in range(15)],
+            "treat_2": [0] * 15,
+        },
+        index=genes,
+    )
+    tsv = tmp_path / "counts.tsv"
+    counts.to_csv(tsv, sep="\t")
+
+    cpm_bulk = _compute_cpm(counts, [])
+    pca_res, pca_reason = chrom_pca(counts, is_cpm=False)
+    assert cpm_bulk is not None and np.isfinite(cpm_bulk.to_numpy()).all()
+    assert pca_res is None and pca_reason == "a sample has zero total counts"
+
+    design = {
+        "batch_factor": "batch",
+        "groups": {"ctrl": ["ctrl_1", "ctrl_2"], "treat": ["treat_1", "treat_2"]},
+        "batch_map": {"ctrl_1": "B1", "ctrl_2": "B2", "treat_1": "B1", "treat_2": "B2"},
+    }
+    agent = AuditAgent.__new__(AuditAgent)
+    rep_findings = agent._check_replicate_correlation([str(tsv)], design)
+    pca_findings = agent._check_pca_batch_dominance([str(tsv)], design)
+
+    assert any("treat_2" in f.get("message", "") for f in rep_findings)
+    assert isinstance(pca_findings, list)
+    assert any("treat_2" in f.get("message", "") for f in pca_findings)

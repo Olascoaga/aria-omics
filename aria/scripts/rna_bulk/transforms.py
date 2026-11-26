@@ -207,12 +207,9 @@ def _compute_cpm(counts_raw, warnings: list):
     length (TPM) introduces severe length bias (ADR-075). NOT used for DE or PCA.
     """
     try:
-        import numpy as np
+        from aria.utils.stats import compute_cpm
 
-        lib_millions = counts_raw.sum(axis=0).astype(float) / 1e6
-        lib_safe = lib_millions.replace(0.0, np.nan)
-        cpm = counts_raw.astype(float).div(lib_safe, axis=1).fillna(0.0)
-        return cpm.round(3)
+        return compute_cpm(counts_raw, zero_policy="zero").round(3)
     except Exception as e:
         warnings.append(f"CPM computation failed: {e}")
         return None

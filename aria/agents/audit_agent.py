@@ -190,23 +190,45 @@ class AuditAgent(BaseAgent):
         if not group_labels or len(set(group_labels.values())) < 2:
             return []
 
-        # Filter to expressed genes and normalize to log1p(CPM)
-        expressed = counts.loc[counts.sum(axis=1) >= 10]
-        if expressed.empty:
-            return []
-
-        cpm   = expressed.div(expressed.sum(axis=0) / 1e6)
-        lcpm  = np.log1p(cpm)
-
-        corr = lcpm.corr(method="pearson")
+        # Detect zero-depth libraries before filtering so dead libraries never
+        # silently drop out as NaN correlations.
+        from aria.utils.stats import compute_log2_cpm
 
         findings = []
-        samples  = list(group_labels.keys())
+        samples = [s for s in group_labels.keys() if s in counts.columns]
+        lib_totals = counts[samples].sum(axis=0)
+        zero_samples = [s for s in samples if not (np.isfinite(lib_totals[s]) and float(lib_totals[s]) > 0.0)]
+        for sample in zero_samples:
+            findings.append({
+                "severity": "blocking",
+                "check":    "replicate_correlation",
+                "message":  (
+                    f"Sample '{sample}' ({group_labels[sample]}) has zero total "
+                    f"counts (empty sequencing library); replicate correlation is "
+                    f"undefined."
+                ),
+                "recommendation": (
+                    f"Inspect '{sample}' alignment and quantification logs and "
+                    f"exclude or re-sequence this failed library before running DE."
+                ),
+            })
 
-        for sample in samples:
+        valid_samples = [s for s in samples if s not in set(zero_samples)]
+        if len(valid_samples) < 2:
+            return findings
+
+        # Compute full-library log2(CPM + 1), then restrict to expressed genes.
+        expressed_mask = counts[valid_samples].sum(axis=1) >= 10
+        if not bool(expressed_mask.any()):
+            return findings
+
+        lcpm = compute_log2_cpm(counts[valid_samples]).loc[expressed_mask]
+        corr = lcpm.corr(method="pearson")
+
+        for sample in valid_samples:
             grp = group_labels[sample]
-            same_grp   = [s for s in samples if group_labels[s] == grp and s != sample]
-            other_grp  = [s for s in samples if group_labels[s] != grp]
+            same_grp   = [s for s in valid_samples if group_labels[s] == grp and s != sample]
+            other_grp  = [s for s in valid_samples if group_labels[s] != grp]
 
             if not same_grp:
                 continue
@@ -287,12 +309,40 @@ class AuditAgent(BaseAgent):
         if not batch_labels or len(set(batch_labels.values())) < 2:
             return []
 
-        expressed = counts.loc[counts.sum(axis=1) >= 10]
-        if expressed.shape[0] < 10:
-            return []
+        from aria.utils.stats import compute_log2_cpm
 
-        cpm  = expressed.div(expressed.sum(axis=0) / 1e6)
-        lcpm = np.log1p(cpm).T.values  # shape: (n_samples, n_genes)
+        lib_totals = counts.sum(axis=0)
+        zero_samples = [
+            str(s) for s in counts.columns
+            if not (np.isfinite(lib_totals[s]) and float(lib_totals[s]) > 0.0)
+        ]
+        findings: list[dict] = []
+        for s in zero_samples:
+            if s in group_labels:
+                findings.append({
+                    "severity": "warning",
+                    "check":    "pca_batch_dominance",
+                    "message":  (
+                        f"Sample '{s}' has zero total counts and was excluded "
+                        f"from PCA batch-dominance analysis."
+                    ),
+                    "recommendation": (
+                        f"Inspect '{s}' for library failure before running PCA or DE."
+                    ),
+                })
+
+        valid_cols = [
+            s for s in counts.columns
+            if s in group_labels and s not in set(zero_samples)
+        ]
+        if len(valid_cols) < 3 or len({batch_labels.get(s) for s in valid_cols if s in batch_labels}) < 2:
+            return findings
+
+        expressed_mask = counts[valid_cols].sum(axis=1) >= 10
+        if int(expressed_mask.sum()) < 10:
+            return findings
+
+        lcpm = compute_log2_cpm(counts[valid_cols]).loc[expressed_mask].T.values  # (n_samples, n_genes)
 
         # Standardize each gene (column) to mean 0 / unit variance so PC1
         # reflects covariance structure rather than the few highly-expressed
@@ -305,9 +355,9 @@ class AuditAgent(BaseAgent):
         var1   = pca.explained_variance_ratio_[0]
 
         if var1 < _PC1_BATCH_THR:
-            return []  # PC1 is not dominant enough to matter
+            return findings  # PC1 is not dominant enough to matter
 
-        samples = [s for s in counts.columns if s in group_labels]
+        samples = valid_cols
         cond_vals  = [group_labels.get(s, "?") for s in samples]
         batch_vals = [batch_labels.get(s, "?") for s in samples]
 
@@ -327,7 +377,7 @@ class AuditAgent(BaseAgent):
         batch_bvar = _between_var(batch_vals, pc1)
 
         if batch_bvar > cond_bvar:
-            return [{
+            findings.append({
                 "severity": "warning",
                 "check":    "pca_batch_dominance",
                 "message":  (
@@ -341,9 +391,9 @@ class AuditAgent(BaseAgent):
                     "design formula (e.g., ~ batch + condition). ARIA will propagate "
                     "this automatically if the batch factor is confirmed in the design."
                 ),
-            }]
+            })
 
-        return []
+        return findings
 
     # ── Check 2b: DE design-matrix sanity ───────────────────────────────
 

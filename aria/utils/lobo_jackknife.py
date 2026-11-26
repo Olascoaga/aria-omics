@@ -401,11 +401,13 @@ def compute_counts_lobo_jackknife(
             log_mat = np.log2(np.maximum(scaled, 0.0) + 1.0)
             normalization = "spikein_or_external_size_factor_log2"
         else:
-            lib_sizes = np.maximum(raw.sum(axis=0), 1.0)
-            log_mat = np.log2((raw / lib_sizes[None, :]) * 1e6 + 1.0)
+            from aria.utils.stats import compute_log2_cpm
+
+            log_mat = compute_log2_cpm(raw, zero_policy="zero")
     else:
-        lib_sizes = np.maximum(raw.sum(axis=0), 1.0)
-        log_mat = np.log2((raw / lib_sizes[None, :]) * 1e6 + 1.0)
+        from aria.utils.stats import compute_log2_cpm
+
+        log_mat = compute_log2_cpm(raw, zero_policy="zero")
 
     unit_to_donor = None
     if paired_unit_col and paired_unit_col in meta_aligned.columns:

@@ -58,6 +58,61 @@ def adaptive_neglog10(
     return out, cap, bool(np.any(zero_mask))
 
 
+def compute_cpm(counts, *, zero_policy: str = "zero"):
+    """Compute Counts Per Million (CPM) using full-library totals per sample.
+
+    Accepts a 1D sequence/array (single sample) or a 2D features × samples
+    ``numpy.ndarray`` / ``pandas.DataFrame``. ``zero_policy`` controls samples
+    with non-positive library totals:
+      - ``"zero"`` (default): emit finite ``0.0`` for zero-depth columns;
+      - ``"nan"``: emit ``np.nan`` for zero-depth columns;
+      - ``"raise"``: raise ``ValueError("a sample has zero total counts")``.
+    """
+    import numpy as np
+
+    is_df = hasattr(counts, "to_numpy") and hasattr(counts, "columns") and hasattr(counts, "index")
+    arr = np.asarray(counts.to_numpy(dtype=float) if is_df else counts, dtype=float)
+    if arr.ndim == 1:
+        total = float(np.sum(arr))
+        if not np.isfinite(total) or total <= 0.0:
+            if zero_policy == "raise":
+                raise ValueError("a sample has zero total counts")
+            fill = np.nan if zero_policy == "nan" else 0.0
+            return np.full_like(arr, fill, dtype=float)
+        return (arr / total) * 1e6
+
+    lib_sizes = np.sum(arr, axis=0)
+    zero_mask = (~np.isfinite(lib_sizes)) | (lib_sizes <= 0.0)
+    if np.any(zero_mask) and zero_policy == "raise":
+        raise ValueError("a sample has zero total counts")
+    safe_lib = np.where(zero_mask, 1.0, lib_sizes)
+    cpm = (arr / safe_lib[None, :]) * 1e6
+    if np.any(zero_mask):
+        fill = np.nan if zero_policy == "nan" else 0.0
+        cpm[:, zero_mask] = fill
+    if is_df:
+        import pandas as pd
+
+        return pd.DataFrame(cpm, index=counts.index, columns=counts.columns)
+    return cpm
+
+
+def compute_log2_cpm(counts, *, zero_policy: str = "zero"):
+    """Compute ``log2(CPM + 1)`` using full-library totals per sample."""
+    import numpy as np
+
+    cpm = compute_cpm(counts, zero_policy=zero_policy)
+    if hasattr(cpm, "to_numpy") and hasattr(cpm, "columns"):
+        import pandas as pd
+
+        return pd.DataFrame(
+            np.log2(np.maximum(cpm.to_numpy(dtype=float), 0.0) + 1.0),
+            index=cpm.index,
+            columns=cpm.columns,
+        )
+    return np.log2(np.maximum(cpm, 0.0) + 1.0)
+
+
 # ── Pre-registered FDR family (P1-2) ─────────────────────────────────────────
 # The per-cluster vs global BH family must be fixed from the analysis plan BEFORE
 # any p-values are computed, so the choice cannot be presented as a post-hoc,

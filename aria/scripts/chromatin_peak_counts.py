@@ -537,10 +537,12 @@ def chromatin_peak_counts(params: dict) -> dict:
     matrix_path = output_dir / "bulk_atac_peak_counts.tsv"
     metadata_path = output_dir / "bulk_atac_samples.tsv"
     cpm_path = output_dir / "bulk_atac_peak_cpm.tsv"
-    cpm = {}
-    for sid, counts in sample_counts.items():
-        total = max(sum(counts), 1)
-        cpm[sid] = [format(c / total * 1e6, ".10g") for c in counts]
+    from aria.utils.stats import compute_cpm
+
+    cpm = {
+        sid: [format(float(v), ".10g") for v in compute_cpm(counts, zero_policy="zero")]
+        for sid, counts in sample_counts.items()
+    }
     _write_counts_matrix(cpm_path, peak_ids, cpm)
     _write_counts_matrix(matrix_path, peak_ids, sample_counts)
     _write_metadata(metadata_path, metadata)

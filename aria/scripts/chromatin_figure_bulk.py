@@ -181,14 +181,16 @@ def _pca(mat, is_cpm: bool):
     """SVD-PCA on centred log2(CPM+1). Returns (scores, pct_var, samples) or
     (None, reason)."""
     import numpy as np
+    from aria.utils.stats import compute_log2_cpm
 
     values = mat.to_numpy(dtype=float)
     if not is_cpm:
-        lib = values.sum(axis=0)
-        if (lib <= 0).any():
-            return None, "a sample has zero total counts"
-        values = values / lib * 1e6
-    logv = np.log2(values + 1.0)
+        try:
+            logv = compute_log2_cpm(values, zero_policy="raise")
+        except ValueError as exc:
+            return None, str(exc)
+    else:
+        logv = np.log2(values + 1.0)
     keep = logv.std(axis=1) > 0
     if int(keep.sum()) < 2:
         return None, "fewer than 2 non-constant peaks"
