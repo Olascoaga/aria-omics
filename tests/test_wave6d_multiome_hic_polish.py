@@ -312,59 +312,69 @@ def test_d3_h11_h13_m6_mudata_cache_dup_barcodes_and_mofa_sparse_atac(tmp_path: 
     gtf_p = tmp_path / "genes.gtf"
     gtf_p.write_text('chr1\tsrc\tgene\t1000\t2000\t.\t+\t.\tgene_id "G1"; gene_name "G1";\n')
 
-    try:
-        import scanpy  # noqa: F401
-        res_p2g = integration_peak2gene(
-            {
-                "rna_files": [str(rna_p)],
-                "atac_files": [str(atac_p)],
-                "gtf_path": str(gtf_p),
-                "output_dir": str(tmp_path / "p2g_dup"),
-                "resume": False,
-            }
-        )
-        assert res_p2g["status"] == "error"
-        assert res_p2g["error_type"] == "DuplicateBarcodes"
-    except ImportError:
-        pass
-
-    try:
-        import mofapy2  # noqa: F401
-        import scanpy  # noqa: F401
-        res_mofa = integration_mofa(
-            {
-                "modalities": {"scRNA": [str(rna_p)], "scATAC": [str(atac_p)]},
-                "output_dir": str(tmp_path / "mofa_dup"),
-                "resume": False,
-            }
-        )
-        assert res_mofa["status"] == "error"
-        assert res_mofa["error_type"] == "DuplicateBarcodes"
-    except ImportError:
-        pass
+    pytest.importorskip("scanpy")
+    res_p2g = integration_peak2gene(
+        {
+            "rna_files": [str(rna_p)],
+            "atac_files": [str(atac_p)],
+            "gtf_path": str(gtf_p),
+            "output_dir": str(tmp_path / "p2g_dup"),
+            "resume": False,
+        }
+    )
+    assert res_p2g["status"] == "error"
+    assert res_p2g["error_type"] == "DuplicateBarcodes"
 
     # 3. D3-M6: _prepare_view_matrices on pre-normalized sparse ATAC selects n_top_peaks sparsely.
-    try:
-        import scanpy  # noqa: F401
-        rng = np.random.default_rng(7)
-        dense = rng.uniform(0.0, 2.0, size=(20, 12)).astype(np.float64)
-        # Give columns 0..7 strictly higher variance than 8..11
-        dense[:, :8] *= 5.0
-        sp_mat = sp.csr_matrix(dense)
-        prep = _prepare_view_matrices(
-            mod_name="scATAC",
-            mod_kind="atac",
-            matrix_all=sp_mat,
-            var_names=[f"chr1:{i*100}-{i*100+50}" for i in range(12)],
-            train_indices=np.arange(20),
-            is_raw_counts=False,
-            n_top_genes=3,
-            n_top_peaks=7,
-            scale_views=True,
-        )
-        assert prep["n_features_selected"] == 7  # used n_top_peaks=7, NOT n_top_genes=3!
-    except ImportError:
-        pass
+    rng = np.random.default_rng(7)
+    dense = rng.uniform(0.0, 2.0, size=(20, 12)).astype(np.float64)
+    # Give columns 0..7 strictly higher variance than 8..11
+    dense[:, :8] *= 5.0
+    sp_mat = sp.csr_matrix(dense)
+    prep = _prepare_view_matrices(
+        mod_name="scATAC",
+        mod_kind="atac",
+        matrix_all=sp_mat,
+        var_names=[f"chr1:{i*100}-{i*100+50}" for i in range(12)],
+        train_indices=np.arange(20),
+        is_raw_counts=False,
+        n_top_genes=3,
+        n_top_peaks=7,
+        scale_views=True,
+    )
+    assert prep["n_features_selected"] == 7  # used n_top_peaks=7, NOT n_top_genes=3!
+
+
+def test_d3_h11_mofa_split_file_duplicate_barcodes_rejected(tmp_path: Path):
+    ad = pytest.importorskip("anndata")
+    pytest.importorskip("mofapy2")
+    pytest.importorskip("scanpy")
+    from aria.scripts.integration_mofa import integration_mofa
+
+    rna_dup = ad.AnnData(
+        X=sp.csr_matrix(np.ones((4, 3), dtype=np.int64)),
+        obs=pd.DataFrame(index=["BC1", "BC1", "BC2", "BC3"]),
+        var=pd.DataFrame(index=["G1", "G2", "G3"]),
+    )
+    atac_ok = ad.AnnData(
+        X=sp.csr_matrix(np.ones((4, 3), dtype=np.int64)),
+        obs=pd.DataFrame(index=["BC1", "BC2", "BC3", "BC4"]),
+        var=pd.DataFrame(index=["chr1:100-200", "chr1:300-400", "chr1:500-600"]),
+    )
+    rna_p = tmp_path / "rna_dup.h5ad"
+    atac_p = tmp_path / "atac_ok.h5ad"
+    rna_dup.write_h5ad(rna_p)
+    atac_ok.write_h5ad(atac_p)
+
+    res_mofa = integration_mofa(
+        {
+            "modalities": {"scRNA": [str(rna_p)], "scATAC": [str(atac_p)]},
+            "output_dir": str(tmp_path / "mofa_dup"),
+            "resume": False,
+        }
+    )
+    assert res_mofa["status"] == "error"
+    assert res_mofa["error_type"] == "DuplicateBarcodes"
 
 
 def test_d3_m1_eregulon_core_zero_var_depth_sign_flip_and_small_n_clamp(tmp_path: Path):

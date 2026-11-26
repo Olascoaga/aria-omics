@@ -11,9 +11,6 @@ import pandas as pd
 import pytest
 import scipy.sparse as sp
 
-from aria.agents.genome_arch_agent import GenomeArchAgent
-from aria.agents.integration_agent import IntegrationAgent
-from aria.memory.memory import ARIAMemory
 from aria.scripts.integration_assemble_multiome import (
     _translate_barcodes,
     integration_assemble_multiome,
@@ -21,7 +18,11 @@ from aria.scripts.integration_assemble_multiome import (
 from aria.utils.multiome_contracts import _unpaired_container_files
 
 
-def _make_integration_agent(tmp_path: Path) -> IntegrationAgent:
+def _make_integration_agent(tmp_path: Path):
+    pytest.importorskip("litellm")
+    from aria.agents.integration_agent import IntegrationAgent
+    from aria.memory.memory import ARIAMemory
+
     mem = ARIAMemory(db_path=str(tmp_path / "integ_mem.sqlite"))
     llm = MagicMock()
     agent = IntegrationAgent(mem, llm)
@@ -282,6 +283,10 @@ def test_unpaired_container_files_normalizes_relative_vs_absolute_paths(tmp_path
 
 
 def test_genome_arch_agent_microc_loop_res_svg_propagation_and_unphased_summary(tmp_path: Path):
+    pytest.importorskip("litellm")
+    from aria.agents.genome_arch_agent import GenomeArchAgent
+    from aria.memory.memory import ARIAMemory
+
     mem = ARIAMemory(db_path=str(tmp_path / "hic_mem.sqlite"))
     llm = MagicMock()
     agent = GenomeArchAgent(mem, llm)

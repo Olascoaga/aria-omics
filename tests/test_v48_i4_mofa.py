@@ -25,6 +25,7 @@ import sys
 import tempfile
 
 import numpy as np
+import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -250,12 +251,13 @@ def test_no_hardcoded_biology_contract_and_agent_conflict_wiring():
     assert mock_res["technical_factor_flag"] is False
     assert mock_res["technical_factor_id"] is None
 
-    try:
-        from aria.agents.integration_agent import IntegrationAgent
-        from aria.utils.script_contracts import contract_for_script
-        from tests.test_no_fabrication_guard import scan_source
-    except ImportError:
-        return  # Scientific-only env without pytest/litellm/pydantic; tested in aria-env.
+
+def test_mofa_agent_conflict_wiring_and_contract():
+    pytest.importorskip("litellm")
+    pytest.importorskip("pydantic")
+    from aria.agents.integration_agent import IntegrationAgent
+    from aria.utils.script_contracts import contract_for_script
+    from tests.test_no_fabrication_guard import scan_source
 
     # No-fabrication static AST guard on new/updated V48 I4 modules
     for rel in (
@@ -300,7 +302,7 @@ def test_no_hardcoded_biology_contract_and_agent_conflict_wiring():
 
 def test_end_to_end_mofa_planted_shared_specific_depth_and_cell_cycle(tmp_path: Path):
     if not _has_mofa_stack():
-        return
+        pytest.skip("mofapy2, mudata, anndata, and scanpy required for MOFA+ E2E test")
 
     import anndata as ad
     import mudata as md
@@ -441,7 +443,7 @@ def test_end_to_end_mofa_planted_shared_specific_depth_and_cell_cycle(tmp_path: 
 
 def test_caller_supplied_cell_cycle_genes_and_missing_honesty(tmp_path: Path):
     if not _has_mofa_stack():
-        return
+        pytest.skip("mofapy2, mudata, anndata, and scanpy required for MOFA+ E2E test")
 
     import anndata as ad
     import mudata as md
