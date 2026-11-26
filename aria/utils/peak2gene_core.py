@@ -32,45 +32,14 @@ from typing import Any, Sequence
 
 import numpy as np
 
+from aria.utils.genomic_coords import (
+    bed_interval_clamped,
+    canonical_contig,
+    is_standard_contig,
+)
 from aria.utils.stats import bh_correct
 
 _PEAK_SEP_RE = re.compile(r"^([^:\-_\t]+)[:\-_](\d+)[\-_](\d+)$")
-_STANDARD_AUTOSOMES = {str(i) for i in range(1, 23)}
-
-
-def canonical_contig(chrom: str | None) -> str | None:
-    """Normalize UCSC (`chr1`, `chrM`) and Ensembl (`1`, `MT`) contig aliases.
-
-    Standard human/mouse nuclear chromosomes (`1..22`, `X`, `Y`) and mitochondrial
-    aliases (`M`, `MT`, `chrM`, `chrMT`) map to canonical `chr*` keys so UCSC
-    peaks (`chr1:100-200`) and Ensembl GTFs (`1`) interoperate seamlessly while
-    preserving non-standard contig identifiers in normalized form.
-    """
-    if chrom is None:
-        return None
-    raw = str(chrom).strip()
-    if not raw:
-        return None
-    low = raw.lower()
-    if low in ("m", "mt", "chrm", "chrmt"):
-        return "chrM"
-    stripped = raw[3:] if low.startswith("chr") else raw
-    up = stripped.upper()
-    if stripped in _STANDARD_AUTOSOMES or up in ("X", "Y"):
-        return f"chr{up}"
-    # Preserve mouse autosomes 1..19 (already in 1..22) or rat/other numeric contigs
-    if stripped.isdigit() and 1 <= int(stripped) <= 99:
-        return f"chr{int(stripped)}"
-    return raw
-
-
-def is_standard_contig(chrom: str | None) -> bool:
-    """Return True if `chrom` maps to `chr1..chr22`, `chrX`, or `chrY`."""
-    canon = canonical_contig(chrom)
-    if canon is None or not canon.startswith("chr"):
-        return False
-    body = canon[3:]
-    return body in _STANDARD_AUTOSOMES or body in ("X", "Y")
 
 
 def parse_peak_coord(name: str) -> tuple[str, int, int] | None:
@@ -364,9 +333,8 @@ def compute_peak_gc_from_indexed_fasta(
             if rec is None:
                 continue
             seq_len, offset, line_bases, line_bytes = rec
-            # Support both 0-based and 1-based start safely clamped to [0, seq_len).
-            s0 = max(0, min(seq_len, int(start) - 1 if int(start) >= 1 else 0))
-            e0 = max(s0, min(seq_len, int(end)))
+            # Peak coordinates are 0-based half-open BED [start, end); clamp directly.
+            s0, e0 = bed_interval_clamped(start, end, seq_len)
             if e0 <= s0 or line_bases <= 0:
                 continue
 

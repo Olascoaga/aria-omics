@@ -75,15 +75,9 @@ def _open_alignment(path, reference_fasta=None):
 
 def _norm_contig(chrom: str | None) -> str:
     """Normalize UCSC/Ensembl contig aliases (chr1 <-> 1, chrM/chrMT <-> MT)."""
-    if not chrom:
-        return ""
-    c = str(chrom).strip()
-    low = c.lower()
-    if low in ("chrm", "chrmt", "mt", "m"):
-        return "MT"
-    if low.startswith("chr"):
-        return c[3:]
-    return c
+    from aria.utils.genomic_coords import ensembl_contig
+
+    return ensembl_contig(chrom)
 
 
 def _interval_index(rows):
@@ -130,7 +124,7 @@ def _count_cram(peaks_path, file_path, reference_fasta=None):
                 rows.append((cols[0], int(cols[1]), int(cols[2])))
     by_chrom = {}
     for i, (chrom, start, end) in enumerate(rows):
-        by_chrom.setdefault(chrom, []).append((start, end, i))
+        by_chrom.setdefault(_norm_contig(chrom), []).append((start, end, i))
     index = {}
     for chrom, intervals in by_chrom.items():
         intervals.sort()
@@ -143,7 +137,9 @@ def _count_cram(peaks_path, file_path, reference_fasta=None):
         for read in bam.fetch(until_eof=True):
             if read.is_unmapped or read.reference_end is None:
                 continue
-            intervals, starts, max_end = index.get(read.reference_name, ([], [], []))
+            intervals, starts, max_end = index.get(
+                _norm_contig(read.reference_name), ([], [], [])
+            )
             lo = bisect_right(max_end, read.reference_start)
             hi = bisect_left(starts, read.reference_end)
             for start, end, i in intervals[lo:hi]:
