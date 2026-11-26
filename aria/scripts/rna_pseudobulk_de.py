@@ -142,10 +142,12 @@ COMPOSITION_COLLINEARITY_MAX = 0.8
 
 
 from aria.scripts.rna_bulk.deseq2 import (
+    _BENIGN_WARNING_CATEGORIES,
     _build_design_formula,
     _can_wrap_in_formulaic_c as _deseq2_can_wrap_in_formulaic_c,
     _detect_shrink_sign_flip,
     _quote_formula_term as _deseq2_quote_formula_term,
+    _serialize_fit_warnings,
     _shrink_coeff,
 )
 
@@ -254,7 +256,6 @@ def _fdr_filtering_basis(successful_blocks) -> dict:
 
 def rna_pseudobulk_de(params: dict) -> dict:
     import warnings as _w
-    _w.filterwarnings("ignore")
 
     import numpy as np
     import pandas as pd
@@ -853,47 +854,54 @@ def rna_pseudobulk_de(params: dict) -> dict:
                         dds_kwargs["continuous_factors"] = continuous_factors
                     if lfc_shrink_enabled and "ref_level" in dds_params:
                         dds_kwargs["ref_level"] = [condition_col, ref_str]
-                dds = DeseqDataSet(**dds_kwargs)
-                dds.deseq2()
-                stat_res = DeseqStats(
-                    dds,
-                    contrast=[condition_col, test_str, ref_str],
-                )
-                stat_res.summary()
+                with _w.catch_warnings(record=True) as _fit_caught:
+                    _w.simplefilter("always")
+                    for _benign_cat in _BENIGN_WARNING_CATEGORIES:
+                        _w.filterwarnings("ignore", category=_benign_cat)
+                    dds = DeseqDataSet(**dds_kwargs)
+                    dds.deseq2()
+                    stat_res = DeseqStats(
+                        dds,
+                        contrast=[condition_col, test_str, ref_str],
+                    )
+                    stat_res.summary()
 
-                # C4: apeGLM shrinkage. Keep the raw MLE LFC, shrink in place,
-                # fall back to raw if the coefficient is unavailable, shrinkage
-                # raises, or the post-shrink sign-flip guard triggers.
-                shrink_applied = False
-                shrink_reason = None
-                raw_lfc = stat_res.results_df["log2FoldChange"].copy()
-                raw_lfc_se = (
-                    stat_res.results_df["lfcSE"].copy()
-                    if "lfcSE" in stat_res.results_df.columns
-                    else None
-                )
-                if lfc_shrink_enabled:
-                    coeff = _shrink_coeff(dds, condition_col, test_str)
-                    if coeff is None:
-                        shrink_reason = "apeGLM coefficient not found"
+                    # C4: apeGLM shrinkage. Keep the raw MLE LFC, shrink in place,
+                    # fall back to raw if the coefficient is unavailable, shrinkage
+                    # raises, or the post-shrink sign-flip guard triggers.
+                    shrink_applied = False
+                    shrink_reason = None
+                    raw_lfc = stat_res.results_df["log2FoldChange"].copy()
+                    raw_lfc_se = (
+                        stat_res.results_df["lfcSE"].copy()
+                        if "lfcSE" in stat_res.results_df.columns
+                        else None
+                    )
+                    if lfc_shrink_enabled:
+                        coeff = _shrink_coeff(dds, condition_col, test_str)
+                        if coeff is None:
+                            shrink_reason = "apeGLM coefficient not found"
+                        else:
+                            try:
+                                stat_res.lfc_shrink(coeff=coeff)
+                                if _detect_shrink_sign_flip(
+                                    raw_lfc, stat_res.results_df["log2FoldChange"]
+                                ):
+                                    stat_res.results_df["log2FoldChange"] = raw_lfc
+                                    if raw_lfc_se is not None:
+                                        stat_res.results_df["lfcSE"] = raw_lfc_se
+                                    shrink_reason = (
+                                        "lfc_shrink sign-flip detected; reverted to raw MLE"
+                                    )
+                                else:
+                                    shrink_applied = True
+                            except Exception as _sx:  # aria: allow-broad-except auxiliary apeGLM shrinkage falls back to unshrunken MLE
+                                shrink_reason = f"lfc_shrink failed: {str(_sx)[:120]}"
                     else:
-                        try:
-                            stat_res.lfc_shrink(coeff=coeff)
-                            if _detect_shrink_sign_flip(
-                                raw_lfc, stat_res.results_df["log2FoldChange"]
-                            ):
-                                stat_res.results_df["log2FoldChange"] = raw_lfc
-                                if raw_lfc_se is not None:
-                                    stat_res.results_df["lfcSE"] = raw_lfc_se
-                                shrink_reason = (
-                                    "lfc_shrink sign-flip detected; reverted to raw MLE"
-                                )
-                            else:
-                                shrink_applied = True
-                        except Exception as _sx:  # aria: allow-broad-except auxiliary apeGLM shrinkage falls back to unshrunken MLE
-                            shrink_reason = f"lfc_shrink failed: {str(_sx)[:120]}"
-                else:
-                    shrink_reason = "disabled"
+                        shrink_reason = "disabled"
+                block_fit_warnings = _serialize_fit_warnings(_fit_caught)
+                for _fw in block_fit_warnings:
+                    warnings.append(f"{group} ({comp_key}): {_fw}")
 
                 res = stat_res.results_df.dropna(subset=["pvalue"]).copy()
                 res["log2FoldChange_raw"] = raw_lfc.reindex(res.index)
@@ -948,6 +956,7 @@ def rna_pseudobulk_de(params: dict) -> dict:
                 "paired_block_modeled":       paired_donor_covariate_used,
                 "excluded_unpaired_samples":  excluded_unpaired_samples,
                 "design_check":               design_check,
+                "fit_warnings":               block_fit_warnings,
                 "top_genes":                 [],
                 "all_sig":                   [],
             }
