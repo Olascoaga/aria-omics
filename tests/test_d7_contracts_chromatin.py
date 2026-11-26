@@ -248,3 +248,45 @@ def test_d7_017_warning_router_surfaces_chromatin_partial_pairing_and_dropped_do
     assert any(s["field"] == "pairing_status" for s in pb_block.metadata.get("degradation_signals", []))
     assert any(c.severity == "warning" and "D4" in c.text for c in fp_block.caveats)
     assert any(s["field"] == "pairing_status" for s in fp_block.metadata.get("degradation_signals", []))
+
+
+def test_d7_019_scatac_fragment_sizes_standardized_fraction_keys_reach_narrator(tmp_path):
+    """D7-019: _compute_fragment_sizes must emit subnucleosomal_fraction (<120 bp)
+    and mononucleosomal_fraction (180-247 bp) matching bulk chromatin QC and
+    ChromatinNarrator._qc_block, without the misnamed pct_* fraction keys."""
+    import gzip
+
+    from aria.agents.narrative.narrators.chromatin import ChromatinNarrator
+    from aria.scripts.chromatin_qc import _compute_fragment_sizes
+
+    frag_gz = tmp_path / "fragments.tsv.gz"
+    lines = []
+    for i in range(60):
+        lines.append(f"chr1\t{1000 + i * 500}\t{1080 + i * 500}\tBC{i % 10}\t1\n")
+    for i in range(40):
+        lines.append(f"chr1\t{50000 + i * 500}\t{50200 + i * 500}\tBC{i % 10}\t1\n")
+    with gzip.open(frag_gz, "wt") as fh:
+        fh.writelines(lines)
+
+    fs = _compute_fragment_sizes(str(frag_gz))
+    assert "pct_subnucleosomal" not in fs
+    assert "pct_mononucleosomal" not in fs
+    assert fs["subnucleosomal_fraction"] == 0.6
+    assert fs["mononucleosomal_fraction"] == 0.4
+
+    qc = {
+        "status": "success",
+        "data_type": "scATAC",
+        "n_cells": 10,
+        "n_fragments": 100,
+        "fragment_sizes": fs,
+        "qc_complete": False,
+        "pass_qc": None,
+    }
+    block = ChromatinNarrator()._qc_block(qc)
+    ev_by_label = {e.label.lower(): e.value for e in block.evidence}
+    sub_vals = [v for k, v in ev_by_label.items() if "subnucleosomal" in k]
+    mono_vals = [v for k, v in ev_by_label.items() if "mononucleosomal" in k]
+    assert sub_vals == [0.6], f"Expected subnucleosomal evidence 0.6, got {ev_by_label}"
+    assert mono_vals == [0.4], f"Expected mononucleosomal evidence 0.4, got {ev_by_label}"
+

@@ -1121,12 +1121,14 @@ def _compute_fragment_sizes(frag_file: str) -> dict:
     if sizes:
         import numpy as np
         sizes_arr = np.array(sizes)
+        # D7-019: align scATAC fragment-size fraction keys and bp windows with
+        # bulk chromatin QC and ChromatinNarrator._qc_block (0-1 fractions, not pct_*).
+        subnuc = float(np.mean(sizes_arr < 120))
+        mono = float(np.mean((sizes_arr >= 180) & (sizes_arr <= 247)))
         out.update({
-            "median_size":       int(np.median(sizes_arr)),
-            "pct_mononucleosomal": float(
-                np.mean((sizes_arr > 150) & (sizes_arr < 300))
-            ),
-            "pct_subnucleosomal": float(np.mean(sizes_arr < 150)),
+            "median_size":              int(np.median(sizes_arr)),
+            "subnucleosomal_fraction":  round(subnuc, 4),
+            "mononucleosomal_fraction": round(mono, 4),
         })
         # W0.2 (scATAC P0): a binned size histogram (0-800 bp, 5 bp bins) so
         # the report can plot the nucleosome banding pattern. Summary-only
