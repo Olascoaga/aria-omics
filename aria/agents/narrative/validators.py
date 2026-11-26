@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-from aria.agents.narrative.types import PUBLISHABLE_STATUSES, Caveat, NarrativeBlock
+from aria.agents.narrative.types import Caveat, NarrativeBlock
 
 
 class NarrativeValidationError(ValueError):
@@ -205,10 +205,7 @@ def validate_block(block: NarrativeBlock,
 
 
 def _validate_required_content(block: NarrativeBlock) -> None:
-    if (
-        block.status in PUBLISHABLE_STATUSES
-        and block.block_type not in {"limitation", "error"}
-    ):
+    if block.status == "success":
         if not block.claim.strip():
             raise NarrativeValidationError(
                 f"{block.id}: successful block requires claim"

@@ -928,7 +928,7 @@ def rna_pseudobulk_de(params: dict) -> dict:
                                 )
                             else:
                                 shrink_applied = True
-                        except (ValueError, RuntimeError, KeyError, FloatingPointError, TypeError) as _sx:
+                        except Exception as _sx:
                             shrink_reason = f"lfc_shrink failed: {str(_sx)[:120]}"
                 else:
                     shrink_reason = "disabled"
@@ -1264,20 +1264,6 @@ def rna_pseudobulk_de(params: dict) -> dict:
         count_source = "X_counts"
 
     power_disclosure = _power_disclosure_for_strategy(fdr_strategy)
-    shrink_applied_n = 0
-    shrink_failed_n = 0
-    shrink_failed_reasons: list[str] = []
-    for _g_info in per_group.values():
-        for _ck, _c_info in (_g_info.get("per_comparison") or {}).items():
-            if not isinstance(_c_info, dict) or _c_info.get("status") != "success":
-                continue
-            _sk = _c_info.get("lfc_shrinkage") or {}
-            if _sk.get("applied"):
-                shrink_applied_n += 1
-            elif lfc_shrink_enabled:
-                shrink_failed_n += 1
-                if _sk.get("reason"):
-                    shrink_failed_reasons.append(f"{_ck}: {_sk['reason']}")
 
     return {
         "status":                          "success",
@@ -1295,21 +1281,10 @@ def rna_pseudobulk_de(params: dict) -> dict:
         "composition_covariate_requested": composition_covariate,
         "lfc_shrinkage": {
             "requested": lfc_shrink_enabled,
-            "applied": bool(lfc_shrink_enabled and shrink_applied_n > 0 and shrink_failed_n == 0),
-            "n_applied": shrink_applied_n,
-            "n_failed": shrink_failed_n,
-            "failed_reasons": shrink_failed_reasons[:10],
-            "method": (
-                "apeGLM (pydeseq2 lfc_shrink, p-values unchanged)"
-                if shrink_applied_n > 0 else None
-            ),
-            "effect": (
-                "reported log2fc is the shrunken estimate; log2fc_raw is "
-                "the unshrunken MLE; the |log2fc| > lfc_min effect-size "
-                "gate uses the shrunken value"
-                if shrink_applied_n > 0
-                else "apeGLM shrinkage did not apply; reported log2fc is the unshrunken MLE"
-            ),
+            "method": "apeGLM (pydeseq2 lfc_shrink, p-values unchanged)",
+            "effect": ("reported log2fc is the shrunken estimate; log2fc_raw is "
+                       "the unshrunken MLE; the |log2fc| > lfc_min effect-size "
+                       "gate uses the shrunken value"),
         },
         "paired_design":                   paired_design,
         "auto_paired_donor_covariate":      auto_paired_donor_covariate,

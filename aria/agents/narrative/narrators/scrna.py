@@ -13,10 +13,6 @@ from aria.agents.narrative.types import (
     NarrativeBlock,
     SemanticFact,
 )
-from aria.agents.narrative.warning_router import (
-    reconcile_methods_claims,
-    routed_collect,
-)
 
 
 def _safe_id(value) -> str:
@@ -153,7 +149,6 @@ class ScrnaNarrator:
         findings = _narrative_scrna.unwrap_scrna_findings(agent_result)
         return bool(findings)
 
-    @routed_collect
     def collect(self, agent_name: str, agent_result: dict,
                 context: dict | None = None) -> list[NarrativeBlock]:
         findings = _narrative_scrna.unwrap_scrna_findings(agent_result)
@@ -174,8 +169,7 @@ class ScrnaNarrator:
                 context: dict | None = None) -> list[str]:
         findings = _narrative_scrna.unwrap_scrna_findings(agent_result)
         text = _narrative_scrna.build_scrna_methods(findings)
-        lines = [text] if text else []
-        return reconcile_methods_claims(agent_name, agent_result, lines)
+        return [text] if text else []
 
     def figures(self, agent_name: str, agent_result: dict,
                 report_dir: Path | None = None) -> list[dict]:

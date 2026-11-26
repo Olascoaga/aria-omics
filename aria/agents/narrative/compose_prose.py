@@ -4,15 +4,12 @@ from __future__ import annotations
 
 import math
 
-from aria.agents.narrative.types import PUBLISHABLE_STATUSES, NarrativeBlock
+from aria.agents.narrative.types import NarrativeBlock
 
 
 def compose_block_prose(block: NarrativeBlock) -> str:
     """Return reviewer-readable prose for one structured narrative block."""
-    if (
-        block.status not in PUBLISHABLE_STATUSES
-        or block.block_type in {"limitation", "error"}
-    ):
+    if block.status != "success":
         return _compose_non_success(block)
 
     if block.analysis == "differential_expression":

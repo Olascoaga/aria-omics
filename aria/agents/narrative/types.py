@@ -9,7 +9,6 @@ from typing import Any, Literal
 Confidence = Literal["high", "medium", "low", "insufficient"]
 CaveatSeverity = Literal["info", "warning", "blocking"]
 FactPolarity = Literal["affirmed", "negated"]
-PUBLISHABLE_STATUSES: frozenset[str] = frozenset({"success", "warnings"})
 
 
 @dataclass
@@ -121,10 +120,7 @@ class NarrativeBlock:
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
-        if (
-            self.status in PUBLISHABLE_STATUSES
-            and self.block_type not in {"limitation", "error"}
-        ):
+        if self.status == "success":
             if not str(self.claim or "").strip():
                 raise ValueError("successful NarrativeBlock requires claim")
             if not self.evidence:

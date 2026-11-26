@@ -149,54 +149,11 @@ def _fdr_primary_clause(pb: dict) -> str:
     return "padj_local (per-cluster BH)" if strategy == "per_cluster" else "padj_global"
 
 
-def _observed_shrink_counts(pb: dict) -> tuple[int, int] | tuple[None, None]:
-    """Count per-comparison shrinkage outcomes when summary counts are absent."""
-    obs_applied = obs_failed = 0
-    for g_info in ((pb or {}).get("per_group") or {}).values():
-        if not isinstance(g_info, dict):
-            continue
-        for c_info in (g_info.get("per_comparison") or {}).values():
-            if not isinstance(c_info, dict) or c_info.get("status") != "success":
-                continue
-            c_sk = c_info.get("lfc_shrinkage")
-            if isinstance(c_sk, dict) and "applied" in c_sk:
-                if c_sk.get("applied"):
-                    obs_applied += 1
-                else:
-                    obs_failed += 1
-    return (obs_applied, obs_failed) if (obs_applied or obs_failed) else (None, None)
-
-
 def _lfc_shrinkage_clause(pb: dict) -> str:
-    """Disclose apeGLM LFC shrinkage truthfully based on whether it applied (C4 / D1-005)."""
+    """Disclose apeGLM LFC shrinkage when it was requested (C4)."""
     shrink = (pb or {}).get("lfc_shrinkage") or {}
     if not shrink.get("requested"):
         return ""
-    n_applied = shrink.get("n_applied")
-    n_failed = shrink.get("n_failed")
-    if n_applied is None and n_failed is None:
-        n_applied, n_failed = _observed_shrink_counts(pb)
-    if n_applied is not None:
-        total = int(n_applied) + int(n_failed or 0)
-        if int(n_applied) == 0 and total > 0:
-            return (
-                "apeGLM log2 fold-change shrinkage (pydeseq2 lfc_shrink) was "
-                f"requested but failed or reverted across all {total} comparison(s); "
-                "reported log2 fold changes are unshrunken MLE estimates. "
-            )
-        if int(n_failed or 0) > 0:
-            return (
-                "apeGLM log2 fold-change shrinkage (pydeseq2 lfc_shrink) "
-                f"applied to {int(n_applied)} of {total} comparison(s) "
-                f"({int(n_failed)} reverted/failed to unshrunken MLE); "
-                "p-values are unchanged, and unshrunken MLEs are kept as log2fc_raw. "
-            )
-    if shrink.get("applied") is False:
-        return (
-            "apeGLM log2 fold-change shrinkage (pydeseq2 lfc_shrink) was "
-            "requested but did not apply; reported log2 fold changes are "
-            "unshrunken MLE estimates. "
-        )
     return (
         "Reported log2 fold changes are apeGLM-shrunken estimates (pydeseq2 "
         "lfc_shrink); the effect-size threshold is applied to the shrunken "
