@@ -305,7 +305,7 @@ def _read_wnn_h5mu(h5mu_path: str | Path) -> dict[str, Any] | None:
                 "atac_umap": atac_umap,
                 "obs": obs_cols,
             }
-    except Exception as exc:
+    except Exception as exc:  # aria: allow-broad-except log WNN h5mu read failure for non-fatal figure panel
         log.warning("Failed reading WNN .h5mu %s: %s", path, exc)
         return None
 
@@ -988,7 +988,7 @@ def _load_p2g_rows_with_total(p2g_findings: dict[str, Any]) -> tuple[list[dict[s
                     total += 1
                     if len(rows) < _P2G_ROW_CAP:
                         rows.append(dict(row))
-        except Exception as exc:
+        except Exception as exc:  # aria: allow-broad-except fallback to top_links when full p2g CSV unreadable
             log.warning("Could not read peak_gene_links.csv (%s); using top_links", exc)
             rows, total = [], 0
     if not rows:
@@ -1336,8 +1336,10 @@ def stage_integration_tables(
             if src.resolve() != dest.resolve():
                 shutil.copy2(src, dest)
             staged[key] = f"tables/{dest_name}"
-        except Exception as exc:
+        except Exception as exc:  # aria: allow-broad-except record integration table staging error for W-WARN
             log.warning("Failed staging integration table %s: %s", src, exc)
+            from aria.agents.narrative.protocols import record_figure_error
+            record_figure_error(findings, f"table_{key}", exc)
     return staged
 
 
@@ -1371,7 +1373,9 @@ def generate_figures(
                 png_p, svg_p = dual
                 figs[key] = png_p
                 figs_svg[key] = svg_p
-        except Exception as exc:
+        except Exception as exc:  # aria: allow-broad-except record integration figure error for W-WARN
             log.warning("Integration figure %s failed: %s", key, exc, exc_info=True)
+            from aria.agents.narrative.protocols import record_figure_error
+            record_figure_error(findings, key, exc)
 
     return findings

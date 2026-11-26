@@ -119,6 +119,34 @@ def diagnostic_block(
     )
 
 
+def record_figure_error(
+    container: Any,
+    key: str,
+    exc: BaseException | str,
+) -> None:
+    """Record a non-fatal figure or table staging error for W-WARN routing.
+
+    Appends a formatted message to ``container['figures']['_errors']``, which
+    ``warning_router.route_degradation_signals`` routes onto the modality's
+    narrative blocks as a warning caveat without aborting report generation.
+    """
+    if not isinstance(container, dict):
+        return
+    figs = container.get("figures")
+    if not isinstance(figs, dict):
+        figs = {}
+        container["figures"] = figs
+    errs = figs.get("_errors")
+    if not isinstance(errs, list):
+        errs = []
+        figs["_errors"] = errs
+    if isinstance(exc, BaseException):
+        detail = f"{type(exc).__name__}: {exc}"
+    else:
+        detail = str(exc)
+    errs.append(f"{key}: {detail}")
+
+
 class ModalityNarrator(Protocol):
     name: str
 

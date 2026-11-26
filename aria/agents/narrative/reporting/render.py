@@ -26,7 +26,7 @@ def _sanitize_json_value(obj):
     if callable(item) and type(obj).__module__.startswith("numpy"):
         try:
             return _sanitize_json_value(item())
-        except Exception:
+        except Exception:  # aria: allow-broad-except cosmetic numpy scalar conversion fallback
             pass
     return obj
 
@@ -105,8 +105,11 @@ class ReportRenderMixin:
         try:
             from aria.agents import _narrative_scrna
             from aria.utils.environment_manager import env_manager
-        except Exception as e:
+        except Exception as e:  # aria: allow-broad-except record scRNA figure import error for W-WARN
             log.warning(f"Cannot import figure helpers: {e}")
+            from aria.agents.narrative.protocols import record_figure_error
+            if isinstance(sc.get("findings"), dict):
+                record_figure_error(sc["findings"], "scrna_figures_import", e)
             return
         findings = _narrative_scrna.unwrap_scrna_findings(sc)
         h5ad = sc.get("output_h5ad") or sc.get("output_path")
@@ -120,8 +123,10 @@ class ReportRenderMixin:
             # `findings` may be a reference to sc["findings"] (legacy shape)
             # or a wrapped child (multimodal shape). Either way the mutation
             # above already wrote into the dict that downstream readers see.
-        except Exception as e:
+        except Exception as e:  # aria: allow-broad-except record scRNA figure generation error for W-WARN
             log.warning(f"scRNA figure generation failed: {e}", exc_info=True)
+            from aria.agents.narrative.protocols import record_figure_error
+            record_figure_error(findings, "scrna_figures", e)
 
     def _generate_chromatin_figures(self, agent_results: dict,
                                     report_dir: Path) -> None:
@@ -140,8 +145,11 @@ class ReportRenderMixin:
                 unwrap_chromatin_findings,
             )
             from aria.utils.environment_manager import env_manager
-        except Exception as e:
+        except Exception as e:  # aria: allow-broad-except record chromatin figure import error for W-WARN
             log.warning(f"Cannot import chromatin figure helpers: {e}")
+            from aria.agents.narrative.protocols import record_figure_error
+            if isinstance(ch.get("findings"), dict):
+                record_figure_error(ch["findings"], "chromatin_figures_import", e)
             return
         view = unwrap_chromatin_findings(ch)
         if not view:
@@ -158,8 +166,10 @@ class ReportRenderMixin:
                 Path(report_dir) / "figures",
                 env_manager=env_manager,
             )
-        except Exception as e:
+        except Exception as e:  # aria: allow-broad-except record chromatin figure generation error for W-WARN
             log.warning(f"chromatin figure generation failed: {e}", exc_info=True)
+            from aria.agents.narrative.protocols import record_figure_error
+            record_figure_error(live, "chromatin_figures", e)
 
     def _generate_integration_figures(self, agent_results: dict,
                                       report_dir: Path) -> None:
@@ -174,8 +184,11 @@ class ReportRenderMixin:
             from aria.agents.narrative.narrators.integration import (
                 unwrap_integration_findings,
             )
-        except Exception as e:
+        except Exception as e:  # aria: allow-broad-except record integration figure import error for W-WARN
             log.warning(f"Cannot import integration figure helpers: {e}")
+            from aria.agents.narrative.protocols import record_figure_error
+            if isinstance(integ.get("findings"), dict):
+                record_figure_error(integ["findings"], "integration_figures_import", e)
             return
         findings = unwrap_integration_findings(integ)
         if not findings:
@@ -185,10 +198,12 @@ class ReportRenderMixin:
                 findings=findings,
                 output_dir=Path(report_dir) / "figures",
             )
-        except Exception as e:
+        except Exception as e:  # aria: allow-broad-except record integration figure generation error for W-WARN
             log.warning(
                 f"integration figure generation failed: {e}", exc_info=True
             )
+            from aria.agents.narrative.protocols import record_figure_error
+            record_figure_error(findings, "integration_figures", e)
 
     def _speculative_verification_state(
         self,

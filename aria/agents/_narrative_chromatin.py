@@ -108,7 +108,8 @@ def _signal_terms(data_type: Optional[str]) -> tuple[str, str, str]:
 
 def render_da_figures(da_full_csv: str, output_dir: Path,
                       padj_max: float = 0.05,
-                      data_type: Optional[str] = None) -> dict:
+                      data_type: Optional[str] = None,
+                      errors: Optional[list] = None) -> dict:
     """W0.3: pseudobulk-DA volcano + MA per comparison, rendered INLINE (matplotlib
     over the full per-peak CSV from `chromatin_diffacc`). T15 honesty: only peaks in
     the convergence-gated `significant` column are drawn as up/down; everything else
@@ -190,10 +191,12 @@ def render_da_figures(da_full_csv: str, output_dir: Path,
                 _save_dual(fig, path)
                 plt.close(fig)
                 out[f"da_volcano_{comp_s}"] = str(path)
-            except Exception as e:
+            except Exception as e:  # aria: allow-broad-except record chromatin figure error for W-WARN
                 if fig is not None:
                     plt.close(fig)
                 log.warning("DA volcano failed for %s: %s", comp, e)
+                if errors is not None:
+                    errors.append(f"da_volcano_{comp_s}: {type(e).__name__}: {e}")
 
         # ── MA (needs baseMean) ───────────────────────────────────────────
         fig = None
@@ -229,10 +232,12 @@ def render_da_figures(da_full_csv: str, output_dir: Path,
                 _save_dual(fig, path)
                 plt.close(fig)
                 out[f"da_ma_{comp_s}"] = str(path)
-            except Exception as e:
+            except Exception as e:  # aria: allow-broad-except record chromatin figure error for W-WARN
                 if fig is not None:
                     plt.close(fig)
                 log.warning("DA MA failed for %s: %s", comp, e)
+                if errors is not None:
+                    errors.append(f"da_ma_{comp_s}: {type(e).__name__}: {e}")
     return out
 
 
@@ -332,7 +337,8 @@ def render_peak_annotation(annotation: dict, png_path,
     return out
 
 
-def render_motif_dotplot(motifs: dict, out_path: Path, top_n: int = 8) -> Optional[str]:
+def render_motif_dotplot(motifs: dict, out_path: Path, top_n: int = 8,
+                         errors: Optional[list] = None) -> Optional[str]:
     """W0.3: motif-enrichment dotplot (group × motif; size = -log10 padj, color =
     log2 enrichment), rendered INLINE from the structured `motifs["per_group"]`
     (top_motifs carry name/log2_enrichment/padj). Returns the path or None when
@@ -459,10 +465,12 @@ def render_motif_dotplot(motifs: dict, out_path: Path, top_n: int = 8) -> Option
         out_path = _save_dual(fig, out_path)
         plt.close(fig)
         return out_path
-    except Exception as e:
+    except Exception as e:  # aria: allow-broad-except record chromatin figure error for W-WARN
         if fig is not None:
             plt.close(fig)
         log.warning("motif dotplot failed: %s", e)
+        if errors is not None:
+            errors.append(f"motif_dotplot: {type(e).__name__}: {e}")
         return None
 
 
@@ -500,7 +508,8 @@ def _fragment_bands(data_type: Optional[str]):
 
 
 def render_fragment_size_figure(qc: dict, out_path: Path,
-                                data_type: Optional[str] = None) -> Optional[str]:
+                                data_type: Optional[str] = None,
+                                errors: Optional[list] = None) -> Optional[str]:
     """W0.2: fragment-size / nucleosome-banding plot from the QC size histogram
     (`qc["fragment_sizes"]["size_histogram"]`). Rendered INLINE. Returns None when
     no histogram was computed (e.g. a `.h5mu` peak-matrix run with no fragments) —
@@ -566,14 +575,17 @@ def render_fragment_size_figure(qc: dict, out_path: Path,
         out_path = _save_dual(fig, out_path)
         plt.close(fig)
         return out_path
-    except Exception as e:
+    except Exception as e:  # aria: allow-broad-except record chromatin figure error for W-WARN
         if fig is not None:
             plt.close(fig)
         log.warning("fragment-size figure failed: %s", e)
+        if errors is not None:
+            errors.append(f"fragment_size: {type(e).__name__}: {e}")
         return None
 
 
-def render_tss_depth_scatter(qc: dict, out_path: Path) -> Optional[str]:
+def render_tss_depth_scatter(qc: dict, out_path: Path,
+                             errors: Optional[list] = None) -> Optional[str]:
     """P4.1 (2)[A]: the canonical ATAC QC gating panel — per-cell TSS enrichment
     vs log10 fragment depth, with the ENCODE TSSe gate lines. Reads the additive
     ``qc["tss_depth_scatter"]`` arrays (only present on a real fragments run, W0.5
@@ -630,16 +642,19 @@ def render_tss_depth_scatter(qc: dict, out_path: Path) -> Optional[str]:
         out_path = _save_dual(fig, out_path)
         plt.close(fig)
         return out_path
-    except Exception as e:
+    except Exception as e:  # aria: allow-broad-except record chromatin figure error for W-WARN
         if fig is not None:
             plt.close(fig)
         log.warning("TSS×depth scatter figure failed: %s", e)
+        if errors is not None:
+            errors.append(f"qc_tss_depth: {type(e).__name__}: {e}")
         return None
 
 
 def render_frip_distribution(qc: dict, out_path: Path,
                              data_type: Optional[str] = None,
-                             thresholds: Optional[dict] = None) -> Optional[str]:
+                             thresholds: Optional[dict] = None,
+                             errors: Optional[list] = None) -> Optional[str]:
     """P4.1 (2)[B]: FRiP distribution histogram with the FRiP quality gate. Reads
     the additive ``qc["frip_distribution"]`` list (per-barcode for scATAC; per-sample
     for bulk ATAC/ChIP/CUT&RUN/CUT&Tag). Returns None when no distribution was
@@ -697,10 +712,12 @@ def render_frip_distribution(qc: dict, out_path: Path,
         out_path = _save_dual(fig, out_path)
         plt.close(fig)
         return out_path
-    except Exception as e:
+    except Exception as e:  # aria: allow-broad-except record chromatin figure error for W-WARN
         if fig is not None:
             plt.close(fig)
         log.warning("FRiP distribution figure failed: %s", e)
+        if errors is not None:
+            errors.append(f"qc_frip_distribution: {type(e).__name__}: {e}")
         return None
 
 
@@ -855,10 +872,14 @@ def generate_figures(findings: dict, h5ad_path: Optional[str], output_dir,
                     "chromatin UMAP figure failed: %s — %s",
                     res.get("error_type"), str(res.get("details", ""))[:200],
                 )
-        except Exception as e:  # subprocess crash must not abort the report
+        except Exception as e:  # aria: allow-broad-except record chromatin UMAP figure error for W-WARN
             log.warning("chromatin UMAP figure subprocess crashed: %s", e)
+            from aria.agents.narrative.protocols import record_figure_error
+            record_figure_error(findings, "chromatin_umap", e)
 
     # 2. DA volcano + MA (inline) from the convergence-gated full DA table.
+    from aria.agents.narrative.protocols import record_figure_error
+    fig_errors: list[str] = []
     da = findings.get("differential_accessibility") or {}
     padj_max = float(da.get("padj_max", 0.05))
     da_dt = da.get("data_type") or _findings_data_type(findings)
@@ -868,9 +889,11 @@ def generate_figures(findings: dict, h5ad_path: Optional[str], output_dir,
     if da_full_csv:
         try:
             figs.update(render_da_figures(
-                da_full_csv, output_dir, padj_max, data_type=da_dt))
-        except Exception as e:
+                da_full_csv, output_dir, padj_max, data_type=da_dt,
+                errors=fig_errors))
+        except Exception as e:  # aria: allow-broad-except record chromatin DA figure error for W-WARN
             log.warning("chromatin DA figures failed: %s", e)
+            record_figure_error(findings, "chromatin_da", e)
     # Bulk chromatin shape (bulk_ATAC, ChIP, CUT&RUN, CUT&Tag): one
     # convergence-gated full CSV per condition comparison.
     if da.get("data_type") in _BULK_CHROMATIN_MODALITIES:
@@ -881,10 +904,13 @@ def generate_figures(findings: dict, h5ad_path: Optional[str], output_dir,
             try:
                 figs.update(render_da_figures(
                     comp_csv, output_dir, padj_max,
-                    data_type=da.get("data_type")))
-            except Exception as e:
+                    data_type=da.get("data_type"), errors=fig_errors))
+            except Exception as e:  # aria: allow-broad-except record bulk ATAC DA figure error for W-WARN
                 log.warning("bulk ATAC DA figures failed for %s: %s",
                             (comp or {}).get("test"), e)
+                record_figure_error(
+                    findings, f"bulk_atac_da_{(comp or {}).get('test', 'comp')}", e
+                )
         # Sample-level QC: replicate-correlation heatmap from the peak-count matrix
         # used for DA (honest-skip when the matrix is missing/degenerate).
         try:
@@ -893,8 +919,9 @@ def generate_figures(findings: dict, h5ad_path: Optional[str], output_dir,
                 output_dir / "bulk_atac_sample_correlation.png")
             if path:
                 figs["bulk_atac_sample_correlation"] = path
-        except Exception as e:
+        except Exception as e:  # aria: allow-broad-except record bulk ATAC correlation figure error for W-WARN
             log.warning("bulk ATAC sample-correlation figure failed: %s", e)
+            record_figure_error(findings, "bulk_atac_sample_correlation", e)
 
     # Genomic peak-annotation distribution (B2) + functional ORA dotplots (B3).
     # Wave 2A: `chromatin_peak_annotation` / `chromatin_peak_ora` also run for
@@ -910,8 +937,9 @@ def generate_figures(findings: dict, h5ad_path: Optional[str], output_dir,
             data_type=ann_dt)
         if path:
             figs[f"{ann_prefix}_peak_annotation"] = path
-    except Exception as e:
+    except Exception as e:  # aria: allow-broad-except record peak-annotation figure error for W-WARN
         log.warning("peak-annotation figure failed: %s", e)
+        record_figure_error(findings, f"{ann_prefix}_peak_annotation", e)
     # ORA dotplots are rendered in the rna stack by the ORA script (seaborn lives
     # there); surface the returned paths (PNG + companion SVG).
     ora = findings.get("peak_ora") or {}
@@ -931,34 +959,43 @@ def generate_figures(findings: dict, h5ad_path: Optional[str], output_dir,
         try:
             figs.update(_render_bulk_atac_figures(findings, output_dir,
                                                   env_manager))
-        except Exception as e:  # a figure failure must not abort the report
+        except Exception as e:  # aria: allow-broad-except record bulk ATAC PCA/QC figure error for W-WARN
             log.warning("bulk ATAC PCA/QC figures failed: %s", e)
+            record_figure_error(findings, "bulk_atac_pca_qc", e)
 
     # 3. Motif enrichment dotplot (inline) from structured motif findings.
     motifs = findings.get("motifs") or {}
     if motifs.get("per_group"):
-        path = render_motif_dotplot(motifs, output_dir / "motif_dotplot.png")
+        path = render_motif_dotplot(
+            motifs, output_dir / "motif_dotplot.png", errors=fig_errors
+        )
         if path:
             figs["motif_dotplot"] = path
 
     # 4. Fragment-size / nucleosome banding (inline) from the QC size histogram.
     qc = findings.get("qc") or {}
     qc_data_type = qc.get("data_type") or data_type
-    path = render_fragment_size_figure(qc, output_dir / "fragment_size.png",
-                                       data_type=qc_data_type)
+    path = render_fragment_size_figure(
+        qc, output_dir / "fragment_size.png",
+        data_type=qc_data_type, errors=fig_errors,
+    )
     if path:
         figs["fragment_size"] = path
 
     # 4b. Per-cell QC gating scatter (TSSe × depth) + per-barcode FRiP distribution
     # (P4.1 (2)). Both honest-skip unless a real fragments/peaks run populated the
     # additive QC arrays.
-    path = render_tss_depth_scatter(qc, output_dir / "qc_tss_depth.png")
+    path = render_tss_depth_scatter(
+        qc, output_dir / "qc_tss_depth.png", errors=fig_errors
+    )
     if path:
         figs["qc_tss_depth"] = path
     path = render_frip_distribution(
         qc, output_dir / "qc_frip_distribution.png", data_type=qc_data_type,
         thresholds=qc.get("thresholds") if isinstance(qc.get("thresholds"),
-                                                      dict) else None)
+                                                      dict) else None,
+        errors=fig_errors,
+    )
     if path:
         figs["qc_frip_distribution"] = path
 
@@ -988,8 +1025,12 @@ def generate_figures(findings: dict, h5ad_path: Optional[str], output_dir,
                     "chromatin cluster figures failed: %s — %s",
                     res.get("error_type"), str(res.get("details", ""))[:200],
                 )
-        except Exception as e:
+        except Exception as e:  # aria: allow-broad-except record chromatin cluster figure error for W-WARN
             log.warning("chromatin cluster figure subprocess crashed: %s", e)
+            record_figure_error(findings, "chromatin_clusters", e)
+
+    if fig_errors:
+        figs.setdefault("_errors", []).extend(fig_errors)
 
     # 6. Differential TF footprinting (ADR-078): the volcano + per-TF aggregate
     # footprints are rendered by the TOBIAS backend; surface only files that exist.
