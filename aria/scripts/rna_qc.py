@@ -422,23 +422,47 @@ def rna_qc(params: dict) -> dict:
                 f"removal (min_genes={initial_min_genes})."
             )
 
-    # ── Mitochondrial gene prefix ─────────────────────────────────────────
-    # Human and mouse use MT- / mt- respectively
+    # ── Mitochondrial gene detection (canonical, ADR-002 anti-fabrication) ─
+    # Human and mouse use MT- / mt- respectively; inspect var_names and standard
+    # symbol columns before declaring mito_fraction unmeasured.
     from aria.scripts.rna_bulk.gtf_io import _normalize_species
+    from aria.utils.ambient_qc import detect_mt_mask
     norm_species = _normalize_species(organism)
     is_human = norm_species == "Homo sapiens"
     is_mouse = norm_species == "Mus musculus"
     mt_prefix = "MT-" if is_human else "mt-" if is_mouse else "MT-"
 
+    metrics_not_computed: list[str] = []
+    mt_measured = True
+    mt_source: str | None = f"obs['{existing_mt_col}']" if use_existing_h5ad_qc else None
+    n_mt_genes: int | None = None
+    mt_not_computed_reason: str | None = None
+
     if not use_existing_h5ad_qc:
-        adata.var["mt"] = adata.var_names.str.startswith(mt_prefix)
-        if not adata.var["mt"].any():
-            adata.var["mt"] = adata.var_names.str.lower().str.startswith("mt-")
-            warnings_list.append("No mitochondrial genes matched the species prefix; using case-insensitive ^mt- detection.")
-        sc.pp.calculate_qc_metrics(
-            adata, qc_vars=["mt"],
-            percent_top=None, log1p=False, inplace=True,
-        )
+        mt_mask, mt_source = detect_mt_mask(adata, preferred_prefix=mt_prefix)
+        n_mt_genes = int(np.sum(mt_mask))
+        mt_measured = n_mt_genes > 0 and mt_source is not None
+        if mt_measured:
+            adata.var["mt"] = mt_mask
+            sc.pp.calculate_qc_metrics(
+                adata, qc_vars=["mt"],
+                percent_top=None, log1p=False, inplace=True,
+            )
+        else:
+            sc.pp.calculate_qc_metrics(
+                adata,
+                percent_top=None, log1p=False, inplace=True,
+            )
+            mt_not_computed_reason = (
+                "no MT-/mt- mitochondrial genes matched in var_names or gene "
+                "symbol columns; mitochondrial filtering skipped (ADR-002)"
+            )
+            metrics_not_computed.append(f"mito_fraction ({mt_not_computed_reason})")
+            warnings_list.append(
+                "No mitochondrial genes matched in var_names or gene symbol "
+                "columns; mito_fraction left uncomputed (None) and mitochondrial "
+                "filtering skipped rather than fabricating 0%."
+            )
 
     # ── Adaptive MAD thresholds ───────────────────────────────────────────
     # Use nanmedian: pct_counts_mt is NaN when a cell has total_counts=0,
@@ -450,7 +474,6 @@ def rna_qc(params: dict) -> dict:
         adata.obs["total_counts"].values, log_space=True)
     genes_low,  genes_high  = _mad_bounds(
         adata.obs["n_genes_by_counts"].values, log_space=True)
-    _,          mt_high     = _mad_bounds(adata.obs["pct_counts_mt"].values)
 
     def _finite_or(value: float, fallback: float) -> float:
         return float(value) if np.isfinite(value) else float(fallback)
@@ -458,15 +481,18 @@ def rna_qc(params: dict) -> dict:
     def _json_finite(value: float) -> float | None:
         return float(value) if np.isfinite(value) else None
 
-    mt_ceiling = 25.0
-    mt_default = min(_finite_or(mt_high, mt_ceiling), mt_ceiling)
-
     # Apply user overrides if provided
     def _override(key, default):
         value = params.get(key)
         return default if value is None else value
 
-    mt_threshold = float(_override("mt_threshold", mt_default))
+    if mt_measured:
+        _, mt_high = _mad_bounds(adata.obs["pct_counts_mt"].values)
+        mt_ceiling = 25.0
+        mt_default = min(_finite_or(mt_high, mt_ceiling), mt_ceiling)
+        mt_threshold: float | None = float(_override("mt_threshold", mt_default))
+    else:
+        mt_threshold = None
     min_genes    = int(_override(
         "min_genes",
         max(int(_finite_or(genes_low, 200)), 200),
@@ -489,17 +515,18 @@ def rna_qc(params: dict) -> dict:
     def _qc_mask(frame):
         n_genes = frame["n_genes_by_counts"].astype(float)
         counts = frame["total_counts"].astype(float)
-        mt = frame["pct_counts_mt"].astype(float)
-        return (
+        keep = (
             np.isfinite(n_genes)
             & np.isfinite(counts)
-            & np.isfinite(mt)
             & (n_genes >= min_genes)
             & (n_genes <= max_genes)
             & (counts >= min_counts)
             & (counts <= max_counts)
-            & (mt <= mt_threshold)
         )
+        if mt_measured and mt_threshold is not None:
+            mt = frame["pct_counts_mt"].astype(float)
+            keep = keep & np.isfinite(mt) & (mt <= mt_threshold)
+        return keep
 
     if use_existing_h5ad_qc:
         adata = adata[_qc_mask(adata.obs)].copy()
@@ -507,6 +534,9 @@ def rna_qc(params: dict) -> dict:
         sc.pp.filter_cells(adata, min_genes=min_genes)
         sc.pp.filter_genes(adata, min_cells=min_cells)
         adata = adata[_qc_mask(adata.obs)].copy()
+
+    mt_thr_used = None if mt_threshold is None else _json_finite(mt_threshold)
+    mt_thr_label = "not_computed" if mt_threshold is None else f"{mt_threshold:.3f}"
 
     if adata.n_obs == 0:
         return {
@@ -517,14 +547,15 @@ def rna_qc(params: dict) -> dict:
                            f"min_counts={min_counts:.3f}, "
                            f"max_counts={max_counts:.3f}, "
                            f"max_genes={max_genes:.3f}, "
-                           f"mt_threshold={mt_threshold:.3f})."),
+                           f"mt_threshold={mt_thr_label})."),
             "n_cells_before": int(n_cells_before),
             "n_cells_after":  0,
             "min_genes_used": int(min_genes),
             "min_counts_used": _json_finite(min_counts),
             "max_counts_used": _json_finite(max_counts),
             "max_genes_used": _json_finite(max_genes),
-            "mt_threshold_used": _json_finite(mt_threshold),
+            "mt_threshold_used": mt_thr_used,
+            "metrics_not_computed": metrics_not_computed,
             "warnings": warnings_list,
         }
 
@@ -616,7 +647,8 @@ def rna_qc(params: dict) -> dict:
             "min_counts_used": _json_finite(min_counts),
             "max_counts_used": _json_finite(max_counts),
             "max_genes_used": _json_finite(max_genes),
-            "mt_threshold_used": _json_finite(mt_threshold),
+            "mt_threshold_used": mt_thr_used,
+            "metrics_not_computed": metrics_not_computed,
             "warnings": warnings_list,
         }
     pct_removed   = round(
@@ -649,6 +681,18 @@ def rna_qc(params: dict) -> dict:
     out_dir.mkdir(parents=True, exist_ok=True)
     adata.write_h5ad(str(output_path))
 
+    mt_stats = (
+        {
+            "mean": round(float(adata.obs["pct_counts_mt"].mean()), 3),
+            "max":  round(float(adata.obs["pct_counts_mt"].max()), 3),
+        }
+        if mt_measured
+        else {
+            "mean": None,
+            "max":  None,
+            "not_computed_reason": mt_not_computed_reason,
+        }
+    )
     result = {
         "status":            "success",
         "sample_id":         sample_id,
@@ -657,7 +701,15 @@ def rna_qc(params: dict) -> dict:
         "n_genes_before":    int(n_genes_before),
         "n_genes_after":     int(n_genes_after),
         "pct_removed":       float(pct_removed),
-        "mt_threshold_used": _json_finite(mt_threshold),
+        "mt_threshold_used": mt_thr_used,
+        "mt_measured":       bool(mt_measured),
+        "mt_gene_source":    mt_source,
+        "n_mt_genes":        n_mt_genes,
+        "mito_fraction": (
+            round(float(adata.obs["pct_counts_mt"].mean()) / 100.0, 5)
+            if mt_measured
+            else None
+        ),
         "min_genes_used":    int(min_genes),
         "min_counts_used":   _json_finite(min_counts),
         "max_counts_used":   _json_finite(max_counts),
@@ -666,15 +718,16 @@ def rna_qc(params: dict) -> dict:
         "qc_threshold_policy": "dataset_logspace_mad_no_user_question",
         "ambient_correction": ambient_report,
         "scrublet":          scrublet_report,
+        "metrics_not_computed": metrics_not_computed,
         "warnings":          warnings_list,
         "output_path":       str(output_path),
-        "mt_stats": {
-            "mean": round(float(adata.obs["pct_counts_mt"].mean()), 3),
-            "max":  round(float(adata.obs["pct_counts_mt"].max()), 3),
-        },
+        "mt_stats":          mt_stats,
         "cache_version": 8,
         "cache_params": cache_params,
     }
+    if not mt_measured:
+        result["mito_qc_degraded"] = True
+        result["mito_qc_reason"] = mt_not_computed_reason
     try:
         import json
         with open(summary_path, "w") as f:

@@ -70,6 +70,10 @@ class QCClusteringMixin:
                 "n_cells_after":      sample_result.get("n_cells_after", 0),
                 "pct_removed":        sample_result.get("pct_removed", 0),
                 "mt_threshold_used":  sample_result.get("mt_threshold_used"),
+                "mt_measured":        sample_result.get("mt_measured"),
+                "mito_qc_degraded":   sample_result.get("mito_qc_degraded"),
+                "mito_qc_reason":     sample_result.get("mito_qc_reason"),
+                "metrics_not_computed": list(sample_result.get("metrics_not_computed") or []),
                 "ambient_correction": sample_result.get("ambient_correction"),
                 "scrublet":           sample_result.get("scrublet", {}),
             })
@@ -176,7 +180,18 @@ class QCClusteringMixin:
             Confidence.HIGH,
         )
 
-        return {
+        mnc_agg = list(dict.fromkeys(
+            item
+            for p in per_sample
+            for item in (p.get("metrics_not_computed") or [])
+        ))
+        mito_degraded = any(p.get("mito_qc_degraded") is True for p in per_sample)
+        mito_reason = next(
+            (p.get("mito_qc_reason") for p in per_sample if p.get("mito_qc_reason")),
+            None,
+        )
+
+        out_multi = {
             "status":             "success",
             "output_path":        concat_result["output_path"],
             "n_samples":          len(files),
@@ -187,10 +202,16 @@ class QCClusteringMixin:
             "mt_threshold_used":  mt_threshold_used,
             "ambient_correction": ambient_correction,
             "scrublet":           scrublet_agg,
+            "metrics_not_computed": mnc_agg,
             "n_genes_shared":     concat_result.get("n_genes_shared"),
             "per_sample":         per_sample,
             "batch_col":          concat_result.get("batch_col", "batch"),
         }
+        if mito_degraded:
+            out_multi["mito_qc_degraded"] = True
+            if mito_reason:
+                out_multi["mito_qc_reason"] = mito_reason
+        return out_multi
 
     def _qc_single(self, experiment_id: str, path: str,
                    organism: str, intent: dict) -> dict:
@@ -215,7 +236,12 @@ class QCClusteringMixin:
         n_before = result.get("n_cells_before", 0)
         n_after  = result.get("n_cells_after", n_before)
         pct_rm   = result.get("pct_removed", 0)
-        mt_thr   = result.get("mt_threshold_used", "?")
+        mt_thr   = result.get("mt_threshold_used")
+        mt_summary = (
+            "MT filtering skipped (not computed)"
+            if mt_thr is None
+            else f"MT ≤ {mt_thr}%"
+        )
 
         if n_after < 100:
             self.publish_finding(
@@ -229,7 +255,7 @@ class QCClusteringMixin:
         self.publish_finding(
             experiment_id,
             {"summary": f"scRNA QC: {n_before} → {n_after} cells "
-                        f"({pct_rm:.1f}% removed). MT ≤ {mt_thr}%",
+                        f"({pct_rm:.1f}% removed). {mt_summary}",
              "warnings": result.get("warnings", [])},
             Confidence.HIGH if pct_rm < 30 else Confidence.MEDIUM,
         )

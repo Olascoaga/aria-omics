@@ -790,7 +790,18 @@ def build_scrna_methods(findings: dict) -> str:
         mt = qc.get("mt_threshold_used")
         if mt is None:
             mt = qc.get("mt_threshold")
-        mt_str = f" with mt-fraction cap at {mt}%" if mt is not None else ""
+        mt_unmeasured = (
+            qc.get("mt_measured") is False
+            or any("mito_fraction" in str(m) for m in (qc.get("metrics_not_computed") or []))
+        )
+        if mt_unmeasured:
+            filter_clause = (
+                "total_counts and n_genes (mitochondrial filtering was skipped "
+                "because no mitochondrial genes were detected)"
+            )
+        else:
+            mt_str = f" with mt-fraction cap at {mt}%" if mt is not None else ""
+            filter_clause = f"total_counts, n_genes, and percent.mt{mt_str}"
         scrub = qc.get("scrublet")
         if isinstance(scrub, dict) and "ran" in scrub:
             scrublet_ran = bool(scrub.get("ran"))
@@ -810,7 +821,7 @@ def build_scrna_methods(findings: dict) -> str:
         lines.append(
             f"Raw count matrices were processed using scanpy. "
             f"Cells were filtered by adaptive MAD-based thresholds on "
-            f"total_counts, n_genes, and percent.mt{mt_str}.{scrublet_sentence} "
+            f"{filter_clause}.{scrublet_sentence} "
             f"Counts were normalised to 10,000 per cell and log1p-transformed."
         )
         amb = qc.get("ambient_correction") or {}

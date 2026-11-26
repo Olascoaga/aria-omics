@@ -24,33 +24,10 @@ from typing import Any
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
 from aria.scripts._base import run_script
-
-
-_VAR_SYMBOL_COLS = ("gene_symbols", "gene_symbol", "gene_name", "feature_name", "symbol")
-
-
-def _detect_mt_mask(rna_adata: Any) -> tuple[Any, str | None]:
-    """Identify mitochondrial genes (`MT-` / `mt-`) without fabricating 0% on Ensembl IDs."""
-    import numpy as np
-
-    var_names = [str(g) for g in rna_adata.var_names]
-    mask = np.array([g.upper().startswith("MT-") for g in var_names], dtype=bool)
-    if int(np.sum(mask)) > 0:
-        return mask, "var_names"
-
-    var_df = getattr(rna_adata, "var", None)
-    if var_df is not None:
-        for col in _VAR_SYMBOL_COLS:
-            if col in var_df.columns:
-                vals = [str(v) for v in var_df[col].values]
-                col_mask = np.array(
-                    [v.upper().startswith("MT-") for v in vals],
-                    dtype=bool,
-                )
-                if int(np.sum(col_mask)) > 0:
-                    return col_mask, f"var['{col}']"
-
-    return np.zeros(len(var_names), dtype=bool), None
+from aria.utils.ambient_qc import (
+    VAR_SYMBOL_COLS as _VAR_SYMBOL_COLS,
+    detect_mt_mask as _detect_mt_mask,
+)
 
 
 def _row_totals_and_detected(matrix: Any) -> tuple[Any, Any]:
