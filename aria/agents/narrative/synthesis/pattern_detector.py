@@ -25,6 +25,16 @@ def _is_finite_number(x: Any) -> bool:
     return isinstance(x, (int, float)) and not isinstance(x, bool) and math.isfinite(x)
 
 
+def _safe_int(val: Any, default: int = 0) -> int:
+    if val is None or isinstance(val, bool):
+        return default
+    try:
+        num = float(val)
+        return int(num) if math.isfinite(num) else default
+    except (TypeError, ValueError):
+        return default
+
+
 @dataclass
 class WithinContrastPattern:
     name: str
@@ -146,7 +156,7 @@ def _pathway_terms(contrast: dict) -> list[str]:
 def _successful(contrasts: list[dict]) -> list[dict]:
     return [c for c in (contrasts or [])
             if isinstance(c, dict) and c.get("status", "success") == "success"
-            and int(c.get("n_significant", 0) or 0) > 0]
+            and _safe_int(c.get("n_significant", 0)) > 0]
 
 
 def detect_bulk_patterns(contrasts: list[dict]) -> dict[str, Any]:
@@ -163,7 +173,7 @@ def detect_bulk_patterns(contrasts: list[dict]) -> dict[str, Any]:
         terms = _pathway_terms(c)
         within.append(WithinContrastPattern(
             name=str(c.get("name", "contrast")),
-            n_de=int(c.get("n_significant", 0) or 0),
+            n_de=_safe_int(c.get("n_significant", 0)),
             n_pathway_terms=len(terms),
             converges=bool(terms),
         ))
@@ -312,7 +322,7 @@ def detect_scrna_patterns(agent_result: dict) -> dict[str, Any]:
     for block in pb_blocks:
         pw = pathway_blocks.get(block["block_key"]) or {}
         terms = _scrna_pathway_terms(pw)
-        block["n_pathway_terms"] = int(pw.get("n_significant", len(terms)) or 0)
+        block["n_pathway_terms"] = _safe_int(pw.get("n_significant", len(terms)))
         block["top_pathway_terms"] = terms[:5]
 
     da = findings.get("differential_abundance") or {}
@@ -346,13 +356,13 @@ def detect_scrna_patterns(agent_result: dict) -> dict[str, Any]:
         "abundance_shift_labels": shifted[:8],
         "cellcomm": {
             "ran": ccc.get("status") in {"done", "success"},
-            "n_interactions": int(ccc.get("n_interactions", 0) or 0),
-            "n_cell_types": int(ccc.get("n_cell_types", 0) or 0),
+            "n_interactions": _safe_int(ccc.get("n_interactions", 0)),
+            "n_cell_types": _safe_int(ccc.get("n_cell_types", 0)),
         },
         "trajectory": {
             "ran": traj.get("status") in {"done", "success"},
-            "n_connections": int(paga.get("n_connections", 0) or 0),
-            "n_strong": int(paga.get("n_strong", 0) or 0),
+            "n_connections": _safe_int(paga.get("n_connections", 0)),
+            "n_strong": _safe_int(paga.get("n_strong", 0)),
             "dpt_computed": bool(pt.get("computed")),
         },
         "reliability": {

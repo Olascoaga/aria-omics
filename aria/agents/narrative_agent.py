@@ -1056,6 +1056,27 @@ for small-effect genes.""",
             )
         except Exception as exc:  # aria: allow-broad-except surface synthesis error block instead of wiping modalities
             log.warning(f"Biological synthesis failed: {exc}", exc_info=True)
+            from aria.agents.narrative.types import Caveat, NarrativeBlock
+            err_msg = f"{type(exc).__name__}: {exc}"
+            blocks.append(
+                NarrativeBlock(
+                    id="integration.synthesis_error",
+                    modality="integrated",
+                    analysis="integration_limitations",
+                    block_type="error",
+                    title="Integrated biological synthesis error",
+                    status="error",
+                    confidence="insufficient",
+                    claim="",
+                    error=err_msg,
+                    caveats=[
+                        Caveat(
+                            text=f"Biological synthesis failed: {err_msg}",
+                            severity="blocking",
+                        )
+                    ],
+                )
+            )
         # C1: tiering, verification and manifest emission happen once at the
         # report builder's public-compilation boundary. Collection only emits
         # typed evidence-bearing blocks; it never creates a parallel claim set.

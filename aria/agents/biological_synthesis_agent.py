@@ -31,8 +31,40 @@ from aria.agents.narrative.synthesis.cross_modal_synthesis import (
     compose_cross_modal_discussion_blocks,
     detect_cross_modal_patterns,
 )
+from aria.agents.narrative.types import Caveat, NarrativeBlock
 
 log = logging.getLogger("aria.synthesis")
+
+
+def _synthesis_error_block(slice_key: str, label: str, exc: Exception) -> NarrativeBlock:
+    err_msg = f"{type(exc).__name__}: {exc}"
+    return NarrativeBlock(
+        id=f"integration.{slice_key}_error",
+        modality="integrated",
+        analysis="integration_limitations",
+        block_type="error",
+        title=f"Integrated synthesis error ({label})",
+        status="error",
+        confidence="insufficient",
+        claim="",
+        error=err_msg,
+        caveats=[
+            Caveat(
+                text=f"Biological synthesis ({label}) failed: {err_msg}",
+                severity="blocking",
+            )
+        ],
+        metadata={
+            "degradation_signals": [
+                {
+                    "scope": f"synthesis.{slice_key}",
+                    "field": "exception",
+                    "severity": "blocking",
+                    "message": err_msg,
+                }
+            ]
+        },
+    )
 
 
 class BiologicalSynthesisAgent:
@@ -55,8 +87,9 @@ class BiologicalSynthesisAgent:
             if contrasts:
                 patterns = detect_bulk_patterns(contrasts)
                 blocks.extend(compose_discussion_blocks(patterns))
-        except Exception as exc:
+        except Exception as exc:  # aria: allow-broad-except isolate synthesis slice and emit error block
             log.warning("Slice 1a (bulk) synthesis failed: %s", exc, exc_info=True)
+            blocks.append(_synthesis_error_block("bulk_synthesis", "bulk RNA", exc))
 
         # Slice 1b — scRNA.
         try:
@@ -68,8 +101,9 @@ class BiologicalSynthesisAgent:
             if isinstance(scrna, dict):
                 patterns = detect_scrna_patterns(scrna)
                 blocks.extend(compose_scrna_discussion_blocks(patterns))
-        except Exception as exc:
+        except Exception as exc:  # aria: allow-broad-except isolate synthesis slice and emit error block
             log.warning("Slice 1b (scRNA) synthesis failed: %s", exc, exc_info=True)
+            blocks.append(_synthesis_error_block("scrna_synthesis", "scRNA", exc))
 
         # Slice 2 — non-same-cell cross-modal RNA x ATAC (ADR-080).
         try:
@@ -77,7 +111,8 @@ class BiologicalSynthesisAgent:
             blocks.extend(
                 compose_cross_modal_discussion_blocks(patterns, agent_results)
             )
-        except Exception as exc:
+        except Exception as exc:  # aria: allow-broad-except isolate synthesis slice and emit error block
             log.warning("Slice 2 (cross-modal) synthesis failed: %s", exc,
                         exc_info=True)
+            blocks.append(_synthesis_error_block("cross_modal_synthesis", "cross-modal", exc))
         return blocks
