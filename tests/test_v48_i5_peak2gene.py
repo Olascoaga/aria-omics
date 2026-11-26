@@ -207,18 +207,19 @@ def test_contig_canonicalization_and_gtf_duplicate_resolution(tmp_path):
 def test_indexed_fasta_gc_computation(tmp_path):
     from aria.utils.peak2gene_core import compute_peak_gc_from_indexed_fasta
 
-    seq_chr1 = "A" * 40 + "G" * 20 + "C" * 20 + "T" * 40  # positions 41..80 are 100% GC
-    seq_chr2 = "ACGT" * 30  # exact 50% GC everywhere
+    seq_chr1 = "A" * 40 + "G" * 20 + "C" * 20 + "T" * 40  # 0-based BED [40, 80) is 100% GC
+    seq_chr2 = "ACGT" * 30  # exact 50% GC across every 4-bp repeat
     fa = _write_indexed_fasta(
         tmp_path / "mini.fa",
         [("1", seq_chr1), ("chr2", seq_chr2)],
         line_bases=17,
     )
 
+    # 0-based half-open BED intervals [start, end)
     coords = [
-        ("chr1", 1, 40),    # 0% GC via Ensembl "1" <-> UCSC "chr1" canonical lookup
-        ("chr1", 41, 80),   # 100% GC across line wraps
-        ("chr2", 11, 90),   # 50% GC
+        ("chr1", 0, 40),    # 40 bp [0, 40) = 0% GC via Ensembl "1" <-> UCSC "chr1" lookup
+        ("chr1", 40, 80),   # 40 bp [40, 80) = 100% GC across line wraps
+        ("chr2", 10, 90),   # 80 bp [10, 90) = 20x "GTAC" = exact 50% GC
     ]
     gc, info = compute_peak_gc_from_indexed_fasta(str(fa), coords)
     assert info["available"] is True
