@@ -391,17 +391,13 @@ def _enforce_metadata_correspondence(counts, metadata, excluded_samples=None):
 
 
 def _metadata_inference_allowed(params: dict) -> bool:
-    """Explicit legacy/dev escape hatch for column-name metadata inference."""
+    """Explicit legacy/dev opt-in via params for column-name metadata inference."""
     opt_in = (
         params.get("allow_inferred_metadata")
         or params.get("allow_metadata_inference")
         or params.get("legacy_metadata_inference")
     )
-    if opt_in:
-        return True
-    return os.environ.get(
-        "ARIA_ALLOW_BULK_METADATA_INFERENCE", ""
-    ).strip().lower() in {"1", "true", "yes", "on"}
+    return bool(opt_in)
 
 
 def _load_or_infer_metadata(counts, metadata_file: str,

@@ -251,7 +251,12 @@ def _resolve_gtf(params: dict, out_dir: Path) -> Optional[Path]:
     `_locate_gtf` returns whatever genome dir it finds first, so without it a human
     dataset can be annotated against a mouse GTF. Power-user override stays a
     fallback, per the auto-resolution principle."""
-    hint = params.get("gtf") or params.get("gtf_path") or os.environ.get("ARIA_GTF")
+    hint = (
+        params.get("gtf")
+        or params.get("gtf_path")
+        or os.environ.get("ARIA_GTF")
+        or os.environ.get("ARIA_GTF_PATH")
+    )
     if hint and Path(hint).exists():
         return Path(hint)
     # Prefer the GTF for THIS experiment's assembly before the generic search.

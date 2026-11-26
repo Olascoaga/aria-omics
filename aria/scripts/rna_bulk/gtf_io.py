@@ -144,9 +144,18 @@ def _locate_gtf(counts_path: Path, hint: str = None,
     Explicit and sibling references are authoritative. Without a genome or
     organism constraint, cached directories retain deterministic legacy lookup.
     """
+    import os
+    from aria.utils.genomes import genome_dir as _genome_root
+
     candidates = []
     if hint:
         candidates.append(Path(hint).expanduser())
+    env_gtf = (
+        os.environ.get("ARIA_GTF", "").strip()
+        or os.environ.get("ARIA_GTF_PATH", "").strip()
+    )
+    if env_gtf:
+        candidates.append(Path(env_gtf).expanduser())
 
     # Sibling of counts file
     candidates.extend([
@@ -156,14 +165,19 @@ def _locate_gtf(counts_path: Path, hint: str = None,
         counts_path.parent.parent / "annotation.gtf.gz",
     ])
 
-    # ~/.aria/genomes/*/annotation.gtf
-    aria_genomes = Path.home() / ".aria" / "genomes"
-    if aria_genomes.exists():
-        species = _normalize_species(genome or organism)
-        assembly_aliases = {"grch37": "hg19", "grch38": "hg38",
-                            "grcm38": "mm10", "grcm39": "mm39"}
-        requested = str(genome or "").strip().lower()
-        assembly = assembly_aliases.get(requested, requested)
+    # Managed genome stores (ARIA_GENOME_DIR / ARIA_HOME / ~/.aria/genomes)
+    genome_roots = list(dict.fromkeys([
+        _genome_root(),
+        Path.home() / ".aria" / "genomes",
+    ]))
+    species = _normalize_species(genome or organism)
+    assembly_aliases = {"grch37": "hg19", "grch38": "hg38",
+                        "grcm38": "mm10", "grcm39": "mm39"}
+    requested = str(genome or "").strip().lower()
+    assembly = assembly_aliases.get(requested, requested)
+    for aria_genomes in genome_roots:
+        if not aria_genomes.exists():
+            continue
         genome_dirs = sorted(aria_genomes.iterdir(), key=lambda p: (
             p.name.lower() != requested,
             assembly_aliases.get(p.name.lower(), p.name.lower()) != assembly,

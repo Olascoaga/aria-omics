@@ -65,22 +65,31 @@ def resolve_gtf_path(
             raise FileNotFoundError(f"Explicit GTF file does not exist: {explicit_gtf}")
         return str(cand)
 
-    env_gtf = os.environ.get("ARIA_GTF_PATH", "").strip()
+    env_gtf = (
+        os.environ.get("ARIA_GTF", "").strip()
+        or os.environ.get("ARIA_GTF_PATH", "").strip()
+    )
     if env_gtf:
         env_p = Path(env_gtf).expanduser()
         if env_p.is_file():
             return str(env_p)
 
-    genome_dir = Path.home() / ".aria" / "genomes" / str(genome)
-    for fname in (
-        "annotation.gtf",
-        "annotation.gtf.gz",
-        f"{genome}.gtf",
-        f"{genome}.gtf.gz",
-    ):
-        cand = genome_dir / fname
-        if cand.is_file():
-            return str(cand)
+    from aria.utils.genomes import genome_dir as _genome_root
+
+    search_roots = list(dict.fromkeys([
+        _genome_root() / str(genome),
+        Path.home() / ".aria" / "genomes" / str(genome),
+    ]))
+    for genome_dir in search_roots:
+        for fname in (
+            "annotation.gtf",
+            "annotation.gtf.gz",
+            f"{genome}.gtf",
+            f"{genome}.gtf.gz",
+        ):
+            cand = genome_dir / fname
+            if cand.is_file():
+                return str(cand)
     return None
 
 

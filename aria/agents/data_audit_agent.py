@@ -556,6 +556,7 @@ class DataAuditAgent(BaseAgent):
         # same contract works from TUI and headless entrypoints.
         from aria.utils.scatac_fastq_manifest import (
             manifest_library_types,
+            propose_illumina_scatac_manifest,
             resolve_scatac_fastq_manifest,
         )
         scatac_manifest = resolve_scatac_fastq_manifest(
@@ -783,6 +784,12 @@ class DataAuditAgent(BaseAgent):
             exp_context["scatac_fastq_manifest"] = scatac_manifest["manifest"]
             if scatac_manifest.get("source") != "inline":
                 exp_context["scatac_fastq_manifest_path"] = scatac_manifest["source"]
+        else:
+            # Non-binding Illumina 10x scATAC manifest preview for CP1
+            # confirmation (never auto-executed as authoritative manifest).
+            proposed_scatac = propose_illumina_scatac_manifest(data_dir)
+            if proposed_scatac is not None:
+                exp_context["proposed_scatac_fastq_manifest"] = proposed_scatac
         # ADR-057: opt-in SPECULATIVE hypotheses section. Mirrors the
         # reproducible_mode plumbing — surfaced explicitly via the entrypoints
         # (run_headless param / TUI --hypotheses) with an
