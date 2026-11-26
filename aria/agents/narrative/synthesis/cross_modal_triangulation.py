@@ -244,8 +244,10 @@ def _extract_chromatin_signals(
             _harvest_da_peaks(da.get("top_peaks"))
         pc = da.get("per_cluster") or {}
         if isinstance(pc, dict) and pc.get("ran"):
+            from aria.utils.script_contracts import SCATAC_PER_CLUSTER_DA_KEY
+
             da_ran = True
-            top_by_cl = pc.get("top_peaks_by_cluster") or {}
+            top_by_cl = pc.get(SCATAC_PER_CLUSTER_DA_KEY) or {}
             if isinstance(top_by_cl, dict):
                 for rows in top_by_cl.values():
                     _harvest_da_peaks(rows, overwrite=False)

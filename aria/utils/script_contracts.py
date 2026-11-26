@@ -10,6 +10,10 @@ from pydantic import BaseModel, Field
 
 CONTRACT_VERSION = "1.0"
 
+# Canonical script output sub-keys shared across compute scripts and agents
+# (D7: single source of truth to prevent masked_read key drift).
+SCATAC_PER_CLUSTER_DA_KEY = "da_peaks_by_cluster"
+
 FieldType = Literal[
     "any",
     "str",
