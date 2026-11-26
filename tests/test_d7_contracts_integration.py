@@ -16,6 +16,8 @@ def test_d7_018_warning_router_surfaces_mofa_batch_condition_confounded(tmp_path
     integ_py = Path("/home/medusa/anaconda3/envs/aria-integration-env/bin/python")
     if not integ_py.is_file():
         pytest.skip("aria-integration-env not available")
+    pytest.importorskip("litellm")
+    pytest.importorskip("pydantic")
     from aria.agents.narrative.narrators.integration import IntegrationNarrator
     from aria.agents.narrative.registry import registry_with
     from aria.utils.environment_manager import env_manager

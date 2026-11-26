@@ -5,6 +5,7 @@ from __future__ import annotations
 import anndata as ad
 import numpy as np
 import pandas as pd
+import pytest
 
 
 def test_d7_017_warning_router_surfaces_scrna_partial_pairing_dropped_donors(tmp_path):
@@ -12,6 +13,8 @@ def test_d7_017_warning_router_surfaces_scrna_partial_pairing_dropped_donors(tmp
     drops unpaired donors and emits pairing_status='partial' and
     excluded_unpaired_samples=[...]. Through NarrativeRegistry.collect_blocks,
     warning_router must attach a structured warning caveat naming the dropped donor."""
+    pytest.importorskip("litellm")
+    pytest.importorskip("pydantic")
     from aria.agents.narrative.narrators.scrna import ScrnaNarrator
     from aria.agents.narrative.registry import registry_with
     from aria.utils.environment_manager import env_manager

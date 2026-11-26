@@ -154,6 +154,7 @@ def test_d7_014_cross_modal_adapter_low_replication_on_low_n_cohort(tmp_path):
     """D7-014: sample_matched_layer must emit low_power_warning for low-N cohorts
     (n < 10) and cross_modal_evidence must inherit LOW_REPLICATION rather than
     silently masking an unwritten key."""
+    pytest.importorskip("litellm")
     from aria.agents.narrative.hypothesis.adapters.cross_modal import cross_modal_evidence
     from aria.agents.narrative.hypothesis.caveats import LOW_REPLICATION
     from aria.scripts.cross_modal_concordance import cross_modal_concordance
@@ -214,6 +215,7 @@ def test_d7_015_cross_modal_adapter_matches_pearson_direction_tested_by_padj(tmp
     """D7-015: sample_matched_layer evaluates empirical_pvalue/padj and link polarity
     from pearson_r. cross_modal_evidence must use pearson_r rather than inverting
     direction via spearman_r on high-leverage links."""
+    pytest.importorskip("litellm")
     from aria.agents.narrative.hypothesis.adapters.cross_modal import cross_modal_evidence
     from aria.scripts.cross_modal_concordance import cross_modal_concordance
 
@@ -266,6 +268,7 @@ def test_d7_005_cross_modal_synthesis_routes_covariate_and_sex_chr_diagnostics_v
     """D7-005: sample_matched_layer writes covariate_adjustment.unadjusted_confounding_risk
     and sex_chromosome_significant_fraction; warning_router must surface both as structured
     warning caveats + metadata['degradation_signals'] on integration.cross_modal_sample_links."""
+    pytest.importorskip("litellm")
     from aria.agents.narrative.synthesis.cross_modal_synthesis import (
         compose_cross_modal_discussion_blocks,
         detect_cross_modal_patterns,

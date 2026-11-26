@@ -11,6 +11,9 @@ def test_d7_002_devils_advocate_reads_real_rna_qc_scrublet_ran_flag(tmp_path):
     """D7-002: rna_qc writes doublet detection status under qc['scrublet']={'ran': bool, ...}.
     devils_advocate must read qc['scrublet']['ran'] and never fall back to substring
     matching on JSON text (which falsely marked doublets addressed when ran=False)."""
+    import pytest
+
+    pytest.importorskip("litellm")
     from aria.agents.narrative.devils_advocate import build_devils_advocate
     from aria.agents.narrative.hypothesis.adapters.scrna import scrna_evidence
     from aria.agents.narrative.hypothesis.caveats import DOUBLET

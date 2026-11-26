@@ -7,6 +7,46 @@ import pandas as pd
 import pytest
 
 
+def test_d7_007_rna_bulk_de_emits_fitted_formula_in_design_used_worker_env(tmp_path):
+    """D7-007 (worker-env pure script check): rna_bulk_de.py must emit the actual
+    fitted design formula (including modeled covariates) in design_used rather than
+    just the main factor name."""
+    pytest.importorskip("pydeseq2")
+    from aria.scripts.rna_bulk_de import rna_bulk_de
+
+    rng = np.random.default_rng(13)
+    samples = ["c1", "c2", "c3", "c4", "t1", "t2", "t3", "t4"]
+    counts = rng.poisson(150, size=(40, 8))
+    counts[:6, 4:] = rng.poisson(900, size=(6, 4))
+    counts_tsv = tmp_path / "counts_worker.tsv"
+    pd.DataFrame(counts, index=[f"G{i}" for i in range(40)], columns=samples).to_csv(
+        counts_tsv, sep="\t", index_label="gene_id"
+    )
+    meta_tsv = tmp_path / "meta_worker.tsv"
+    pd.DataFrame({
+        "sample": samples,
+        "condition": ["ctrl"] * 4 + ["treat"] * 4,
+        "batch": ["B1", "B1", "B2", "B2", "B1", "B1", "B2", "B2"],
+    }).to_csv(meta_tsv, sep="\t", index=False)
+
+    res = rna_bulk_de({
+        "counts_path": str(counts_tsv),
+        "metadata_path": str(meta_tsv),
+        "design_factor": "condition",
+        "covariates": ["batch"],
+        "contrasts": [{"name": "treat_vs_ctrl", "numerator": "treat", "denominator": "ctrl"}],
+        "output_dir": str(tmp_path / "de_worker_out"),
+        "padj_threshold": 0.05,
+        "lfc_threshold": 0.5,
+        "min_counts": 5,
+        "lfc_shrinkage": False,
+        "run_ora": False,
+        "run_plots": False,
+    })
+    assert res["status"] == "success", res
+    assert res["design_used"] == "~ batch + condition", res.get("design_used")
+
+
 def test_d7_001_bulk_rna_apply_design_must_not_fallback_positionally(tmp_path):
     """D7-001: When design sample IDs (GSM*) do not match count-matrix column names
     (SRR*) and no explicit GSM<->SRR map is supplied, BulkRNAAgent._apply_design

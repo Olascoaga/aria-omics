@@ -16,6 +16,8 @@ def test_d7_011_hic_adapter_falls_through_to_qc_n_samples_when_loops_omits_it(tm
     hic_py = Path("/home/medusa/anaconda3/envs/aria-hic-env/bin/python")
     if not hic_py.is_file():
         pytest.skip("aria-hic-env not available")
+    pytest.importorskip("litellm")
+    pytest.importorskip("pydantic")
     from aria.agents.narrative.hypothesis.adapters.hic import _low_replication, hic_evidence
     from aria.agents.narrative.hypothesis.caveats import LOW_REPLICATION
     from aria.utils.environment_manager import env_manager

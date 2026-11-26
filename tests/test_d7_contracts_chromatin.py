@@ -5,12 +5,14 @@ from __future__ import annotations
 import anndata as ad
 import numpy as np
 import pandas as pd
+import pytest
 
 
 def test_d7_006_cross_modal_triangulation_reads_scatac_da_peaks_by_cluster():
     """D7-006: chromatin_diffacc._per_cluster_accessibility writes per-cluster DA
     peaks under 'da_peaks_by_cluster'. cross_modal_triangulation must read that
     canonical key and emit atac_da_association edges."""
+    pytest.importorskip("litellm")
     from aria.agents.narrative.synthesis.cross_modal_triangulation import (
         build_cross_modal_evidence_graph,
     )
@@ -196,6 +198,7 @@ def test_d7_017_warning_router_surfaces_chromatin_partial_pairing_and_dropped_do
     """D7-017 (chromatin): partial pairing with excluded_unpaired_samples (scATAC DA)
     and excluded_unpaired_replicates (TOBIAS footprinting) must route through
     warning_router as structured warning caveats naming dropped donors."""
+    pytest.importorskip("litellm")
     from aria.agents.narrative.narrators.chromatin import ChromatinNarrator
     from aria.agents.narrative.registry import registry_with
 
@@ -250,12 +253,36 @@ def test_d7_017_warning_router_surfaces_chromatin_partial_pairing_and_dropped_do
     assert any(s["field"] == "pairing_status" for s in fp_block.metadata.get("degradation_signals", []))
 
 
+def test_d7_019_scatac_fragment_sizes_standardized_fraction_keys_worker_env(tmp_path):
+    """D7-019 (worker-env pure script check): _compute_fragment_sizes emits
+    subnucleosomal_fraction (<120 bp) and mononucleosomal_fraction (180-247 bp)
+    without the misnamed pct_* keys."""
+    import gzip
+
+    from aria.scripts.chromatin_qc import _compute_fragment_sizes
+
+    frag_gz = tmp_path / "fragments_worker.tsv.gz"
+    lines = [
+        *[f"chr1\t{1000 + i * 500}\t{1080 + i * 500}\tBC{i % 10}\t1\n" for i in range(60)],
+        *[f"chr1\t{50000 + i * 500}\t{50200 + i * 500}\tBC{i % 10}\t1\n" for i in range(40)],
+    ]
+    with gzip.open(frag_gz, "wt") as fh:
+        fh.writelines(lines)
+
+    fs = _compute_fragment_sizes(str(frag_gz))
+    assert "pct_subnucleosomal" not in fs
+    assert "pct_mononucleosomal" not in fs
+    assert fs["subnucleosomal_fraction"] == 0.6
+    assert fs["mononucleosomal_fraction"] == 0.4
+
+
 def test_d7_019_scatac_fragment_sizes_standardized_fraction_keys_reach_narrator(tmp_path):
     """D7-019: _compute_fragment_sizes must emit subnucleosomal_fraction (<120 bp)
     and mononucleosomal_fraction (180-247 bp) matching bulk chromatin QC and
     ChromatinNarrator._qc_block, without the misnamed pct_* fraction keys."""
     import gzip
 
+    pytest.importorskip("litellm")
     from aria.agents.narrative.narrators.chromatin import ChromatinNarrator
     from aria.scripts.chromatin_qc import _compute_fragment_sizes
 
@@ -298,6 +325,7 @@ def test_d7_020_warning_router_surfaces_nonconverged_excluded_da_peaks():
     blocks (and stay silent when n_nonconverged_excluded == 0)."""
     import pandas as pd
 
+    pytest.importorskip("litellm")
     from aria.agents.narrative.narrators.chromatin import ChromatinNarrator
     from aria.agents.narrative.registry import registry_with
     from aria.scripts.chromatin_diffacc import _gate_da_by_convergence
