@@ -675,10 +675,12 @@ class LLMProvider:
     # ── Factory ──────────────────────────────────────────────────────────
 
     @classmethod
-    def from_config(cls, config_path: str = "~/.aria/config.yaml") -> "LLMProvider":
+    def from_config(cls, config_path: str | None = None) -> "LLMProvider":
         """
         Build LLMProvider from ARIA config file.
-        Falls back to defaults + environment variables if config not found.
+        Honors ``ARIA_CONFIG_FILE`` when ``config_path`` is omitted (matching
+        ``aria doctor``). Falls back to defaults + environment variables if
+        config not found.
 
         Example config.yaml:
         ---
@@ -698,14 +700,19 @@ class LLMProvider:
         import yaml
         from pathlib import Path
 
-        config_file = Path(config_path).expanduser()
+        resolved_path = (
+            config_path
+            or os.environ.get("ARIA_CONFIG_FILE")
+            or "~/.aria/config.yaml"
+        )
+        config_file = Path(resolved_path).expanduser()
 
         if not config_file.exists():
             log.info("No config.yaml found — using defaults + env vars")
             return cls()
 
         with open(config_file) as f:
-            config = yaml.safe_load(f)
+            config = yaml.safe_load(f) or {}
 
         llm_config = config.get("llm", {})
         models = {}
@@ -724,12 +731,14 @@ class LLMProvider:
                 # Prefix with provider for LiteLLM if local
                 if provider == "ollama" and not model_id.startswith("ollama/"):
                     model_id = f"ollama/{model_id}"
+                raw_extra = entry.get("extra_params")
                 cfg = ModelConfig(
                     provider=provider,
                     model=model_id,
                     context_window=entry.get("context_window", 8_000),
                     is_local=(provider in ("ollama", "vllm")),
                     api_base=entry.get("api_base"),
+                    extra_params=dict(raw_extra) if isinstance(raw_extra, dict) else {},
                 )
                 # Primary config + defaults as fallback
                 models[tier_enum] = [cfg] + DEFAULT_MODELS.get(tier_enum, [])[1:]
