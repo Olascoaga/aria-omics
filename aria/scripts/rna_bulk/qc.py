@@ -4,7 +4,6 @@
 Re-exported from aria.scripts.rna_bulk_de."""
 from __future__ import annotations
 import math
-import warnings
 
 from aria.utils.bulk_qc_contract import sample_qc_failed, sample_qc_size_ratio  # noqa: F401
 from aria.utils.stats import contrast_family_significance

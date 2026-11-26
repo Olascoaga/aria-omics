@@ -3,7 +3,6 @@
 
 Re-exported from aria.scripts.rna_bulk_de."""
 from __future__ import annotations
-import warnings
 
 from aria.scripts.rna_bulk.gtf_io import _strip_gene_version
 

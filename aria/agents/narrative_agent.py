@@ -36,7 +36,6 @@ from __future__ import annotations
 
 import json
 import logging
-import html as _html
 from pathlib import Path
 
 from aria.agents.base_agent import BaseAgent

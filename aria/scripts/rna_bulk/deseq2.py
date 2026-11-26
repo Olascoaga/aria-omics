@@ -3,7 +3,6 @@ fit-warning serialization, the DESeq2 run and the mock result (A7 split).
 
 Re-exported from aria.scripts.rna_bulk_de."""
 from __future__ import annotations
-import warnings
 
 
 def _quote_formula_term(name: str) -> str:

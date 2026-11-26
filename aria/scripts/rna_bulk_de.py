@@ -57,7 +57,6 @@ from aria.utils.stats import (
     fdr_advanced_methods_disclosure,
     preregister_contrast_family,
 )
-from pathlib import Path
 
 # P2-8: helpers extracted to the aria.scripts.rna_bulk subpackage and
 # re-exported here so the public surface (and tests) are unchanged.

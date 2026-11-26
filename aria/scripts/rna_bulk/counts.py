@@ -3,8 +3,6 @@ inference, technical-replicate aggregation and comparison resolution (A7 split).
 
 Re-exported from aria.scripts.rna_bulk_de."""
 from __future__ import annotations
-import re
-import warnings
 
 from pathlib import Path
 
@@ -410,7 +408,6 @@ def _load_or_infer_metadata(counts, metadata_file: str,
       sample_A_1, sample_B_1               → condition = {A, B}
     """
     import pandas as pd
-    import re
     warnings = []
 
     counts.columns = counts.columns.astype(str)
