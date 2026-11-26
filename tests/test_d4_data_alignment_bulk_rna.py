@@ -194,3 +194,57 @@ def test_d4_004_duplicate_metadata_and_count_ids_fail_closed(tmp_path: Path):
     )
     assert res.get("status") == "error" and res.get("error_type") == "DuplicateSampleIds"
 
+
+def test_d4_005_multifile_header_and_subdir_stem_collision(tmp_path: Path):
+    """D4-005: Headered per-sample count files must load without dropping the
+    sample or injecting a bogus 'gene_id' row, and colliding subdir stems
+    (s1/counts.tsv, s2/counts.tsv) must disambiguate to unique columns."""
+    from aria.scripts.rna_bulk.counts import _load_counts
+
+    genes = [f"ENSG{i:011d}" for i in range(40)]
+    rng = np.random.default_rng(7)
+
+    # 1. Mixed headered and headerless per-sample files.
+    files_hdr = []
+    for idx, s in enumerate(["ctrl_1", "ctrl_2", "treat_1", "treat_2"]):
+        p = tmp_path / f"{s}.tsv"
+        vals = rng.poisson(150, size=len(genes))
+        lines = ([f"gene_id\t{s}"] if idx == 3 else []) + [
+            f"{g}\t{v}" for g, v in zip(genes, vals, strict=True)
+        ]
+        p.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        files_hdr.append(str(p))
+
+    counts_hdr, warns_hdr, _ = _load_counts(files_hdr)
+    assert counts_hdr is not None and counts_hdr.shape == (40, 4), (
+        f"Headered sample failed or altered matrix: shape={getattr(counts_hdr, 'shape', None)}, "
+        f"warns={warns_hdr}"
+    )
+    assert "gene_id" not in counts_hdr.index
+    assert list(counts_hdr.columns) == ["ctrl_1", "ctrl_2", "treat_1", "treat_2"]
+
+    # 2. Subdirectory stem collisions (s1/counts.tsv, s2/counts.tsv) -> unique columns.
+    files_sub = []
+    for s in ["ctrl_1", "ctrl_2", "treat_1", "treat_2"]:
+        sub = tmp_path / "sub" / s
+        sub.mkdir(parents=True)
+        p = sub / "counts.tsv"
+        vals = rng.poisson(150, size=len(genes))
+        p.write_text(
+            "\n".join(f"{g}\t{v}" for g, v in zip(genes, vals, strict=True)) + "\n",
+            encoding="utf-8",
+        )
+        files_sub.append(str(p))
+
+    counts_sub, warns_sub, _ = _load_counts(files_sub)
+    assert counts_sub is not None and counts_sub.shape == (40, 4), warns_sub
+    assert counts_sub.columns.is_unique, f"Colliding columns: {list(counts_sub.columns)}"
+    assert all(s in col for s, col in zip(["ctrl_1", "ctrl_2", "treat_1", "treat_2"], counts_sub.columns, strict=True))
+
+    # 3. Truly non-numeric body still fails closed (preserves D1-006).
+    bad_file = tmp_path / "bad.tsv"
+    bad_file.write_text("gene_id\tbad\nENSG00000000000\tnot_a_number\n", encoding="utf-8")
+    counts_bad, warns_bad, _ = _load_counts([files_hdr[0], str(bad_file)])
+    assert counts_bad is None
+
+

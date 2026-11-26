@@ -16,6 +16,50 @@ from aria.scripts.rna_bulk.gtf_io import _strip_gene_version
 VALID_COUNT_UNION_POLICIES = ("error", "intersect", "union_zero_fill")
 
 
+def _resolve_unique_sample_names(paths: list[str]) -> tuple[list[str] | None, str | None]:
+    """Derive unique per-sample column names, disambiguating colliding stems by parent dir."""
+    resolved_paths = [Path(p) for p in paths]
+    stems = [p.stem for p in resolved_paths]
+    if len(set(stems)) == len(stems):
+        return stems, None
+
+    stem_counts: dict[str, int] = {}
+    for s in stems:
+        stem_counts[s] = stem_counts.get(s, 0) + 1
+
+    names: list[str] = []
+    for p, stem in zip(resolved_paths, stems, strict=True):
+        if stem_counts[stem] == 1:
+            names.append(stem)
+        else:
+            parent = p.parent.name.strip()
+            names.append(f"{parent}_{stem}" if parent else stem)
+
+    if len(set(names)) != len(names):
+        # Try one additional ancestor directory for nested collisions (a/sub/counts.tsv vs b/sub/counts.tsv)
+        name_counts: dict[str, int] = {}
+        for n in names:
+            name_counts[n] = name_counts.get(n, 0) + 1
+        refined: list[str] = []
+        for p, stem, cand in zip(resolved_paths, stems, names, strict=True):
+            if name_counts[cand] == 1:
+                refined.append(cand)
+            else:
+                grand = p.parent.parent.name.strip()
+                parent = p.parent.name.strip()
+                parts = [x for x in (grand, parent, stem) if x]
+                refined.append("_".join(parts) if parts else cand)
+        names = refined
+
+    if len(set(names)) != len(names):
+        dups = sorted({n for n in names if names.count(n) > 1})
+        return None, (
+            f"Multiple per-sample count files collide on sample name(s) {dups}. "
+            "Provide distinct filenames or parent directories for each sample."
+        )
+    return names, None
+
+
 def _load_counts(
     files: list,
     allow_nonraw: bool = False,
@@ -93,19 +137,48 @@ def _load_counts(
             return None, [f"Failed to load {count_files[0]}: {e}"], {}
     else:
         # Multiple per-sample files — merge by gene ID (fail closed if any sample fails)
+        sample_names, name_err = _resolve_unique_sample_names(count_files)
+        if name_err is not None or sample_names is None:
+            return None, [name_err or "Duplicate per-sample count filenames."], {
+                "refused": True,
+                "error_type": "DuplicateSampleNames",
+                "details": name_err or "Duplicate per-sample count filenames.",
+            }
+
         frames = []
         per_file_sets: list[tuple[str, set[str]]] = []
-        seen_labels: set[str] = set()
-        for f in count_files:
+        for f, sample_name in zip(count_files, sample_names, strict=True):
             sep = "," if str(f).lower().endswith(".csv") else "\t"
             try:
                 df = pd.read_csv(f, sep=sep, index_col=0, comment="#",
                                   header=None)
-                df.columns = [Path(f).stem]
                 num_df = df.select_dtypes(include="number")
+                if num_df.empty and len(df) >= 2:
+                    # Standard per-sample files often carry a header row (e.g. gene_id\tcount).
+                    df_hdr = pd.read_csv(
+                        f, sep=sep, index_col=0, comment="#", header=0
+                    )
+                    drop_cols = [
+                        c for c in df_hdr.columns
+                        if c in ("Chr", "Start", "End", "Strand", "Length")
+                    ]
+                    df_hdr = df_hdr.drop(columns=drop_cols, errors="ignore")
+                    num_df = df_hdr.select_dtypes(include="number")
                 if num_df.empty:
                     return None, [f"Count file {f} has no numeric columns."], {}
+                if num_df.shape[1] != 1:
+                    err = (
+                        f"Per-sample count file {f} contains {num_df.shape[1]} "
+                        "numeric columns (expected 1). Pass a single combined "
+                        "matrix file or one count column per per-sample file."
+                    )
+                    return None, [err], {
+                        "refused": True,
+                        "error_type": "InvalidPerSampleCountFile",
+                        "details": err,
+                    }
                 num_df = num_df.copy()
+                num_df.columns = [sample_name]
                 num_df.index = pd.Index(
                     [_strip_gene_version(str(g)) for g in num_df.index]
                 )
@@ -124,11 +197,7 @@ def _load_counts(
                         "error_type": "DuplicateGeneIds",
                         "details": err,
                     }
-                label = str(num_df.columns[0])
-                if label in seen_labels:
-                    label = str(f)
-                seen_labels.add(label)
-                per_file_sets.append((label, set(num_df.index.tolist())))
+                per_file_sets.append((sample_name, set(num_df.index.tolist())))
                 frames.append(num_df)
             except (OSError, ValueError, UnicodeDecodeError,
                     pd.errors.ParserError, pd.errors.EmptyDataError) as e:
