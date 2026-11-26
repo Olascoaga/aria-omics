@@ -615,8 +615,10 @@ def _validate_gzip(path: Path) -> None:
 from aria.utils.assay_detector import (
     _inspect_10x_barcodes,
     _is_likely_10x_mtx_dir,
-    _looks_like_10x_cell_barcode,
+    _looks_like_10x_cell_barcode as _det_looks_like_10x_cell_barcode,
 )
+
+_looks_like_10x_cell_barcode = _det_looks_like_10x_cell_barcode
 
 
 def _count_gzip_lines(path: Path) -> int:

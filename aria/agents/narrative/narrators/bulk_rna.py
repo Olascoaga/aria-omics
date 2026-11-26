@@ -983,7 +983,9 @@ def _parse_gsea_row(row: dict) -> dict:
     }
 
 
-from aria.utils.stats import finite_float as _to_float
+from aria.utils.stats import finite_float
+
+_to_float = finite_float
 
 
 def _to_float_checked(value, digits: int | None = None):

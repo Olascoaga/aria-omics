@@ -16,7 +16,6 @@ No fabrication: peaks that do not parse to a coordinate are dropped from the exp
 from __future__ import annotations
 
 import argparse
-import re
 from pathlib import Path
 
 from aria.utils.genomic_coords import parse_peak_coord as _parse_peak

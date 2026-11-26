@@ -17,7 +17,6 @@ profiled.
 from __future__ import annotations
 
 import csv
-import math
 from pathlib import Path
 import re
 from typing import Any

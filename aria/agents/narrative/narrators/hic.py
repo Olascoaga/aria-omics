@@ -28,13 +28,10 @@ Strict invariants (ADR-002, ADR-011, ADR-082, C1-C4):
 
 from __future__ import annotations
 
-import math
 from pathlib import Path
-import re
 from typing import Any
 
 from aria.agents.narrative.protocols import (
-    OK_STAGE_STATUSES as _OK_STATUSES,
     as_int as _as_int,
     clean_token as _clean_token,
     diagnostic_block as _shared_diagnostic_block,

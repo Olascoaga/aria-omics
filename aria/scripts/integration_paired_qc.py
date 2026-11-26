@@ -24,10 +24,7 @@ from typing import Any
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
 from aria.scripts._base import run_script
-from aria.utils.ambient_qc import (
-    VAR_SYMBOL_COLS as _VAR_SYMBOL_COLS,
-    detect_mt_mask as _detect_mt_mask,
-)
+from aria.utils.ambient_qc import detect_mt_mask as _detect_mt_mask
 
 
 def _row_totals_and_detected(matrix: Any) -> tuple[Any, Any]:

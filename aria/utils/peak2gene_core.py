@@ -33,7 +33,6 @@ import numpy as np
 from aria.utils.genomic_coords import (
     bed_interval_clamped,
     canonical_contig,
-    gtf_has_tag as _gtf_has_tag,
     is_standard_contig,
     parse_gtf_attributes,
     parse_gtf_tss_records as parse_gtf_tss_detailed,

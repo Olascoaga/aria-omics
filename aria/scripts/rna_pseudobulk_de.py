@@ -143,11 +143,14 @@ COMPOSITION_COLLINEARITY_MAX = 0.8
 
 from aria.scripts.rna_bulk.deseq2 import (
     _build_design_formula,
-    _can_wrap_in_formulaic_c,
+    _can_wrap_in_formulaic_c as _deseq2_can_wrap_in_formulaic_c,
     _detect_shrink_sign_flip,
-    _quote_formula_term,
+    _quote_formula_term as _deseq2_quote_formula_term,
     _shrink_coeff,
 )
+
+_can_wrap_in_formulaic_c = _deseq2_can_wrap_in_formulaic_c
+_quote_formula_term = _deseq2_quote_formula_term
 
 
 def _abs_corr(x, y) -> float | None:

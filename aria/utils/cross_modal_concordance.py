@@ -235,9 +235,11 @@ def rna_table_paths(comp):
 
 
 from aria.utils.genomic_coords import (
-    parse_gtf_symbol_map as gtf_symbols,
+    parse_gtf_symbol_map,
     strip_gene_version as _strip_gene_version,
 )
+
+gtf_symbols = parse_gtf_symbol_map
 
 
 def _lookup_alias(aliases: dict[str, str], raw_id: str) -> str:

@@ -25,7 +25,6 @@ Core governance invariants (ADR-064, ADR-070, C1-C4):
 
 from __future__ import annotations
 
-import math
 from pathlib import Path
 from typing import Any
 

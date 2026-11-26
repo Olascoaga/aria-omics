@@ -19,7 +19,6 @@ import bisect
 import gzip
 import json
 import os
-import re
 import subprocess
 import sys
 from pathlib import Path

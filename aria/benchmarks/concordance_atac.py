@@ -28,7 +28,6 @@ cluster id, peak coordinate, or motif name.
 """
 from __future__ import annotations
 
-import re
 from dataclasses import asdict, dataclass, field
 from math import comb
 from typing import Any, Sequence
