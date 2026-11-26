@@ -179,43 +179,51 @@ def _read_h5_index(obs_group) -> list[str]:
 
 
 def _decode_h5_obs_column(item) -> np.ndarray | list[str] | None:
-    """Decode an HDF5 ``obs`` column (Dataset, categorical Group, or nullable).
+    """Decode an HDF5 ``obs`` column (Dataset, categorical Group, legacy ``__categories``, or nullable).
 
-    Critical invariant: categorical ``codes < 0`` (AnnData NA code ``-1``) MUST
-    map to ``"NA"``, never ``categories[-1]``.
+    Delegates categorical and string decoding to canonical
+    ``aria.utils.mudata_io.read_h5_obs_series`` so both modern ``codes/categories``
+    groups and legacy AnnData ``/obs/__categories/<col>`` columns resolve cleanly
+    with negative NA codes mapped to ``"NA"``. Preserves numeric ``np.ndarray``
+    for non-categorical float/int datasets and nullable numeric groups.
     """
     import h5py
+    from aria.utils.mudata_io import read_h5_obs_series
 
-    if isinstance(item, h5py.Group):
-        if "codes" in item and "categories" in item:
-            codes = np.asarray(item["codes"][()], dtype=np.int64).ravel()
-            cats = _decode_str_array(np.asarray(item["categories"][()]))
-            n_cats = len(cats)
-            decoded: list[str] = []
-            for c in codes.tolist():
-                if c < 0 or c >= n_cats:
-                    decoded.append("NA")
-                else:
-                    decoded.append(cats[c])
-            return decoded
-        if "values" in item and "mask" in item:
-            vals = np.asarray(item["values"][()])
+    if isinstance(item, h5py.Group) and "values" in item and "mask" in item:
+        vals = np.asarray(item["values"][()])
+        if vals.dtype.kind in {"f", "i", "u"}:
             mask = np.asarray(item["mask"][()], dtype=bool)
-            if vals.dtype.kind in {"f", "i", "u"}:
-                arr = vals.astype(np.float64)
-                arr[mask] = np.nan
-                return arr
-            str_vals = _decode_str_array(vals)
-            return ["NA" if bool(m) else v for v, m in zip(str_vals, mask.tolist())]
-        return None
+            arr = vals.astype(np.float64)
+            arr[mask] = np.nan
+            return arr
+
+    parent = getattr(item, "parent", None)
+    raw_name = getattr(item, "name", "") or ""
+    col_name = raw_name.rsplit("/", 1)[-1] if raw_name else ""
 
     if isinstance(item, h5py.Dataset):
         arr = np.asarray(item[()])
-        if arr.dtype.kind in {"f"}:
-            return arr.astype(np.float64)
-        if arr.dtype.kind in {"i", "u"}:
-            return arr
-        return _decode_str_array(arr)
+        is_legacy_cat = (
+            arr.dtype.kind in {"i", "u"}
+            and parent is not None
+            and col_name
+            and "__categories" in parent
+            and col_name in parent["__categories"]
+        )
+        if not is_legacy_cat:
+            if arr.dtype.kind in {"f"}:
+                return arr.astype(np.float64)
+            if arr.dtype.kind in {"i", "u"}:
+                return arr
+
+    if parent is not None and col_name:
+        ok, series = read_h5_obs_series(parent, col_name)
+        if ok and isinstance(series, list):
+            return [
+                "NA" if (v is None or str(v) in {"", "nan", "None", "<NA>"}) else str(v)
+                for v in series
+            ]
     return None
 
 

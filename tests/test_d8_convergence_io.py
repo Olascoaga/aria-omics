@@ -89,3 +89,35 @@ def test_d8_013_multiome_10x_atac_loaders_converge(tmp_path: Path):
     # Raw fragments must still raise NotImplementedError in WNN (P0-8).
     with pytest.raises(NotImplementedError):
         wnn_atac([str(tmp_path / "atac_fragments.tsv.gz")], "hg38", "Homo sapiens")
+
+
+def test_d8_018_h5_obs_legacy_categorical_decoding_converges(tmp_path: Path):
+    """D8-018: _narrative_integration._decode_h5_obs_column must decode legacy /obs/__categories like mudata_io."""
+    import pytest
+
+    pytest.importorskip("litellm")
+    h5py = pytest.importorskip("h5py")
+    import numpy as np
+
+    from aria.agents._narrative_integration import _decode_h5_obs_column
+    from aria.utils.mudata_io import _read_h5_obs_series
+
+    h5_path = tmp_path / "legacy_cat.h5ad"
+    with h5py.File(h5_path, "w") as f:
+        obs = f.create_group("obs")
+        obs.attrs["_index"] = "_index"
+        dt = h5py.string_dtype(encoding="utf-8")
+        obs.create_dataset("_index", data=np.array(["C1", "C2", "C3"], dtype=object), dtype=dt)
+        obs.create_dataset("cell_type", data=np.array([0, 1, -1], dtype=np.int8))
+        cats = obs.create_group("__categories")
+        cats.create_dataset("cell_type", data=np.array(["T_cell", "B_cell"], dtype=object), dtype=dt)
+        obs.create_dataset("rna_weight", data=np.array([0.7, 0.3, 0.5], dtype=np.float64))
+
+    with h5py.File(h5_path, "r") as f:
+        ok, series_mudata = _read_h5_obs_series(f["obs"], "cell_type")
+        series_narr = _decode_h5_obs_column(f["obs"]["cell_type"])
+        weights_narr = _decode_h5_obs_column(f["obs"]["rna_weight"])
+
+    assert ok and series_mudata == ["T_cell", "B_cell", None]
+    assert list(series_narr) == ["T_cell", "B_cell", "NA"]
+    assert isinstance(weights_narr, np.ndarray) and np.allclose(weights_narr, [0.7, 0.3, 0.5])

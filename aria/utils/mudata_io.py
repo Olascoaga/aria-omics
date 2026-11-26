@@ -1166,8 +1166,13 @@ def _decode_h5_str_list(raw_arr: Any) -> list[str | None]:
     return [_decode_h5_scalar(v) for v in raw_arr]
 
 
-def _read_h5_obs_series(obs_obj: Any, col: str) -> tuple[bool, list[str | None] | str]:
-    """Read a single `/obs/<col>` column from an `.h5ad` via `h5py` only."""
+def read_h5_obs_series(obs_obj: Any, col: str) -> tuple[bool, list[str | None] | str]:
+    """Read a single `/obs/<col>` column from an `.h5ad` or `.h5mu` via `h5py` only.
+
+    Supports modern AnnData categorical groups (``codes`` + ``categories``),
+    nullable arrays (``values`` + ``mask``), legacy AnnData ``/obs/__categories/<col>``
+    storage, compound ``/obs`` datasets, and plain string/scalar datasets.
+    """
     import h5py
     import numpy as np
 
@@ -1223,6 +1228,9 @@ def _read_h5_obs_series(obs_obj: Any, col: str) -> tuple[bool, list[str | None] 
         return True, _decode_h5_str_list(arr)
 
     return False, f"Unsupported HDF5 object type for /obs/{col}: {type(item).__name__}."
+
+
+_read_h5_obs_series = read_h5_obs_series
 
 
 def read_h5ad_obs_columns(
