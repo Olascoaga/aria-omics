@@ -12,7 +12,7 @@ def test_d7_007_rna_bulk_de_emits_fitted_formula_in_design_used_worker_env(tmp_p
     fitted design formula (including modeled covariates) in design_used rather than
     just the main factor name."""
     pytest.importorskip("pydeseq2")
-    from aria.scripts.rna_bulk_de import rna_bulk_de
+    from aria.scripts.rna_bulk_de import bulk_rna_de
 
     rng = np.random.default_rng(13)
     samples = ["c1", "c2", "c3", "c4", "t1", "t2", "t3", "t4"]
@@ -29,7 +29,7 @@ def test_d7_007_rna_bulk_de_emits_fitted_formula_in_design_used_worker_env(tmp_p
         "batch": ["B1", "B1", "B2", "B2", "B1", "B1", "B2", "B2"],
     }).to_csv(meta_tsv, sep="\t", index=False)
 
-    res = rna_bulk_de({
+    res = bulk_rna_de({
         "counts_path": str(counts_tsv),
         "metadata_path": str(meta_tsv),
         "design_factor": "condition",
