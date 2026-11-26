@@ -3,7 +3,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import numpy as np
+import pandas as pd
 import pytest
+from scipy import sparse
 
 
 def _write_bam(path: Path, chrom: str, chrom_len: int, positions):
@@ -92,3 +95,48 @@ def test_d4_008_broad_domains_normalizes_contigs_and_fails_on_zero_control_overl
         [str(ip_bam)], tmp_path / "disjoint.bed", control_bams=[str(ctrl_other)]
     )
     assert res_disjoint["status"] == "error" and res_disjoint["error_type"] == "ControlContigMismatch"
+
+
+def test_d4_010_label_transfer_rejects_duplicate_barcodes(tmp_path: Path):
+    """D4-010: _label_transfer must reject non-unique barcodes in scATAC or scRNA
+    instead of Cartesian-expanding cell counts."""
+    ad = pytest.importorskip("anndata")
+    from aria.scripts.chromatin_regulatory import _label_transfer
+
+    bcs = [f"AAACAGCCAAG{i:05d}-1" for i in range(60)]
+    adata = ad.AnnData(
+        X=sparse.csr_matrix(np.ones((60, 2), dtype=np.float32)),
+        obs=pd.DataFrame({"leiden": ["0"] * 60}, index=bcs),
+        var=pd.DataFrame(index=["chr1:1000-1500", "chr1:2000-2500"]),
+    )
+    rna_dup = ad.AnnData(
+        X=sparse.csr_matrix(np.ones((120, 2), dtype=np.float32)),
+        obs=pd.DataFrame({"cell_type": ["T_cell"] * 60 + ["B_cell"] * 60}, index=bcs + bcs),
+        var=pd.DataFrame(index=["G0", "G1"]),
+    )
+    rna_dup_path = tmp_path / "rna_dup.h5ad"
+    rna_dup.write_h5ad(rna_dup_path)
+
+    res = _label_transfer(
+        adata,
+        {"rna_data_path": str(rna_dup_path), "rna_label_col": "cell_type"},
+        tmp_path,
+    )
+    assert res["ran"] is False, f"Duplicate barcodes were not rejected: {res}"
+    assert "duplicate" in res.get("reason", "").lower() or "unique" in res.get("reason", "").lower()
+
+    rna_ok = ad.AnnData(
+        X=sparse.csr_matrix(np.ones((60, 2), dtype=np.float32)),
+        obs=pd.DataFrame({"cell_type": ["T_cell"] * 40 + ["B_cell"] * 20}, index=bcs),
+        var=pd.DataFrame(index=["G0", "G1"]),
+    )
+    rna_ok_path = tmp_path / "rna_ok.h5ad"
+    rna_ok.write_h5ad(rna_ok_path)
+    res_ok = _label_transfer(
+        adata,
+        {"rna_data_path": str(rna_ok_path), "rna_label_col": "cell_type"},
+        tmp_path,
+    )
+    assert res_ok["ran"] is True
+    df_ok = pd.read_csv(res_ok["output_csv"])
+    assert int(df_ok["n_cells"].sum()) == 60
