@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "description": "D10 debt ratchet (tests/test_debt_ratchet.py). Limits may only go down. Raising one requires an ADR id in that metric's 'adr' field. Lower a limit in the same commit that removes debt.",
+  "seeded_on": "2026-11-26 tech-debt audit D1-D9 fix branch",
+  "history": {
+    "v4.9.4": {"unannotated_broad_except": 507, "silent_broad_except": 148, "zip_without_strict": 67, "functions_over_300_lines": 33}
+  },
+  "limits": {
+    "unannotated_broad_except": {"max": 313, "slack": 0, "adr": null},
+    "silent_broad_except": {"max": 99, "slack": 0, "adr": null},
+    "zip_without_strict": {"max": 0, "slack": 0, "adr": null},
+    "functions_over_300_lines": {"max": 35, "slack": 0, "adr": null, "note": "D6 decomposition plan targets these; lower as functions are split."}
+  }
+}
