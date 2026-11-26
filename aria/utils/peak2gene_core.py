@@ -253,13 +253,16 @@ def vectorized_pearson_corr(x: Any, cols: Any) -> np.ndarray:
 
 
 def _quantile_bin_labels(values: np.ndarray, n_bins: int) -> np.ndarray:
-    """Assign finite 1D values into `0..n_bins-1` rank-quantile bins deterministically."""
-    n = values.size
+    """Assign finite 1D values into `0..n_bins-1` rank-quantile bins, invariant to input order."""
+    arr = np.asarray(values, dtype=np.float64)
+    n = arr.size
     if n == 0 or n_bins <= 1:
         return np.zeros(n, dtype=int)
-    order = np.argsort(values, kind="mergesort")
-    ranks = np.empty(n, dtype=np.float64)
-    ranks[order] = np.arange(n, dtype=np.float64)
+    if float(np.ptp(arr)) == 0.0:
+        return np.zeros(n, dtype=int)
+    from scipy.stats import rankdata
+
+    ranks = rankdata(arr, method="average") - 1.0
     bins = np.floor(ranks * float(n_bins) / float(n)).astype(int)
     return np.clip(bins, 0, n_bins - 1)
 

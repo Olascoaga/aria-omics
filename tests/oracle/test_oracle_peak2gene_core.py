@@ -364,14 +364,7 @@ class TestComputePeakToGeneLinksOracle:
             assert p["zscore"] == pytest.approx(b["zscore"], abs=1e-5)
             assert p["padj"] == pytest.approx(b["padj"], rel=1e-6, abs=1e-12)
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            "D2-BUG-10: peak2gene_core._quantile_bin_labels breaks ties via mergesort input "
-            "index, so fixed-width (e.g. 500bp) peaks are split across length strata by "
-            "arbitrary column order, making background z-scores and padj depend on peak order"
-        ),
-    )
+    # D2-BUG-10 fixed: tie-preserving average ranks keep fixed-width peaks in one stratum.
     def test_fixed_width_peaks_zscores_must_be_invariant_to_peak_order(self):
         rna, rna_names, atac, atac_names, gene_records = self._make_multi_chrom_fixture(seed=502)
         # All 44 peaks are standard fixed-width 500bp intervals (e.g. ArchR/Signac consensus peaks)
