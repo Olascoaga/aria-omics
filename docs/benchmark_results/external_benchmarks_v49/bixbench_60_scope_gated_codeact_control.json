@@ -1,0 +1,940 @@
+{
+  "backbones": {
+    "claude_sonnet_55": {
+      "comparisons": {
+        "full_60_silent_error_mcnemar_aria_vs_scope_gated_codeact": {
+          "a_error_b_safe": 2,
+          "a_safe_b_error": 4,
+          "both_error": 1,
+          "both_safe": 53,
+          "mcnemar_exact_pvalue": 0.6875
+        },
+        "full_60_silent_error_mcnemar_scope_gated_vs_ungated_codeact": {
+          "a_error_b_safe": 0,
+          "a_safe_b_error": 10,
+          "both_error": 5,
+          "both_safe": 45,
+          "mcnemar_exact_pvalue": 0.001953
+        },
+        "gate_passed_precision_fisher_aria_vs_scope_gated_codeact_pvalue": 1.0,
+        "rna_de_40_silent_error_mcnemar_aria_vs_scope_gated_codeact": {
+          "a_error_b_safe": 2,
+          "a_safe_b_error": 4,
+          "both_error": 1,
+          "both_safe": 33,
+          "mcnemar_exact_pvalue": 0.6875
+        }
+      },
+      "contract_gate_confusion": {
+        "in_contract_blocked_by_gate": 3,
+        "in_contract_passed_gate": 37,
+        "out_of_scope_blocked_by_gate": 20,
+        "out_of_scope_passed_gate": 0
+      },
+      "evaluated_aria_tag": "v4.9.0",
+      "model": "wsl-claude-sonnet-5-5",
+      "per_arm": {
+        "aria_v49_governed": {
+          "full_60": {
+            "coverage": 0.1667,
+            "mcq_raw_accuracy": 0.1167,
+            "mcq_raw_accuracy_ci95": [
+              0.0577,
+              0.2218
+            ],
+            "n_abstained": 50,
+            "n_answered": 10,
+            "n_contract_correct_total": 27,
+            "n_correct_abstention": 20,
+            "n_correct_supported": 7,
+            "n_no_answer": 0,
+            "n_raw_correct": 7,
+            "n_raw_wrong": 3,
+            "n_silent_errors": 3,
+            "n_tasks": 60,
+            "precision_on_answered_contract": 0.7,
+            "precision_on_answered_raw": 0.7,
+            "precision_on_answered_raw_ci95": [
+              0.3968,
+              0.8922
+            ],
+            "silent_error_rate": 0.05,
+            "silent_error_rate_ci95": [
+              0.0171,
+              0.137
+            ],
+            "unconditional_contract_accuracy": 0.45,
+            "unconditional_contract_accuracy_ci95": [
+              0.3309,
+              0.5751
+            ]
+          },
+          "gate_passed_subset": {
+            "coverage": 0.2703,
+            "mcq_raw_accuracy": 0.1892,
+            "mcq_raw_accuracy_ci95": [
+              0.0948,
+              0.342
+            ],
+            "n_abstained": 27,
+            "n_answered": 10,
+            "n_contract_correct_total": 7,
+            "n_correct_abstention": 0,
+            "n_correct_supported": 7,
+            "n_no_answer": 0,
+            "n_raw_correct": 7,
+            "n_raw_wrong": 3,
+            "n_silent_errors": 3,
+            "n_tasks": 37,
+            "precision_on_answered_contract": 0.7,
+            "precision_on_answered_raw": 0.7,
+            "precision_on_answered_raw_ci95": [
+              0.3968,
+              0.8922
+            ],
+            "silent_error_rate": 0.0811,
+            "silent_error_rate_ci95": [
+              0.028,
+              0.213
+            ],
+            "unconditional_contract_accuracy": 0.1892,
+            "unconditional_contract_accuracy_ci95": [
+              0.0948,
+              0.342
+            ]
+          },
+          "out_of_scope_20": {
+            "coverage": 0.0,
+            "mcq_raw_accuracy": 0.0,
+            "mcq_raw_accuracy_ci95": [
+              0.0,
+              0.1611
+            ],
+            "n_abstained": 20,
+            "n_answered": 0,
+            "n_contract_correct_total": 20,
+            "n_correct_abstention": 20,
+            "n_correct_supported": 0,
+            "n_no_answer": 0,
+            "n_raw_correct": 0,
+            "n_raw_wrong": 0,
+            "n_silent_errors": 0,
+            "n_tasks": 20,
+            "precision_on_answered_contract": 0.0,
+            "precision_on_answered_raw": 0.0,
+            "precision_on_answered_raw_ci95": [
+              0.0,
+              1.0
+            ],
+            "silent_error_rate": 0.0,
+            "silent_error_rate_ci95": [
+              0.0,
+              0.1611
+            ],
+            "unconditional_contract_accuracy": 1.0,
+            "unconditional_contract_accuracy_ci95": [
+              0.8389,
+              1.0
+            ]
+          },
+          "rna_de_40": {
+            "coverage": 0.25,
+            "mcq_raw_accuracy": 0.175,
+            "mcq_raw_accuracy_ci95": [
+              0.0875,
+              0.3195
+            ],
+            "n_abstained": 30,
+            "n_answered": 10,
+            "n_contract_correct_total": 7,
+            "n_correct_abstention": 0,
+            "n_correct_supported": 7,
+            "n_no_answer": 0,
+            "n_raw_correct": 7,
+            "n_raw_wrong": 3,
+            "n_silent_errors": 3,
+            "n_tasks": 40,
+            "precision_on_answered_contract": 0.7,
+            "precision_on_answered_raw": 0.7,
+            "precision_on_answered_raw_ci95": [
+              0.3968,
+              0.8922
+            ],
+            "silent_error_rate": 0.075,
+            "silent_error_rate_ci95": [
+              0.0258,
+              0.1986
+            ],
+            "unconditional_contract_accuracy": 0.175,
+            "unconditional_contract_accuracy_ci95": [
+              0.0875,
+              0.3195
+            ]
+          }
+        },
+        "codeact_plus_aria_scope_gate": {
+          "full_60": {
+            "coverage": 0.2833,
+            "mcq_raw_accuracy": 0.2,
+            "mcq_raw_accuracy_ci95": [
+              0.1183,
+              0.3178
+            ],
+            "n_abstained": 42,
+            "n_answered": 17,
+            "n_contract_correct_total": 32,
+            "n_correct_abstention": 20,
+            "n_correct_supported": 12,
+            "n_no_answer": 1,
+            "n_raw_correct": 12,
+            "n_raw_wrong": 5,
+            "n_silent_errors": 5,
+            "n_tasks": 60,
+            "precision_on_answered_contract": 0.7059,
+            "precision_on_answered_raw": 0.7059,
+            "precision_on_answered_raw_ci95": [
+              0.4687,
+              0.8672
+            ],
+            "silent_error_rate": 0.0833,
+            "silent_error_rate_ci95": [
+              0.0361,
+              0.1807
+            ],
+            "unconditional_contract_accuracy": 0.5333,
+            "unconditional_contract_accuracy_ci95": [
+              0.4089,
+              0.6537
+            ]
+          },
+          "gate_passed_subset": {
+            "coverage": 0.4595,
+            "mcq_raw_accuracy": 0.3243,
+            "mcq_raw_accuracy_ci95": [
+              0.1963,
+              0.4854
+            ],
+            "n_abstained": 19,
+            "n_answered": 17,
+            "n_contract_correct_total": 12,
+            "n_correct_abstention": 0,
+            "n_correct_supported": 12,
+            "n_no_answer": 1,
+            "n_raw_correct": 12,
+            "n_raw_wrong": 5,
+            "n_silent_errors": 5,
+            "n_tasks": 37,
+            "precision_on_answered_contract": 0.7059,
+            "precision_on_answered_raw": 0.7059,
+            "precision_on_answered_raw_ci95": [
+              0.4687,
+              0.8672
+            ],
+            "silent_error_rate": 0.1351,
+            "silent_error_rate_ci95": [
+              0.0591,
+              0.2798
+            ],
+            "unconditional_contract_accuracy": 0.3243,
+            "unconditional_contract_accuracy_ci95": [
+              0.1963,
+              0.4854
+            ]
+          },
+          "out_of_scope_20": {
+            "coverage": 0.0,
+            "mcq_raw_accuracy": 0.0,
+            "mcq_raw_accuracy_ci95": [
+              0.0,
+              0.1611
+            ],
+            "n_abstained": 20,
+            "n_answered": 0,
+            "n_contract_correct_total": 20,
+            "n_correct_abstention": 20,
+            "n_correct_supported": 0,
+            "n_no_answer": 0,
+            "n_raw_correct": 0,
+            "n_raw_wrong": 0,
+            "n_silent_errors": 0,
+            "n_tasks": 20,
+            "precision_on_answered_contract": 0.0,
+            "precision_on_answered_raw": 0.0,
+            "precision_on_answered_raw_ci95": [
+              0.0,
+              1.0
+            ],
+            "silent_error_rate": 0.0,
+            "silent_error_rate_ci95": [
+              0.0,
+              0.1611
+            ],
+            "unconditional_contract_accuracy": 1.0,
+            "unconditional_contract_accuracy_ci95": [
+              0.8389,
+              1.0
+            ]
+          },
+          "rna_de_40": {
+            "coverage": 0.425,
+            "mcq_raw_accuracy": 0.3,
+            "mcq_raw_accuracy_ci95": [
+              0.1807,
+              0.4543
+            ],
+            "n_abstained": 22,
+            "n_answered": 17,
+            "n_contract_correct_total": 12,
+            "n_correct_abstention": 0,
+            "n_correct_supported": 12,
+            "n_no_answer": 1,
+            "n_raw_correct": 12,
+            "n_raw_wrong": 5,
+            "n_silent_errors": 5,
+            "n_tasks": 40,
+            "precision_on_answered_contract": 0.7059,
+            "precision_on_answered_raw": 0.7059,
+            "precision_on_answered_raw_ci95": [
+              0.4687,
+              0.8672
+            ],
+            "silent_error_rate": 0.125,
+            "silent_error_rate_ci95": [
+              0.0546,
+              0.2611
+            ],
+            "unconditional_contract_accuracy": 0.3,
+            "unconditional_contract_accuracy_ci95": [
+              0.1807,
+              0.4543
+            ]
+          }
+        },
+        "live_codeact_same_model": {
+          "full_60": {
+            "coverage": 0.45,
+            "mcq_raw_accuracy": 0.35,
+            "mcq_raw_accuracy_ci95": [
+              0.2417,
+              0.4764
+            ],
+            "n_abstained": 32,
+            "n_answered": 27,
+            "n_contract_correct_total": 22,
+            "n_correct_abstention": 10,
+            "n_correct_supported": 12,
+            "n_no_answer": 1,
+            "n_raw_correct": 21,
+            "n_raw_wrong": 6,
+            "n_silent_errors": 15,
+            "n_tasks": 60,
+            "precision_on_answered_contract": 0.4444,
+            "precision_on_answered_raw": 0.7778,
+            "precision_on_answered_raw_ci95": [
+              0.5924,
+              0.8939
+            ],
+            "silent_error_rate": 0.25,
+            "silent_error_rate_ci95": [
+              0.1578,
+              0.3723
+            ],
+            "unconditional_contract_accuracy": 0.3667,
+            "unconditional_contract_accuracy_ci95": [
+              0.2562,
+              0.4932
+            ]
+          },
+          "gate_passed_subset": {
+            "coverage": 0.4595,
+            "mcq_raw_accuracy": 0.3243,
+            "mcq_raw_accuracy_ci95": [
+              0.1963,
+              0.4854
+            ],
+            "n_abstained": 19,
+            "n_answered": 17,
+            "n_contract_correct_total": 12,
+            "n_correct_abstention": 0,
+            "n_correct_supported": 12,
+            "n_no_answer": 1,
+            "n_raw_correct": 12,
+            "n_raw_wrong": 5,
+            "n_silent_errors": 5,
+            "n_tasks": 37,
+            "precision_on_answered_contract": 0.7059,
+            "precision_on_answered_raw": 0.7059,
+            "precision_on_answered_raw_ci95": [
+              0.4687,
+              0.8672
+            ],
+            "silent_error_rate": 0.1351,
+            "silent_error_rate_ci95": [
+              0.0591,
+              0.2798
+            ],
+            "unconditional_contract_accuracy": 0.3243,
+            "unconditional_contract_accuracy_ci95": [
+              0.1963,
+              0.4854
+            ]
+          },
+          "out_of_scope_20": {
+            "coverage": 0.5,
+            "mcq_raw_accuracy": 0.45,
+            "mcq_raw_accuracy_ci95": [
+              0.2582,
+              0.6579
+            ],
+            "n_abstained": 10,
+            "n_answered": 10,
+            "n_contract_correct_total": 10,
+            "n_correct_abstention": 10,
+            "n_correct_supported": 0,
+            "n_no_answer": 0,
+            "n_raw_correct": 9,
+            "n_raw_wrong": 1,
+            "n_silent_errors": 10,
+            "n_tasks": 20,
+            "precision_on_answered_contract": 0.0,
+            "precision_on_answered_raw": 0.9,
+            "precision_on_answered_raw_ci95": [
+              0.5958,
+              0.9821
+            ],
+            "silent_error_rate": 0.5,
+            "silent_error_rate_ci95": [
+              0.2993,
+              0.7007
+            ],
+            "unconditional_contract_accuracy": 0.5,
+            "unconditional_contract_accuracy_ci95": [
+              0.2993,
+              0.7007
+            ]
+          },
+          "rna_de_40": {
+            "coverage": 0.425,
+            "mcq_raw_accuracy": 0.3,
+            "mcq_raw_accuracy_ci95": [
+              0.1807,
+              0.4543
+            ],
+            "n_abstained": 22,
+            "n_answered": 17,
+            "n_contract_correct_total": 12,
+            "n_correct_abstention": 0,
+            "n_correct_supported": 12,
+            "n_no_answer": 1,
+            "n_raw_correct": 12,
+            "n_raw_wrong": 5,
+            "n_silent_errors": 5,
+            "n_tasks": 40,
+            "precision_on_answered_contract": 0.7059,
+            "precision_on_answered_raw": 0.7059,
+            "precision_on_answered_raw_ci95": [
+              0.4687,
+              0.8672
+            ],
+            "silent_error_rate": 0.125,
+            "silent_error_rate_ci95": [
+              0.0546,
+              0.2611
+            ],
+            "unconditional_contract_accuracy": 0.3,
+            "unconditional_contract_accuracy_ci95": [
+              0.1807,
+              0.4543
+            ]
+          }
+        }
+      },
+      "source_receipt": "docs/benchmark_results/external_benchmarks_v49/bixbench_60_claude_sonnet55.json",
+      "source_receipt_sha256": "1badabe8decfb06354763ce084a1f3fda77d03d5df44aa7c05877883a16a7a97"
+    },
+    "qwen36_35b_a3b_tantalus": {
+      "comparisons": {
+        "full_60_silent_error_mcnemar_aria_vs_scope_gated_codeact": {
+          "a_error_b_safe": 1,
+          "a_safe_b_error": 3,
+          "both_error": 0,
+          "both_safe": 56,
+          "mcnemar_exact_pvalue": 0.625
+        },
+        "full_60_silent_error_mcnemar_scope_gated_vs_ungated_codeact": {
+          "a_error_b_safe": 0,
+          "a_safe_b_error": 5,
+          "both_error": 3,
+          "both_safe": 52,
+          "mcnemar_exact_pvalue": 0.0625
+        },
+        "gate_passed_precision_fisher_aria_vs_scope_gated_codeact_pvalue": 1.0,
+        "rna_de_40_silent_error_mcnemar_aria_vs_scope_gated_codeact": {
+          "a_error_b_safe": 1,
+          "a_safe_b_error": 3,
+          "both_error": 0,
+          "both_safe": 36,
+          "mcnemar_exact_pvalue": 0.625
+        }
+      },
+      "contract_gate_confusion": {
+        "in_contract_blocked_by_gate": 6,
+        "in_contract_passed_gate": 34,
+        "out_of_scope_blocked_by_gate": 20,
+        "out_of_scope_passed_gate": 0
+      },
+      "evaluated_aria_tag": "v4.9.0",
+      "model": "tantalus-heavy",
+      "per_arm": {
+        "aria_v49_governed": {
+          "full_60": {
+            "coverage": 0.05,
+            "mcq_raw_accuracy": 0.0333,
+            "mcq_raw_accuracy_ci95": [
+              0.0092,
+              0.1136
+            ],
+            "n_abstained": 57,
+            "n_answered": 3,
+            "n_contract_correct_total": 22,
+            "n_correct_abstention": 20,
+            "n_correct_supported": 2,
+            "n_no_answer": 0,
+            "n_raw_correct": 2,
+            "n_raw_wrong": 1,
+            "n_silent_errors": 1,
+            "n_tasks": 60,
+            "precision_on_answered_contract": 0.6667,
+            "precision_on_answered_raw": 0.6667,
+            "precision_on_answered_raw_ci95": [
+              0.2077,
+              0.9385
+            ],
+            "silent_error_rate": 0.0167,
+            "silent_error_rate_ci95": [
+              0.0029,
+              0.0886
+            ],
+            "unconditional_contract_accuracy": 0.3667,
+            "unconditional_contract_accuracy_ci95": [
+              0.2562,
+              0.4932
+            ]
+          },
+          "gate_passed_subset": {
+            "coverage": 0.0882,
+            "mcq_raw_accuracy": 0.0588,
+            "mcq_raw_accuracy_ci95": [
+              0.0163,
+              0.1909
+            ],
+            "n_abstained": 31,
+            "n_answered": 3,
+            "n_contract_correct_total": 2,
+            "n_correct_abstention": 0,
+            "n_correct_supported": 2,
+            "n_no_answer": 0,
+            "n_raw_correct": 2,
+            "n_raw_wrong": 1,
+            "n_silent_errors": 1,
+            "n_tasks": 34,
+            "precision_on_answered_contract": 0.6667,
+            "precision_on_answered_raw": 0.6667,
+            "precision_on_answered_raw_ci95": [
+              0.2077,
+              0.9385
+            ],
+            "silent_error_rate": 0.0294,
+            "silent_error_rate_ci95": [
+              0.0052,
+              0.1492
+            ],
+            "unconditional_contract_accuracy": 0.0588,
+            "unconditional_contract_accuracy_ci95": [
+              0.0163,
+              0.1909
+            ]
+          },
+          "out_of_scope_20": {
+            "coverage": 0.0,
+            "mcq_raw_accuracy": 0.0,
+            "mcq_raw_accuracy_ci95": [
+              0.0,
+              0.1611
+            ],
+            "n_abstained": 20,
+            "n_answered": 0,
+            "n_contract_correct_total": 20,
+            "n_correct_abstention": 20,
+            "n_correct_supported": 0,
+            "n_no_answer": 0,
+            "n_raw_correct": 0,
+            "n_raw_wrong": 0,
+            "n_silent_errors": 0,
+            "n_tasks": 20,
+            "precision_on_answered_contract": 0.0,
+            "precision_on_answered_raw": 0.0,
+            "precision_on_answered_raw_ci95": [
+              0.0,
+              1.0
+            ],
+            "silent_error_rate": 0.0,
+            "silent_error_rate_ci95": [
+              0.0,
+              0.1611
+            ],
+            "unconditional_contract_accuracy": 1.0,
+            "unconditional_contract_accuracy_ci95": [
+              0.8389,
+              1.0
+            ]
+          },
+          "rna_de_40": {
+            "coverage": 0.075,
+            "mcq_raw_accuracy": 0.05,
+            "mcq_raw_accuracy_ci95": [
+              0.0138,
+              0.165
+            ],
+            "n_abstained": 37,
+            "n_answered": 3,
+            "n_contract_correct_total": 2,
+            "n_correct_abstention": 0,
+            "n_correct_supported": 2,
+            "n_no_answer": 0,
+            "n_raw_correct": 2,
+            "n_raw_wrong": 1,
+            "n_silent_errors": 1,
+            "n_tasks": 40,
+            "precision_on_answered_contract": 0.6667,
+            "precision_on_answered_raw": 0.6667,
+            "precision_on_answered_raw_ci95": [
+              0.2077,
+              0.9385
+            ],
+            "silent_error_rate": 0.025,
+            "silent_error_rate_ci95": [
+              0.0044,
+              0.1288
+            ],
+            "unconditional_contract_accuracy": 0.05,
+            "unconditional_contract_accuracy_ci95": [
+              0.0138,
+              0.165
+            ]
+          }
+        },
+        "codeact_plus_aria_scope_gate": {
+          "full_60": {
+            "coverage": 0.1833,
+            "mcq_raw_accuracy": 0.1333,
+            "mcq_raw_accuracy_ci95": [
+              0.0691,
+              0.2417
+            ],
+            "n_abstained": 45,
+            "n_answered": 11,
+            "n_contract_correct_total": 28,
+            "n_correct_abstention": 20,
+            "n_correct_supported": 8,
+            "n_no_answer": 4,
+            "n_raw_correct": 8,
+            "n_raw_wrong": 3,
+            "n_silent_errors": 3,
+            "n_tasks": 60,
+            "precision_on_answered_contract": 0.7273,
+            "precision_on_answered_raw": 0.7273,
+            "precision_on_answered_raw_ci95": [
+              0.4344,
+              0.9025
+            ],
+            "silent_error_rate": 0.05,
+            "silent_error_rate_ci95": [
+              0.0171,
+              0.137
+            ],
+            "unconditional_contract_accuracy": 0.4667,
+            "unconditional_contract_accuracy_ci95": [
+              0.3463,
+              0.5911
+            ]
+          },
+          "gate_passed_subset": {
+            "coverage": 0.3235,
+            "mcq_raw_accuracy": 0.2353,
+            "mcq_raw_accuracy_ci95": [
+              0.1244,
+              0.4
+            ],
+            "n_abstained": 19,
+            "n_answered": 11,
+            "n_contract_correct_total": 8,
+            "n_correct_abstention": 0,
+            "n_correct_supported": 8,
+            "n_no_answer": 4,
+            "n_raw_correct": 8,
+            "n_raw_wrong": 3,
+            "n_silent_errors": 3,
+            "n_tasks": 34,
+            "precision_on_answered_contract": 0.7273,
+            "precision_on_answered_raw": 0.7273,
+            "precision_on_answered_raw_ci95": [
+              0.4344,
+              0.9025
+            ],
+            "silent_error_rate": 0.0882,
+            "silent_error_rate_ci95": [
+              0.0305,
+              0.2296
+            ],
+            "unconditional_contract_accuracy": 0.2353,
+            "unconditional_contract_accuracy_ci95": [
+              0.1244,
+              0.4
+            ]
+          },
+          "out_of_scope_20": {
+            "coverage": 0.0,
+            "mcq_raw_accuracy": 0.0,
+            "mcq_raw_accuracy_ci95": [
+              0.0,
+              0.1611
+            ],
+            "n_abstained": 20,
+            "n_answered": 0,
+            "n_contract_correct_total": 20,
+            "n_correct_abstention": 20,
+            "n_correct_supported": 0,
+            "n_no_answer": 0,
+            "n_raw_correct": 0,
+            "n_raw_wrong": 0,
+            "n_silent_errors": 0,
+            "n_tasks": 20,
+            "precision_on_answered_contract": 0.0,
+            "precision_on_answered_raw": 0.0,
+            "precision_on_answered_raw_ci95": [
+              0.0,
+              1.0
+            ],
+            "silent_error_rate": 0.0,
+            "silent_error_rate_ci95": [
+              0.0,
+              0.1611
+            ],
+            "unconditional_contract_accuracy": 1.0,
+            "unconditional_contract_accuracy_ci95": [
+              0.8389,
+              1.0
+            ]
+          },
+          "rna_de_40": {
+            "coverage": 0.275,
+            "mcq_raw_accuracy": 0.2,
+            "mcq_raw_accuracy_ci95": [
+              0.105,
+              0.3476
+            ],
+            "n_abstained": 25,
+            "n_answered": 11,
+            "n_contract_correct_total": 8,
+            "n_correct_abstention": 0,
+            "n_correct_supported": 8,
+            "n_no_answer": 4,
+            "n_raw_correct": 8,
+            "n_raw_wrong": 3,
+            "n_silent_errors": 3,
+            "n_tasks": 40,
+            "precision_on_answered_contract": 0.7273,
+            "precision_on_answered_raw": 0.7273,
+            "precision_on_answered_raw_ci95": [
+              0.4344,
+              0.9025
+            ],
+            "silent_error_rate": 0.075,
+            "silent_error_rate_ci95": [
+              0.0258,
+              0.1986
+            ],
+            "unconditional_contract_accuracy": 0.2,
+            "unconditional_contract_accuracy_ci95": [
+              0.105,
+              0.3476
+            ]
+          }
+        },
+        "live_codeact_same_model": {
+          "full_60": {
+            "coverage": 0.2833,
+            "mcq_raw_accuracy": 0.2167,
+            "mcq_raw_accuracy_ci95": [
+              0.1312,
+              0.3362
+            ],
+            "n_abstained": 37,
+            "n_answered": 17,
+            "n_contract_correct_total": 22,
+            "n_correct_abstention": 13,
+            "n_correct_supported": 9,
+            "n_no_answer": 6,
+            "n_raw_correct": 13,
+            "n_raw_wrong": 4,
+            "n_silent_errors": 8,
+            "n_tasks": 60,
+            "precision_on_answered_contract": 0.5294,
+            "precision_on_answered_raw": 0.7647,
+            "precision_on_answered_raw_ci95": [
+              0.5274,
+              0.9044
+            ],
+            "silent_error_rate": 0.1333,
+            "silent_error_rate_ci95": [
+              0.0691,
+              0.2417
+            ],
+            "unconditional_contract_accuracy": 0.3667,
+            "unconditional_contract_accuracy_ci95": [
+              0.2562,
+              0.4932
+            ]
+          },
+          "gate_passed_subset": {
+            "coverage": 0.3235,
+            "mcq_raw_accuracy": 0.2353,
+            "mcq_raw_accuracy_ci95": [
+              0.1244,
+              0.4
+            ],
+            "n_abstained": 19,
+            "n_answered": 11,
+            "n_contract_correct_total": 8,
+            "n_correct_abstention": 0,
+            "n_correct_supported": 8,
+            "n_no_answer": 4,
+            "n_raw_correct": 8,
+            "n_raw_wrong": 3,
+            "n_silent_errors": 3,
+            "n_tasks": 34,
+            "precision_on_answered_contract": 0.7273,
+            "precision_on_answered_raw": 0.7273,
+            "precision_on_answered_raw_ci95": [
+              0.4344,
+              0.9025
+            ],
+            "silent_error_rate": 0.0882,
+            "silent_error_rate_ci95": [
+              0.0305,
+              0.2296
+            ],
+            "unconditional_contract_accuracy": 0.2353,
+            "unconditional_contract_accuracy_ci95": [
+              0.1244,
+              0.4
+            ]
+          },
+          "out_of_scope_20": {
+            "coverage": 0.25,
+            "mcq_raw_accuracy": 0.2,
+            "mcq_raw_accuracy_ci95": [
+              0.0807,
+              0.416
+            ],
+            "n_abstained": 13,
+            "n_answered": 5,
+            "n_contract_correct_total": 13,
+            "n_correct_abstention": 13,
+            "n_correct_supported": 0,
+            "n_no_answer": 2,
+            "n_raw_correct": 4,
+            "n_raw_wrong": 1,
+            "n_silent_errors": 5,
+            "n_tasks": 20,
+            "precision_on_answered_contract": 0.0,
+            "precision_on_answered_raw": 0.8,
+            "precision_on_answered_raw_ci95": [
+              0.3755,
+              0.9638
+            ],
+            "silent_error_rate": 0.25,
+            "silent_error_rate_ci95": [
+              0.1119,
+              0.4687
+            ],
+            "unconditional_contract_accuracy": 0.65,
+            "unconditional_contract_accuracy_ci95": [
+              0.4329,
+              0.8188
+            ]
+          },
+          "rna_de_40": {
+            "coverage": 0.3,
+            "mcq_raw_accuracy": 0.225,
+            "mcq_raw_accuracy_ci95": [
+              0.1232,
+              0.375
+            ],
+            "n_abstained": 24,
+            "n_answered": 12,
+            "n_contract_correct_total": 9,
+            "n_correct_abstention": 0,
+            "n_correct_supported": 9,
+            "n_no_answer": 4,
+            "n_raw_correct": 9,
+            "n_raw_wrong": 3,
+            "n_silent_errors": 3,
+            "n_tasks": 40,
+            "precision_on_answered_contract": 0.75,
+            "precision_on_answered_raw": 0.75,
+            "precision_on_answered_raw_ci95": [
+              0.4677,
+              0.9111
+            ],
+            "silent_error_rate": 0.075,
+            "silent_error_rate_ci95": [
+              0.0258,
+              0.1986
+            ],
+            "unconditional_contract_accuracy": 0.225,
+            "unconditional_contract_accuracy_ci95": [
+              0.1232,
+              0.375
+            ]
+          }
+        }
+      },
+      "source_receipt": "docs/benchmark_results/external_benchmarks_v49/bixbench_60_tantalus.json",
+      "source_receipt_sha256": "63ef468d7c8e658792683a0f909c62a1b044e8689f6106143b0d7780804f6ff5"
+    }
+  },
+  "description": "Deterministic companion ablation applying ARIA's pre-execution native contract gate (0 LLM calls) to frozen v4.9.0 live CodeAct trajectories on BixBench-60 across both Qwen3.6-35B-A3B and Claude Sonnet 5.5, decoupling out-of-scope refusal from closed-grammar execution and evidence-grounding abstention.",
+  "frozen_receipts_unmodified": true,
+  "provenance": {
+    "aria_version": "4.9.4",
+    "environment": {
+      "conda_prefix": null,
+      "env_lock_file": null,
+      "env_lock_sha256": null,
+      "env_name": "aria-env",
+      "source": "no_lock"
+    },
+    "git_commit": "419e098afe352c9d18193b184ac4393989ba5c77",
+    "git_describe": "v4.9.3-1-g419e098",
+    "git_dirty": false,
+    "git_sha": "419e098afe352c9d18193b184ac4393989ba5c77",
+    "git_tree_sha": "6b71136a152a24c1b13b3873b2f5021538214784",
+    "image": {
+      "containerized": false,
+      "digest": null,
+      "env_lock_sha256": null,
+      "kind": null,
+      "reference": null,
+      "revision": null,
+      "validation": null
+    },
+    "version": "4.9.4",
+    "version_source": "aria.version.__version__",
+    "workflow_hash": "b618a8570d54fbb233fe7d97eb9eb0c8eec329e1751b9b142a06ad804f6fdba1",
+    "workflow_hash_algorithm": "sha256(version+git_sha+git_tree_sha+git_dirty+git_status+git_diff)"
+  },
+  "schema_version": "aria.external_benchmark.bixbench_scope_gated_codeact_control.v1",
+  "zero_api_spend": true
+}
