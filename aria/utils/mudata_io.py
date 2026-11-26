@@ -823,7 +823,9 @@ def _stage_cache(
     if script_sha:
         normalized["_script_sha256"] = script_sha
     state = (stage, manifest, receipt, inputs, normalized, __version__, tuple(required))
-    if not resume:
+    # Avoid creating output_dir or lockfiles on a cold miss (so a failing stage
+    # such as ZeroCellsAfterQC leaves the output directory untouched).
+    if not resume or not manifest.is_file() or not receipt.is_file():
         return None, state
     with _stage_lock(lock_path):
         try:
