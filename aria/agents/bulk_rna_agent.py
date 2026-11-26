@@ -377,12 +377,53 @@ class BulkRNAAgent(BaseAgent):
         factor = design.get("main_factor", "condition")
         sample_stems = {sample: group for group, samples in groups.items() for sample in samples}
         sample_aliases = design.get("sample_aliases", {}) or {}
+        stem_aliases: dict[str, list[str]] = {stem: [stem] for stem in sample_stems}
+
+        def _register_alias(stem: str, raw_val) -> None:
+            if stem not in stem_aliases or raw_val in (None, ""):
+                return
+            vals = raw_val if isinstance(raw_val, (list, tuple, set)) else [raw_val]
+            for v in vals:
+                tok = str(v).strip()
+                if tok and tok not in stem_aliases[stem]:
+                    stem_aliases[stem].append(tok)
+
+        for stem in sample_stems:
+            _register_alias(stem, sample_aliases.get(stem))
+
+        # Explicit ID maps (e.g. GSM<->SRR) carried by the design layer.
+        for map_key in ("sample_id_map", "gsm_to_srr", "srr_to_gsm"):
+            id_map = design.get(map_key)
+            if not isinstance(id_map, dict):
+                continue
+            for k, v in id_map.items():
+                ks = str(k).strip()
+                if ks in sample_stems:
+                    _register_alias(ks, v)
+                vals = v if isinstance(v, (list, tuple, set)) else [v]
+                for item in vals:
+                    vs = str(item).strip()
+                    if vs in sample_stems:
+                        _register_alias(vs, ks)
+
+        for row in design.get("sample_sheet") or []:
+            if not isinstance(row, dict):
+                continue
+            sid = str(row.get("sample") or row.get("id") or "").strip()
+            if sid in sample_stems:
+                for col_key in (
+                    "run_accession", "sra_run", "sra_runs", "sra_accessions",
+                    "srr", "gsm", "alias", "aliases",
+                ):
+                    if row.get(col_key):
+                        _register_alias(sid, row[col_key])
+
         alias_to_group = {}
+        alias_to_stems: dict[str, set[str]] = {}
         for stem, grp in sample_stems.items():
-            aliases = sample_aliases.get(stem, [stem])
-            for alias in aliases:
-                if alias:
-                    alias_to_group[str(alias)] = grp
+            for alias in stem_aliases[stem]:
+                alias_to_group[alias] = grp
+                alias_to_stems.setdefault(alias, set()).add(stem)
 
         # Read actual column names from the first count file (gzip + comment-aware)
         try:
@@ -409,6 +450,7 @@ class BulkRNAAgent(BaseAgent):
         # substring fallback. Multiple aliases resolving to the SAME group are
         # unambiguous.
         group_labels = {}
+        matched_stems: set[str] = set()
         for col in ordered_cols:
             col_norm = _normalise_sample_token(col)
             col_leaf = Path(col).name
@@ -420,8 +462,8 @@ class BulkRNAAgent(BaseAgent):
             )
             col_leaf_norm = _normalise_sample_token(col_leaf_stem)
 
-            exact_groups = {
-                grp
+            exact_hits = [
+                (stem, grp)
                 for stem, grp in all_candidates.items()
                 if stem == col
                 or stem == col_leaf
@@ -430,9 +472,12 @@ class BulkRNAAgent(BaseAgent):
                     _normalise_sample_token(stem)
                     and _normalise_sample_token(stem) in {col_norm, col_leaf_norm}
                 )
-            }
+            ]
+            exact_groups = {grp for _, grp in exact_hits}
             if len(exact_groups) == 1:
                 group_labels[col] = next(iter(exact_groups))
+                for tok, _ in exact_hits:
+                    matched_stems.update(alias_to_stems.get(tok, {tok}))
                 continue
             if len(exact_groups) > 1:
                 log.warning(
@@ -441,36 +486,42 @@ class BulkRNAAgent(BaseAgent):
                 )
                 continue
 
-            boundary_groups = {
-                grp
+            boundary_hits = [
+                (stem, grp)
                 for stem, grp in all_candidates.items()
                 if _boundary_matches(str(stem), col)
                 or _boundary_matches(str(stem), col_leaf_stem)
-            }
+            ]
+            boundary_groups = {grp for _, grp in boundary_hits}
             if len(boundary_groups) == 1:
                 group_labels[col] = next(iter(boundary_groups))
+                for tok, _ in boundary_hits:
+                    matched_stems.update(alias_to_stems.get(tok, {tok}))
                 continue
             if len(boundary_groups) > 1:
                 log.warning(
                     f"Ambiguous column '{col}' matches multiple groups "
                     f"{sorted(boundary_groups)} — skipping, will retry with "
-                    f"suffix-trimming or positional fallback."
+                    f"suffix-trimming."
                 )
                 continue
 
-            sub_groups = {
-                grp
+            sub_hits = [
+                (stem, grp)
                 for stem, grp in all_candidates.items()
                 if (stem and str(stem) in col)
                 or (_normalise_sample_token(stem) and _normalise_sample_token(stem) in col_norm)
-            }
+            ]
+            sub_groups = {grp for _, grp in sub_hits}
             if len(sub_groups) == 1:
                 group_labels[col] = next(iter(sub_groups))
+                for tok, _ in sub_hits:
+                    matched_stems.update(alias_to_stems.get(tok, {tok}))
             elif len(sub_groups) > 1:
                 log.warning(
                     f"Ambiguous column '{col}' matches multiple groups "
                     f"{sorted(sub_groups)} — skipping, will retry with "
-                    f"suffix-trimming or positional fallback."
+                    f"suffix-trimming."
                 )
 
         # Attempt to match by trimming potential technical replicate suffixes (_1, _2, etc.)
@@ -479,19 +530,22 @@ class BulkRNAAgent(BaseAgent):
                 col_norm = _normalise_sample_token(col)
                 col_base = re.sub(r"[_\-]?[12]$", "", col)
                 col_base_norm = _normalise_sample_token(col_base)
-                exact_trim = {
-                    grp
+                exact_trim_hits = [
+                    (stem, grp)
                     for stem, grp in all_candidates.items()
                     if col_base == stem
                     or (col_base_norm and col_base_norm == _normalise_sample_token(stem))
-                }
+                ]
+                exact_trim = {grp for _, grp in exact_trim_hits}
                 if len(exact_trim) == 1:
                     group_labels[col] = next(iter(exact_trim))
+                    for tok, _ in exact_trim_hits:
+                        matched_stems.update(alias_to_stems.get(tok, {tok}))
                     continue
                 if len(exact_trim) > 1:
                     continue
-                fuzzy_trim = {
-                    grp
+                fuzzy_trim_hits = [
+                    (stem, grp)
                     for stem, grp in all_candidates.items()
                     if (
                         (col_base and (stem.startswith(col_base) or col_base.startswith(stem)))
@@ -505,31 +559,31 @@ class BulkRNAAgent(BaseAgent):
                             )
                         )
                     )
-                }
+                ]
+                fuzzy_trim = {grp for _, grp in fuzzy_trim_hits}
                 if len(fuzzy_trim) == 1:
                     group_labels[col] = next(iter(fuzzy_trim))
+                    for tok, _ in fuzzy_trim_hits:
+                        matched_stems.update(alias_to_stems.get(tok, {tok}))
 
-        # Fallback: if no match, assign from design directly (assumes column order)
-        if not group_labels:
-            ordered_samples = list(sample_stems.keys())
-            if len(ordered_samples) == len(ordered_cols):
-                for i, col in enumerate(ordered_cols):
-                    group_labels[col] = sample_stems[ordered_samples[i]]
-
-        # B4 preprint-readiness: NO column-name inference rescue here. When the
-        # confirmed design cannot be mapped to the matrix columns (e.g. a
-        # sample-count mismatch from incomplete metadata), fail closed so the
-        # caller's P0-6 gate handles it — blocking, or inferring only under the
-        # explicit ARIA_ALLOW_FILENAME_FALLBACK opt-in via the sample-name path.
-        # Rebuilding the design from ctrl_*/treat_* column names would silently
-        # discard the confirmed design and run DE on a guess (P0-5/F5).
+        # B4 / D7-001 preprint-readiness: NO positional fallback and NO
+        # column-name inference rescue here. When the confirmed design cannot
+        # be mapped to the matrix columns (including same-length GSM-vs-SRR
+        # mismatches without an explicit alias/ID map), fail closed naming the
+        # unmatched identifiers on both sides so the caller's P0-6 gate handles
+        # it instead of silently flipping contrast signs.
+        unmatched_design = [s for s in sample_stems if s not in matched_stems]
+        unmatched_cols = [c for c in ordered_cols if c not in group_labels]
         if not group_labels or len(set(group_labels.values())) < 2:
             raise ValueError(
                 f"Could not map the confirmed design groups to the count matrix "
-                f"columns. Design stems: {list(sample_stems.keys())}, "
-                f"Columns: {colnames}. ARIA refuses to infer the design from "
-                f"column names; provide metadata that maps the confirmed design "
-                f"to these columns."
+                f"columns. Unmatched design IDs: {unmatched_design}; "
+                f"Unmatched matrix columns: {unmatched_cols}. "
+                f"Design stems: {list(sample_stems.keys())}, "
+                f"Columns: {colnames}. ARIA refuses positional fallback or "
+                f"column-name inference; provide explicit sample_aliases / "
+                f"sample_id_map (e.g. GSM<->SRR) or metadata that maps the "
+                f"confirmed design to these columns."
             )
 
         sample_names = list(group_labels.keys())
