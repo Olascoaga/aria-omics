@@ -49,7 +49,7 @@ def _sanitize_json_value(obj: Any) -> Any:
     if callable(item) and type(obj).__module__.startswith("numpy"):
         try:
             return _sanitize_json_value(item())
-        except Exception:
+        except Exception:  # aria: allow-broad-except cosmetic numpy scalar conversion fallback
             pass
     return obj
 

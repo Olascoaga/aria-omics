@@ -655,7 +655,7 @@ class RawIngestionAgent(BaseAgent):
             basecalls = dd / "Data" / "Intensities" / "BaseCalls"
             if basecalls.exists():
                 candidates.append(str(basecalls))
-        except Exception:
+        except Exception:  # aria: allow-broad-except cosmetic BCL diagnostic directory probe
             pass
 
         unsupported = detect_unsupported_inputs(candidates)

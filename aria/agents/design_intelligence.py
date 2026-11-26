@@ -10,8 +10,11 @@ optional, or explicitly avoid.
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 import re
+
+log = logging.getLogger(__name__)
 
 
 class DesignIntelligence:
@@ -282,8 +285,12 @@ class DesignIntelligence:
                 resolve_design_contract,
                 validate_design_matrix,
             )
-        except Exception:
-            return []
+        except Exception as exc:  # aria: allow-broad-except surface design-matrix validator import/runtime failure
+            log.warning("Design-matrix pre-validation unavailable: %s", exc)
+            return [
+                f"Pre-execution design-matrix validation unavailable "
+                f"({type(exc).__name__}: {exc})."
+            ]
 
         rows = []
         for condition, samples in groups.items():
@@ -417,7 +424,9 @@ class DesignIntelligence:
             backing_file = getattr(adata, "file", None)
             if backing_file is not None:
                 backing_file.close()
-        except Exception:
+        except Exception as exc:  # aria: allow-broad-except record h5ad inspection failure without aborting plan
+            log.warning("DesignIntelligence could not inspect h5ad %s: %s", path, exc)
+            meta["inspect_error"] = f"{type(exc).__name__}: {exc}"
             return meta
         return meta
 

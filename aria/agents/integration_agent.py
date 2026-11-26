@@ -1268,7 +1268,7 @@ class IntegrationAgent(BaseAgent):
                         ),
                     )
                     n_stored += 1
-                except Exception as e:
+                except Exception as e:  # aria: allow-broad-except non-fatal peak-gene memory tunnel persistence error
                     log.warning(f"Could not store tunnel: {e}")
 
         log.info(f"Stored {n_stored} peak-gene links as Tunnels in ARIAMemory")
@@ -1499,7 +1499,7 @@ class IntegrationAgent(BaseAgent):
                     ),
                 )
                 n_stored += 1
-            except Exception as e:
+            except Exception as e:  # aria: allow-broad-except non-fatal eRegulon memory tunnel persistence error
                 log.warning(f"Could not store eRegulon tunnel: {e}")
 
         log.info(f"Stored {n_stored} candidate eRegulons as Tunnels in ARIAMemory")

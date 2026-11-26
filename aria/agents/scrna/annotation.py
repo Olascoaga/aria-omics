@@ -62,8 +62,8 @@ class AnnotationMixin:
                 backing = getattr(adata, "file", None)
                 if backing is not None:
                     backing.close()
-        except Exception as e:
-            log.debug(f"Predefined celltype check failed for {col}: {e}")
+        except Exception as e:  # aria: allow-broad-except log predefined cell-type column check failure
+            log.warning(f"Predefined celltype check failed for {col}: {e}")
             return None
         return col
 

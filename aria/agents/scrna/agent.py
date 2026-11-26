@@ -560,7 +560,8 @@ class scRNAAgent(
                 backing_file = getattr(adata, "file", None)
                 if backing_file is not None:
                     backing_file.close()
-            except Exception:
+            except Exception as exc:  # aria: allow-broad-except log unreadable h5ad during groupby discovery
+                log.warning("Could not read h5ad %s for groupby discovery: %s", p, exc)
                 continue
         return values
 

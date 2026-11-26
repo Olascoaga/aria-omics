@@ -114,7 +114,8 @@ class GenomeArchAgent(BaseAgent):
                     exp_ctx.get("genome", "hg38")
                 )
                 genome_fasta = local
-            except Exception:
+            except Exception as exc:  # aria: allow-broad-except log local genome resolution failure before Hi-C fallback
+                log.warning("Could not resolve local genome FASTA: %s", exc)
                 genome_fasta = None
         gtf_path = (
             exp_ctx.get("gtf")

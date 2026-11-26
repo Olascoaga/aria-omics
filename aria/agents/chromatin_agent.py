@@ -59,7 +59,7 @@ def _is_missing(value) -> bool:
         import pandas as pd
 
         return bool(pd.api.types.is_scalar(value) and pd.isna(value))
-    except Exception:
+    except Exception:  # aria: allow-broad-except cosmetic scalar NA predicate
         return False
 
 
@@ -1694,7 +1694,7 @@ class ChromatinAgent(BaseAgent):
             try:
                 local, _src = genomes.resolve_local_genome_fasta(
                     exp_ctx.get("genome") or "hg38")
-            except Exception as exc:  # resolution must never fail the run
+            except Exception as exc:  # aria: allow-broad-except non-fatal footprint genome resolution
                 log.warning("footprint genome resolution failed: %s", exc)
                 local = None
             if local:
@@ -1713,7 +1713,7 @@ class ChromatinAgent(BaseAgent):
             try:
                 loaded = motifs.load_local_motif_collection(
                     exp_ctx.get("motif_collection") or motifs.DEFAULT_COLLECTION)
-            except Exception as exc:
+            except Exception as exc:  # aria: allow-broad-except non-fatal footprint motif collection resolution
                 log.warning("footprint motif resolution failed: %s", exc)
                 loaded = None
             if loaded is not None:
@@ -1912,8 +1912,8 @@ class ChromatinAgent(BaseAgent):
                 file = getattr(adata, "file", None)
                 if file is not None:
                     file.close()
-        except Exception:
-            pass
+        except Exception as exc:  # aria: allow-broad-except fallback to h5py backend when anndata read fails
+            log.debug("anndata obs read failed for %s (%s); falling back to h5py", h5ad_path, exc)
         import h5py
 
         with h5py.File(str(h5ad_path), "r") as handle:
@@ -1936,8 +1936,8 @@ class ChromatinAgent(BaseAgent):
 
             with h5py.File(str(h5ad_path), "r") as handle:
                 return cls._h5ad_index(handle["var"])
-        except Exception:
-            pass
+        except Exception as exc:  # aria: allow-broad-except fallback to anndata backend when h5py var read fails
+            log.debug("h5py var_names read failed for %s (%s); falling back to anndata", h5ad_path, exc)
         try:
             import anndata
 
@@ -1948,7 +1948,8 @@ class ChromatinAgent(BaseAgent):
                 file = getattr(adata, "file", None)
                 if file is not None:
                     file.close()
-        except Exception:
+        except Exception as exc:  # aria: allow-broad-except log unreadable h5ad var_names after both backends fail
+            log.warning("Could not read var_names from %s: %s", h5ad_path, exc)
             return []
 
     def _derive_peaks_bed_from_h5ad(self, clustered, dest) -> Optional[str]:
@@ -2003,7 +2004,7 @@ class ChromatinAgent(BaseAgent):
         contract = self._resolve_da_design(exp_ctx)
         try:
             barcodes, columns = self._read_h5ad_obs(clustered)
-        except Exception as exc:
+        except Exception as exc:  # aria: allow-broad-except log barcode-design derivation error without aborting scATAC run
             log.warning("footprint barcode-design derivation failed: %s", exc)
             return None
         if not barcodes or not columns:
@@ -2150,8 +2151,9 @@ class ChromatinAgent(BaseAgent):
                 try:
                     rna_means = self._rna_group_means_from_path(
                         exp_ctx, genes, str(ga), str(gb))
-                except Exception as exc:
-                    log.info("footprint RNA cross-evidence unavailable: %s", exc)
+                except Exception as exc:  # aria: allow-broad-except record RNA cross-evidence lookup failure for W-WARN
+                    log.warning("footprint RNA cross-evidence unavailable: %s", exc)
+                    result["rna_cross_evidence_error"] = f"{type(exc).__name__}: {exc}"
                     rna_means = None
             if isinstance(rna_means, dict) and rna_means:
                 from aria.agents.narrative.synthesis.footprint_rna import (
@@ -2160,8 +2162,10 @@ class ChromatinAgent(BaseAgent):
 
                 result["rna_cross_evidence"] = footprint_rna_concordance(
                     summary, rna_means, str(ga), str(gb))
-        except Exception as exc:  # cross-evidence must never fail footprinting
+        except Exception as exc:  # aria: allow-broad-except record RNA cross-evidence concordance failure for W-WARN
             log.warning("footprint RNA cross-evidence failed: %s", exc)
+            if isinstance(result, dict):
+                result["rna_cross_evidence_error"] = f"{type(exc).__name__}: {exc}"
 
     def _bulk_condition_bams(self, exp_ctx: dict, files: list,
                              condition_col: str = "condition") -> dict:

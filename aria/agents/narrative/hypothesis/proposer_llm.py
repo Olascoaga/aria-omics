@@ -381,7 +381,7 @@ class LLMProposer:
                         str(getattr(active, "model", "") or ""),
                     ) if p
                 ) or label
-        except Exception:
+        except Exception:  # aria: allow-broad-except cosmetic display provider label lookup
             pass
 
         return cls(
@@ -470,7 +470,7 @@ class LLMProposer:
         if self._served_meta is not None:
             try:
                 served = self._served_meta()
-            except Exception:
+            except Exception:  # aria: allow-broad-except cosmetic served-model telemetry lookup
                 served = None
         if served:
             diag["served_model"] = served.get("model")

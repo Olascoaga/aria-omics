@@ -134,7 +134,7 @@ def unwrap_scrna_findings(agent_result: dict) -> dict:
 def _fmt_int(value) -> str:
     try:
         return f"{int(value):,}"
-    except Exception:
+    except Exception:  # aria: allow-broad-except cosmetic integer formatting fallback
         return str(value)
 
 

@@ -1487,7 +1487,8 @@ class DataAuditAgent(BaseAgent):
                 backing_file = getattr(adata, "file", None)
                 if backing_file is not None:
                     backing_file.close()
-            except Exception:
+            except Exception as exc:  # aria: allow-broad-except log unreadable h5ad during organism/genome inference
+                log.warning(f"Could not read h5ad {p} for organism/genome inference: {exc}")
                 continue
 
             human_score = sum(g in human_markers for g in genes)

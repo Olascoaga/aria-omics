@@ -411,7 +411,7 @@ class OrchestratorAgent(BaseAgent):
             from aria.utils.logging_setup import attach_experiment_log
             session.log_handler = attach_experiment_log(experiment_id)
             self._log_handlers[experiment_id] = session.log_handler
-        except Exception as e:
+        except Exception as e:  # aria: allow-broad-except cosmetic experiment log file attachment
             log.debug(f"Could not attach experiment log: {e}")
 
         # R6: append-only bus durability under a per-experiment path so a
@@ -422,7 +422,7 @@ class OrchestratorAgent(BaseAgent):
                 str(Path.home() / ".aria" / "workspace" / experiment_id
                     / "bus_log.jsonl")
             )
-        except Exception as e:
+        except Exception as e:  # aria: allow-broad-except cosmetic bus durability setup
             log.debug(f"Could not enable bus persistence: {e}")
 
         replayed_src = context.get("replay_decision_manifest")
@@ -1111,7 +1111,7 @@ class OrchestratorAgent(BaseAgent):
                         experiment_id=experiment_id,
                     )
                 )
-            except Exception:
+            except Exception:  # aria: allow-broad-except best-effort bus notification inside fail-closed halt
                 pass
             return {
                 "status": "error",
@@ -1761,7 +1761,7 @@ class OrchestratorAgent(BaseAgent):
             try:
                 from aria.utils.logging_setup import detach_experiment_log
                 detach_experiment_log(handler)
-            except Exception:
+            except Exception:  # aria: allow-broad-except cosmetic log handler teardown
                 pass
 
     def _parse_question(self, user_question: str, llm=None) -> dict:
@@ -1914,7 +1914,7 @@ class OrchestratorAgent(BaseAgent):
             di_block = format_design_intelligence(plan.get("design_intelligence", {}))
             if di_block:
                 lines.append(di_block)
-        except Exception:
+        except Exception:  # aria: allow-broad-except cosmetic TUI plan summary formatting
             pass
         lines.append(
             f"\n  Complexity: {plan.get('estimated_complexity', '?')}"

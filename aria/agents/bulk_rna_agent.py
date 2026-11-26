@@ -1046,7 +1046,8 @@ class BulkRNAAgent(BaseAgent):
                 return []
             cols = cls._read_counts_header(p)
             return [c for c in cols if c.lower().strip() not in cls._GENE_COLS]
-        except Exception:
+        except Exception as exc:  # aria: allow-broad-except log count header read failure during sample-name preview
+            log.warning(f"Could not read sample names from {path}: {exc}")
             return []
 
     @staticmethod

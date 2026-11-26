@@ -30,7 +30,7 @@ def _collect_tool_versions(packages: tuple[str, ...]) -> dict:
                     tools[pkg] = version(pkg)
                 except PackageNotFoundError:
                     tools[pkg] = "not installed"
-        except Exception:
+        except Exception:  # aria: allow-broad-except cosmetic importlib.metadata package version lookup
             tools = {pkg: "not installed" for pkg in packages}
 
         locked = _tool_versions_from_lockfiles(packages)
@@ -62,7 +62,7 @@ def _tool_versions_from_lockfiles(packages: tuple[str, ...]) -> dict:
                     canonical = package_set.get(name.strip().lower())
                     if canonical and canonical not in versions:
                         versions[canonical] = ver.strip()
-            except Exception:
+            except Exception:  # aria: allow-broad-except cosmetic pip lockfile version lookup
                 continue
 
         conda_locks = sorted(
@@ -80,7 +80,7 @@ def _tool_versions_from_lockfiles(packages: tuple[str, ...]) -> dict:
                     if parsed:
                         canonical, ver = parsed
                         versions.setdefault(canonical, ver)
-            except Exception:
+            except Exception:  # aria: allow-broad-except cosmetic conda lockfile version lookup
                 continue
         return versions
 

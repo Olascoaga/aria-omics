@@ -353,7 +353,8 @@ class SetupAgent(BaseAgent):
             )
             data = json.loads(r.stdout)
             return {Path(e).name for e in data.get("envs", [])}
-        except Exception:
+        except Exception as exc:  # aria: allow-broad-except log conda env list failure
+            log.warning(f"Could not list conda environments via {conda_cmd}: {exc}")
             return set()
 
     def _needed_envs(
