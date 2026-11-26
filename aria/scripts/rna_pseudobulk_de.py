@@ -589,12 +589,51 @@ def rna_pseudobulk_de(params: dict) -> dict:
                                    f"Available: {list(adata.obs.columns)}")}
 
     # ── Aggregate per (replicate × group) ────────────────────────────────
-    obs = adata.obs[[groupby, condition_col, replicate_col, *covariates]].copy()
-    obs[groupby]       = obs[groupby].astype(str)
-    obs[condition_col] = obs[condition_col].astype(str)
-    obs[replicate_col] = obs[replicate_col].astype(str)
+    warnings: list[str] = []
+    raw_obs = adata.obs[[groupby, condition_col, replicate_col, *covariates]].copy()
+
+    def _valid_meta_mask(series: pd.Series) -> np.ndarray:
+        not_na = ~pd.isna(series).to_numpy(dtype=bool)
+        text = series.astype(str).str.strip().str.lower()
+        not_missing_str = ~text.isin(
+            {"", "nan", "none", "null", "na", "n/a", "<na>"}
+        ).to_numpy(dtype=bool)
+        return not_na & not_missing_str
+
+    valid_mask = (
+        _valid_meta_mask(raw_obs[groupby])
+        & _valid_meta_mask(raw_obs[condition_col])
+        & _valid_meta_mask(raw_obs[replicate_col])
+    )
+    n_dropped_missing = int((~valid_mask).sum())
+    if n_dropped_missing > 0:
+        warnings.append(
+            f"Dropped {n_dropped_missing} cell(s) with missing/empty "
+            f"{groupby!r}, {condition_col!r}, or {replicate_col!r} metadata "
+            f"before pseudobulk aggregation."
+        )
+    valid_pos = np.flatnonzero(valid_mask)
+    if valid_pos.size == 0:
+        return {
+            "status": "error",
+            "error_type": "NoValidMetadataCells",
+            "details": (
+                f"No cells have non-missing {groupby!r}, {condition_col!r}, "
+                f"and {replicate_col!r} metadata for pseudobulk DE."
+            ),
+            "warnings": warnings,
+        }
+
+    obs = raw_obs.iloc[valid_pos].copy()
+    obs[groupby]       = obs[groupby].astype(str).str.strip()
+    obs[condition_col] = obs[condition_col].astype(str).str.strip()
+    obs[replicate_col] = obs[replicate_col].astype(str).str.strip()
 
     is_sparse = sparse.issparse(counts)
+    if n_dropped_missing > 0:
+        counts = counts[valid_pos]
+        if needs_recovery:
+            lib_sizes_full = lib_sizes_full[valid_pos]
 
     # Paired scRNA designs (same donor under multiple conditions) require a
     # replicate x condition pseudobulk key. Grouping only by donor collapses
@@ -621,17 +660,15 @@ def rna_pseudobulk_de(params: dict) -> dict:
     successful_blocks: list = []
 
     for group in groups:
-        cells_in_group = obs[obs[groupby] == group].index
-        if len(cells_in_group) < min_cells_per_pseudosample:
+        cell_pos = np.flatnonzero(obs[groupby].to_numpy() == group)
+        if cell_pos.size < min_cells_per_pseudosample:
             per_group[group] = {"n_pseudosamples": 0,
                                  "status":          "skipped",
-                                 "reason":          f"only {len(cells_in_group)} cells"}
+                                 "reason":          f"only {int(cell_pos.size)} cells"}
             continue
 
-        # cell indices into the adata
-        cell_pos = adata.obs_names.get_indexer(cells_in_group)
         group_counts = counts[cell_pos]
-        group_obs    = obs.loc[cells_in_group]
+        group_obs    = obs.iloc[cell_pos]
 
         # Pseudosample key. In paired designs this is donor x condition; in
         # standard cohort designs it remains donor/sample.
@@ -642,6 +679,7 @@ def rna_pseudobulk_de(params: dict) -> dict:
         rep_to_sum: dict   = {}
         rep_to_n:   dict   = {}
         rep_to_meta: dict  = {}
+        noninvariant_covariates: set[str] = set()
         for sample_key in unique_samples:
             mask = sample_keys == sample_key
             n    = int(mask.sum())
@@ -654,8 +692,7 @@ def rna_pseudobulk_de(params: dict) -> dict:
                 # so memory stays small and we never materialize the full
                 # recovered matrix.
                 block_dense = block.toarray() if is_sparse else np.asarray(block)
-                # cell_pos[mask] maps back into the full adata, indexed
-                # against lib_sizes_full
+                # cell_pos[mask] maps back into the filtered counts/lib_sizes_full
                 rep_cell_idx = cell_pos[mask]
                 rep_lib      = lib_sizes_full[rep_cell_idx][:, None]
                 recovered    = np.expm1(block_dense) * rep_lib / norm_scale_factor
@@ -675,9 +712,13 @@ def rna_pseudobulk_de(params: dict) -> dict:
                 summed = np.asarray(block.sum(axis=0)).ravel().astype(np.int64)
             rep_to_sum[sample_key]  = summed
             rep_to_n[sample_key]    = n
-            # Use the first cell's metadata for the pseudosample. In paired
-            # designs condition is constant because sample_key includes it.
-            row              = group_obs[mask].iloc[0]
+            # Verify each covariate is constant within the pseudosample rather
+            # than silently taking .iloc[0] for within-donor varying covariates.
+            sub_obs = group_obs.iloc[np.flatnonzero(mask)]
+            row = sub_obs.iloc[0]
+            for cv in covariates:
+                if sub_obs[cv].nunique(dropna=False) > 1:
+                    noninvariant_covariates.add(cv)
             meta_entry = {condition_col: row[condition_col],
                           replicate_col: row[replicate_col],
                           **{cv: row[cv] for cv in covariates}}
@@ -691,6 +732,21 @@ def rna_pseudobulk_de(params: dict) -> dict:
                     _math.log((n + 1.0) / (total_for_rep + 1.0))
                 )
             rep_to_meta[sample_key] = meta_entry
+
+        group_covariates = list(covariates)
+        if noninvariant_covariates:
+            dropped_covs = sorted(noninvariant_covariates)
+            warnings.append(
+                f"[{group}] Covariate(s) {dropped_covs} vary within a "
+                f"pseudosample and cannot be modelled at the pseudosample "
+                f"level; excluded from pseudobulk DE."
+            )
+            group_covariates = [
+                c for c in group_covariates if c not in noninvariant_covariates
+            ]
+            for meta_entry in rep_to_meta.values():
+                for cv in dropped_covs:
+                    meta_entry.pop(cv, None)
 
         if len(rep_to_sum) < 2 * min_replicates_per_condition:
             per_group[group] = {"n_pseudosamples": len(rep_to_sum),
@@ -752,7 +808,7 @@ def rna_pseudobulk_de(params: dict) -> dict:
                 }
                 continue
 
-            design_factors = [condition_col] + (covariates or [])
+            design_factors = [condition_col] + (group_covariates or [])
             paired_donor_covariate_used = False
             # B3: classify pairing for THIS contrast and pick a compatible model.
             # complete -> block modeled on all samples; partial -> block modeled on
@@ -1375,6 +1431,7 @@ def rna_pseudobulk_de(params: dict) -> dict:
         "per_group":      per_group,
         "output_csv":     csv_path,
         "full_results_csv": full_csv_path,
+        "warnings":       warnings,
     }
 
 
