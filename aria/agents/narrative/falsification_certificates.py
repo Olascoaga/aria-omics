@@ -329,14 +329,6 @@ def _extract_lobo_from_agent_results(
         return []
     modality = str(claim.get("modality") or "").lower()
     modality = modality.replace("_", "").replace("-", "").replace(" ", "")
-    if not modality:
-        an = str(claim.get("analysis") or "")
-        if an in {"differential_expression", "contrast"} and "bulk_rna_agent" in agent_results:
-            modality = "bulkrna"
-        elif an == "pseudobulk_de" and "scrna_agent" in agent_results:
-            modality = "scrna"
-        elif an == "differential_accessibility" and "chromatin_agent" in agent_results:
-            modality = "chromatin"
     # (group, contrast_name, contrast_dict)
     entries: list[tuple[Any, Any, Any]] = []
     if modality in {"bulkrna", "bulkrnaseq"}:

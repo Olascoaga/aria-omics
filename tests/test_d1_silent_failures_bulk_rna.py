@@ -205,7 +205,7 @@ def test_d1_014_lobo_error_must_not_be_masked_as_eligible_not_executed():
         }
     }
     for claim in (
-        {"claim_id": "c1", "analysis": "differential_expression", "tier": "associative"},
+        {"claim_id": "c1", "modality": "bulk_rna", "analysis": "differential_expression", "tier": "associative"},
         {"claim_id": "c2", "modality": "bulk RNA-seq", "analysis": "differential_expression", "tier": "associative"},
     ):
         certs = build_falsification_certificates([claim], agent_results, {})
