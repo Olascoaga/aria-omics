@@ -40,24 +40,7 @@ def _donor_id(value):
     return None if donor.lower() in ("", "nan", "none", "na", "null", "<na>") else donor
 
 
-def bh_adjust(pvals: np.ndarray) -> np.ndarray:
-    """Deterministic Benjamini-Hochberg adjusted p-values preserving NaNs."""
-    p = np.asarray(pvals, dtype=float)
-    out = np.full_like(p, np.nan, dtype=float)
-    valid = np.isfinite(p)
-    m = int(valid.sum())
-    if m == 0:
-        return out
-    pv = np.clip(p[valid], 0.0, 1.0)
-    order = np.argsort(pv, kind="mergesort")
-    ranked = pv[order]
-    adj = ranked * float(m) / np.arange(1, m + 1, dtype=float)
-    adj = np.minimum.accumulate(adj[::-1])[::-1]
-    adj = np.clip(adj, 0.0, 1.0)
-    inv = np.empty(m, dtype=int)
-    inv[order] = np.arange(m)
-    out[valid] = adj[inv]
-    return out
+from aria.utils.stats import bh_correct as bh_adjust
 
 
 def _unpaired_fold_stats(
@@ -384,8 +367,33 @@ def compute_counts_lobo_jackknife(
     raw = np.where(np.isfinite(raw), np.maximum(raw, 0.0), 0.0)
     normalization = "log2_cpm_plus_1"
     if size_factors is not None:
-        if isinstance(size_factors, dict):
-            sf_vec = np.array([float(size_factors.get(s, 1.0)) for s in samples], dtype=float)
+        from collections.abc import Mapping
+
+        if isinstance(size_factors, Mapping):
+            sf_map = {str(k): v for k, v in size_factors.items()}
+            missing = [s for s in samples if s not in sf_map]
+            if missing:
+                raise ValueError(
+                    f"size_factors mapping is missing sample(s): {missing}"
+                )
+            sf_vec = np.array([float(sf_map[s]) for s in samples], dtype=float)
+        elif hasattr(size_factors, "index") and hasattr(size_factors, "to_dict"):
+            idx_list = [str(k) for k in size_factors.index]
+            if len(set(idx_list)) != len(idx_list):
+                dups = sorted({k for k in idx_list if idx_list.count(k) > 1})
+                raise ValueError(
+                    f"size_factors Series contains duplicate sample index key(s): {dups}"
+                )
+            sf_map = {
+                str(k): v
+                for k, v in zip(idx_list, size_factors.to_numpy(), strict=True)
+            }
+            missing = [s for s in samples if s not in sf_map]
+            if missing:
+                raise ValueError(
+                    f"size_factors Series is missing sample(s): {missing}"
+                )
+            sf_vec = np.array([float(sf_map[s]) for s in samples], dtype=float)
         else:
             sf_vec = np.asarray(size_factors, dtype=float).ravel()
         if sf_vec.shape[0] == len(samples) and np.all(np.isfinite(sf_vec)) and np.all(sf_vec > 0):
@@ -393,11 +401,13 @@ def compute_counts_lobo_jackknife(
             log_mat = np.log2(np.maximum(scaled, 0.0) + 1.0)
             normalization = "spikein_or_external_size_factor_log2"
         else:
-            lib_sizes = np.maximum(raw.sum(axis=0), 1.0)
-            log_mat = np.log2((raw / lib_sizes[None, :]) * 1e6 + 1.0)
+            from aria.utils.stats import compute_log2_cpm
+
+            log_mat = compute_log2_cpm(raw, zero_policy="zero")
     else:
-        lib_sizes = np.maximum(raw.sum(axis=0), 1.0)
-        log_mat = np.log2((raw / lib_sizes[None, :]) * 1e6 + 1.0)
+        from aria.utils.stats import compute_log2_cpm
+
+        log_mat = compute_log2_cpm(raw, zero_policy="zero")
 
     unit_to_donor = None
     if paired_unit_col and paired_unit_col in meta_aligned.columns:

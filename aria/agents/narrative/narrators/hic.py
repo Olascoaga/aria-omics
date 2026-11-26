@@ -28,15 +28,17 @@ Strict invariants (ADR-002, ADR-011, ADR-082, C1-C4):
 
 from __future__ import annotations
 
-import math
 from pathlib import Path
-import re
 from typing import Any
 
+from aria.agents.narrative.protocols import (
+    as_int as _as_int,
+    clean_token as _clean_token,
+    diagnostic_block as _shared_diagnostic_block,
+    finite_round as _finite_round,
+    stage_state as _stage_state,
+)
 from aria.agents.narrative.types import Caveat, EvidenceItem, NarrativeBlock
-
-_OK_STATUSES = {"success", "ok", "done"}
-_TAG_STRIP_RE = re.compile(r"<[^>]+>")
 
 
 def unwrap_hic_findings(agent_result: dict | None) -> dict[str, Any]:
@@ -47,38 +49,6 @@ def unwrap_hic_findings(agent_result: dict | None) -> dict[str, Any]:
     if isinstance(findings, dict):
         return findings
     return agent_result
-
-
-def _clean_token(val: Any, default: str = "unspecified") -> str:
-    if val is None:
-        return default
-    txt = _TAG_STRIP_RE.sub("", str(val))
-    txt = re.sub(r"[\r\n\t]+", " ", txt).strip()
-    return txt or default
-
-
-def _finite_round(val: Any, digits: int = 4) -> float | None:
-    if val is None or isinstance(val, bool):
-        return None
-    try:
-        f = float(val)
-    except (TypeError, ValueError):
-        return None
-    if not math.isfinite(f):
-        return None
-    return round(f, digits)
-
-
-def _as_int(val: Any) -> int | None:
-    if val is None or isinstance(val, bool):
-        return None
-    try:
-        if isinstance(val, float) and not math.isfinite(val):
-            return None
-        return int(val)
-    except (TypeError, ValueError, OverflowError):
-        # Wave 4A: int(inf) raises OverflowError; int("nan") ValueError.
-        return None
 
 
 def _first_key(d: dict[str, Any], *keys: str) -> Any:
@@ -147,19 +117,6 @@ def _loop_pe_count(loops: dict[str, Any]) -> int | None:
     return None
 
 
-def _stage_state(stage: Any) -> str:
-    if not isinstance(stage, dict) or not stage:
-        return "absent"
-    st = str(stage.get("status") or "").lower().strip()
-    if st in {"error", "failed"}:
-        return "error"
-    if st in {"skipped", "not_run", "blocked"} or stage.get("ran") is False:
-        return "skipped"
-    if st in _OK_STATUSES or stage.get("ran") is True:
-        return "ok"
-    return "skipped"
-
-
 def _ev(label: str, value: Any, source: str = "genome_arch_agent", path: str | None = None) -> EvidenceItem:
     return EvidenceItem(label=label, value=value, source=source, path=path)
 
@@ -182,40 +139,15 @@ def _diagnostic_block(
     stage: dict[str, Any],
     state: str,
 ) -> NarrativeBlock:
-    raw_details = stage.get("details")
-    if isinstance(raw_details, dict):
-        raw_details = (
-            raw_details.get("details")
-            or raw_details.get("reason")
-            or raw_details.get("error_type")
-            or raw_details.get("message")
-            or stage.get("stage")
-        )
-    reason = _clean_token(
-        stage.get("reason")
-        or stage.get("message")
-        or raw_details
-        or stage.get("error_type")
-        or f"stage reported status={stage.get('status')}",
-        default="stage did not execute",
-    )
-    status = "error" if state == "error" else "limitation"
-    return NarrativeBlock(
-        id=block_id,
+    return _shared_diagnostic_block(
+        block_id,
+        analysis,
+        title,
+        stage,
+        state,
         modality="hic",
-        analysis=analysis,
         block_type="limitation",
-        title=title,
-        status=status,
-        confidence="insufficient",
-        claim="",
-        error=reason if status == "error" else None,
-        caveats=[
-            Caveat(
-                text=f"{title} did not produce inferential output ({reason}); no unmeasured values were substituted.",
-                severity="warning" if status == "error" else "info",
-            )
-        ],
+        skipped_status="limitation",
         metadata={"validation_level": stage.get("validation_level") or "production"},
     )
 
@@ -458,8 +390,6 @@ class HiCNarrator:
                 severity="info",
             )
         ]
-        for w in bal.get("warnings") or []:
-            caveats.append(Caveat(_clean_token(w), severity="warning"))
 
         return NarrativeBlock(
             id="hic.qc",
@@ -551,8 +481,6 @@ class HiCNarrator:
                     severity="warning",
                 )
             )
-        for w in comp.get("warnings") or []:
-            caveats.append(Caveat(_clean_token(w), severity="warning"))
 
         return NarrativeBlock(
             id="hic.compartments",
@@ -627,8 +555,6 @@ class HiCNarrator:
                 severity="info",
             )
         ]
-        for w in tads.get("warnings") or []:
-            caveats.append(Caveat(_clean_token(w), severity="warning"))
 
         figs = (
             _figure_entries(
@@ -701,8 +627,6 @@ class HiCNarrator:
                 severity="info",
             )
         ]
-        for w in loops.get("warnings") or []:
-            caveats.append(Caveat(_clean_token(w), severity="warning"))
 
         return NarrativeBlock(
             id="hic.loops",
@@ -867,8 +791,6 @@ class HiCNarrator:
                     severity="warning",
                 )
             )
-        for w in diff3d.get("warnings") or []:
-            caveats.append(Caveat(_clean_token(w), severity="warning"))
 
         return NarrativeBlock(
             id="hic.differential_3d",

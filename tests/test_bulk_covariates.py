@@ -70,26 +70,63 @@ def test_deseq2_fits_and_reports_the_covariate_adjusted_formula():
     import numpy as np
     from aria.scripts.rna_bulk_de import _run_deseq2
 
-    rng = np.random.default_rng(0)
+    rng = np.random.default_rng(7)
     samples = [f"s{i}" for i in range(8)]
     metadata = pd.DataFrame({
         "condition": ["ctrl"] * 4 + ["treat"] * 4,
         # batch crosses condition (not confounded): adjustable, not rank-deficient
         "batch":     ["b1", "b2", "b1", "b2", "b1", "b2", "b1", "b2"],
     }, index=samples)
+    n_genes = 200
+    # Plant a large gene-specific orthogonal batch shift (4x in opposite halves
+    # so size-factor normalization cannot cancel it) plus a moderate +1.2 log2FC
+    # treatment shift on genes 0..24.
+    base = np.full((n_genes, 8), 120.0, dtype=float)
+    b2_cols = [1, 3, 5, 7]
+    base[:100, b2_cols] *= 4.0
+    base[100:, b2_cols] *= 0.25
+    base[:25, 4:8] *= 2.8
     counts = pd.DataFrame(
-        rng.poisson(100, size=(200, 8)),
-        index=[f"GENE_{i:04d}" for i in range(200)],
+        rng.negative_binomial(n=40, p=40.0 / (40.0 + base)),
+        index=[f"GENE_{i:04d}" for i in range(n_genes)],
         columns=samples,
     )
 
     result, warnings = _run_deseq2(
         counts, metadata, "condition", "treat", "ctrl",
-        padj_thr=0.05, lfc_thr=1.0, covariates=["batch"],
+        padj_thr=0.05, lfc_thr=0.5, covariates=["batch"],
+    )
+    unadjusted, _ = _run_deseq2(
+        counts, metadata, "condition", "treat", "ctrl",
+        padj_thr=0.05, lfc_thr=0.5, covariates=[],
     )
     assert result["status"] == "success", result
     assert result["fitted_design_formula"] == "~ batch + condition"
     assert result["covariates_adjusted"] == ["batch"]
+
+    # Covariate adjustment must genuinely enter DeseqDataSet and remove batch variance.
+    planted = [f"GENE_{i:04d}" for i in range(25)]
+    adj_df = result["results"].loc[planted]
+    unadj_df = unadjusted["results"].loc[planted]
+    adj_sig = int((adj_df["padj"] < 0.05).sum())
+    unadj_sig = int((unadj_df["padj"] < 0.05).sum())
+    assert adj_sig >= 18
+    assert adj_sig > unadj_sig
+    assert (adj_df["log2FoldChange"] > 0.5).sum() >= 20
+    assert float(adj_df["padj"].median()) < float(unadj_df["padj"].median())
+    assert float(adj_df["stat"].median()) > float(unadj_df["stat"].median()) * 2.0
+    # Unshrunken MLE SE directly confirms batch variance was removed from the GLM fit.
+    adj_mle, _ = _run_deseq2(
+        counts, metadata, "condition", "treat", "ctrl",
+        padj_thr=0.05, lfc_thr=0.5, covariates=["batch"], lfc_shrink=False,
+    )
+    unadj_mle, _ = _run_deseq2(
+        counts, metadata, "condition", "treat", "ctrl",
+        padj_thr=0.05, lfc_thr=0.5, covariates=[], lfc_shrink=False,
+    )
+    assert float(adj_mle["results"].loc[planted, "lfcSE"].median()) < (
+        float(unadj_mle["results"].loc[planted, "lfcSE"].median()) * 0.6
+    )
 
 
 # ── Report Methods state the actually-fitted formula ─────────────────────────

@@ -35,19 +35,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
 from pathlib import Path
 from aria.scripts._base import run_script
-
-
-def _categorical_colors(n: int) -> list:
-    import matplotlib.pyplot as plt
-    if n <= 10:
-        return list(plt.get_cmap("tab10").colors)[:n]
-    if n <= 20:
-        return list(plt.get_cmap("tab20").colors)[:n]
-    base = (list(plt.get_cmap("tab20").colors)
-            + list(plt.get_cmap("tab20b").colors))
-    while len(base) < n:
-        base = base + base
-    return base[:n]
+from aria.scripts.rna_figure_umap import _categorical_colors
 
 
 def _spring_layout(conn, seed: int = 0, iterations: int = 100):

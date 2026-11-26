@@ -17,6 +17,7 @@ instead of inventing numbers.
 from __future__ import annotations
 
 import json
+import math
 from pathlib import Path
 from typing import Any
 
@@ -56,15 +57,28 @@ def check_calibration(benchmark: str, metrics: dict[str, Any]) -> dict[str, Any]
     violations: list[str] = []
     measured: dict[str, Any] = {}
 
+    def _parse_finite(key: str, raw: Any) -> float | None:
+        if isinstance(raw, bool) or (
+            type(raw).__name__ in ("bool", "bool_")
+            and type(raw).__module__.startswith("numpy")
+        ):
+            violations.append(f"non-numeric metric '{key}'={raw!r} (boolean)")
+            return None
+        try:
+            val = float(raw)
+        except (TypeError, ValueError):
+            violations.append(f"non-numeric metric '{key}'={raw!r}")
+            return None
+        if not math.isfinite(val):
+            violations.append(f"non-finite metric '{key}'={raw!r}")
+            return None
+        return val
+
     def _need(key: str) -> float | None:
         if key not in metrics or metrics[key] is None:
             violations.append(f"missing metric '{key}'")
             return None
-        try:
-            return float(metrics[key])
-        except (TypeError, ValueError):
-            violations.append(f"non-numeric metric '{key}'={metrics[key]!r}")
-            return None
+        return _parse_finite(key, metrics[key])
 
     if "min_recall" in bounds:
         recall = _need("recall")
@@ -88,12 +102,15 @@ def check_calibration(benchmark: str, metrics: dict[str, Any]) -> dict[str, Any]
             # Optional check: only enforced when both counts are reported.
             pass
         else:
-            frac = float(n_fp) / max(float(n_called), 1.0)
-            measured["false_positive_fraction"] = round(frac, 4)
-            if frac > bounds["max_false_positive_fraction"]:
-                violations.append(
-                    f"false-positive fraction {frac:.4f} > "
-                    f"{bounds['max_false_positive_fraction']}")
+            fp_val = _parse_finite("n_false_positive", n_fp)
+            called_val = _parse_finite("n_called", n_called)
+            if fp_val is not None and called_val is not None:
+                frac = fp_val / max(called_val, 1.0)
+                measured["false_positive_fraction"] = round(frac, 4)
+                if frac > bounds["max_false_positive_fraction"]:
+                    violations.append(
+                        f"false-positive fraction {frac:.4f} > "
+                        f"{bounds['max_false_positive_fraction']}")
 
     return {
         "benchmark": benchmark,

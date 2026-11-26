@@ -75,7 +75,7 @@ def _factorial(cells: Mapping[tuple[str, str], int], factor2: str,
 
 
 def _case(case_id: str, category: str, description: str, factors: str,
-          batch_structure: str, samples: list[dict[str, Any]],
+          samples: list[dict[str, Any]],
           covariates: tuple[str, ...]) -> DesignCase:
     # gold is deliberately empty: the decision is authored by an independent
     # human, never in code. aria_decision() never reads it.
@@ -94,7 +94,7 @@ def build_multifactorial_corpus() -> list[DesignCase]:
     corpus.append(_case(
         "mf2x2_balanced_n3", "factorial_complete",
         "2x2 condition x genotype, 3 reps/cell, batch balanced across cells",
-        "condition x genotype", "balanced",
+        "condition x genotype",
         _factorial({("treated", "WT"): 3, ("treated", "KO"): 3,
                     ("control", "WT"): 3, ("control", "KO"): 3},
                    "genotype", batch="balanced"),
@@ -102,7 +102,7 @@ def build_multifactorial_corpus() -> list[DesignCase]:
     corpus.append(_case(
         "mf3x2_balanced_n3", "factorial_complete",
         "3x2 condition(A,B,C) x timepoint(t0,t1), 3 reps/cell, no batch",
-        "condition x timepoint", "none",
+        "condition x timepoint",
         _factorial({("A", "t0"): 3, ("A", "t1"): 3, ("B", "t0"): 3,
                     ("B", "t1"): 3, ("C", "t0"): 3, ("C", "t1"): 3},
                    "timepoint"),
@@ -112,7 +112,7 @@ def build_multifactorial_corpus() -> list[DesignCase]:
     corpus.append(_case(
         "mf2x2_two_reps", "factorial_low_power",
         "2x2 condition x genotype with only 2 reps/cell (low power)",
-        "condition x genotype", "balanced",
+        "condition x genotype",
         _factorial({("treated", "WT"): 2, ("treated", "KO"): 2,
                     ("control", "WT"): 2, ("control", "KO"): 2},
                    "genotype", batch="balanced"),
@@ -122,7 +122,7 @@ def build_multifactorial_corpus() -> list[DesignCase]:
     corpus.append(_case(
         "mf2x2_missing_cell", "factorial_incomplete",
         "2x2 with the (treated,KO) cell absent (unestimable interaction)",
-        "condition x genotype", "none",
+        "condition x genotype",
         _factorial({("treated", "WT"): 3, ("control", "WT"): 3,
                     ("control", "KO"): 3}, "genotype"),
         covariates=("genotype",)))
@@ -131,7 +131,7 @@ def build_multifactorial_corpus() -> list[DesignCase]:
     corpus.append(_case(
         "mf2x2_singleton_cell", "factorial_under_replicated",
         "2x2 where the (treated,KO) cell has a single replicate",
-        "condition x genotype", "none",
+        "condition x genotype",
         _factorial({("treated", "WT"): 3, ("treated", "KO"): 1,
                     ("control", "WT"): 3, ("control", "KO"): 3}, "genotype"),
         covariates=("genotype",)))
@@ -140,7 +140,7 @@ def build_multifactorial_corpus() -> list[DesignCase]:
     corpus.append(_case(
         "mf2x2_genotype_batch_confounded", "factorial_confounded",
         "2x2 where genotype is perfectly confounded with processing batch",
-        "condition x genotype", "confounded_f2",
+        "condition x genotype",
         _factorial({("treated", "WT"): 3, ("treated", "KO"): 3,
                     ("control", "WT"): 3, ("control", "KO"): 3},
                    "genotype", batch="confounded_f2"),
@@ -150,7 +150,7 @@ def build_multifactorial_corpus() -> list[DesignCase]:
     corpus.append(_case(
         "mf_condition_genotype_aliased", "factorial_confounded",
         "genotype aliased with condition (all treated=KO, all control=WT)",
-        "condition x genotype", "none",
+        "condition x genotype",
         _factorial({("treated", "KO"): 4, ("control", "WT"): 4}, "genotype"),
         covariates=("genotype",)))
 
@@ -158,7 +158,7 @@ def build_multifactorial_corpus() -> list[DesignCase]:
     corpus.append(_case(
         "mf2x2_condition_batch_confounded", "factorial_confounded",
         "2x2 where condition is perfectly confounded with batch",
-        "condition x genotype", "confounded_cond",
+        "condition x genotype",
         _factorial({("treated", "WT"): 3, ("treated", "KO"): 3,
                     ("control", "WT"): 3, ("control", "KO"): 3},
                    "genotype", batch="confounded_cond"),
@@ -168,7 +168,7 @@ def build_multifactorial_corpus() -> list[DesignCase]:
     corpus.append(_case(
         "mf2x1_single_second_level", "factorial_degenerate",
         "declared 2-factor design where the second factor has one level only",
-        "condition x genotype", "none",
+        "condition x genotype",
         _factorial({("treated", "WT"): 3, ("control", "WT"): 3}, "genotype"),
         covariates=("genotype",)))
 
@@ -184,7 +184,7 @@ def build_multifactorial_corpus() -> list[DesignCase]:
     corpus.append(_case(
         "mf_continuous_dose_second_factor", "factorial_continuous",
         "second factor is a continuous dose (each value unique per cell)",
-        "condition x dose(continuous)", "none",
+        "condition x dose(continuous)",
         dose_samples, covariates=("dose",)))
 
     # Nested design: donors nested within condition, adequate replication.
@@ -200,7 +200,7 @@ def build_multifactorial_corpus() -> list[DesignCase]:
     corpus.append(_case(
         "mf_nested_donor_replicates", "nested_design",
         "donors nested within condition, 2 pseudo-units per donor, 3 donors/arm",
-        "condition / donor(nested)", "balanced",
+        "condition / donor(nested)",
         nested, covariates=("batch",)))
 
     return corpus

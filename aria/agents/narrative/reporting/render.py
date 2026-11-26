@@ -26,7 +26,7 @@ def _sanitize_json_value(obj):
     if callable(item) and type(obj).__module__.startswith("numpy"):
         try:
             return _sanitize_json_value(item())
-        except Exception:
+        except Exception:  # aria: allow-broad-except cosmetic numpy scalar conversion fallback
             pass
     return obj
 
@@ -105,8 +105,11 @@ class ReportRenderMixin:
         try:
             from aria.agents import _narrative_scrna
             from aria.utils.environment_manager import env_manager
-        except Exception as e:
+        except Exception as e:  # aria: allow-broad-except record scRNA figure import error for W-WARN
             log.warning(f"Cannot import figure helpers: {e}")
+            from aria.agents.narrative.protocols import record_figure_error
+            if isinstance(sc.get("findings"), dict):
+                record_figure_error(sc["findings"], "scrna_figures_import", e)
             return
         findings = _narrative_scrna.unwrap_scrna_findings(sc)
         h5ad = sc.get("output_h5ad") or sc.get("output_path")
@@ -120,8 +123,10 @@ class ReportRenderMixin:
             # `findings` may be a reference to sc["findings"] (legacy shape)
             # or a wrapped child (multimodal shape). Either way the mutation
             # above already wrote into the dict that downstream readers see.
-        except Exception as e:
+        except Exception as e:  # aria: allow-broad-except record scRNA figure generation error for W-WARN
             log.warning(f"scRNA figure generation failed: {e}", exc_info=True)
+            from aria.agents.narrative.protocols import record_figure_error
+            record_figure_error(findings, "scrna_figures", e)
 
     def _generate_chromatin_figures(self, agent_results: dict,
                                     report_dir: Path) -> None:
@@ -140,8 +145,11 @@ class ReportRenderMixin:
                 unwrap_chromatin_findings,
             )
             from aria.utils.environment_manager import env_manager
-        except Exception as e:
+        except Exception as e:  # aria: allow-broad-except record chromatin figure import error for W-WARN
             log.warning(f"Cannot import chromatin figure helpers: {e}")
+            from aria.agents.narrative.protocols import record_figure_error
+            if isinstance(ch.get("findings"), dict):
+                record_figure_error(ch["findings"], "chromatin_figures_import", e)
             return
         view = unwrap_chromatin_findings(ch)
         if not view:
@@ -158,8 +166,10 @@ class ReportRenderMixin:
                 Path(report_dir) / "figures",
                 env_manager=env_manager,
             )
-        except Exception as e:
+        except Exception as e:  # aria: allow-broad-except record chromatin figure generation error for W-WARN
             log.warning(f"chromatin figure generation failed: {e}", exc_info=True)
+            from aria.agents.narrative.protocols import record_figure_error
+            record_figure_error(live, "chromatin_figures", e)
 
     def _generate_integration_figures(self, agent_results: dict,
                                       report_dir: Path) -> None:
@@ -174,8 +184,11 @@ class ReportRenderMixin:
             from aria.agents.narrative.narrators.integration import (
                 unwrap_integration_findings,
             )
-        except Exception as e:
+        except Exception as e:  # aria: allow-broad-except record integration figure import error for W-WARN
             log.warning(f"Cannot import integration figure helpers: {e}")
+            from aria.agents.narrative.protocols import record_figure_error
+            if isinstance(integ.get("findings"), dict):
+                record_figure_error(integ["findings"], "integration_figures_import", e)
             return
         findings = unwrap_integration_findings(integ)
         if not findings:
@@ -185,10 +198,12 @@ class ReportRenderMixin:
                 findings=findings,
                 output_dir=Path(report_dir) / "figures",
             )
-        except Exception as e:
+        except Exception as e:  # aria: allow-broad-except record integration figure generation error for W-WARN
             log.warning(
                 f"integration figure generation failed: {e}", exc_info=True
             )
+            from aria.agents.narrative.protocols import record_figure_error
+            record_figure_error(findings, "integration_figures", e)
 
     def _speculative_verification_state(
         self,
@@ -306,6 +321,7 @@ class ReportRenderMixin:
                 agent_results, run_ledger, exp_ctx, proposer=proposer,
                 verification=verification,
             )
+            manifest_warn = ""
             if report_dir is not None and section is not None:
                 # Auditable, non-promotable manifest — separate from the audited
                 # claim manifest. A persist failure must not lose the HTML.
@@ -314,17 +330,47 @@ class ReportRenderMixin:
                         section, report_dir,
                         reproducible=bool(exp_ctx.get("reproducible_mode")),
                     )
-                except Exception as exc:
+                except Exception as exc:  # aria: allow-broad-except surface speculative manifest persistence failure
                     log.warning(
                         "Persisting speculative manifest failed: %s",
                         exc, exc_info=True,
                     )
-            return render_speculative_section_html(section)
-        except Exception as exc:
+                    manifest_warn = (
+                        "<div class='warning'><strong>Speculative manifest persistence failed:</strong> "
+                        f"{_html.escape(f'{type(exc).__name__}: {exc}')}</div>"
+                    )
+            return render_speculative_section_html(section) + manifest_warn
+        except Exception as exc:  # aria: allow-broad-except surface speculative hypotheses error in HTML and manifest
             log.warning(
                 f"Speculative hypotheses section failed: {exc}", exc_info=True
             )
-            return ""
+            err_msg = f"{type(exc).__name__}: {exc}"
+            if report_dir is not None:
+                try:
+                    err_manifest = {
+                        "schema_version": "aria.speculative_hypotheses.v1",
+                        "status": "error",
+                        "promotable": False,
+                        "error": err_msg,
+                        "hypotheses": [],
+                    }
+                    (Path(report_dir) / "speculative_hypotheses.json").write_text(
+                        json.dumps(err_manifest, indent=2, sort_keys=True),
+                        encoding="utf-8",
+                    )
+                except Exception as write_exc:  # aria: allow-broad-except best-effort speculative error manifest write
+                    log.warning(
+                        "Could not write speculative error manifest: %s",
+                        write_exc,
+                    )
+            return (
+                "<div class='card warning'>"
+                "<h3>Speculative Hypotheses (Error)</h3>"
+                f"<p>Speculative hypothesis generation failed "
+                f"(<code>{_html.escape(err_msg)}</code>); "
+                "no hypotheses were generated or promoted.</p>"
+                "</div>"
+            )
 
     def _render_html_report(self, experiment_id: str,
                              exp_ctx: dict,
@@ -399,14 +445,37 @@ class ReportRenderMixin:
         # info caveats appear in the HTML blocks (claim tiers were annotated when
         # the blocks were collected). P-LEDGER: build the planned-vs-run manifest
         # for the provenance section.
+        governance_alerts: list[str] = []
         try:
             from aria.agents.narrative.devils_advocate import build_devils_advocate
             devils_advocate = build_devils_advocate(
                 narrative_blocks, agent_results, exp_ctx
             )
-        except Exception as exc:
+        except Exception as exc:  # aria: allow-broad-except surface failed devil's-advocate governance pass
             log.warning(f"Devil's-advocate pass failed: {exc}", exc_info=True)
-            devils_advocate = []
+            da_err = f"{type(exc).__name__}: {exc}"
+            devils_advocate = {
+                "status": "error",
+                "error": da_err,
+                "entries": [],
+            }
+            governance_alerts.append(
+                f"Devil's-advocate confound review pass failed ({da_err}); "
+                "associative claims carry a blocking unverified-confound caveat."
+            )
+            from aria.agents.narrative.types import Caveat
+            for blk in narrative_blocks or []:
+                tier = ((getattr(blk, "metadata", None) or {}).get("claim") or {}).get("tier")
+                if getattr(blk, "status", None) == "success" and tier in {
+                    "associative", "weak_mechanistic", "strong_mechanistic",
+                }:
+                    blk.caveats.append(Caveat(
+                        text=(
+                            "Devil's-advocate confound review failed "
+                            f"({da_err}); technical alternatives could not be evaluated."
+                        ),
+                        severity="blocking",
+                    ))
         try:
             from aria.agents.narrative.run_ledger import build_run_ledger
             run_ledger = build_run_ledger(exp_ctx, agent_results)
@@ -414,9 +483,16 @@ class ReportRenderMixin:
                 ensure_report_ledger_nodes,
             )
             ensure_report_ledger_nodes(run_ledger, narrative_blocks)
-        except Exception as exc:
+        except Exception as exc:  # aria: allow-broad-except surface failed run-ledger governance pass
             log.warning(f"Run-ledger build failed: {exc}", exc_info=True)
-            run_ledger = {"entries": [], "divergences": [], "n_divergences": 0}
+            run_ledger = {
+                "status": "error",
+                "error": f"{type(exc).__name__}: {exc}",
+                "entries": [],
+                "divergences": [],
+                "n_divergences": 0,
+                "modalities": [],
+            }
             from aria.agents.narrative.run_ledger import (
                 ensure_report_ledger_nodes,
             )
@@ -426,11 +502,36 @@ class ReportRenderMixin:
         # Raw MessageBus findings and legacy prose are not inputs: only typed,
         # evidence-bearing NarrativeBlocks can enter. Unsupported blocks are
         # withheld without exposing their text.
-        from aria.agents.narrative.claim_compiler import compile_public_claims
-        public_compilation = compile_public_claims(
-            narrative_blocks, exp_ctx, run_ledger=run_ledger,
-            report_dir=report_dir,
+        from aria.agents.narrative.claim_compiler import (
+            PublicClaimCompilation,
+            compile_public_claims,
         )
+        try:
+            public_compilation = compile_public_claims(
+                narrative_blocks, exp_ctx, run_ledger=run_ledger,
+                report_dir=report_dir,
+            )
+        except Exception as exc:  # aria: allow-broad-except surface failed claim-compiler governance pass with withheld count
+            log.warning(f"Public claim compilation failed: {exc}", exc_info=True)
+            cc_err = f"{type(exc).__name__}: {exc}"
+            candidates = list(narrative_blocks or [])
+            public_compilation = PublicClaimCompilation(
+                blocks=[],
+                claims=[],
+                withheld=[
+                    {
+                        "claim_id": str(getattr(b, "id", "unknown")),
+                        "status": "withheld",
+                        "reason": f"claim compiler governance pass failed: {cc_err}",
+                    }
+                    for b in candidates
+                ],
+                error=cc_err,
+            )
+            governance_alerts.append(
+                f"Claim Compiler governance pass failed ({cc_err}); "
+                f"{len(candidates)} candidate claim(s) withheld."
+            )
         narrative_blocks = public_compilation.blocks
         public_claims = public_compilation.claims
         findings_html = self._build_findings_section(
@@ -468,16 +569,18 @@ class ReportRenderMixin:
                 })
         # Filter devil's advocate entries to surviving compiled claims so
         # withheld claim_ids never leak into methodology.json["devils_advocate"].
+        # Preserve dict error payloads when the devil's-advocate pass failed.
         surviving_claim_ids = {
             str(c.get("claim_id"))
             for c in public_claims
             if isinstance(c, dict) and c.get("claim_id")
         }
-        devils_advocate = [
-            entry for entry in (devils_advocate or [])
-            if isinstance(entry, dict)
-            and str(entry.get("claim_id") or "") in surviving_claim_ids
-        ]
+        if isinstance(devils_advocate, list):
+            devils_advocate = [
+                entry for entry in devils_advocate
+                if isinstance(entry, dict)
+                and str(entry.get("claim_id") or "") in surviving_claim_ids
+            ]
         executive_summary_block = next(
             (
                 block for block in narrative_blocks
@@ -499,8 +602,20 @@ class ReportRenderMixin:
             run_ledger["claim_linkage"] = link_claims_to_ledger(
                 public_claims, run_ledger
             )
-        except Exception as exc:
+        except Exception as exc:  # aria: allow-broad-except surface failed claim-ledger linkage in run ledger and report
             log.warning(f"Claim-ledger linkage failed: {exc}", exc_info=True)
+            err_msg = f"{type(exc).__name__}: {exc}"
+            if isinstance(run_ledger, dict):
+                run_ledger["claim_linkage"] = {
+                    "status": "error",
+                    "error": err_msg,
+                    "linked": 0,
+                    "unlinked": len(public_claims),
+                    "n_violations": len(public_claims),
+                }
+            governance_alerts.append(
+                f"Claim-ledger linkage pass failed ({err_msg})."
+            )
 
         # C3: the compiler already withheld any result claim without typed
         # evidence/ledger nodes. Re-verify the accepted set as a hard invariant;
@@ -514,6 +629,32 @@ class ReportRenderMixin:
             run_ledger["claim_ledger_verification"] = ledger_verification
 
         public_claim_rows = self._build_public_claims_table(public_claims)
+        withheld_entries = list(public_compilation.withheld or [])
+        withheld_suffix = (
+            f", {len(withheld_entries)} withheld" if withheld_entries else ""
+        )
+        withheld_claims_html = ""
+        if withheld_entries:
+            reason_counts: dict[str, int] = {}
+            for w in withheld_entries:
+                rsn = str(w.get("reason") or "withheld")
+                reason_counts[rsn] = reason_counts.get(rsn, 0) + 1
+            w_rows = "".join(
+                "<tr>"
+                f"<td>{cnt}</td>"
+                f"<td>{_html.escape(rsn)}</td>"
+                "</tr>"
+                for rsn, cnt in sorted(reason_counts.items())
+            )
+            withheld_claims_html = (
+                "<div class='warning'>"
+                f"<strong>Withheld Claims ({len(withheld_entries)}):</strong> "
+                f"{len(withheld_entries)} claim(s) were withheld before publication "
+                "(unverified text and claim IDs omitted from HTML; see "
+                "<code>methodology.json</code> &rarr; <code>claim_compilation.withheld</code>)."
+                "<table><tr><th>Count</th><th>Reason</th></tr>"
+                f"{w_rows}</table></div>"
+            )
 
         # Decisions log rows
         decisions_rows = self._build_decisions_table(decisions)
@@ -543,18 +684,35 @@ class ReportRenderMixin:
         )
         from aria.agents.narrative.robustness import build_robustness_multiverse
         try:
+            _prov_rm = build_robustness_multiverse(agent_results)
+        except Exception as exc:  # aria: allow-broad-except surface robustness multiverse error independently
+            log.warning(
+                f"Robustness multiverse build failed: {exc}", exc_info=True
+            )
+            _prov_rm = {"status": "error", "details": f"{type(exc).__name__}: {exc}"}
+        try:
             _prov_fc = build_falsification_certificates(
                 public_claims,
                 agent_results,
                 exp_ctx,
-                robustness_multiverse=build_robustness_multiverse(agent_results),
+                robustness_multiverse=_prov_rm,
             )
-        except Exception as exc:
+        except Exception as exc:  # aria: allow-broad-except surface failed falsification certificates governance pass
             log.warning(
                 f"Falsification certificates build failed: {exc}",
                 exc_info=True,
             )
-            _prov_fc = None
+            fc_err = f"{type(exc).__name__}: {exc}"
+            _prov_fc = {
+                "schema_version": "aria.falsification_certificates.v1",
+                "feeds_into_parameter_selection": False,
+                "status": "error",
+                "details": fc_err,
+                "certificates": [],
+            }
+            governance_alerts.append(
+                f"Falsification Certificates governance pass failed ({fc_err})."
+            )
         provenance_html = self._build_provenance_section(
             provenance=provenance,
             input_files=exp_ctx.get("input_files", []),
@@ -578,6 +736,15 @@ class ReportRenderMixin:
             narrative_blocks=narrative_blocks, report_dir=report_dir,
             n_withheld=n_withheld,
         )
+        governance_alerts_html = ""
+        if governance_alerts:
+            alert_items = "".join(
+                f"<li>{_html.escape(msg)}</li>" for msg in governance_alerts
+            )
+            governance_alerts_html = (
+                "<div class='warning'><strong>Governance Pass Alert:</strong>"
+                f"<ul style='margin:0.4rem 0 0 1.2rem'>{alert_items}</ul></div>"
+            )
         executive_summary_warning_html = ""
         if executive_summary_warning:
             executive_summary_warning_html = (
@@ -771,6 +938,7 @@ class ReportRenderMixin:
 </div>
 
 <h2>Executive Summary</h2>
+{governance_alerts_html}
 <div class="card">
   <p>{self._plain_text_to_html(executive_summary)}</p>
   {executive_summary_warning_html}
@@ -786,7 +954,7 @@ class ReportRenderMixin:
 {findings_html}
 {speculative_html}
 
-<h2>Governed Claim Ledger ({len(public_claims)} published)</h2>
+<h2>Governed Claim Ledger ({len(public_claims)} published{withheld_suffix})</h2>
 <p style="color: var(--muted); font-size: 0.875rem;">
   Every row below was compiled from an evidence-bearing NarrativeBlock and
   verified before rendering. MessageBus events are operational records, not
@@ -800,6 +968,7 @@ class ReportRenderMixin:
   </tr>
   {public_claim_rows}
 </table>
+{withheld_claims_html}
 
 <h2>Cross-modal Conflicts &amp; Limitations</h2>
 <div class="card">
@@ -861,6 +1030,8 @@ class ReportRenderMixin:
             devils_advocate=devils_advocate,
             compiled_claims=public_claims,
             claim_compilation=public_compilation.summary(),
+            robustness_multiverse=_prov_rm,
+            falsification_certificates=_prov_fc,
         )
         methodology_path = report_dir / "methodology.json"
         methodology_clean = _sanitize_json_value(methodology_obj)
@@ -896,7 +1067,7 @@ class ReportRenderMixin:
         try:
             from aria.agents.narrative.ledger_export import write_ro_crate
             write_ro_crate(report_dir)
-        except Exception as exc:
+        except Exception as exc:  # aria: allow-broad-except record non-fatal RO-Crate export failure
             log.warning(f"RO-Crate export failed: {exc}", exc_info=True)
         log.info(f"Report written to {report_path}")
         return report_path

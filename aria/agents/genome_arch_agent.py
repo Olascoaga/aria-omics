@@ -84,15 +84,6 @@ class GenomeArchAgent(BaseAgent):
         "compartments A/B, TAD calling, loop calling, and differential 3D topology."
     )
     validation_level = "production"  # ADR-082
-    dispatch_enabled = True
-    REQUIRED_SCRIPTS = (
-        "aria/scripts/hic_preprocess.py",
-        "aria/scripts/hic_inspect.py",
-        "aria/scripts/hic_qc_and_balance.py",
-        "aria/scripts/hic_topology.py",
-        "aria/scripts/hic_figure.py",
-    )
-    PLANNED_SCRIPTS = ()
 
     def __init__(self, memory: ARIAMemory,
                  llm: LLMProvider,
@@ -114,7 +105,8 @@ class GenomeArchAgent(BaseAgent):
                     exp_ctx.get("genome", "hg38")
                 )
                 genome_fasta = local
-            except Exception:
+            except Exception as exc:  # aria: allow-broad-except log local genome resolution failure before Hi-C fallback
+                log.warning("Could not resolve local genome FASTA: %s", exc)
                 genome_fasta = None
         gtf_path = (
             exp_ctx.get("gtf")
@@ -531,8 +523,8 @@ class GenomeArchAgent(BaseAgent):
                 )
                 if hist:
                     decision["historical_precedent"] = hist[:2]
-            except Exception:
-                pass
+            except Exception as e:  # aria: allow-broad-except optional historical precedent recall is non-fatal
+                log.debug("Could not recall Hi-C historical precedent: %s", e)
 
         try:
             self.memory.store_decision(
@@ -544,8 +536,9 @@ class GenomeArchAgent(BaseAgent):
                 rationale=decision["rationale"],
                 made_by="advisor",
             )
-        except Exception as e:
+        except Exception as e:  # aria: allow-broad-except surface non-fatal Hi-C resolution decision persistence error
             log.warning("Could not store resolution decision: %s", e)
+            decision["memory_warning"] = f"{type(e).__name__}: {e}"
 
         return decision
 
@@ -857,8 +850,9 @@ class GenomeArchAgent(BaseAgent):
                 rationale=decision["rationale"],
                 made_by="advisor",
             )
-        except Exception as e:
+        except Exception as e:  # aria: allow-broad-except surface non-fatal Hi-C window decision persistence error
             log.warning("Could not store window decision: %s", e)
+            decision["memory_warning"] = f"{type(e).__name__}: {e}"
 
         self.publish_escalation(
             experiment_id=experiment_id,

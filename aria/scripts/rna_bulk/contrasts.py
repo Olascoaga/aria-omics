@@ -3,7 +3,6 @@ and overlap (A7 split of rna_bulk_de.py; bodies verbatim, behavior-preserving).
 
 Re-exported from aria.scripts.rna_bulk_de."""
 from __future__ import annotations
-import re
 import math
 
 from aria.scripts.rna_bulk.gtf_io import _strip_gene_version

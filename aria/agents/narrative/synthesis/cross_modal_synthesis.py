@@ -134,15 +134,11 @@ def _status_done(result: Any) -> bool:
 
 
 def _clean_symbol(raw: Any) -> str | None:
-    """A reportable gene/TF symbol: no raw Ensembl/numeric ids or coordinates."""
-    sym = str(raw or "").strip()
-    if not sym or sym in {"?", "nan", "None", "NA"} or sym.isdigit():
-        return None
-    if sym.upper().startswith(_RAW_ID_PREFIXES) or _PEAK_COORD_RE.match(sym):
-        return None
-    if any(ch in sym for ch in (" ", "\t", "\n", ";", ",", "<", ">")):
-        return None
-    if find_causal_language(sym):
+    """A reportable gene/TF symbol: no raw Ensembl/numeric ids, coordinates, or causal words."""
+    from aria.utils.text_matching import clean_gene_symbol
+
+    sym = clean_gene_symbol(raw)
+    if sym is None or find_causal_language(sym):
         return None
     return sym
 
@@ -674,6 +670,7 @@ def _memory_tf(tf_dirs: dict[str, dict], rna_genes: dict[str, tuple[str, float]]
         "n_discordant_tfs": disc,
         "n_chromatin_shift_rna_unchanged": unchanged,
         "n_paralog_ambiguous": n_par,
+        "n_ambiguous_direction": ambiguous_dir,
         "top_concordant_tfs": conc,
     }
 
@@ -952,6 +949,24 @@ def _tf_block(route, mc, multi, engine) -> NarrativeBlock | None:
             f"members, so the specific TF behind each motif signal is ambiguous "
             f"and the concordance is associative."
         )
+    n_ambig = _int(t.get("n_ambiguous_direction")) or 0
+    tf_caveats = [_CROSS_MODAL_CAVEAT, _TF_CAVEAT]
+    tf_metrics = {
+        "n_tfs_evaluated": n_eval,
+        "n_concordant_tfs": n_conc,
+        "n_paralog_ambiguous": n_par,
+    }
+    if n_ambig > 0:
+        tf_metrics["n_ambiguous_direction"] = n_ambig
+        tf_caveats.append(
+            Caveat(
+                text=(
+                    f"{n_ambig} TF(s) had conflicting chromatin shift directions "
+                    "and were excluded from directional concordance counts."
+                ),
+                severity="warning",
+            )
+        )
     return NarrativeBlock(
         id=_block_id("integration.cross_modal_tf", cid, multi),
         modality=route["modality"], analysis=route["analysis"],
@@ -959,9 +974,8 @@ def _tf_block(route, mc, multi, engine) -> NarrativeBlock | None:
         title="TF motif/footprint × TF RNA triangulation",
         status="success", confidence="low" if n_par else "medium",
         claim=claim, evidence=ev,
-        caveats=[_CROSS_MODAL_CAVEAT, _TF_CAVEAT],
-        metrics={"n_tfs_evaluated": n_eval, "n_concordant_tfs": n_conc,
-                 "n_paralog_ambiguous": n_par},
+        caveats=tf_caveats,
+        metrics=tf_metrics,
         metadata={"contrast_id": cid, "cross_modal_layer": "tf_triangulation",
                   "backed_by_concordance_engine": engine},
     )
@@ -1162,4 +1176,12 @@ def compose_cross_modal_discussion_blocks(
     if patterns.get("tables"):
         primary.tables = [dict(t) for t in patterns["tables"]]
     blocks.append(_limitations_block(route, patterns, engine))
+    if engine and isinstance(links, dict):
+        from aria.agents.narrative.warning_router import route_degradation_signals
+
+        blocks = route_degradation_signals(
+            "cross_modal_concordance",
+            {"sample_matched_links": links},
+            blocks,
+        )
     return blocks

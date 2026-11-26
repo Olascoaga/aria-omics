@@ -10,8 +10,11 @@ optional, or explicitly avoid.
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 import re
+
+log = logging.getLogger(__name__)
 
 
 class DesignIntelligence:
@@ -191,11 +194,15 @@ class DesignIntelligence:
             unsupported.append("Bulk RNA differential expression needs at least two replicates per condition.")
         if modality == "bulk_RNA_raw":
             recommended.append("FASTQ QC/quantification before DE.")
+        from aria.utils.design_matrix import resolve_design_contract
+
+        contract = resolve_design_contract(design, exp_context)
         warnings.extend(
             self._design_matrix_warnings(
                 design,
-                design.get("main_factor", "condition"),
-                design.get("covariates", []),
+                contract.get("condition_col") or "condition",
+                contract.get("covariates") or [],
+                exp_context=exp_context,
             )
         )
         return {
@@ -263,6 +270,7 @@ class DesignIntelligence:
         design: dict,
         condition_col: str | None,
         covariates: list[str] | None,
+        exp_context: dict | None = None,
     ) -> list[str]:
         groups = (
             (design or {}).get("analysis_groups")
@@ -273,9 +281,16 @@ class DesignIntelligence:
             return []
         try:
             import pandas as pd
-            from aria.utils.design_matrix import validate_design_matrix
-        except Exception:
-            return []
+            from aria.utils.design_matrix import (
+                resolve_design_contract,
+                validate_design_matrix,
+            )
+        except Exception as exc:  # aria: allow-broad-except surface design-matrix validator import/runtime failure
+            log.warning("Design-matrix pre-validation unavailable: %s", exc)
+            return [
+                f"Pre-execution design-matrix validation unavailable "
+                f"({type(exc).__name__}: {exc})."
+            ]
 
         rows = []
         for condition, samples in groups.items():
@@ -286,18 +301,44 @@ class DesignIntelligence:
             return []
         meta = pd.DataFrame(rows).set_index("sample")
 
-        covariate_cols = []
-        batch_map = (design or {}).get("batch_map", {}) or {}
-        if batch_map:
-            batch_col = (design or {}).get("batch_factor") or "batch"
-            meta[batch_col] = [batch_map.get(sample, "") for sample in meta.index]
-            covariate_cols.append(batch_col)
+        unit_members = {
+            str(u.get("id")): [str(m) for m in (u.get("members") or [])]
+            for u in ((design or {}).get("replicate_handling") or {}).get("units") or []
+            if isinstance(u, dict) and u.get("id")
+        }
 
-        cov_map_all = (design or {}).get("covariate_map", {}) or {}
-        for cov in covariates or []:
-            cov_map = cov_map_all.get(cov, {})
+        def _lookup_cov(cov_map: dict, sample_id: str) -> str:
+            if sample_id in cov_map:
+                return str(cov_map[sample_id])
+            for member in unit_members.get(sample_id, ()):
+                if member in cov_map:
+                    return str(cov_map[member])
+            if "::" in sample_id:
+                tail = sample_id.split("::", 1)[1]
+                if tail in cov_map:
+                    return str(cov_map[tail])
+            return ""
+
+        contract = resolve_design_contract(design, exp_context)
+        cov_values = contract.get("covariate_values") or {}
+        covariate_cols: list[str] = []
+        batch_col = contract.get("batch_covariate")
+        batch_map = (
+            (cov_values.get(batch_col) if batch_col else None)
+            or (design or {}).get("batch_map")
+            or {}
+        )
+        if batch_map:
+            bcol = batch_col or "batch"
+            meta[bcol] = [_lookup_cov(batch_map, sample) for sample in meta.index]
+            covariate_cols.append(bcol)
+
+        for cov in list(dict.fromkeys([*(covariates or []), *(contract.get("covariates") or [])])):
+            if cov in covariate_cols:
+                continue
+            cov_map = cov_values.get(cov) or {}
             if cov_map:
-                meta[cov] = [cov_map.get(sample, "") for sample in meta.index]
+                meta[cov] = [_lookup_cov(cov_map, sample) for sample in meta.index]
                 covariate_cols.append(cov)
 
         check = validate_design_matrix(
@@ -383,7 +424,9 @@ class DesignIntelligence:
             backing_file = getattr(adata, "file", None)
             if backing_file is not None:
                 backing_file.close()
-        except Exception:
+        except Exception as exc:  # aria: allow-broad-except record h5ad inspection failure without aborting plan
+            log.warning("DesignIntelligence could not inspect h5ad %s: %s", path, exc)
+            meta["inspect_error"] = f"{type(exc).__name__}: {exc}"
             return meta
         return meta
 

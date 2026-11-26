@@ -3,17 +3,25 @@ inference, technical-replicate aggregation and comparison resolution (A7 split).
 
 Re-exported from aria.scripts.rna_bulk_de."""
 from __future__ import annotations
-import os
-import re
-import warnings
 
 from pathlib import Path
 
-from aria.utils.count_classifier import classify_matrix, validate_raw_count_matrix
-from aria.scripts.rna_bulk.deseq2 import _run_deseq2
+from aria.utils.count_classifier import (
+    classify_matrix,
+    read_single_count_file,
+    resolve_unique_sample_names as _resolve_unique_sample_names,
+    validate_raw_count_matrix,
+)
+from aria.scripts.rna_bulk.gtf_io import _strip_gene_version
+
+VALID_COUNT_UNION_POLICIES = ("error", "intersect", "union_zero_fill")
 
 
-def _load_counts(files: list, allow_nonraw: bool = False) -> tuple:
+def _load_counts(
+    files: list,
+    allow_nonraw: bool = False,
+    count_union_policy: str = "error",
+) -> tuple:
     """
     Load counts matrix from various formats.
     Returns (DataFrame, warnings_list, count_meta).
@@ -25,9 +33,33 @@ def _load_counts(files: list, allow_nonraw: bool = False) -> tuple:
     pseudo-counts. Non-raw matrices are hard-refused unless ``allow_nonraw`` is
     set, in which case they are coerced at explicit low confidence. ``count_meta``
     always carries ``count_source`` / ``kind`` (or ``refused`` details).
+
+    Multi-file merge policy (D4-001): Ensembl version suffixes are stripped
+    consistently before comparing per-file gene sets. If gene sets still differ,
+    ``count_union_policy`` governs the behavior:
+      - ``"error"`` (default): fail closed with mismatch size and examples;
+      - ``"intersect"``: retain only the shared gene intersection;
+      - ``"union_zero_fill"``: take the union and fill missing genes with 0
+        (only for per-sample files that legitimately omit zero-count genes).
     """
     import pandas as pd
     warnings = []
+
+    policy = str(count_union_policy or "error").strip()
+    if policy not in VALID_COUNT_UNION_POLICIES:
+        err = (
+            f"Invalid count_union_policy={count_union_policy!r}. Valid options "
+            "for merging per-sample count files are: 'error' (default; fail "
+            "closed if per-sample gene sets differ), 'intersect' (keep only "
+            "genes present in every file), or 'union_zero_fill' (outer union "
+            "filling missing genes with 0, appropriate only when per-sample "
+            "files legitimately omit zero-count genes)."
+        )
+        return None, [err], {
+            "refused": True,
+            "error_type": "InvalidCountUnionPolicy",
+            "details": err,
+        }
 
     valid = [f for f in files if Path(f).exists()]
     if not valid:
@@ -42,37 +74,141 @@ def _load_counts(files: list, allow_nonraw: bool = False) -> tuple:
         # Try all valid files
         count_files = valid
 
+    count_union_meta: dict | None = None
+
     # Try to load as single matrix or merge multiple per-sample files
     if len(count_files) == 1:
-        sep = "," if str(count_files[0]).lower().endswith(".csv") else "\t"
         try:
-            counts = pd.read_csv(count_files[0], sep=sep, index_col=0,
-                                  comment="#")
-            # Drop non-count columns (featureCounts format)
-            drop_cols = [c for c in counts.columns
-                         if c in ("Chr","Start","End","Strand","Length")]
-            counts = counts.drop(columns=drop_cols, errors="ignore")
-            # Keep only numeric columns
-            counts = counts.select_dtypes(include="number")
+            counts = read_single_count_file(count_files[0], try_headerless=False)
             if counts.empty:
                 return None, ["Count matrix has no numeric columns."], {}
         except Exception as e:
             return None, [f"Failed to load {count_files[0]}: {e}"], {}
     else:
-        # Multiple per-sample files — merge by gene ID
+        # Multiple per-sample files — merge by gene ID (fail closed if any sample fails)
+        sample_names, name_err = _resolve_unique_sample_names(count_files)
+        if name_err is not None or sample_names is None:
+            return None, [name_err or "Duplicate per-sample count filenames."], {
+                "refused": True,
+                "error_type": "DuplicateSampleNames",
+                "details": name_err or "Duplicate per-sample count filenames.",
+            }
+
         frames = []
-        for f in count_files:
-            sep = "," if str(f).lower().endswith(".csv") else "\t"
+        per_file_sets: list[tuple[str, set[str]]] = []
+        for f, sample_name in zip(count_files, sample_names, strict=True):
             try:
-                df = pd.read_csv(f, sep=sep, index_col=0, comment="#",
-                                  header=None)
-                df.columns = [Path(f).stem]
-                frames.append(df.select_dtypes(include="number"))
-            except Exception as e:
-                warnings.append(f"Skipping {f}: {e}")
-        if not frames:
-            return None, ["Could not load any count files."], {}
-        counts = pd.concat(frames, axis=1).fillna(0)
+                num_df = read_single_count_file(f, try_headerless=True)
+                if num_df.empty:
+                    return None, [f"Count file {f} has no numeric columns."], {}
+                if num_df.shape[1] != 1:
+                    err = (
+                        f"Per-sample count file {f} contains {num_df.shape[1]} "
+                        "numeric columns (expected 1). Pass a single combined "
+                        "matrix file or one count column per per-sample file."
+                    )
+                    return None, [err], {
+                        "refused": True,
+                        "error_type": "InvalidPerSampleCountFile",
+                        "details": err,
+                    }
+                num_df = num_df.copy()
+                num_df.columns = [sample_name]
+                num_df.index = pd.Index(
+                    [_strip_gene_version(str(g)) for g in num_df.index]
+                )
+                if not num_df.index.is_unique:
+                    dups = sorted(
+                        set(num_df.index[num_df.index.duplicated()].tolist())
+                    )
+                    err = (
+                        f"Count file {f} contains {len(dups)} duplicate gene "
+                        f"ID(s) after stripping Ensembl version suffixes "
+                        f"(e.g. {dups[:10]}). Resolve duplicate gene entries "
+                        "before merging."
+                    )
+                    return None, [err], {
+                        "refused": True,
+                        "error_type": "DuplicateGeneIds",
+                        "details": err,
+                    }
+                per_file_sets.append((sample_name, set(num_df.index.tolist())))
+                frames.append(num_df)
+            except (OSError, ValueError, UnicodeDecodeError,
+                    pd.errors.ParserError, pd.errors.EmptyDataError) as e:
+                return None, [f"Failed to load count file {f}: {e}"], {}
+
+        union_genes = set().union(*(gset for _, gset in per_file_sets))
+        inter_genes = set.intersection(*(gset for _, gset in per_file_sets))
+        sym_diff = union_genes - inter_genes
+        per_file_missing = {
+            label: len(union_genes - gset) for label, gset in per_file_sets
+        }
+        count_union_meta = {
+            "policy": policy,
+            "n_genes_union": len(union_genes),
+            "n_genes_intersection": len(inter_genes),
+            "n_genes_mismatch": len(sym_diff),
+            "per_file_missing": per_file_missing,
+        }
+
+        if sym_diff:
+            examples = sorted(sym_diff)[:10]
+            if policy == "error":
+                err = (
+                    f"Per-sample count files have mismatched gene sets after "
+                    f"stripping Ensembl version suffixes: {len(sym_diff)} "
+                    f"gene(s) differ across files (union={len(union_genes)}, "
+                    f"intersection={len(inter_genes)}, examples={examples}, "
+                    f"per_file_missing={per_file_missing}). A gene-set "
+                    "mismatch is a data-integrity issue that must be resolved "
+                    "explicitly (ARIA never silently intersects or zero-fills "
+                    "missing genes). Pass count_union_policy explicitly: "
+                    "'error' (default: fail closed on any gene-set mismatch), "
+                    "'intersect' (keep only genes present in every file), or "
+                    "'union_zero_fill' (outer union filling missing genes "
+                    "with 0; use only if per-sample files legitimately omit "
+                    "zero-count genes, such as some GEO supplementary files)."
+                )
+                return None, [err], {
+                    "refused": True,
+                    "error_type": "CountGeneSetMismatch",
+                    "details": err,
+                    "count_union": count_union_meta,
+                }
+            if policy == "intersect":
+                if not inter_genes:
+                    err = (
+                        "Per-sample count files have 0 shared genes under "
+                        f"count_union_policy='intersect' "
+                        f"(union={len(union_genes)}, examples={examples})."
+                    )
+                    return None, [err], {
+                        "refused": True,
+                        "error_type": "EmptyGeneIntersection",
+                        "details": err,
+                        "count_union": count_union_meta,
+                    }
+                counts = pd.concat(frames, axis=1, join="inner")
+                warnings.append(
+                    f"Per-sample count files had {len(sym_diff)} mismatched "
+                    f"gene(s) (union={len(union_genes)}, "
+                    f"intersection={len(inter_genes)}); restricted to the "
+                    "shared gene intersection under "
+                    f"count_union_policy='intersect' "
+                    f"(per_file_missing={per_file_missing})."
+                )
+            else:  # policy == "union_zero_fill"
+                counts = pd.concat(frames, axis=1, join="outer").fillna(0)
+                warnings.append(
+                    f"Per-sample count files had {len(sym_diff)} mismatched "
+                    f"gene(s) (union={len(union_genes)}, "
+                    f"intersection={len(inter_genes)}); filled missing genes "
+                    "with 0 under count_union_policy='union_zero_fill' "
+                    f"(per_file_missing={per_file_missing})."
+                )
+        else:
+            counts = pd.concat(frames, axis=1, join="inner")
 
     # Ensure genes × samples (more genes than samples in typical experiments)
     if counts.shape[1] > counts.shape[0]:
@@ -158,7 +294,7 @@ def _load_counts(files: list, allow_nonraw: bool = False) -> tuple:
     counts = counts.round().astype(int)
     counts.columns = counts.columns.astype(str)
 
-    return counts, warnings, {
+    meta_out = {
         "count_source": count_source,
         "kind": info["kind"],
         "raw_count_score": info.get("raw_count_score"),
@@ -166,6 +302,9 @@ def _load_counts(files: list, allow_nonraw: bool = False) -> tuple:
         "sub_scores": info.get("sub_scores", {}),
         "score_basis": info.get("score_basis", {}),
     }
+    if count_union_meta is not None:
+        meta_out["count_union"] = count_union_meta
+    return counts, warnings, meta_out
 
 
 def _enforce_metadata_correspondence(counts, metadata, excluded_samples=None):
@@ -186,7 +325,25 @@ def _enforce_metadata_correspondence(counts, metadata, excluded_samples=None):
     unauthorized or invalid correspondence gap.
     """
     count_cols = [str(c) for c in counts.columns]
-    have_meta = {str(i) for i in metadata.index}
+    if len(set(count_cols)) != len(count_cols):
+        dup_cols = sorted(
+            {c for c in count_cols if count_cols.count(c) > 1}
+        )
+        raise ValueError(
+            "Count matrix contains duplicate sample column names: "
+            f"{dup_cols}. Every count column must have a unique sample ID."
+        )
+    meta_ids = [str(i) for i in metadata.index]
+    if len(set(meta_ids)) != len(meta_ids):
+        dup_meta = sorted(
+            {i for i in meta_ids if meta_ids.count(i) > 1}
+        )
+        raise ValueError(
+            "Metadata table contains duplicate sample IDs: "
+            f"{dup_meta}. Collapse technical lanes or fix duplicate rows "
+            "before differential expression."
+        )
+    have_meta = set(meta_ids)
     orphans = [c for c in count_cols if c not in have_meta]
 
     # De-duplicate the requested exclusions while preserving order.
@@ -230,17 +387,13 @@ def _enforce_metadata_correspondence(counts, metadata, excluded_samples=None):
 
 
 def _metadata_inference_allowed(params: dict) -> bool:
-    """Explicit legacy/dev escape hatch for column-name metadata inference."""
+    """Explicit legacy/dev opt-in via params for column-name metadata inference."""
     opt_in = (
         params.get("allow_inferred_metadata")
         or params.get("allow_metadata_inference")
         or params.get("legacy_metadata_inference")
     )
-    if opt_in:
-        return True
-    return os.environ.get(
-        "ARIA_ALLOW_BULK_METADATA_INFERENCE", ""
-    ).strip().lower() in {"1", "true", "yes", "on"}
+    return bool(opt_in)
 
 
 def _load_or_infer_metadata(counts, metadata_file: str,
@@ -255,16 +408,40 @@ def _load_or_infer_metadata(counts, metadata_file: str,
       sample_A_1, sample_B_1               → condition = {A, B}
     """
     import pandas as pd
-    import re
     warnings = []
 
     counts.columns = counts.columns.astype(str)
+    if not counts.columns.is_unique:
+        dup_cols = sorted(set(counts.columns[counts.columns.duplicated()].tolist()))
+        raise ValueError(
+            "Count matrix contains duplicate sample column names: "
+            f"{dup_cols}. Every sample column must have a unique ID."
+        )
 
     # Try loading explicit metadata file
     if metadata_file and Path(metadata_file).exists():
+        meta = None
         try:
             meta = pd.read_csv(metadata_file, sep="\t", index_col=0)
             meta.index = meta.index.astype(str)
+        except Exception as e:
+            fallback = (
+                "Attempting automatic detection."
+                if allow_inference
+                else "Automatic detection is disabled in production."
+            )
+            warnings.append(
+                f"Metadata file load failed: {e}. "
+                f"{fallback}"
+            )
+        if meta is not None:
+            if not meta.index.is_unique:
+                dup_ids = sorted(set(meta.index[meta.index.duplicated()].tolist()))
+                raise ValueError(
+                    f"Metadata file '{metadata_file}' contains duplicate "
+                    f"sample IDs: {dup_ids}. Each sample must appear at most "
+                    "once before differential expression."
+                )
             # Align to count matrix samples
             common = [s for s in counts.columns if s in meta.index]
             if len(common) < 2:
@@ -279,16 +456,6 @@ def _load_or_infer_metadata(counts, metadata_file: str,
                 )
             else:
                 return meta.loc[common], warnings
-        except Exception as e:
-            fallback = (
-                "Attempting automatic detection."
-                if allow_inference
-                else "Automatic detection is disabled in production."
-            )
-            warnings.append(
-                f"Metadata file load failed: {e}. "
-                f"{fallback}"
-            )
     elif metadata_file:
         warnings.append(f"Metadata file not found: {metadata_file}.")
 
@@ -314,7 +481,6 @@ def _load_or_infer_metadata(counts, metadata_file: str,
         design_factor: [groups[s] for s in samples],
     }, index=samples)
 
-    n_groups = len(set(groups.values()))
     warnings.append(
         f"Experimental groups inferred from sample names: "
         f"{dict(set((v,sum(1 for x in groups.values() if x==v)) for v in set(groups.values())))}. "

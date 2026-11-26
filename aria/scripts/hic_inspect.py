@@ -172,8 +172,13 @@ def _inspect_pairs(fpath: str) -> dict:
                         chroms.append(parts[1])
                 elif not line.startswith("#"):
                     break
-    except Exception:
-        pass
+    except (OSError, EOFError, ValueError) as exc:
+        return {
+            "format": "pairs",
+            "resolutions": [],
+            "chromosomes": [],
+            "error": str(exc)[:200],
+        }
     return {
         "format": "pairs",
         "resolutions": [],

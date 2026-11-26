@@ -16,18 +16,9 @@ No fabrication: peaks that do not parse to a coordinate are dropped from the exp
 from __future__ import annotations
 
 import argparse
-import re
 from pathlib import Path
 
-_PEAK_RE = re.compile(r"^([^:\-_]+)[:\-_](\d+)[\-_](\d+)$")
-
-
-def _parse_peak(name: str):
-    m = _PEAK_RE.match(str(name).strip())
-    if not m:
-        return None
-    s, e = int(m.group(2)), int(m.group(3))
-    return (m.group(1), min(s, e), max(s, e))
+from aria.utils.genomic_coords import parse_peak_coord as _parse_peak
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -44,7 +35,6 @@ def main(argv: list[str] | None = None) -> int:
     args = p.parse_args(argv)
 
     import muon as mu
-    import numpy as np
     import scipy.io as sio
     import scipy.sparse as sp
 

@@ -139,7 +139,7 @@ def rna_de_per_cluster(params: dict) -> dict:
         padj  = rgg["pvals_adj"][cluster_id]
 
         sig = []
-        for gene, l, p in zip(names, lfc, padj):
+        for gene, l, p in zip(names, lfc, padj, strict=True):
             gene = str(gene)
             try:
                 p_val = float(p)

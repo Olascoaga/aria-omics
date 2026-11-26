@@ -31,18 +31,18 @@ This is deterministic and dependency-light. It builds on the existing
 from __future__ import annotations
 
 import math
-import re
+import logging
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+log = logging.getLogger("aria.narrative.claim_compiler")
+
 from aria.agents.narrative.types import NarrativeBlock
 from aria.agents.narrative.evidence_verifier import verify_block_claim_support
 from aria.agents.narrative.validators import (
-    _NEGATION_TAIL_RE,
     _unnegated_causal_hit,
     collect_named_entities,
-    find_causal_language,
 )
 
 
@@ -609,14 +609,19 @@ class PublicClaimCompilation:
     blocks: list[NarrativeBlock] = field(default_factory=list)
     claims: list[dict[str, Any]] = field(default_factory=list)
     withheld: list[dict[str, str]] = field(default_factory=list)
+    error: str | None = None
 
     def summary(self) -> dict[str, Any]:
-        return {
+        out: dict[str, Any] = {
             "compiler": "compile_public_claims",
             "n_published": len(self.claims),
             "n_withheld": len(self.withheld),
             "withheld": list(self.withheld),
         }
+        if self.error:
+            out["status"] = "error"
+            out["error"] = self.error
+        return out
 
 
 def compile_public_claims(
@@ -642,7 +647,8 @@ def compile_public_claims(
     is withheld at this single compilation boundary.
     """
     from aria.agents.narrative.compose_prose import compose_block_prose
-    from aria.agents.narrative.validators import validate_block
+    from aria.agents.narrative.evidence_verifier import EvidenceVerificationError
+    from aria.agents.narrative.validators import NarrativeValidationError, validate_block
 
     candidates = list(blocks or [])
     annotate_claim_tiers(candidates, exp_ctx or {})
@@ -667,16 +673,37 @@ def compile_public_claims(
             from aria.agents.narrative.run_ledger import link_claims_to_ledger
             linkage = link_claims_to_ledger([manifest], run_ledger)
             if linkage.get("n_violations"):
+                if isinstance(run_ledger, dict) and run_ledger.get("status") == "error":
+                    compiled.withheld.append({
+                        "claim_id": str(getattr(block, "id", "unknown")),
+                        "status": "withheld",
+                        "reason": (
+                            "run_ledger governance pass failed: "
+                            f"{run_ledger.get('error') or 'unknown error'}"
+                        ),
+                    })
+                    continue
                 raise ValueError("claim did not resolve to governed evidence nodes")
             card = (manifest.get("verification") or {}).get("evidence_card") or {}
             if not card.get("node_type") or not card.get("provenance"):
                 raise ValueError("evidence node is untyped or lacks provenance")
             compiled.blocks.append(block)
             compiled.claims.append(manifest)
-        except Exception:
+        except (NarrativeValidationError, EvidenceVerificationError, ValueError):
             compiled.withheld.append({
                 "claim_id": str(getattr(block, "id", "unknown")),
                 "status": "withheld",
                 "reason": "unsupported claim or invalid narrative block",
+            })
+        except Exception as exc:  # aria: allow-broad-except isolate unexpected compiler error as tagged withheld claim
+            cid = str(getattr(block, "id", "unknown"))
+            log.warning(
+                "Unexpected internal error compiling claim %s: %s",
+                cid, exc, exc_info=True,
+            )
+            compiled.withheld.append({
+                "claim_id": cid,
+                "status": "withheld",
+                "reason": f"compiler_internal_error: {type(exc).__name__}: {exc}",
             })
     return compiled

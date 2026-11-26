@@ -37,6 +37,7 @@ from aria.agents.narrative.run_ledger import (
     cross_modal_findings,
     cross_modal_status,
 )
+from aria.utils.cross_modal_concordance import LOW_POWER_MIN_MATCHED_SAMPLES
 
 from .. import devils_advocate as _devils_advocate
 from ..caveats import (
@@ -94,20 +95,7 @@ def _corr(value: Any) -> float | None:
     return max(-1.0, min(1.0, out))
 
 
-def _gene_symbol(raw: Any) -> str | None:
-    sym = str(raw or "").strip()
-    if not sym or sym == "?" or sym.isdigit():
-        return None
-    if _PEAK_COORD_RE.match(sym) or sym.upper().startswith(_RAW_ID_PREFIXES):
-        return None
-    parts = sym.split("-")
-    if len(parts) == 3 and parts[0].lower().startswith("chr") and all(
-        p.isdigit() for p in parts[1:]
-    ):
-        return None
-    if any(ch in sym for ch in (" ", "\t", "\n", ";", ",")):
-        return None
-    return sym
+from aria.utils.text_matching import clean_gene_symbol as _gene_symbol
 
 
 def _single_tf(raw: Any) -> str | None:
@@ -139,7 +127,13 @@ def _sample_link_signals(findings: dict) -> list[EvidenceSignal]:
         return []
     alpha = _finite(links.get("padj_threshold")) or _DEFAULT_LINK_ALPHA
     caveats = [PEAK2GENE_ASSOCIATIVE, CROSS_MODAL_UNPAIRED_COHORT]
-    if links.get("low_power_warning") and LOW_REPLICATION not in caveats:
+    raw_low_power = links.get("low_power_warning")
+    is_low_power = (
+        bool(raw_low_power)
+        if raw_low_power is not None
+        else (n_shared_int < LOW_POWER_MIN_MATCHED_SAMPLES)
+    )
+    if is_low_power and LOW_REPLICATION not in caveats:
         caveats.append(LOW_REPLICATION)
     context = f"matched_samples_n={n_shared_int}"
 
@@ -149,7 +143,11 @@ def _sample_link_signals(findings: dict) -> list[EvidenceSignal]:
         if not isinstance(row, dict):
             continue
         gene = _gene_symbol(row.get("gene"))
-        r = _corr(row.get("spearman_r"))
+        # D7-015: padj and n_positive/n_negative_links are evaluated on pearson_r
+        # (pooled_absolute_pearson_sample_permutation). Use pearson_r whenever
+        # present so signal direction matches the tested statistic.
+        pearson_r = _corr(row.get("pearson_r"))
+        r = pearson_r if pearson_r is not None else _corr(row.get("spearman_r"))
         if gene is None or r is None or r == 0.0:
             continue
         padj = _finite(row.get("padj"))

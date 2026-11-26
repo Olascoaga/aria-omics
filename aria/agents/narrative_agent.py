@@ -36,18 +36,9 @@ from __future__ import annotations
 
 import json
 import logging
-import uuid
-import html as _html
-import re
-from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
-from aria.utils.provenance import collect_llm_usage, collect_provenance
-
-from aria import __version__ as ARIA_VERSION
 from aria.agents.base_agent import BaseAgent
-from aria.bus.message_bus import Confidence, MessageType
 from aria.llm.provider import LLMProvider, TaskTier
 from aria.llm.prompt_boundary import (
     PromptDataField,
@@ -57,6 +48,7 @@ from aria.llm.prompt_boundary import (
 from aria.memory.memory import ARIAMemory
 from aria.agents.narrative import report_sections
 from aria.agents.narrative.report_builder import ReportBuilderMixin
+from aria.utils.bulk_qc_contract import sample_qc_failed, sample_qc_size_ratio
 
 log = logging.getLogger("aria.narrative")
 
@@ -527,12 +519,19 @@ for small-effect genes.""",
         outlier_clause = ""
         sample_qc = findings.get("sample_qc", {}) or {}
         if sample_qc:
-            n_out = len(sample_qc.get("candidate_outliers",
-                                      sample_qc.get("outliers", [])) or [])
-            outlier_clause = (
-                f" Sample QC flagged {n_out} outlier(s); the primary DE "
-                "analysis retained all samples."
-            )
+            if sample_qc_failed(sample_qc):
+                err_txt = str(sample_qc.get("error") or "QC failed")[:120]
+                outlier_clause = (
+                    f" Sample QC failed ({err_txt}); outlier screening was "
+                    "not available, and the primary DE analysis retained all samples."
+                )
+            else:
+                n_out = len(sample_qc.get("candidate_outliers",
+                                          sample_qc.get("outliers", [])) or [])
+                outlier_clause = (
+                    f" Sample QC flagged {n_out} outlier(s); the primary DE "
+                    "analysis retained all samples."
+                )
         if powers:
             parts.append(
                 f"Approximate power at the selected LFC threshold ranged from "
@@ -579,12 +578,20 @@ for small-effect genes.""",
                     n_up  = c.get("n_upregulated", 0)
                     n_dn  = c.get("n_downregulated", 0)
                     tops  = c.get("top_genes", [])[:6]
-                    top_str = ", ".join(
-                        f"{g.get('symbol') or g.get('gene')}"
-                        f"({'↑' if g.get('log2fc',0)>0 else '↓'}"
-                        f"{abs(g.get('log2fc',0)):.1f})"
-                        for g in tops
-                    )
+                    from aria.utils.stats import finite_float
+                    top_parts = []
+                    for g in tops:
+                        if not isinstance(g, dict):
+                            continue
+                        label = g.get("symbol") or g.get("gene") or "?"
+                        lfc = finite_float(g.get("log2fc"))
+                        if lfc is not None:
+                            top_parts.append(
+                                f"{label}({'↑' if lfc > 0 else '↓'}{abs(lfc):.1f})"
+                            )
+                        else:
+                            top_parts.append(f"{label}(lfc=NA)")
+                    top_str = ", ".join(top_parts)
                     pw_dict = c.get("pathways", {}) or {}
                     n_pw = sum(len(v) if isinstance(v, list) else 0
                                for v in pw_dict.values())
@@ -612,19 +619,30 @@ for small-effect genes.""",
                     )
                 # Sample QC
                 sqc = findings.get("sample_qc", {}) or {}
-                if sqc.get("n_samples"):
-                    outliers = sqc.get("candidate_outliers",
-                                       sqc.get("outliers", []))
-                    sensitivity_removed = sqc.get(
-                        "sensitivity_outliers_removed", []
-                    )
-                    lines.append(
-                        f"  • Sample QC: {sqc['n_samples']} samples, "
-                        f"library-size range {sqc.get('size_ratio', 0)}×, "
-                        f"{len(outliers)} outliers flagged; primary retained "
-                        f"all samples; sensitivity removed "
-                        f"{len(sensitivity_removed)}."
-                    )
+                if sqc and (sqc.get("n_samples") or sample_qc_failed(sqc)):
+                    ratio = sample_qc_size_ratio(sqc)
+                    ratio_txt = f"{ratio:.1f}×" if ratio is not None else "not available"
+                    n_s = sqc.get("n_samples", "?")
+                    if sample_qc_failed(sqc):
+                        err_txt = str(sqc.get("error") or "QC failed")[:120]
+                        lines.append(
+                            f"  • Sample QC: FAILED ({err_txt}); {n_s} samples, "
+                            f"library-size range {ratio_txt}, outlier screening "
+                            f"not available."
+                        )
+                    else:
+                        outliers = sqc.get("candidate_outliers",
+                                           sqc.get("outliers", [])) or []
+                        sensitivity_removed = sqc.get(
+                            "sensitivity_outliers_removed", []
+                        ) or []
+                        lines.append(
+                            f"  • Sample QC: {n_s} samples, "
+                            f"library-size range {ratio_txt}, "
+                            f"{len(outliers)} outliers flagged; primary retained "
+                            f"all samples; sensitivity removed "
+                            f"{len(sensitivity_removed)}."
+                        )
             else:
                 lines.append("BULK RNA-seq: ran but no successful contrasts.")
 
@@ -1018,78 +1036,61 @@ for small-effect genes.""",
 
     def _collect_narrative_blocks(self, agent_results: dict,
                                   exp_ctx: dict | None = None) -> list:
+        context = {"exp_context": exp_ctx or {}}
+        blocks = self._narrative_registry().collect_blocks(
+            agent_results or {}, context
+        )
+        # BiologicalSynthesisAgent (Slice 1): integrate the structured results
+        # into an Integrated Biological Discussion. Emitting NarrativeBlocks
+        # means the synthesis inherits the claim tiering + STRICT evidence
+        # verification + devil's advocate + ledger linkage applied below.
         try:
-            context = {"exp_context": exp_ctx or {}}
-            blocks = self._narrative_registry().collect_blocks(
-                agent_results or {}, context
+            from aria.agents.biological_synthesis_agent import (
+                BiologicalSynthesisAgent,
             )
-            # BiologicalSynthesisAgent (Slice 1): integrate the structured results
-            # into an Integrated Biological Discussion. Emitting NarrativeBlocks
-            # means the synthesis inherits the claim tiering + STRICT evidence
-            # verification + devil's advocate + ledger linkage applied below.
-            # Best-effort — never block report generation.
-            try:
-                from aria.agents.biological_synthesis_agent import (
-                    BiologicalSynthesisAgent,
+            blocks.extend(
+                BiologicalSynthesisAgent().synthesize(
+                    agent_results or {}, exp_ctx or {}
                 )
-                blocks.extend(
-                    BiologicalSynthesisAgent().synthesize(
-                        agent_results or {}, exp_ctx or {}
-                    )
+            )
+        except Exception as exc:  # aria: allow-broad-except surface synthesis error block instead of wiping modalities
+            log.warning(f"Biological synthesis failed: {exc}", exc_info=True)
+            from aria.agents.narrative.types import Caveat, NarrativeBlock
+            err_msg = f"{type(exc).__name__}: {exc}"
+            blocks.append(
+                NarrativeBlock(
+                    id="integration.synthesis_error",
+                    modality="integrated",
+                    analysis="integration_limitations",
+                    block_type="error",
+                    title="Integrated biological synthesis error",
+                    status="error",
+                    confidence="insufficient",
+                    claim="",
+                    error=err_msg,
+                    caveats=[
+                        Caveat(
+                            text=f"Biological synthesis failed: {err_msg}",
+                            severity="blocking",
+                        )
+                    ],
                 )
-            except Exception as exc:
-                log.warning(f"Biological synthesis failed: {exc}", exc_info=True)
-            # C1: tiering, verification and manifest emission happen once at the
-            # report builder's public-compilation boundary. Collection only emits
-            # typed evidence-bearing blocks; it never creates a parallel claim set.
-            # FAIL-SAFE for the synthesis layer (W-LEDGER lesson): the render path
-            # verifies every block STRICTLY and HARD-FAILS the whole report on an
-            # unsupported sentence. The synthesis is additive — a synthesis block
-            # that cannot be verified must be DROPPED, never abort the report. We
-            # pre-verify only the `integration.*` blocks with the exact check the
-            # renderer uses and keep only the supported ones (loudly logged).
-            blocks = self._drop_unverifiable_synthesis_blocks(blocks)
-            return blocks
-        except Exception as exc:
-            log.warning(f"Narrative block collection failed: {exc}",
-                        exc_info=True)
-            return []
+            )
+        # C1: tiering, verification and manifest emission happen once at the
+        # report builder's public-compilation boundary. Collection only emits
+        # typed evidence-bearing blocks; it never creates a parallel claim set.
+        blocks = self._drop_unverifiable_synthesis_blocks(blocks)
+        return blocks
 
     @staticmethod
     def _drop_unverifiable_synthesis_blocks(blocks: list) -> list:
-        """Keep only `integration.*` blocks the renderer would accept.
+        """Retain synthesis blocks for single-boundary verification in compile_public_claims.
 
-        Runs the same verification the strict renderer runs (block.claim +
-        `compose_block_prose`); a synthesis block that fails is dropped with a loud
-        log instead of aborting the whole report. Non-integration blocks are left
-        untouched (their failures are real report bugs, surfaced as before)."""
-        try:
-            from aria.agents.narrative.compose_prose import compose_block_prose
-            from aria.agents.narrative.evidence_verifier import (
-                verify_block_claim_support,
-            )
-        except Exception:
-            return blocks
-        kept = []
-        for b in blocks:
-            if not str(getattr(b, "id", "")).startswith("integration."):
-                kept.append(b)
-                continue
-            try:
-                prose = compose_block_prose(b) or b.claim or ""
-                manifest = verify_block_claim_support(b, prose, strict=False)
-                if manifest.get("status") == "supported":
-                    kept.append(b)
-                else:
-                    reason = (manifest.get("unsupported") or [{}])[0]
-                    log.warning(
-                        "Dropping unverifiable synthesis block %s: %s",
-                        b.id, reason.get("reason", "unsupported"),
-                    )
-            except Exception as exc:
-                log.warning("Dropping synthesis block %s (verify error): %s",
-                            getattr(b, "id", "?"), exc)
-        return kept
+        D5-011: pre-compiler silent deletion hid dropped synthesis blocks from
+        ``claim_compilation.withheld`` and ``report.html``; all verification and
+        withholding now happens once at ``compile_public_claims``.
+        """
+        return list(blocks or [])
 
     def _narrative_prefixes_for(self, agent_results: dict,
                                 exp_ctx: dict | None = None) -> set[str]:
@@ -1494,22 +1495,31 @@ for small-effect genes.""",
         sqc = findings.get("sample_qc", {})
         if sqc:
             n_samples = sqc.get("n_samples", "?")
-            outliers  = sqc.get("candidate_outliers", sqc.get("outliers", []))
-            sensitivity_removed = sqc.get("sensitivity_outliers_removed", [])
-            lib_range = sqc.get("size_ratio", 1)
-            if outliers:
+            ratio = sample_qc_size_ratio(sqc)
+            ratio_txt = f"{ratio:.1f}×" if ratio is not None else "not available"
+            if sample_qc_failed(sqc):
+                err_txt = str(sqc.get("error") or "QC failed")[:120]
                 parts.append(
-                    f"PCA-based QC on {n_samples} samples identified "
-                    f"outliers: {outliers}. Primary differential expression "
-                    f"retained all samples; sensitivity removed "
-                    f"{sensitivity_removed} where design support allowed."
+                    f"PCA-based sample QC on {n_samples} samples failed "
+                    f"({err_txt}); library size range {ratio_txt}; "
+                    f"outlier screening was not available."
                 )
             else:
-                parts.append(
-                    f"PCA-based QC on {n_samples} samples passed; "
-                    f"library size range {lib_range:.1f}× "
-                    f"(no outliers flagged for sensitivity removal)."
-                )
+                outliers = sqc.get("candidate_outliers", sqc.get("outliers", [])) or []
+                sensitivity_removed = sqc.get("sensitivity_outliers_removed", []) or []
+                if outliers:
+                    parts.append(
+                        f"PCA-based QC on {n_samples} samples identified "
+                        f"outliers: {outliers}. Primary differential expression "
+                        f"retained all samples; sensitivity removed "
+                        f"{sensitivity_removed} where design support allowed."
+                    )
+                else:
+                    parts.append(
+                        f"PCA-based QC on {n_samples} samples passed; "
+                        f"library size range {ratio_txt} "
+                        f"(no outliers flagged for sensitivity removal)."
+                    )
 
         # Multi-contrast results
         contrasts = findings.get("contrasts", [])
@@ -1833,11 +1843,10 @@ for small-effect genes.""",
         return groups
 
     def _get_decisions_log(self, experiment_id: str) -> list:
-        """Retrieve all parameter decisions for this experiment."""
-        try:
-            return self.memory.get_decisions(experiment_id)
-        except Exception:
+        """Retrieve all parameter decisions for this experiment (fails closed on DB error)."""
+        if self.memory is None or not hasattr(self.memory, "get_decisions"):
             return []
+        return self.memory.get_decisions(experiment_id)
 
     def _fallback_executive_summary(self, grouped: dict,
                                      intent: dict) -> str:

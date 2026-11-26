@@ -47,16 +47,14 @@ Cross-modal conflicts:
 
 from __future__ import annotations
 
-import json
 import logging
 import math
 import uuid
 from pathlib import Path
-from typing import Optional
 
 from aria.agents.base_agent import BaseAgent
-from aria.bus.message_bus import Confidence, MessageType
-from aria.llm.provider import LLMProvider, TaskTier
+from aria.bus.message_bus import Confidence
+from aria.llm.provider import LLMProvider
 from aria.llm.parameter_advisor import ParameterAdvisor
 from aria.memory.memory import ARIAMemory
 
@@ -127,9 +125,6 @@ class IntegrationAgent(BaseAgent):
         "Multi-omics integration: WNN (RNA+ATAC), "
         "peak-to-gene linking, MOFA+ for 3+ modalities."
     )
-
-    # Minimum cells required per modality for reliable WNN
-    MIN_CELLS_WNN = 200
 
     def __init__(self, memory: ARIAMemory,
                  llm: LLMProvider,
@@ -1268,7 +1263,7 @@ class IntegrationAgent(BaseAgent):
                         ),
                     )
                     n_stored += 1
-                except Exception as e:
+                except Exception as e:  # aria: allow-broad-except non-fatal peak-gene memory tunnel persistence error
                     log.warning(f"Could not store tunnel: {e}")
 
         log.info(f"Stored {n_stored} peak-gene links as Tunnels in ARIAMemory")
@@ -1499,7 +1494,7 @@ class IntegrationAgent(BaseAgent):
                     ),
                 )
                 n_stored += 1
-            except Exception as e:
+            except Exception as e:  # aria: allow-broad-except non-fatal eRegulon memory tunnel persistence error
                 log.warning(f"Could not store eRegulon tunnel: {e}")
 
         log.info(f"Stored {n_stored} candidate eRegulons as Tunnels in ARIAMemory")
@@ -1636,11 +1631,12 @@ class IntegrationAgent(BaseAgent):
             mofa_params["h5mu_path"] = str(h5mu_cand)
         if isinstance(exp_ctx.get("cell_cycle_genes"), dict):
             mofa_params["cell_cycle_genes"] = exp_ctx["cell_cycle_genes"]
-        if exp_ctx.get("batch_key"):
-            mofa_params["batch_key"] = str(exp_ctx["batch_key"])
-        cond_col = exp_ctx.get("condition_col") or (
-            (exp_ctx.get("design") or {}).get("condition_col")
-        )
+        from aria.utils.design_matrix import resolve_design_contract
+        design_contract = resolve_design_contract(exp_ctx.get("design"), exp_ctx)
+        batch_key = exp_ctx.get("batch_key") or design_contract.get("batch_covariate")
+        if batch_key:
+            mofa_params["batch_key"] = str(batch_key)
+        cond_col = design_contract.get("condition_col")
         if cond_col:
             mofa_params["condition_col"] = str(cond_col)
         mofa_params.update(mofa_overrides)

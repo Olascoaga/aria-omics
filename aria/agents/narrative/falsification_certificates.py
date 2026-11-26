@@ -30,11 +30,7 @@ import math
 import re
 from typing import Any
 
-from aria.utils.lobo_jackknife import (
-    bh_adjust as _bh_adjust,
-    compute_counts_lobo_jackknife,
-    compute_lobo_jackknife,
-)
+from aria.utils.lobo_jackknife import compute_lobo_jackknife
 
 FALSIFICATION_SCHEMA_VERSION = "aria.falsification_certificates.v1"
 
@@ -445,6 +441,7 @@ def build_falsification_certificates(
             if not has_precomputed_lobo and is_inferential else []
         )
         measured_lobo = [s for s in extracted_lobo if s.get("status") == "measured"]
+        error_lobo = [s for s in extracted_lobo if s.get("status") == "error"]
 
         # Axis 1: LOBO Jackknife
         if not is_inferential:
@@ -460,6 +457,12 @@ def build_falsification_certificates(
                 "n_features_evaluated": precomputed_lobo.get("n_features_evaluated"),
                 "n_features_lobo_stable": precomputed_lobo.get("n_features_lobo_stable"),
             }
+        elif isinstance(precomputed_lobo, dict) and precomputed_lobo.get("status") == "error":
+            lobo_axis = {
+                "status": "error",
+                "biological_unit": unit_kind,
+                "error_details": [str(precomputed_lobo.get("details") or "LOBO jackknife failed")],
+            }
         elif measured_lobo:
             n_evaluated = sum(_finite_count(s.get("n_features_evaluated")) for s in measured_lobo)
             n_stable = sum(_finite_count(s.get("n_features_lobo_stable")) for s in measured_lobo)
@@ -472,6 +475,20 @@ def build_falsification_certificates(
                 "n_features_lobo_stable": n_stable,
                 "n_single_unit_driven": sum(_finite_count(s.get("n_single_unit_driven")) for s in measured_lobo),
                 "lobo_stable_fraction": round(n_stable / n_evaluated, 4) if n_evaluated else None,
+            }
+            if error_lobo:
+                lobo_axis["n_contrasts_errored"] = len(error_lobo)
+                lobo_axis["error_details"] = [
+                    str(s.get("details") or "LOBO jackknife failed") for s in error_lobo
+                ]
+        elif error_lobo:
+            lobo_axis = {
+                "status": "error",
+                "biological_unit": unit_kind,
+                "n_contrasts_errored": len(error_lobo),
+                "error_details": [
+                    str(s.get("details") or "LOBO jackknife failed") for s in error_lobo
+                ],
             }
         elif extracted_lobo and all(
             s.get("status") == "not_testable_insufficient_replicates" for s in extracted_lobo
@@ -515,13 +532,17 @@ def build_falsification_certificates(
                 "threshold_provenance": str(ctx.get("lfc_threshold_provenance") or "default"),
             }
 
-        # Axis 4: Design aliasing & biological-unit discipline
+        # Axis 4: Design aliasing & biological-unit discipline (D7-008: read
+        # canonical DesignAgent fields through resolve_design_contract).
+        from aria.utils.design_matrix import resolve_design_contract
+
+        d_contract = resolve_design_contract(design, ctx)
         aliasing_axis = {
             "cell_level_pseudoreplication_blocked": True,
             "technical_replicates_aggregated": bool(
-                (design.get("replicate_handling") or {}).get("has_technical_replicates", False)
+                d_contract["has_technical_replicates"]
             ),
-            "batch_covariate_modeled": bool(design.get("batch_covariate") or design.get("batch_col")),
+            "batch_covariate_modeled": bool(d_contract["batch_covariate"]),
             "low_power_n2_warning": bool(n_arm_min is not None and n_arm_min <= 2),
             "causal_promotion_permitted": bool(tier == "causal_experimental"),
         }

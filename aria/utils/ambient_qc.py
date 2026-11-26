@@ -43,6 +43,79 @@ class QCIssue:
         }
 
 
+VAR_SYMBOL_COLS: tuple[str, ...] = (
+    "gene_symbols",
+    "gene_symbol",
+    "gene_name",
+    "feature_name",
+    "symbol",
+    "gene_short_name",
+)
+
+
+def detect_mt_mask(
+    adata: Any,
+    *,
+    preferred_prefix: str | None = None,
+) -> tuple[Any, str | None]:
+    """Identify mitochondrial genes across ``var_names`` and symbol columns.
+
+    Follows the 10x/Scanpy Ensembl + symbol-column convention and ARIA ADR-002
+    (never fabricates 0% mitochondrial fraction when 0 MT genes match).
+
+    When ``preferred_prefix`` is supplied (e.g. ``"MT-"`` for human or
+    ``"mt-"`` for mouse), exact prefix matches are checked across
+    ``var_names`` and ``VAR_SYMBOL_COLS`` before falling back to
+    case-insensitive ``MT-``/``mt-`` detection. Returns ``(bool_mask, source)``
+    where ``source`` is ``"var_names"``, ``"var['<col>']"``, or ``None``.
+    """
+    import numpy as np
+
+    var_names = [str(g).strip() for g in adata.var_names]
+    var_df = getattr(adata, "var", None)
+
+    def _scan(exact_prefix: str | None) -> tuple[Any, str | None] | None:
+        if exact_prefix is not None:
+            mask = np.array([g.startswith(exact_prefix) for g in var_names], dtype=bool)
+        else:
+            mask = np.array([g.upper().startswith("MT-") for g in var_names], dtype=bool)
+        if int(np.sum(mask)) > 0:
+            return mask, "var_names"
+
+        if var_df is not None:
+            for col in VAR_SYMBOL_COLS:
+                if col in var_df.columns:
+                    vals = [
+                        "" if v is None else str(v).strip()
+                        for v in var_df[col].values
+                    ]
+                    if exact_prefix is not None:
+                        col_mask = np.array(
+                            [v.startswith(exact_prefix) for v in vals],
+                            dtype=bool,
+                        )
+                    else:
+                        col_mask = np.array(
+                            [v.upper().startswith("MT-") for v in vals],
+                            dtype=bool,
+                        )
+                    if int(np.sum(col_mask)) > 0:
+                        return col_mask, f"var['{col}']"
+        return None
+
+    if preferred_prefix:
+        found = _scan(preferred_prefix)
+        if found is not None:
+            return found
+    found = _scan(None)
+    if found is not None:
+        mask, src = found
+        if preferred_prefix and src:
+            return mask, f"{src} (case-insensitive)"
+        return mask, src
+    return np.zeros(len(var_names), dtype=bool), None
+
+
 def _clean_genes(markers) -> list[str]:
     out = []
     for m in (markers or []):

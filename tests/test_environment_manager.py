@@ -133,7 +133,7 @@ def test_rna_qc_on_pbmc3k(tmp_path):
             break
     if pbmc is None:
         pytest.skip("PBMC 3k dataset not present (run install.sh to download)")
-    adata = sc.read_10x_mtx(str(pbmc), var_names="gene_symbols", cache=True)
+    adata = sc.read_10x_mtx(str(pbmc), var_names="gene_symbols", cache=False)
     assert adata.n_obs > 0
     from aria.scripts.rna_qc import rna_qc
     result = rna_qc({

@@ -389,7 +389,8 @@ def test_cellcomm_uses_real_pvalue_scores_and_orders_before_top_n(tmp_path, save
     findings = {"cell_communication": {"method": "liana_rank_aggregate (specificity_rank)", "top_interactions": rows}}
     assert narrative.render_cellcomm_top_pairs_bar(findings, tmp_path / "pairs.png", top_n=3)
     ax = saved_figures["pairs.png"].axes[0]
-    assert [p.get_width() for p in ax.patches] == pytest.approx([6.9, 6, 2])
+    # D8-014: max_fin=6.0 -> canonical adaptive_neglog10 underflow cap max(6.0*1.15, 6.0+1.0, 5.0) = 7.0
+    assert [p.get_width() for p in ax.patches] == pytest.approx([7.0, 6, 2])
     assert "L2-R" in ax.get_yticklabels()[0].get_text()
     assert "-log10(specificity_rank)" in ax.get_xlabel() and "underflow" in ax.get_xlabel()
 
@@ -424,7 +425,8 @@ def test_cellcomm_can_plot_named_pvalues_without_ordinal_rank(tmp_path, saved_fi
         {"pval": 1e-4, "source": "A", "target": "B", "ligand": "L1"}]}}
     narrative.render_cellcomm_top_pairs_bar(findings, tmp_path / "pvalues.png")
     ax = saved_figures["pvalues.png"].axes[0]
-    assert [patch.get_width() for patch in ax.patches] == pytest.approx([4.6, 4])
+    # D8-014: max_fin=4.0 -> canonical adaptive_neglog10 underflow cap max(4.0*1.15, 4.0+1.0, 5.0) = 5.0
+    assert [patch.get_width() for patch in ax.patches] == pytest.approx([5.0, 4])
     assert "-log10(pval)" in ax.get_xlabel()
 
 

@@ -19,7 +19,6 @@ import pandas as pd
 
 from aria.utils.provenance import hash_file, hash_params
 
-BiologicalUnit = Literal["gene", "peak", "cell", "donor", "sample", "cluster", "contrast", "interaction", "pathway"]
 FilterOperator = Literal["==", "!=", "<", "<=", ">", ">=", "in", "not_in", "is_not_null"]
 JoinCardinality = Literal["1:1", "m:1", "1:m"]
 AggFunc = Literal["count", "sum", "mean", "median", "min", "max"]

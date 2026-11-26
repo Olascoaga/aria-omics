@@ -30,7 +30,8 @@ def _python_with(dependency, environment):
     if importlib.util.find_spec(dependency) is not None:
         return sys.executable
     python = ENV_ROOT / environment / "bin/python"
-    assert python.exists(), f"Need {dependency} or the {environment} Python"
+    if not python.exists():
+        pytest.skip(f"Need {dependency} or the {environment} Python")
     return str(python)
 
 
@@ -159,7 +160,17 @@ def test_live_bulk_chromatin_preserves_spikein_normalization(live_results):
     _assert_measured(lobo)
     assert lobo["normalization"] == "spikein_or_external_size_factor_log2"
     assert lobo["per_feature"]["chr1:0-100"]["single_unit_driven"] is False
-    assert lobo == live_results["bulk_atac_expected_lobo"]
+    # D3-008: verify against independent closed-form log2(raw / sf + 1) oracle
+    # rather than invoking compute_counts_lobo_jackknife as its own oracle.
+    expected = live_results["bulk_atac_independent_oracle"]
+    assert expected, "Independent closed-form spike-in LOBO oracle missing"
+    for feat, exp in expected.items():
+        got = lobo["per_feature"][feat]
+        assert got["full_lfc"] == pytest.approx(exp["full_lfc"], abs=1e-4), (feat, got, exp)
+        assert got["lfc_min"] == pytest.approx(exp["lfc_min"], abs=1e-4), (feat, got, exp)
+        assert got["lfc_max"] == pytest.approx(exp["lfc_max"], abs=1e-4), (feat, got, exp)
+        assert got["lfc_iqr"] == pytest.approx(exp["lfc_iqr"], abs=1e-4), (feat, got, exp)
+        assert got["n_jackknife_folds"] == exp["n_jackknife_folds"], (feat, got, exp)
 
 
 @pytest.mark.parametrize("engine", SCRIPTS)
@@ -223,7 +234,8 @@ def test_certificate_manual_override_and_non_de_claims(live_results):
     # Explicit non-measured status overrides live results; empty/None placeholders
     # must not shadow measured agent-result LOBO summaries.
     axis_err = _axis(_claim("bulk_rna"), results, {"lobo_jackknife": {"status": "error"}})
-    assert axis_err["status"] == "eligible_not_executed"
+    assert axis_err["status"] == "error"
+    assert axis_err.get("error_details") == ["LOBO jackknife failed"]
     for empty_placeholder in ({}, None):
         axis_live = _axis(_claim("bulk_rna"), results, {"lobo_jackknife": empty_placeholder})
         assert axis_live["status"] == "measured"
@@ -242,7 +254,9 @@ def test_certificate_mixed_statuses_only_sum_measured_contrasts(live_results):
     assert axis["n_contrasts_measured"] == 1
     assert axis["n_features_evaluated"] == measured["lobo_jackknife"]["n_features_evaluated"]
     results["bulk_rna_agent"]["contrasts"] = [insufficient, failed]
-    assert _axis(_claim("bulk_rna"), results)["status"] == "eligible_not_executed"
+    axis_mixed_err = _axis(_claim("bulk_rna"), results)
+    assert axis_mixed_err["status"] == "error"
+    assert axis_mixed_err.get("error_details") == ["diagnostic failed"]
 
 
 def test_script_import_isolation():
@@ -371,17 +385,34 @@ def _live_worker(work):
                        "comparisons": [["treated", "ctrl"]], "spikein_counts": exposures,
                        "lfc_min": 0.0, "n_cpus": 1, "top_n": 200, "output_dir": str(work / "bulk_atac")}
         out["bulk_atac"] = modules["chromatin_bulk_diffacc"].chromatin_bulk_diffacc(atac_params)
-        from aria.utils.lobo_jackknife import compute_counts_lobo_jackknife
-        rep_ids = [f"{peak_meta.at[u, 'condition']}::{peak_meta.at[u, 'replicate']}" for u in units]
-        rep_counts, rep_meta = peaks.copy(), peak_meta.copy()
-        rep_counts.columns, rep_meta.index = rep_ids, rep_ids
-        sf = np.array(list(exposures.values()), dtype=float)
+        # D3-008: independent closed-form spike-in LOBO oracle (log2(raw / sf + 1)),
+        # computing full_lfc and leave-one-unit-out fold LFCs without calling
+        # compute_counts_lobo_jackknife.
+        sf = np.array([exposures[u] for u in units], dtype=float)
         sf /= np.exp(np.log(sf).mean())
+        ctrl_idx = [i for i, u in enumerate(units) if peak_meta.at[u, "condition"] == "ctrl"]
+        trt_idx = [i for i, u in enumerate(units) if peak_meta.at[u, "condition"] == "treated"]
         hits = [p["peak"] for p in out["bulk_atac"]["comparisons"][0]["top_peaks"]]
-        out["bulk_atac_expected_lobo"] = compute_counts_lobo_jackknife(
-            rep_counts, rep_meta, "condition", "treated", "ctrl", size_factors=sf,
-            target_features=hits or list(peaks.index[:50]), primary_significant_features=hits,
-        )
+        oracle_feats = (hits or list(peaks.index[:50]))[:20]
+        independent_oracle = {}
+        for feat in oracle_feats:
+            row = peaks.loc[feat, units].to_numpy(dtype=float)
+            log_vals = np.log2(row / sf + 1.0)
+            full_lfc = float(log_vals[trt_idx].mean() - log_vals[ctrl_idx].mean())
+            fold_lfcs = []
+            for drop_i in range(len(units)):
+                rem_trt = [i for i in trt_idx if i != drop_i]
+                rem_ctrl = [i for i in ctrl_idx if i != drop_i]
+                fold_lfcs.append(float(log_vals[rem_trt].mean() - log_vals[rem_ctrl].mean()))
+            q75, q25 = np.percentile(fold_lfcs, [75, 25])
+            independent_oracle[feat] = {
+                "full_lfc": full_lfc,
+                "lfc_min": min(fold_lfcs),
+                "lfc_max": max(fold_lfcs),
+                "lfc_iqr": float(q75 - q25),
+                "n_jackknife_folds": len(fold_lfcs),
+            }
+        out["bulk_atac_independent_oracle"] = independent_oracle
 
         def fail_lobo(*args, **kwargs):
             raise RuntimeError("x" * 250)

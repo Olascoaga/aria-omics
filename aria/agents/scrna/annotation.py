@@ -62,8 +62,8 @@ class AnnotationMixin:
                 backing = getattr(adata, "file", None)
                 if backing is not None:
                     backing.close()
-        except Exception as e:
-            log.debug(f"Predefined celltype check failed for {col}: {e}")
+        except Exception as e:  # aria: allow-broad-except log predefined cell-type column check failure
+            log.warning(f"Predefined celltype check failed for {col}: {e}")
             return None
         return col
 
@@ -210,7 +210,6 @@ class AnnotationMixin:
         #            context — does NOT invent labels from markers alone ──
         if celltypist_result.get("status") == "success":
             per_cluster = celltypist_result.get("per_cluster", {})
-            celltypist_evidence = per_cluster
             prompt = build_untrusted_prompt(
                 task="""Reinterpret database-backed CellTypist calls in biological
 context. `frequency` is the fraction of raw per-cell calls matching the cluster
@@ -257,7 +256,6 @@ Rules:
                 f"CellTypist failed ({celltypist_result.get('error_type', '?')}); "
                 f"falling back to LLM-only annotation."
             )
-            celltypist_evidence = None
             prompt = build_untrusted_prompt(
                 task=(
                     "CellTypist was unavailable. Annotate clusters from marker "

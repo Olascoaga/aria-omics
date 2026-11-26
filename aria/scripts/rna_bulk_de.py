@@ -52,13 +52,11 @@ from __future__ import annotations
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from aria.scripts._base import mocks_allowed, run_script
-from aria.utils.count_classifier import classify_matrix, validate_raw_count_matrix
 from aria.utils.stats import (
     contrast_family_significance,
     fdr_advanced_methods_disclosure,
     preregister_contrast_family,
 )
-from pathlib import Path
 
 # P2-8: helpers extracted to the aria.scripts.rna_bulk subpackage and
 # re-exported here so the public surface (and tests) are unchanged.
@@ -98,6 +96,7 @@ from aria.scripts.rna_bulk.counts import (  # noqa: E402,F401
 )
 from aria.scripts.rna_bulk.qc import (  # noqa: E402,F401
     _sample_qc, _prune_outliers_for_design, _run_outlier_sensitivity,
+    sample_qc_failed,
 )
 
 # The paper plot theme (`_P`) now lives in aria/scripts/rna_bulk/plots.py.
@@ -201,30 +200,46 @@ def bulk_rna_de(params: dict) -> dict:
 
     # ── 1. Load counts matrix ─────────────────────────────────────────────
     allow_nonraw = bool(params.get("allow_nonraw_counts", False))
-    counts, load_warn, count_meta = _load_counts(files, allow_nonraw=allow_nonraw)
+    count_union_policy = str(params.get("count_union_policy") or "error").strip()
+    counts, load_warn, count_meta = _load_counts(
+        files,
+        allow_nonraw=allow_nonraw,
+        count_union_policy=count_union_policy,
+    )
     warnings.extend(load_warn)
     if counts is None:
         if count_meta.get("refused"):
-            # Raw-count guard (B10): hard-refuse a non-raw matrix rather than
-            # coerce it into pseudo-counts for DESeq2.
-            return {
+            # Raw-count guard (B10) / count-union mismatch guard (D4-001).
+            err_out = {
                 "status":       "error",
                 "error_type":   count_meta.get("error_type", "NonRawCounts"),
                 "details":      count_meta.get("details", ""),
                 "count_source": count_meta.get("kind"),
             }
+            if count_meta.get("count_union") is not None:
+                err_out["count_union"] = count_meta["count_union"]
+            return err_out
         return {
             "status":     "error",
             "error_type": "CountsLoadFailed",
             "details":    "Could not load count matrix from provided files.",
         }
     count_source = count_meta.get("count_source", "raw_counts")
+    count_union = count_meta.get("count_union")
 
     # ── 2. Load or infer metadata ─────────────────────────────────────────
-    metadata, meta_warn = _load_or_infer_metadata(
-        counts, metadata_file, design_factor,
-        allow_inference=metadata_inference_allowed,
-    )
+    try:
+        metadata, meta_warn = _load_or_infer_metadata(
+            counts, metadata_file, design_factor,
+            allow_inference=metadata_inference_allowed,
+        )
+    except ValueError as exc:
+        return {
+            "status":     "error",
+            "error_type": "DuplicateSampleIds",
+            "details":    str(exc),
+            "warnings":   warnings,
+        }
     warnings.extend(meta_warn)
     if metadata is None:
         return {
@@ -310,12 +325,16 @@ def bulk_rna_de(params: dict) -> dict:
     sample_qc = _call_with_optional_keywords(
         _sample_qc, counts, metadata, output_dir, warnings,
         biotype_map=biotype_map, design_factor=design_factor)
-    flagged_outliers = list(sample_qc.get("outliers", []) or [])
-    outlier_samples = _call_with_optional_keywords(
-        _prune_outliers_for_design,
-        sample_qc.get("outliers", []), metadata, design_factor, warnings,
-        min_reps=min_reps,
-    )
+    if sample_qc_failed(sample_qc):
+        flagged_outliers = None
+        outlier_samples = []
+    else:
+        flagged_outliers = list(sample_qc.get("outliers", []) or [])
+        outlier_samples = _call_with_optional_keywords(
+            _prune_outliers_for_design,
+            flagged_outliers, metadata, design_factor, warnings,
+            min_reps=min_reps,
+        )
     sample_qc["outliers"] = flagged_outliers
     sample_qc["candidate_outliers"] = flagged_outliers
     sample_qc["outliers_removed_primary"] = []
@@ -677,7 +696,7 @@ def bulk_rna_de(params: dict) -> dict:
                 primary_significant_features=[str(g) for g in all_sig],
                 max_reported_features=200,
             )
-        except Exception as exc:
+        except Exception as exc:  # aria: allow-broad-except auxiliary LOBO diagnostic must not abort primary DE
             lobo_res = {"status": "error", "details": str(exc)[:200]}
 
         contrast_results.append({
@@ -869,7 +888,21 @@ def bulk_rna_de(params: dict) -> dict:
         "n_protein_coding":   sample_qc.get("n_protein_coding", 0),
         "technical_replicate_aggregation": technical_replicate_aggregation,
         "metadata_correspondence": metadata_correspondence,
+        **({"count_union": count_union} if count_union is not None else {}),
     }
+
+    fitted_formulas = list(
+        dict.fromkeys(
+            str(c["fitted_design_formula"]).strip()
+            for c in contrast_results
+            if isinstance(c, dict) and str(c.get("fitted_design_formula") or "").strip()
+        )
+    )
+    design_used = (
+        fitted_formulas[0]
+        if len(fitted_formulas) == 1
+        else ("; ".join(fitted_formulas) if fitted_formulas else f"~{design_factor}")
+    )
 
     return {
         "status":           "success",
@@ -880,7 +913,7 @@ def bulk_rna_de(params: dict) -> dict:
         "n_downregulated":  total_down,
         "sample_qc":        sample_qc_clean,
         "outlier_sensitivity": outlier_sensitivity,
-        "design_used":      f"~{design_factor}",
+        "design_used":      design_used,
         "padj_threshold":   padj_thr,
         "lfc_threshold":    lfc_thr,
         "n_cpus":           n_cpus,
@@ -896,6 +929,7 @@ def bulk_rna_de(params: dict) -> dict:
         "tpm_status":       tpm_status,
         "technical_replicate_aggregation": technical_replicate_aggregation,
         "metadata_correspondence": metadata_correspondence,
+        **({"count_union": count_union} if count_union is not None else {}),
         "warnings":         warnings,
     }
 

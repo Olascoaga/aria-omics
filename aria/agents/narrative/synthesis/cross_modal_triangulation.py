@@ -25,7 +25,6 @@ Core governance invariants (ADR-064, ADR-070, C1-C4):
 
 from __future__ import annotations
 
-import math
 from pathlib import Path
 from typing import Any
 
@@ -56,14 +55,7 @@ def _is_executed_stage(stage: Any) -> bool:
     return bool(stage)
 
 
-def _finite_float(val: Any) -> float | None:
-    if val is None or isinstance(val, bool):
-        return None
-    try:
-        out = float(val)
-    except (TypeError, ValueError):
-        return None
-    return out if math.isfinite(out) else None
+from aria.utils.stats import finite_float as _finite_float
 
 
 def _round_num(val: Any, digits: int = 4) -> float | None:
@@ -244,8 +236,10 @@ def _extract_chromatin_signals(
             _harvest_da_peaks(da.get("top_peaks"))
         pc = da.get("per_cluster") or {}
         if isinstance(pc, dict) and pc.get("ran"):
+            from aria.utils.script_contracts import SCATAC_PER_CLUSTER_DA_KEY
+
             da_ran = True
-            top_by_cl = pc.get("top_peaks_by_cluster") or {}
+            top_by_cl = pc.get(SCATAC_PER_CLUSTER_DA_KEY) or {}
             if isinstance(top_by_cl, dict):
                 for rows in top_by_cl.values():
                     _harvest_da_peaks(rows, overwrite=False)

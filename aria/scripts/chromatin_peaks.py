@@ -35,8 +35,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from aria.scripts._base import run_script
 from pathlib import Path
 from aria.scripts.chromatin_peak_counts import (
-    file_record, load_valid_stage_result, stage_manifest_path, write_stage_manifest,
-    _save_stage_result, _open_alignment, _interval_index, _overlaps, _primary_mapped,
+    file_record, load_valid_stage_result, stage_manifest_path, _save_stage_result, _open_alignment, _interval_index, _overlaps, _primary_mapped,
 )
 
 
@@ -182,6 +181,35 @@ def chromatin_peaks(params: dict) -> dict:
                 "Control files specified but not found. "
                 "Running without input control."
             )
+
+    if target_scale_factors:
+        if len(target_scale_factors) != len(valid_files):
+            return {
+                "status": "error",
+                "error_type": "InvalidScaleFactors",
+                "details": (
+                    f"target_scale_factors length ({len(target_scale_factors)}) "
+                    f"must match input file count ({len(valid_files)})."
+                ),
+            }
+        if any(
+            isinstance(v, bool) or not (isinstance(v, (int, float)) and v > 0)
+            for v in target_scale_factors
+        ):
+            return {
+                "status": "error",
+                "error_type": "InvalidScaleFactors",
+                "details": f"target_scale_factors must contain positive numbers: {target_scale_factors!r}",
+            }
+    if control_scale_factors and len(control_scale_factors) != len(valid_ctrl):
+        return {
+            "status": "error",
+            "error_type": "InvalidScaleFactors",
+            "details": (
+                f"control_scale_factors length ({len(control_scale_factors)}) "
+                f"must match control file count ({len(valid_ctrl)})."
+            ),
+        }
 
     cmd: list[str] = []
     effective_format = macs3_params.get("format", "BAMPE")
@@ -351,7 +379,7 @@ def chromatin_peaks(params: dict) -> dict:
         sample_ids_for_files.append(sid)
 
     frip_per_sample = {}
-    for path, sid in zip(valid_files, sample_ids_for_files):
+    for path, sid in zip(valid_files, sample_ids_for_files, strict=True):
         value = _compute_frip(path, str(peaks_file), reference_fasta=reference)
         if value is not None:
             frip_per_sample[sid] = value
@@ -366,14 +394,10 @@ def chromatin_peaks(params: dict) -> dict:
         bw_dir = out_dir / "bigwig"
         effective_genome_size = _effective_genome_size_bp(
             genome, params.get("effective_genome_size"))
-        for idx, (path, sid) in enumerate(zip(valid_files, sample_ids_for_files)):
+        for idx, (path, sid) in enumerate(zip(valid_files, sample_ids_for_files, strict=True)):
             if not str(path).lower().endswith((".bam", ".cram")):
                 continue
-            sf = (
-                float(target_scale_factors[idx])
-                if (target_scale_factors and idx < len(target_scale_factors))
-                else None
-            )
+            sf = float(target_scale_factors[idx]) if target_scale_factors else None
             try:
                 bw_info = write_normalized_bigwig(
                     path,
@@ -816,16 +840,22 @@ def _read_peak_intervals(peaks_file: str) -> list[tuple[str, int, int]]:
 def _merge_intervals_with_support(
     peak_files: list[str],
 ) -> list[tuple[str, int, int, set[int]]]:
+    from aria.utils.genomic_coords import canonical_contig
+
     tagged: list[tuple[str, int, int, int]] = []
+    canon_to_raw: dict[str, str] = {}
     for idx, path in enumerate(peak_files):
-        tagged.extend((chrom, start, end, idx)
-                      for chrom, start, end in _read_peak_intervals(path))
+        for chrom, start, end in _read_peak_intervals(path):
+            norm = canonical_contig(chrom) or chrom
+            canon_to_raw.setdefault(norm, chrom)
+            tagged.append((norm, start, end, idx))
     tagged.sort(key=lambda item: (item[0], item[1], item[2], item[3]))
     merged: list[tuple[str, int, int, set[int]]] = []
-    for chrom, start, end, idx in tagged:
+    for norm, start, end, idx in tagged:
+        out_chrom = canon_to_raw[norm]
         # Half-open BED: book-ended [100,200) and [200,300) do not overlap.
-        if not merged or merged[-1][0] != chrom or start >= merged[-1][2]:
-            merged.append((chrom, start, end, {idx}))
+        if not merged or merged[-1][0] != out_chrom or start >= merged[-1][2]:
+            merged.append((out_chrom, start, end, {idx}))
             continue
         prev_chrom, prev_start, prev_end, support = merged[-1]
         support.add(idx)
@@ -864,12 +894,9 @@ def _write_overlap_consensus(peak_files: list[str],
 
 def _count_peaks(peaks_file: str) -> int:
     """Count number of peaks in a narrowPeak/broadPeak file."""
-    try:
-        with open(peaks_file) as f:
-            return sum(1 for line in f
-                       if line.strip() and not line.startswith("#"))
-    except Exception:
-        return 0
+    with open(peaks_file) as f:
+        return sum(1 for line in f
+                   if line.strip() and not line.startswith("#"))
 
 
 def _effective_macs3_params(files, params, data_type: str = "bulk_ATAC"):

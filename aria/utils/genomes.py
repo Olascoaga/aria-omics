@@ -110,15 +110,6 @@ def local_genome_fasta_with_integrity(
     return None, None
 
 
-def local_genome_fasta(assembly: str | None) -> str | None:
-    """Find a curated, checksum-usable FASTA for ``assembly`` under the managed store.
-
-    Looks for ``ARIA_GENOME_DIR/<dir>/<*.fa[.gz]>`` and ``ARIA_GENOME_DIR/<dir>.fa``
-    across the assembly's alias dir names. No network, no fabrication."""
-    path, _integrity = local_genome_fasta_with_integrity(assembly)
-    return path
-
-
 def resolve_local_genome_fasta_with_integrity(
     assembly: str | None,
 ) -> tuple[str | None, str | None, dict | None]:

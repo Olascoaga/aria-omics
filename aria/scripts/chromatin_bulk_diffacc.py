@@ -23,6 +23,7 @@ from typing import Any
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from aria.scripts._base import mocks_allowed, run_script
+from aria.utils.design_matrix import normalize_comparisons as _normalise_comparisons
 from aria.utils.lobo_jackknife import compute_counts_lobo_jackknife
 
 
@@ -47,39 +48,12 @@ def _skipped(reason: str, **extra) -> dict:
     return out
 
 
-def _normalise_comparisons(raw) -> list[dict[str, str]]:
-    if raw in (None, "", []):
-        return []
-    if isinstance(raw, str):
-        text = raw.strip()
-        for sep in ("_vs_", " vs ", "_VS_", " VS "):
-            if sep in text:
-                left, right = text.split(sep, 1)
-                if left.strip() and right.strip():
-                    return [{"test": left.strip(), "reference": right.strip()}]
-        return []
-    if isinstance(raw, dict):
-        test = raw.get("test") or raw.get("numerator")
-        ref = raw.get("reference") or raw.get("ref") or raw.get("denominator")
-        return ([{"test": str(test), "reference": str(ref)}]
-                if test and ref else [])
-    out = []
-    if isinstance(raw, list):
-        for item in raw:
-            if isinstance(item, dict):
-                out.extend(_normalise_comparisons(item))
-            elif isinstance(item, (list, tuple)) and len(item) >= 2:
-                out.append({"test": str(item[0]), "reference": str(item[1])})
-            elif isinstance(item, str):
-                out.extend(_normalise_comparisons(item))
-    return out
-
-
 def _load_counts_matrix(path: str | Path):
     import numpy as np
     import pandas as pd
+    from aria.utils.count_classifier import detect_table_sep, strip_featurecounts_metadata
 
-    df = pd.read_csv(path, sep="\t")
+    df = pd.read_csv(path, sep=detect_table_sep(path), comment="#")
     if df.empty or df.shape[1] < 2:
         raise ValueError("counts matrix must contain peak_id plus sample columns.")
     peak_col = df.columns[0]
@@ -87,7 +61,9 @@ def _load_counts_matrix(path: str | Path):
         raise ValueError("first counts matrix column must be peak_id/peak.")
     if df[peak_col].isna().any() or df[peak_col].astype(str).duplicated().any():
         raise ValueError("peak IDs must be non-empty and unique.")
-    counts = df.set_index(peak_col)
+    counts = strip_featurecounts_metadata(df.set_index(peak_col))
+    if counts.shape[1] < 1:
+        raise ValueError("counts matrix must contain peak_id plus sample columns.")
     for col in counts.columns:
         counts[col] = pd.to_numeric(counts[col], errors="raise")
     if counts.isna().any().any():
@@ -515,7 +491,7 @@ def chromatin_bulk_diffacc(params: dict) -> dict:
                 size_factors=spikein_sf,
                 max_reported_features=200,
             )
-        except Exception as exc:
+        except Exception as exc:  # aria: allow-broad-except auxiliary LOBO diagnostic must not abort primary DA
             lobo_res = {"status": "error", "details": str(exc)[:200]}
 
         result_row = {

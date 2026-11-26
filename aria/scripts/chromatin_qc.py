@@ -55,7 +55,6 @@ from aria.scripts._base import run_script, mocks_allowed
 
 def chromatin_qc(params: dict) -> dict:
     from pathlib import Path
-    import numpy as np
 
     data_type   = params["data_type"]
     files       = params.get("files", [])
@@ -122,10 +121,9 @@ def _scatac_qc(files: list, genome: str,
     if frip_scan_limit is None:
         frip_scan_limit = _FRAG_SCAN_LIMIT
     try:
-        import muon as mu
+        import muon  # noqa: F401  # availability check for scATAC stack
         import anndata as ad
         import numpy as np
-        from pathlib import Path
 
         # Load fragment file
         fragment_files = [f for f in files if "fragments" in f.lower()
@@ -138,14 +136,6 @@ def _scatac_qc(files: list, genome: str,
             }
 
         frag_file = fragment_files[0]
-
-        # Create AnnData from fragments
-        # (in production: use cellranger output or snapatac2)
-        try:
-            mdata = mu.atac.tl.locate_fragments(None, frag_file)
-        except Exception:
-            # Fallback: basic fragment counting
-            pass
 
         # ── Key QC metrics ────────────────────────────────────────────────
         # Only metrics genuinely derivable from a fragments file are computed
@@ -392,36 +382,38 @@ def _h5ad_atac_qc(h5ad_path: str, genome: str,
                 return str(col)
         return None
 
+    import pandas as pd
+
+    def _obs_median(col: str | None) -> float | None:
+        if col is None:
+            return None
+        vals = pd.to_numeric(obs[col], errors="coerce").to_numpy(dtype=float)
+        vals = vals[np.isfinite(vals)]
+        return float(np.median(vals)) if vals.size else None
+
     frag_col = _find_col(_FRAG_COL_HINTS)
     mito_col = _find_col(_MITO_COL_HINTS)
-    median_frags = None
-    median_mito = None
-    try:
-        if frag_col is not None:
-            vals = np.asarray(obs[frag_col].values, dtype=float)
-            vals = vals[np.isfinite(vals)]
-            if vals.size:
-                median_frags = float(np.median(vals))
-        if mito_col is not None:
-            vals = np.asarray(obs[mito_col].values, dtype=float)
-            vals = vals[np.isfinite(vals)]
-            if vals.size:
-                median_mito = float(np.median(vals))
-    except Exception:
-        pass
+    median_frags = _obs_median(frag_col)
+    median_mito = _obs_median(mito_col)
 
     not_computed = [
         "tss_enrichment (requires raw fragment file + reference TSS annotation)",
         "frip (requires raw fragment file + called peaks)",
     ]
-    if frag_col is None:
-        not_computed.append(
-            "median_fragments_per_cell (no per-cell fragment obs column found)"
+    if median_frags is None:
+        reason = (
+            f"obs column '{frag_col}' had no finite numeric values"
+            if frag_col is not None
+            else "no per-cell fragment obs column found"
         )
-    if mito_col is None:
-        not_computed.append(
-            "mito_fraction (no per-cell mitochondrial obs column found)"
+        not_computed.append(f"median_fragments_per_cell ({reason})")
+    if median_mito is None:
+        reason = (
+            f"obs column '{mito_col}' had no finite numeric values"
+            if mito_col is not None
+            else "no per-cell mitochondrial obs column found"
         )
+        not_computed.append(f"mito_fraction ({reason})")
 
     warnings.append(
         "scATAC peak-matrix QC on .h5ad: cell/peak dimensions and available obs "
@@ -447,13 +439,7 @@ def _h5ad_atac_qc(h5ad_path: str, genome: str,
     }
 
 
-def _norm_contig(chrom) -> str:
-    """Reconcile UCSC (``chr1``/``chrM``) and Ensembl (``1``/``MT``) contig names so
-    BAM/fragment contigs match GTF/peak contigs regardless of naming convention."""
-    c = str(chrom).strip()
-    if c[:3].lower() == "chr":
-        c = c[3:]
-    return "MT" if c.upper() in ("M", "MT") else c
+from aria.utils.genomic_coords import ensembl_contig as _norm_contig
 
 
 def _is_mito_contig(chrom) -> bool:
@@ -469,27 +455,18 @@ def _scatac_pass_qc(qc_failures, qc_complete):
 
 
 def _read_local_tss(gtf_path):
-    """Read deduplicated, strand-aware, zero-based 1-bp TSSs from local GTF."""
+    """Read deduplicated, strand-aware, zero-based 1-bp TSSs via canonical GTF parser."""
     from collections import defaultdict
-    import gzip
+    from aria.utils.genomic_coords import parse_gtf_tss_records
+
+    records, _ = parse_gtf_tss_records(gtf_path, allow_unnamed=True, require_strand=True)
     tss = defaultdict(set)
-    opener = gzip.open if str(gtf_path).endswith(".gz") else open
-    with opener(gtf_path, "rt") as handle:
-        for line in handle:
-            if line.startswith("#"):
-                continue
-            cols = line.rstrip().split("\t")
-            if len(cols) < 9 or cols[2] not in {"gene", "transcript"}:
-                continue
-            if cols[6] not in {"+", "-"}:
-                continue
-            try:
-                pos = int(cols[3]) - 1 if cols[6] == "+" else int(cols[4]) - 1
-                tss[cols[0]].add((pos, 1 if cols[6] == "+" else -1))
-            except ValueError:
-                continue
-    return {chrom: (sorted(rows), [p for p, strand in sorted(rows)])
-            for chrom, rows in tss.items()}
+    for rec in records.values():
+        tss[rec["chrom"]].add((int(rec["tss"]), 1 if rec["strand"] == "+" else -1))
+    return {
+        chrom: (sorted(rows), [p for p, _ in sorted(rows)])
+        for chrom, rows in tss.items()
+    }
 
 
 def _strand_cc_scores(cc, frag_lag, phantom_lag, hi_frag_lag, step, n_bins):
@@ -702,11 +679,11 @@ def _compute_ip_control_jsd(
     try:
         chrom_order: list[tuple[str, int]] = []
         with _open_alignment(ip_bams[0], reference_fasta) as bam:
-            for ref, length in zip(bam.header.references, bam.header.lengths):
-                if ref.lower() in {"chrm", "mt", "m"} or ref.lower().startswith("chrm"):
+            for ref, length in zip(bam.header.references, bam.header.lengths, strict=True):
+                if _is_mito_contig(ref):
                     continue
                 n_b = max(1, int(length) // bin_size)
-                chrom_order.append((str(ref), n_b))
+                chrom_order.append((_norm_contig(ref), n_b))
                 if sum(x[1] for x in chrom_order) >= max_bins:
                     break
         if not chrom_order:
@@ -714,6 +691,8 @@ def _compute_ip_control_jsd(
         offsets: dict[str, tuple[int, int]] = {}
         cursor = 0
         for ref, n_b in chrom_order:
+            if ref in offsets:
+                continue
             take = min(n_b, max_bins - cursor)
             if take <= 0:
                 break
@@ -729,7 +708,7 @@ def _compute_ip_control_jsd(
                     for read in bam.fetch(until_eof=True):
                         if not _primary_mapped(read) or read.is_duplicate:
                             continue
-                        info = offsets.get(read.reference_name)
+                        info = offsets.get(_norm_contig(read.reference_name))
                         if info is None:
                             continue
                         off, take = info
@@ -824,6 +803,7 @@ def _bulk_chromatin_qc(files: list, data_type: str,
     usable_peaks = bool(peaks and Path(peaks).is_file() and _read_peak_intervals(str(peaks)))
     compute_cc = (data_type == "ChIP")
     seen_sids: dict[str, int] = {}
+    failed_samples: list[str] = []
     for path in bam_files:
         try:
             row, fragments = _scan_bam_metrics(
@@ -867,11 +847,22 @@ def _bulk_chromatin_qc(files: list, data_type: str,
                 warnings.append(f"{path}: high mito fraction ({row['mito_frac']:.1%})")
             if row["dup_rate"] is not None and row["dup_rate"] > 0.5:
                 warnings.append(f"{path}: high duplicate rate ({row['dup_rate']:.1%})")
-        except Exception as e:
-            warnings.append(f"Could not QC {path}: {str(e)[:160]}")
-    if not metrics:
-        return {"status": "error", "error_type": "QCFailed",
-                "details": "Could not compute QC metrics for any sample.", "warnings": warnings}
+        except (OSError, ValueError, RuntimeError, ImportError) as e:
+            msg = f"Could not QC {path}: {str(e)[:160]}"
+            failed_samples.append(msg)
+            warnings.append(msg)
+    if failed_samples or not metrics:
+        return {
+            "status": "error",
+            "error_type": "QCFailed",
+            "details": (
+                f"Could not compute QC metrics for {len(failed_samples)} of "
+                f"{len(bam_files)} sample(s): {'; '.join(failed_samples)}"
+                if failed_samples
+                else "Could not compute QC metrics for any sample."
+            ),
+            "warnings": warnings,
+        }
     mean = lambda values: float(np.mean(list(values))) if values else None
     frip = mean(frip_per_sample.values())
     enrichment = mean(tss_per_sample.values())
@@ -1079,64 +1070,63 @@ def _compute_fragment_sizes(frag_file: str) -> dict:
     fabricated. The scan is capped at `_FRAG_SCAN_LIMIT` records — when the cap
     is reached the counts are lower bounds and `scan_truncated` is True.
     """
-    try:
-        import gzip
-        sizes = []
-        barcodes = set()
-        n_records = 0
-        scan_truncated = False
-        opener = gzip.open if frag_file.endswith(".gz") else open
-        with opener(frag_file, "rt") as f:
-            for line in f:
-                if not line or line.startswith("#"):
-                    continue
-                if n_records >= _FRAG_SCAN_LIMIT:
-                    scan_truncated = True
-                    break
-                parts = line.rstrip("\n").split("\t")
-                if len(parts) < 3:
-                    continue
-                n_records += 1
-                if len(parts) >= 4 and parts[3]:
-                    barcodes.add(parts[3])
-                if len(sizes) < _SIZE_SAMPLE_LIMIT:
-                    try:
-                        size = int(parts[2]) - int(parts[1])
-                        if 0 < size < 1000:
-                            sizes.append(size)
-                    except ValueError:
-                        pass
+    import gzip
+    sizes = []
+    barcodes = set()
+    n_records = 0
+    scan_truncated = False
+    opener = gzip.open if frag_file.endswith(".gz") else open
+    with opener(frag_file, "rt") as f:
+        for line in f:
+            if not line or line.startswith("#"):
+                continue
+            if n_records >= _FRAG_SCAN_LIMIT:
+                scan_truncated = True
+                break
+            parts = line.rstrip("\n").split("\t")
+            if len(parts) < 3:
+                continue
+            n_records += 1
+            if len(parts) >= 4 and parts[3]:
+                barcodes.add(parts[3])
+            if len(sizes) < _SIZE_SAMPLE_LIMIT:
+                try:
+                    size = int(parts[2]) - int(parts[1])
+                    if 0 < size < 1000:
+                        sizes.append(size)
+                except ValueError:
+                    pass
 
-        out = {
-            "n_barcodes":      len(barcodes),
-            "n_fragments":     n_records,
-            "scan_truncated":  scan_truncated,
-            "scan_limit":      _FRAG_SCAN_LIMIT,
+    out = {
+        "n_barcodes":      len(barcodes),
+        "n_fragments":     n_records,
+        "scan_truncated":  scan_truncated,
+        "scan_limit":      _FRAG_SCAN_LIMIT,
+    }
+    if sizes:
+        import numpy as np
+        sizes_arr = np.array(sizes)
+        # D7-019: align scATAC fragment-size fraction keys and bp windows with
+        # bulk chromatin QC and ChromatinNarrator._qc_block (0-1 fractions, not pct_*).
+        subnuc = float(np.mean(sizes_arr < 120))
+        mono = float(np.mean((sizes_arr >= 180) & (sizes_arr <= 247)))
+        out.update({
+            "median_size":              int(np.median(sizes_arr)),
+            "subnucleosomal_fraction":  round(subnuc, 4),
+            "mononucleosomal_fraction": round(mono, 4),
+        })
+        # W0.2 (scATAC P0): a binned size histogram (0-800 bp, 5 bp bins) so
+        # the report can plot the nucleosome banding pattern. Summary-only
+        # before; the raw sizes are not persisted (privacy + size).
+        counts, edges = np.histogram(
+            sizes_arr[(sizes_arr >= 0) & (sizes_arr <= 800)],
+            bins=160, range=(0, 800),
+        )
+        out["size_histogram"] = {
+            "bin_edges": [float(e) for e in edges],
+            "counts":    [int(c) for c in counts],
         }
-        if sizes:
-            import numpy as np
-            sizes_arr = np.array(sizes)
-            out.update({
-                "median_size":       int(np.median(sizes_arr)),
-                "pct_mononucleosomal": float(
-                    np.mean((sizes_arr > 150) & (sizes_arr < 300))
-                ),
-                "pct_subnucleosomal": float(np.mean(sizes_arr < 150)),
-            })
-            # W0.2 (scATAC P0): a binned size histogram (0-800 bp, 5 bp bins) so
-            # the report can plot the nucleosome banding pattern. Summary-only
-            # before; the raw sizes are not persisted (privacy + size).
-            counts, edges = np.histogram(
-                sizes_arr[(sizes_arr >= 0) & (sizes_arr <= 800)],
-                bins=160, range=(0, 800),
-            )
-            out["size_histogram"] = {
-                "bin_edges": [float(e) for e in edges],
-                "counts":    [int(c) for c in counts],
-            }
-        return out
-    except Exception:
-        return {"n_barcodes": 0, "n_fragments": 0, "scan_truncated": False}
+    return out
 
 
 def _compute_mito_fraction(frag_file: str, mito_chr: str) -> float | None:
@@ -1297,42 +1287,39 @@ def _estimate_frip_stats(frag_file: str, peaks_bed: str | None = None,
     }
     if not peaks_bed:
         return out
-    try:
-        import gzip
-        peaks_by_chrom = _peaks_by_chrom_from_bed(peaks_bed)
-        if not peaks_by_chrom:
-            return out
-
-        truncated = False
-
-        def _frag_iter():
-            nonlocal truncated
-            opener = gzip.open if str(frag_file).endswith(".gz") else open
-            n_yielded = 0
-            with opener(frag_file, "rt") as f:
-                for line in f:
-                    if not line or line[0] == "#":
-                        continue
-                    parts = line.rstrip("\n").split("\t")
-                    if len(parts) < 3:
-                        continue
-                    try:
-                        s, e = int(parts[1]), int(parts[2])
-                    except ValueError:
-                        continue
-                    if n_yielded >= scan_limit:
-                        truncated = True
-                        break
-                    n_yielded += 1
-                    yield parts[0], s, e
-
-        frip, n_scanned = _frip_from_intervals(_frag_iter(), peaks_by_chrom)
-        out["frip"] = frip
-        out["frip_scan_truncated"] = bool(truncated)
-        out["frip_fragments_scanned"] = int(n_scanned)
+    import gzip
+    peaks_by_chrom = _peaks_by_chrom_from_bed(peaks_bed)
+    if not peaks_by_chrom:
         return out
-    except Exception:
-        return out
+
+    truncated = False
+
+    def _frag_iter():
+        nonlocal truncated
+        opener = gzip.open if str(frag_file).endswith(".gz") else open
+        n_yielded = 0
+        with opener(frag_file, "rt") as f:
+            for line in f:
+                if not line or line[0] == "#":
+                    continue
+                parts = line.rstrip("\n").split("\t")
+                if len(parts) < 3:
+                    continue
+                try:
+                    s, e = int(parts[1]), int(parts[2])
+                except ValueError:
+                    continue
+                if n_yielded >= scan_limit:
+                    truncated = True
+                    break
+                n_yielded += 1
+                yield parts[0], s, e
+
+    frip, n_scanned = _frip_from_intervals(_frag_iter(), peaks_by_chrom)
+    out["frip"] = frip
+    out["frip_scan_truncated"] = bool(truncated)
+    out["frip_fragments_scanned"] = int(n_scanned)
+    return out
 
 
 def _estimate_frip(frag_file: str, peaks_bed: str | None = None,
@@ -1355,36 +1342,33 @@ def _estimate_frip_distribution(frag_file: str, peaks_bed: str | None = None,
     honest None without peaks or when no barcode clears ``min_frags``."""
     if not peaks_bed:
         return None
-    try:
-        import gzip
-        peaks_by_chrom = _peaks_by_chrom_from_bed(peaks_bed)
-        if not peaks_by_chrom:
-            return None
-
-        def _frag_iter():
-            opener = gzip.open if str(frag_file).endswith(".gz") else open
-            n_yielded = 0
-            with opener(frag_file, "rt") as f:
-                for line in f:
-                    if not line or line[0] == "#":
-                        continue
-                    parts = line.rstrip("\n").split("\t")
-                    if len(parts) < 4:
-                        continue
-                    try:
-                        s, e = int(parts[1]), int(parts[2])
-                    except ValueError:
-                        continue
-                    if n_yielded >= scan_limit:
-                        break
-                    n_yielded += 1
-                    yield parts[0], s, e, parts[3]
-
-        dist = _frip_per_barcode_from_intervals(
-            _frag_iter(), peaks_by_chrom, min_frags=min_frags)
-        return dist or None
-    except Exception:
+    import gzip
+    peaks_by_chrom = _peaks_by_chrom_from_bed(peaks_bed)
+    if not peaks_by_chrom:
         return None
+
+    def _frag_iter():
+        opener = gzip.open if str(frag_file).endswith(".gz") else open
+        n_yielded = 0
+        with opener(frag_file, "rt") as f:
+            for line in f:
+                if not line or line[0] == "#":
+                    continue
+                parts = line.rstrip("\n").split("\t")
+                if len(parts) < 4:
+                    continue
+                try:
+                    s, e = int(parts[1]), int(parts[2])
+                except ValueError:
+                    continue
+                if n_yielded >= scan_limit:
+                    break
+                n_yielded += 1
+                yield parts[0], s, e, parts[3]
+
+    dist = _frip_per_barcode_from_intervals(
+        _frag_iter(), peaks_by_chrom, min_frags=min_frags)
+    return dist or None
 
 
 def _estimate_frip_bulk(data_type: str):

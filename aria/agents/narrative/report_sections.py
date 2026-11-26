@@ -30,7 +30,7 @@ def _collect_tool_versions(packages: tuple[str, ...]) -> dict:
                     tools[pkg] = version(pkg)
                 except PackageNotFoundError:
                     tools[pkg] = "not installed"
-        except Exception:
+        except Exception:  # aria: allow-broad-except cosmetic importlib.metadata package version lookup
             tools = {pkg: "not installed" for pkg in packages}
 
         locked = _tool_versions_from_lockfiles(packages)
@@ -62,7 +62,7 @@ def _tool_versions_from_lockfiles(packages: tuple[str, ...]) -> dict:
                     canonical = package_set.get(name.strip().lower())
                     if canonical and canonical not in versions:
                         versions[canonical] = ver.strip()
-            except Exception:
+            except Exception:  # aria: allow-broad-except cosmetic pip lockfile version lookup
                 continue
 
         conda_locks = sorted(
@@ -80,7 +80,7 @@ def _tool_versions_from_lockfiles(packages: tuple[str, ...]) -> dict:
                     if parsed:
                         canonical, ver = parsed
                         versions.setdefault(canonical, ver)
-            except Exception:
+            except Exception:  # aria: allow-broad-except cosmetic conda lockfile version lookup
                 continue
         return versions
 
@@ -180,9 +180,20 @@ def _build_run_ledger_section(run_ledger: dict | None) -> str:
         """P-LEDGER + W-LEDGER: render the planned-vs-run manifest with the stable
         ledger node id each report claim links to. Any analysis the plan called
         for that did not run is flagged as a divergence."""
+        err_banner = ""
+        if isinstance(run_ledger, dict) and run_ledger.get("status") == "error":
+            err = _html.escape(str(run_ledger.get("error") or "unknown error"))
+            err_banner = (
+                "<div class='warning'><strong>Run Ledger governance pass failed:</strong> "
+                f"<code>{err}</code>. Modality claims gated by the Run Ledger could not "
+                "be verified and were withheld.</div>"
+            )
         entries = (run_ledger or {}).get("entries", []) or []
         if not entries:
-            return ""
+            return (
+                f"<h3>Run Ledger (planned vs executed)</h3>{err_banner}"
+                if err_banner else ""
+            )
         n_div = (run_ledger or {}).get("n_divergences", 0)
         rows = []
         for e in entries:
@@ -231,6 +242,7 @@ def _build_run_ledger_section(run_ledger: dict | None) -> str:
             )
         header = (
             f"<h3>Run Ledger (planned vs executed)</h3>"
+            f"{err_banner}"
             f"<p><em>{n_div} plan/execution divergence(s).</em></p>"
             f"{link_html}"
         )

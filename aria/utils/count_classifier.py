@@ -14,7 +14,10 @@ no longer depending on row order.
 
 from __future__ import annotations
 
+from pathlib import Path
 import numpy as np
+
+FEATURECOUNTS_META_COLS = ("Chr", "Start", "End", "Strand", "Length")
 
 DEFAULT_PROBE_ROWS = 200
 DEFAULT_SEED = 0
@@ -337,3 +340,125 @@ def classify_matrix(mat, seed: int = DEFAULT_SEED, gene_ids=None,
                 **gene_basis,
                 **tool_basis,
             }}
+
+
+def detect_table_sep(path: str | Path) -> str:
+    """Default to tab-delimited unless filename ends with ``.csv`` or ``.csv.gz``."""
+    name = Path(str(path)).name.lower()
+    return "," if name.endswith((".csv", ".csv.gz")) else "\t"
+
+
+def strip_featurecounts_metadata(df):
+    """Drop standard Subread ``featureCounts`` annotation columns if present."""
+    drop_cols = [c for c in df.columns if c in FEATURECOUNTS_META_COLS]
+    return df.drop(columns=drop_cols, errors="ignore") if drop_cols else df
+
+
+def resolve_unique_sample_names(
+    paths: list[str | Path],
+) -> tuple[list[str] | None, str | None]:
+    """Derive unique per-sample column names, disambiguating colliding stems by parent dir."""
+    resolved_paths = [Path(p) for p in paths]
+    stems = [p.stem for p in resolved_paths]
+    if len(set(stems)) == len(stems):
+        return stems, None
+
+    stem_counts: dict[str, int] = {}
+    for s in stems:
+        stem_counts[s] = stem_counts.get(s, 0) + 1
+
+    names: list[str] = []
+    for p, stem in zip(resolved_paths, stems, strict=True):
+        if stem_counts[stem] == 1:
+            names.append(stem)
+        else:
+            parent = p.parent.name.strip()
+            names.append(f"{parent}_{stem}" if parent else stem)
+
+    if len(set(names)) != len(names):
+        name_counts: dict[str, int] = {}
+        for n in names:
+            name_counts[n] = name_counts.get(n, 0) + 1
+        refined: list[str] = []
+        for p, stem, cand in zip(resolved_paths, stems, names, strict=True):
+            if name_counts[cand] == 1:
+                refined.append(cand)
+            else:
+                grand = p.parent.parent.name.strip()
+                parent = p.parent.name.strip()
+                parts = [x for x in (grand, parent, stem) if x]
+                refined.append("_".join(parts) if parts else cand)
+        names = refined
+
+    if len(set(names)) != len(names):
+        dups = sorted({n for n in names if names.count(n) > 1})
+        return None, (
+            f"Multiple per-sample count files collide on sample name(s) {dups}. "
+            "Provide distinct filenames or parent directories for each sample."
+        )
+    return names, None
+
+
+def read_single_count_file(path: str | Path, *, try_headerless: bool = False):
+    """Read one delimited count file, stripping featureCounts metadata columns."""
+    import pandas as pd
+
+    sep = detect_table_sep(path)
+    if try_headerless:
+        df = pd.read_csv(path, sep=sep, index_col=0, comment="#", header=None)
+        num_df = df.select_dtypes(include="number")
+        if not num_df.empty:
+            return num_df
+        if len(df) < 2:
+            return num_df
+    df_hdr = pd.read_csv(path, sep=sep, index_col=0, comment="#", header=0)
+    df_hdr = strip_featurecounts_metadata(df_hdr)
+    return df_hdr.select_dtypes(include="number")
+
+
+def load_count_table(files: list[str | Path]):
+    """Load and merge one or more bulk count files into a (features × samples) DataFrame.
+
+    Strips Subread ``featureCounts`` annotation columns (``Chr``, ``Start``,
+    ``End``, ``Strand``, ``Length``), uses tab-default delimiter detection
+    (comma only for ``.csv`` / ``.csv.gz``), and assigns unique sample column
+    names when merging multiple single-sample count files (preventing silent
+    column drops on repeated ``count`` headers).
+    """
+    import pandas as pd
+
+    valid = [str(f) for f in (files or []) if f and Path(str(f)).is_file()]
+    if not valid:
+        return None
+    if len(valid) == 1:
+        df = read_single_count_file(valid[0], try_headerless=False)
+        return None if df.empty else df
+
+    sample_names, _ = resolve_unique_sample_names(valid)
+    if sample_names is None:
+        sample_names = [f"{Path(f).stem}_{i}" for i, f in enumerate(valid)]
+
+    frames = []
+    seen_cols: set[str] = set()
+    for f, sample_name in zip(valid, sample_names, strict=True):
+        df = read_single_count_file(f, try_headerless=True)
+        if df.empty:
+            continue
+        df = df.copy()
+        if df.shape[1] == 1:
+            col_name = sample_name
+            if col_name in seen_cols:
+                col_name = f"{sample_name}_{len(seen_cols)}"
+            df.columns = [col_name]
+            seen_cols.add(col_name)
+        else:
+            keep = [c for c in df.columns if c not in seen_cols]
+            if not keep:
+                continue
+            df = df[keep]
+            seen_cols.update(keep)
+        frames.append(df)
+
+    if not frames:
+        return None
+    return frames[0] if len(frames) == 1 else pd.concat(frames, axis=1)

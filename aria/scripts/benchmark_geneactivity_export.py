@@ -28,7 +28,6 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--standard-chroms-only", action="store_true", default=True)
     args = p.parse_args(argv)
 
-    import numpy as np
     import scanpy as sc
 
     out = Path(args.out_dir)

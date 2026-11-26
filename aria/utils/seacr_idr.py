@@ -16,6 +16,8 @@ from typing import Any
 
 import numpy as np
 
+from aria.utils.genomic_coords import canonical_contig
+
 
 def _open_alignment(path: str | Path, reference_fasta: str | None = None):
     import pysam
@@ -78,7 +80,7 @@ def bam_to_fragment_bedgraph(
     n_single = 0
 
     with _open_alignment(bam_path, reference_fasta) as bam:
-        for ref, length in zip(bam.header.references, bam.header.lengths):
+        for ref, length in zip(bam.header.references, bam.header.lengths, strict=True):
             chrom_lengths[str(ref)] = int(length)
 
         for read in bam.fetch(until_eof=True):
@@ -307,7 +309,6 @@ def _select_seacr_empirical_threshold(
             np.linspace(0.0, 0.999, min(2000, t_sorted.size + c_sorted.size)),
         )
     )
-    n_t = float(t_sorted.size)
     n_c = float(c_sorted.size)
     t_cum_above = np.concatenate([[0.0], np.cumsum(t_sorted[::-1])])[::-1]
     c_cum_above = np.concatenate([[0.0], np.cumsum(c_sorted[::-1])])[::-1]
@@ -413,6 +414,38 @@ def call_seacr_peaks(
     if not targets:
         return {"status": "error", "error_type": "NoInputFiles", "details": "SEACR requires target input(s)."}
 
+    try:
+        target_scale_factors = _finite_positive_scales(
+            target_scale_factors, "target_scale_factors"
+        )
+        control_scale_factors = _finite_positive_scales(
+            control_scale_factors, "control_scale_factors"
+        )
+    except ValueError as exc:
+        return {
+            "status": "error",
+            "error_type": "InvalidScaleFactors",
+            "details": str(exc),
+        }
+    if target_scale_factors and len(target_scale_factors) != len(targets):
+        return {
+            "status": "error",
+            "error_type": "InvalidScaleFactors",
+            "details": (
+                f"target_scale_factors length ({len(target_scale_factors)}) "
+                f"must match number of target inputs ({len(targets)})."
+            ),
+        }
+    if control_scale_factors and len(control_scale_factors) != len(controls):
+        return {
+            "status": "error",
+            "error_type": "InvalidScaleFactors",
+            "details": (
+                f"control_scale_factors length ({len(control_scale_factors)}) "
+                f"must match number of control inputs ({len(controls)})."
+            ),
+        }
+
     out_path = Path(output_bed)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     tmp_dir = Path(work_dir) if work_dir else out_path.parent / "_seacr_work"
@@ -422,7 +455,7 @@ def call_seacr_peaks(
         bgs: list[str] = []
         for idx, p in enumerate(paths):
             p_str = str(p)
-            scale = float(scales[idx]) if (scales and idx < len(scales)) else 1.0
+            scale = float(scales[idx]) if scales else 1.0
             if not math.isfinite(scale) or scale <= 0.0:
                 raise ValueError(f"Invalid SEACR scale factor for {p_str}: {scale!r}")
             if p_str.lower().endswith((".bedgraph", ".bg", ".bdg")):
@@ -794,11 +827,32 @@ def fit_copula_idr_pair(
     gamma = np.clip(np.exp(a1 - (m_max + np.log(np.exp(a0 - m_max) + np.exp(a1 - m_max)))), 0.0, 1.0)
 
     local_idr = 1.0 - gamma
-    # Tie-break identical local_idr by descending mean rank so stronger peaks come first
+    # Deterministic, replicate-swap-symmetric ordering: ascending local_idr,
+    # descending mean_u, then descending (max(u1, u2), min(u1, u2)). Equalize
+    # tie groups sharing identical (local_idr, u_hi, u_lo) with the group's
+    # conservative end cumulative mean so global_idr is strictly permutation-
+    # invariant and swap-symmetric (D2-BUG-9).
     mean_u = 0.5 * (u1 + u2)
-    order = np.lexsort((-mean_u, local_idr))
+    u_hi = np.maximum(u1, u2)
+    u_lo = np.minimum(u1, u2)
+    order = np.lexsort((-u_lo, -u_hi, -mean_u, local_idr))
     sorted_local = local_idr[order]
     sorted_global = np.cumsum(sorted_local) / np.arange(1, n + 1, dtype=float)
+    s_hi = u_hi[order]
+    s_lo = u_lo[order]
+    idx = 0
+    while idx < n:
+        end = idx + 1
+        while (
+            end < n
+            and sorted_local[end] == sorted_local[idx]
+            and s_hi[end] == s_hi[idx]
+            and s_lo[end] == s_lo[idx]
+        ):
+            end += 1
+        if end - idx > 1:
+            sorted_global[idx:end] = sorted_global[end - 1]
+        idx = end
     global_idr = np.empty(n, dtype=float)
     global_idr[order] = sorted_global
 
@@ -964,6 +1018,24 @@ def call_broad_domains(
     except ValueError as exc:
         return {"status": "error", "error_type": "InvalidScaleFactors",
                 "details": str(exc)}
+    if ip_scale_factors and len(ip_scale_factors) != len(ip_bams):
+        return {
+            "status": "error",
+            "error_type": "InvalidScaleFactors",
+            "details": (
+                f"ip_scale_factors length ({len(ip_scale_factors)}) "
+                f"must match number of IP BAMs ({len(ip_bams)})."
+            ),
+        }
+    if control_scale_factors and len(control_scale_factors) != len(control_bams or []):
+        return {
+            "status": "error",
+            "error_type": "InvalidScaleFactors",
+            "details": (
+                f"control_scale_factors length ({len(control_scale_factors)}) "
+                f"must match number of control BAMs ({len(control_bams or [])})."
+            ),
+        }
 
     def _bin_cohort(paths: list[str], scales: list[float] | None) -> tuple[dict[str, np.ndarray], dict[str, int]]:
         chrom_sizes: dict[str, int] = {}
@@ -972,7 +1044,7 @@ def call_broad_domains(
             sample_bins: dict[str, np.ndarray] = {}
             total_mapped = 0
             with _open_alignment(p, reference_fasta) as bam:
-                for ref, length in zip(bam.header.references, bam.header.lengths):
+                for ref, length in zip(bam.header.references, bam.header.lengths, strict=True):
                     if ref.lower() in mito or ref.lower().startswith("chrm"):
                         continue
                     chrom_sizes[str(ref)] = int(length)
@@ -996,7 +1068,7 @@ def call_broad_domains(
 
             scale = (
                 float(scales[idx])
-                if (scales and idx < len(scales))
+                if scales
                 else (1e6 / max(1, total_mapped))
             )
             for ref, arr in sample_bins.items():
@@ -1026,15 +1098,30 @@ def call_broad_domains(
         if control_bams
         else {}
     )
+    ctrl_by_canon: dict[str, np.ndarray] = {}
+    for c_name, c_arr in ctrl_norm.items():
+        canon = canonical_contig(c_name)
+        if canon and canon not in ctrl_by_canon:
+            ctrl_by_canon[canon] = c_arr
 
     pseudo = 0.5
     domains: list[tuple[str, int, int, float]] = []
+    n_matched_ctrl = 0
+    unmatched_ctrl_chroms: list[str] = []
     for chrom in sorted(ip_norm):
         ip_arr = ip_norm[chrom]
         chrom_len = chrom_sizes.get(chrom, ip_arr.size * win)
-        if chrom in ctrl_norm and ctrl_norm[chrom].size == ip_arr.size:
-            bg_arr = ctrl_norm[chrom]
+        ctrl_arr = ctrl_norm.get(chrom)
+        if ctrl_arr is None and control_bams:
+            canon = canonical_contig(chrom)
+            if canon:
+                ctrl_arr = ctrl_by_canon.get(canon)
+        if ctrl_arr is not None and ctrl_arr.size == ip_arr.size:
+            bg_arr = ctrl_arr
+            n_matched_ctrl += 1
         else:
+            if control_bams:
+                unmatched_ctrl_chroms.append(chrom)
             nz = ip_arr[ip_arr > 0]
             bg_val = float(np.median(nz)) if nz.size else 1.0
             bg_arr = np.full_like(ip_arr, bg_val)
@@ -1062,6 +1149,25 @@ def call_broad_domains(
                 cur_s, cur_e, vals = s, e, [float(l2fc[int(idx)])]
         if cur_e - cur_s >= int(min_domain_bp):
             domains.append((chrom, cur_s, cur_e, float(np.mean(vals))))
+
+    if control_bams and ip_norm and n_matched_ctrl == 0:
+        return {
+            "status": "error",
+            "error_type": "ControlContigMismatch",
+            "details": (
+                f"Control BAM(s) matched 0 of {len(ip_norm)} IP chromosome(s) "
+                "after canonical contig normalization "
+                f"(IP contigs={sorted(ip_norm)[:10]}, "
+                f"control contigs={sorted(ctrl_norm)[:10]}). Verify IP and "
+                "control BAMs were aligned to compatible references."
+            ),
+        }
+    if unmatched_ctrl_chroms:
+        warnings_out.append(
+            f"Control BAM(s) lacked matched-length track for {len(unmatched_ctrl_chroms)} "
+            f"IP contig(s) ({unmatched_ctrl_chroms[:10]}); fell back to within-IP "
+            "median background on those contigs only."
+        )
 
     out_path = Path(output_bed)
     out_path.parent.mkdir(parents=True, exist_ok=True)

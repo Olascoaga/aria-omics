@@ -125,15 +125,6 @@ def _param_float(params: dict, key: str, default: float) -> float:
     return float(value)
 
 
-def _col(mat, idx: int):
-    import numpy as np
-    from scipy import sparse
-
-    if sparse.issparse(mat):
-        return np.asarray(mat.getcol(idx).todense()).ravel()
-    return np.asarray(mat[:, idx]).ravel()
-
-
 def _sum_cols(mat, indices: list[int]):
     import numpy as np
     from scipy import sparse
@@ -276,10 +267,23 @@ def _peak_to_gene(adata, params: dict, out_dir: Path) -> dict[str, Any]:
     min_corr = _param_float(params, "min_peak_gene_corr", 0.3)
     distance_bp = _param_int(params, "peak_gene_distance_bp", 500_000)
 
-    import numpy as np
     from aria.utils.safe_h5ad import read_h5ad
 
     rna = read_h5ad(str(rna_path))
+    if not adata.obs_names.is_unique:
+        dups = sorted(set(adata.obs_names[adata.obs_names.duplicated()].astype(str).tolist()))
+        return _skip(
+            f"non-unique cell barcodes in scATAC obs_names ({len(dups)} duplicate(s), "
+            f"e.g. {dups[:5]}); prefix barcodes by sample before peak-to-gene correlation",
+            method="paired_cell_peak_gene_correlation",
+        )
+    if not rna.obs_names.is_unique:
+        dups = sorted(set(rna.obs_names[rna.obs_names.duplicated()].astype(str).tolist()))
+        return _skip(
+            f"non-unique cell barcodes in scRNA obs_names ({len(dups)} duplicate(s), "
+            f"e.g. {dups[:5]}); prefix barcodes by sample before peak-to-gene correlation",
+            method="paired_cell_peak_gene_correlation",
+        )
     rna_obs_set = set(rna.obs_names)  # hoisted: O(N) membership, not O(N^2)
     common = [c for c in adata.obs_names if c in rna_obs_set]
     if len(common) < min_shared:
@@ -538,6 +542,22 @@ def _label_transfer(adata, params: dict, out_dir: Path) -> dict[str, Any]:
     if label_col not in rna.obs.columns:
         return _skip(
             f"rna_label_col '{label_col}' is not present in scRNA obs",
+            method="barcode_matched_label_hypothesis",
+            trusted_for_inference=False,
+        )
+    if not adata.obs_names.is_unique:
+        dups = sorted(set(adata.obs_names[adata.obs_names.duplicated()].astype(str).tolist()))
+        return _skip(
+            f"non-unique cell barcodes in scATAC obs_names ({len(dups)} duplicate(s), "
+            f"e.g. {dups[:5]}); prefix barcodes by sample before label transfer",
+            method="barcode_matched_label_hypothesis",
+            trusted_for_inference=False,
+        )
+    if not rna.obs_names.is_unique:
+        dups = sorted(set(rna.obs_names[rna.obs_names.duplicated()].astype(str).tolist()))
+        return _skip(
+            f"non-unique cell barcodes in scRNA obs_names ({len(dups)} duplicate(s), "
+            f"e.g. {dups[:5]}); prefix barcodes by sample before label transfer",
             method="barcode_matched_label_hypothesis",
             trusted_for_inference=False,
         )

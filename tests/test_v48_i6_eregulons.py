@@ -556,12 +556,10 @@ def test_library_depth_partial_correlation_flags_depth_confounded_module():
 # ── 6. Paired .h5mu IPC & ScriptContract validation ───────────────────────────
 
 
-def test_integration_eregulons_error_contracts_and_h5mu_roundtrip():
+def test_integration_eregulons_error_contracts():
     from aria.scripts.integration_eregulons import integration_eregulons
 
-    contract = None
-    has_contracts = _has_module("pydantic")
-    if has_contracts:
+    if _has_module("pydantic"):
         from aria.utils.script_contracts import contract_for_script
 
         contract = contract_for_script("aria/scripts/integration_eregulons.py")
@@ -581,11 +579,19 @@ def test_integration_eregulons_error_contracts_and_h5mu_roundtrip():
     assert err_m["status"] == "error"
     assert err_m["error_type"] == "MissingRNA"
 
-    if not (_has_module("anndata") and _has_module("mudata")):
-        return
 
-    import anndata as ad
-    import mudata as md
+def test_integration_eregulons_error_contracts_and_h5mu_roundtrip():
+    ad = _require_module("anndata")
+    md = _require_module("mudata")
+    from aria.scripts.integration_eregulons import integration_eregulons
+
+    contract = None
+    if _has_module("pydantic"):
+        from aria.utils.script_contracts import contract_for_script
+
+        contract = contract_for_script("aria/scripts/integration_eregulons.py")
+        assert contract is not None
+        assert contract.validation_level == "production"
 
     with tempfile.TemporaryDirectory() as td:
         td_p = Path(td)

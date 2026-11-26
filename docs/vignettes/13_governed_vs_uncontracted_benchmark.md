@@ -1,7 +1,7 @@
 # Vignette `13_governed_vs_uncontracted_benchmark` — 40-Capsule Governed vs. Uncontracted CodeAct Benchmark
 
 - **Schema:** `aria.codeact_comparative_benchmark.v1` · **ADR:** `ADR-083` (Tier 1, deterministic synthetic capsules)
-- **Receipt:** [`docs/benchmark_results/v49_comparative_benchmark/comparative_benchmark_v49.json`](../benchmark_results/v49_comparative_benchmark/comparative_benchmark_v49.json) · `receipt_sha256` = `b29d59117a1ac14b581b2af4b7ad06b4a02ed62db73f370b690756dccbe7e828`
+- **Receipt:** [`docs/benchmark_results/v49_comparative_benchmark/comparative_benchmark_v49.json`](../benchmark_results/v49_comparative_benchmark/comparative_benchmark_v49.json) · `receipt_sha256` = `b685e65700dd856486f1f011e793663555a52b227e5475d9937bf9d612cb0e5b`
 - **Decisions digest:** `bdfd123167a806bea5432ec6b178cb5ec86a33f32842e1eac556af2784c8db47`
 - **Capsules:** `40` = `8` x `5` archetypes (`22` answerable with known ground truth, `18` must-abstain traps), seeded from `490083` via `numpy.random.default_rng(PCG64)`
 - **Reproduce:** `conda run -n aria-rna-env python scripts/run_v49_codeact_comparative_benchmark.py`

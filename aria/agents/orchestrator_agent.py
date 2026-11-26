@@ -25,10 +25,9 @@ import os
 import threading
 import uuid
 from pathlib import Path
-from typing import Optional
 
 from aria.agents.base_agent import BaseAgent
-from aria.bus.message_bus import Message, MessageType, Confidence
+from aria.bus.message_bus import Message, MessageType, Confidence, bus
 from aria.llm.provider import LLMProvider
 from aria.llm.prompt_boundary import (
     PromptDataField,
@@ -411,7 +410,7 @@ class OrchestratorAgent(BaseAgent):
             from aria.utils.logging_setup import attach_experiment_log
             session.log_handler = attach_experiment_log(experiment_id)
             self._log_handlers[experiment_id] = session.log_handler
-        except Exception as e:
+        except Exception as e:  # aria: allow-broad-except cosmetic experiment log file attachment
             log.debug(f"Could not attach experiment log: {e}")
 
         # R6: append-only bus durability under a per-experiment path so a
@@ -422,7 +421,7 @@ class OrchestratorAgent(BaseAgent):
                 str(Path.home() / ".aria" / "workspace" / experiment_id
                     / "bus_log.jsonl")
             )
-        except Exception as e:
+        except Exception as e:  # aria: allow-broad-except cosmetic bus durability setup
             log.debug(f"Could not enable bus persistence: {e}")
 
         replayed_src = context.get("replay_decision_manifest")
@@ -960,8 +959,12 @@ class OrchestratorAgent(BaseAgent):
                     ),
                     made_by=actor,
                 )
-            except Exception as exc:
-                log.debug("Could not persist CP3.5 decision in ARIAMemory: %s", exc)
+            except Exception as exc:  # aria: allow-broad-except surface non-fatal CP3.5 decision persistence error
+                log.warning("Could not persist CP3.5 decision in ARIAMemory: %s", exc)
+                if isinstance(exp_context, dict):
+                    exp_context.setdefault("warnings", []).append(
+                        f"CP3.5 decision persistence failed: {type(exc).__name__}: {exc}"
+                    )
 
         self.publish_status(
             experiment_id, "Proceeding with analysis despite audit warnings.", 0.10
@@ -1107,7 +1110,7 @@ class OrchestratorAgent(BaseAgent):
                         experiment_id=experiment_id,
                     )
                 )
-            except Exception:
+            except Exception:  # aria: allow-broad-except best-effort bus notification inside fail-closed halt
                 pass
             return {
                 "status": "error",
@@ -1441,9 +1444,15 @@ class OrchestratorAgent(BaseAgent):
             )
             with use_egress_policy(session.egress_policy):
                 return agent.run(experiment_id, context)
-        except Exception as e:
+        except Exception as e:  # aria: allow-broad-except surface crashed modality agent payload to report and RunLedger
             log.error(f"{agent_name} raised: {e}", exc_info=True)
-            return {"status": "error", "error_type": type(e).__name__, "details": str(e), "agent": agent_name}
+            return {
+                "status": "error",
+                "error_type": type(e).__name__,
+                "error": f"{type(e).__name__}: {e}",
+                "details": str(e),
+                "agent": agent_name,
+            }
 
     @staticmethod
     def _experimental_override_active(meta: dict) -> bool:
@@ -1615,28 +1624,34 @@ class OrchestratorAgent(BaseAgent):
             Path(str(base_dir or ".")) / "cross_modal_concordance"
         )
 
+        from aria.utils.script_contracts import SCRIPT_CONTRACTS
+
+        padj_val = (
+            exp_context.get("padj_threshold")
+            if exp_context.get("padj_threshold") is not None
+            else exp_context.get("global_padj", 0.05)
+        )
         params: dict = {
             "rna_results": rna_res,
             "chromatin_results": chrom_res,
             "organism": exp_context.get("organism", "Homo sapiens"),
             "genome": exp_context.get("genome", "hg38"),
             "output_dir": out_dir,
-            "padj_threshold": float(exp_context.get("global_padj", 0.05)),
+            "padj_threshold": float(padj_val),
         }
-        for opt_key in (
-            "rna_cpm_path",
-            "atac_cpm_path",
-            "sample_id_map",
-            "gtf_path",
-            "cis_distance_bp",
-            "promoter_bp",
-            "min_matched_samples",
-            "n_permutations",
-            "seed",
-            "resume",
-        ):
-            if exp_context.get(opt_key) is not None:
-                params[opt_key] = exp_context[opt_key]
+        # D7-003: derive optional forwarded keys directly from the authoritative
+        # SCRIPT_CONTRACTS input schema so parameters like sample_covariates are
+        # never silently dropped by a hand-maintained tuple.
+        _cm_contract = SCRIPT_CONTRACTS["aria/scripts/cross_modal_concordance.py"]
+        _orchestrator_owned = {
+            "rna_results", "chromatin_results", "organism", "genome",
+            "output_dir", "padj_threshold",
+        }
+        for field in _cm_contract.inputs:
+            if field.name in _orchestrator_owned:
+                continue
+            if exp_context.get(field.name) is not None:
+                params[field.name] = exp_context[field.name]
 
         self.publish_status(
             experiment_id,
@@ -1654,13 +1669,14 @@ class OrchestratorAgent(BaseAgent):
                 script_path="aria/scripts/cross_modal_concordance.py",
                 params=params,
             )
-        except Exception as exc:
+        except Exception as exc:  # aria: allow-broad-except surface cross-modal crash payload to report and RunLedger
             log.warning("cross_modal_concordance failed: %s", exc, exc_info=True)
             return {
                 "status": "error",
                 "ran": False,
                 "analysis": "cross_modal_concordance",
                 "error_type": type(exc).__name__,
+                "error": f"{type(exc).__name__}: {exc}",
                 "details": str(exc),
             }
 
@@ -1744,7 +1760,7 @@ class OrchestratorAgent(BaseAgent):
             try:
                 from aria.utils.logging_setup import detach_experiment_log
                 detach_experiment_log(handler)
-            except Exception:
+            except Exception:  # aria: allow-broad-except cosmetic log handler teardown
                 pass
 
     def _parse_question(self, user_question: str, llm=None) -> dict:
@@ -1897,7 +1913,7 @@ class OrchestratorAgent(BaseAgent):
             di_block = format_design_intelligence(plan.get("design_intelligence", {}))
             if di_block:
                 lines.append(di_block)
-        except Exception:
+        except Exception:  # aria: allow-broad-except cosmetic TUI plan summary formatting
             pass
         lines.append(
             f"\n  Complexity: {plan.get('estimated_complexity', '?')}"

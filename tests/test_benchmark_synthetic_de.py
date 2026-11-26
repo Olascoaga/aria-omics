@@ -86,12 +86,18 @@ def test_pseudoreplication_null_has_no_true_condition_effect():
     assert naive["false_positive_rate"] >= 0.2, naive
 
 
-def test_pseudobulk_de_recovers_ground_truth():
+def test_pseudobulk_de_recovers_ground_truth(tmp_path):
     """ARIA's real pseudobulk DE must recover the planted truth within
-    tolerance (recall) while controlling false positives (empirical FDR)."""
+    tolerance (recall), control false positives (empirical FDR), and match
+    the signed log2FC direction of planted DE genes (D3-002)."""
+    np = pytest.importorskip("numpy")
     pytest.importorskip("anndata")
     pytest.importorskip("pydeseq2")
-    from aria.benchmarks.synthetic_de import run_pseudobulk_de_benchmark
+    from aria.benchmarks.synthetic_de import (
+        run_pseudobulk_de_benchmark,
+        simulate_pseudobulk_dataset,
+    )
+    from aria.scripts.rna_pseudobulk_de import rna_pseudobulk_de
 
     res = run_pseudobulk_de_benchmark(
         n_genes=1200, n_de=120, donors_per_condition=6, cells_per_donor=80, seed=11,
@@ -100,6 +106,38 @@ def test_pseudobulk_de_recovers_ground_truth():
     assert res.status == "pass", res.as_dict()
     assert res.recall >= 0.5, res.as_dict()
     assert res.empirical_fdr <= 0.2, res.as_dict()
+
+    # Signed LFC direction oracle (kills log2FoldChange sign-inversion mutations).
+    ds = simulate_pseudobulk_dataset(
+        n_genes=300, n_de=40, donors_per_condition=5, cells_per_donor=60, seed=11,
+    )
+    h5ad_path = tmp_path / "pb_sign.h5ad"
+    ds.adata.write_h5ad(h5ad_path)
+    pb = rna_pseudobulk_de({
+        "data_path": str(h5ad_path),
+        "groupby": "ctype",
+        "condition_col": "condition",
+        "replicate_col": "donor",
+        "comparisons": [["COND_B", "COND_A"]],
+        "min_replicates_per_condition": 3,
+        "min_cells_per_pseudosample": 10,
+        "padj_max": 0.05,
+        "lfc_min": 0.5,
+        "output_dir": str(tmp_path / "pb_out"),
+    })
+    assert pb["status"] == "success", pb
+    blk = pb["per_group"]["ctype0"]["per_comparison"]["COND_B_vs_COND_A"]
+    assert blk["status"] == "success", blk
+    tp_recs = [r for r in blk.get("all_sig", []) if r["gene"] in ds.de_genes]
+    assert len(tp_recs) >= 15, f"Expected >=15 true DE hits, got {len(tp_recs)}"
+    sign_hits = [
+        np.sign(float(r["log2fc"])) == np.sign(float(ds.true_log2fc[r["gene"]]))
+        and np.sign(float(r["log2fc_raw"])) == np.sign(float(ds.true_log2fc[r["gene"]]))
+        for r in tp_recs
+    ]
+    assert sum(sign_hits) / len(sign_hits) >= 0.99, (
+        f"Pseudobulk LFC sign concordance failed: {sum(sign_hits)}/{len(sign_hits)}"
+    )
 
 
 # ── W-CALIB: the same ground-truth gate for the BULK path ────────────────────
@@ -178,11 +216,16 @@ def test_bulk_a1_scorer_reports_frozen_axes():
 
 def test_bulk_de_recovers_ground_truth():
     """ARIA's real bulk DE (_run_deseq2, with apeGLM) must recover the planted
-    truth within tolerance while controlling empirical FDR — the bulk analog of
-    the pseudobulk gate. Protects the deferred P1-1 (b)/(c) changes."""
+    truth within tolerance while controlling empirical FDR and matching signed
+    log2FC direction — the bulk analog of the pseudobulk gate."""
+    np = pytest.importorskip("numpy")
     pytest.importorskip("pandas")
     pytest.importorskip("pydeseq2")
-    from aria.benchmarks.synthetic_de import run_bulk_de_benchmark
+    from aria.benchmarks.synthetic_de import (
+        run_bulk_de_benchmark,
+        simulate_bulk_dataset,
+    )
+    from aria.scripts.rna_bulk_de import _run_deseq2
 
     res = run_bulk_de_benchmark(
         n_genes=1000, n_de=120, replicates_per_condition=6, seed=11,
@@ -191,6 +234,22 @@ def test_bulk_de_recovers_ground_truth():
     assert res.status == "pass", res.as_dict()
     assert res.recall >= 0.5, res.as_dict()
     assert res.empirical_fdr <= 0.2, res.as_dict()
+
+    # Signed LFC direction oracle on COND_B vs COND_A.
+    ds = simulate_bulk_dataset(n_genes=500, n_de=60, replicates_per_condition=6, seed=11)
+    de, _ = _run_deseq2(
+        ds.counts, ds.metadata, "condition", "COND_B", "COND_A",
+        padj_thr=0.05, lfc_thr=0.5, allow_mock=False,
+    )
+    assert de["status"] == "success", de
+    rdf = de["results"]
+    tp_genes = [g for g in de["sig_genes"] if g in ds.de_genes]
+    assert len(tp_genes) >= 15
+    sign_hits = [
+        np.sign(float(rdf.loc[g, "log2FoldChange"])) == np.sign(float(ds.true_log2fc[g]))
+        for g in tp_genes
+    ]
+    assert sum(sign_hits) / len(sign_hits) >= 0.99
 
 
 def test_a1_lfc_threshold_frontier_isolates_effect_size_policy():

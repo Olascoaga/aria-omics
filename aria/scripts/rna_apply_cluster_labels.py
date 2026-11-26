@@ -14,7 +14,6 @@ from aria.scripts._base import run_script
 def rna_apply_cluster_labels(params: dict) -> dict:
     import os
     os.environ.setdefault("NUMBA_CACHE_DIR", "/tmp/aria_numba_cache")
-    import scanpy as sc
     from pathlib import Path
     from aria.utils.safe_h5ad import read_h5ad
 

@@ -164,8 +164,18 @@ class scRNAAgent(
                 if self._integration_qc_has_blocking(findings["integration_qc"]):
                     exp_ctx = dict(exp_ctx or {})
                     exp_ctx["integration_qc"] = findings["integration_qc"]
-            except Exception as exc:
+            except Exception as exc:  # aria: allow-broad-except surface failed scRNA QC guardrail
                 log.warning(f"Integration QC assessment failed: {exc}")
+                err_msg = f"{type(exc).__name__}: {exc}"
+                findings["integration_qc"] = {
+                    "status": "error",
+                    "error": err_msg,
+                    "issues": [{
+                        "severity": "warning",
+                        "check": "integration_qc_assessment_failed",
+                        "message": f"Integration QC guardrail failed ({err_msg}); overcorrection/residual batch not ruled out.",
+                    }],
+                }
 
         # P1-4: hidden (unmodeled) batch red-flags. Warns when a technical/batch
         # obs column is present but was neither declared, corrected, nor modeled
@@ -191,8 +201,18 @@ class scRNAAgent(
                                 or qc.get("batch_col")),
                 integration_ran=(integ.get("status") == "success"),
             )
-        except Exception as exc:
+        except Exception as exc:  # aria: allow-broad-except surface failed scRNA QC guardrail
             log.warning(f"Hidden-batch QC assessment failed: {exc}")
+            err_msg = f"{type(exc).__name__}: {exc}"
+            findings["batch_qc"] = {
+                "status": "error",
+                "error": err_msg,
+                "issues": [{
+                    "severity": "warning",
+                    "check": "batch_qc_assessment_failed",
+                    "message": f"Hidden-batch QC guardrail failed ({err_msg}); unmodeled batch effects not ruled out.",
+                }],
+            }
 
         # 4. Annotation ───────────────────────────────────────────────────
         # When clustering used a pre-existing cell-type col, the annotation
@@ -236,8 +256,18 @@ class scRNAAgent(
                 reused=reused,
                 markers_verified=markers_present,
             )
-        except Exception as exc:
+        except Exception as exc:  # aria: allow-broad-except surface failed scRNA QC guardrail
             log.warning(f"Annotation QC assessment failed: {exc}")
+            err_msg = f"{type(exc).__name__}: {exc}"
+            findings["annotation_qc"] = {
+                "status": "error",
+                "error": err_msg,
+                "issues": [{
+                    "severity": "warning",
+                    "check": "annotation_qc_assessment_failed",
+                    "message": f"Annotation coherence guardrail failed ({err_msg}); cluster marker support not verified.",
+                }],
+            }
 
         # P1-4: ambient-RNA contamination red-flag. Data-driven cross-cluster
         # top-marker ubiquity (no hardcoded genes, no correction); only
@@ -247,8 +277,18 @@ class scRNAAgent(
             findings["ambient_qc"] = assess_ambient_contamination(
                 cluster_result.get("top_markers", {}) or {},
             )
-        except Exception as exc:
+        except Exception as exc:  # aria: allow-broad-except surface failed scRNA QC guardrail
             log.warning(f"Ambient QC assessment failed: {exc}")
+            err_msg = f"{type(exc).__name__}: {exc}"
+            findings["ambient_qc"] = {
+                "status": "error",
+                "error": err_msg,
+                "issues": [{
+                    "severity": "warning",
+                    "check": "ambient_qc_assessment_failed",
+                    "message": f"Ambient-RNA contamination guardrail failed ({err_msg}); ambient contamination not ruled out.",
+                }],
+            }
 
         # 5. DE per cluster (always when ≥2 clusters) ─────────────────────
         de_result = None
@@ -520,7 +560,8 @@ class scRNAAgent(
                 backing_file = getattr(adata, "file", None)
                 if backing_file is not None:
                     backing_file.close()
-            except Exception:
+            except Exception as exc:  # aria: allow-broad-except log unreadable h5ad during groupby discovery
+                log.warning("Could not read h5ad %s for groupby discovery: %s", p, exc)
                 continue
         return values
 
@@ -613,7 +654,7 @@ class scRNAAgent(
                 rationale=rationale,
                 made_by=made_by,
             )
-        except Exception as e:
+        except Exception as e:  # aria: allow-broad-except surface non-fatal scRNA decision persistence error
             log.warning(f"scRNA decision logging failed: {e}")
 
     @staticmethod

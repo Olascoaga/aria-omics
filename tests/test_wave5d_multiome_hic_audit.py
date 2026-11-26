@@ -193,7 +193,54 @@ def test_d3_h2_h11_harmony_qa_collapse_atac_status_and_p2g_csv_and_dup_barcodes(
 
 def test_d3_h11_split_file_duplicate_barcodes_rejected(tmp_path: Path):
     ad = pytest.importorskip("anndata")
+    pytest.importorskip("scanpy")
     from aria.scripts.integration_eregulons import integration_eregulons
+
+    rna = ad.AnnData(
+        X=sp.csr_matrix(np.ones((4, 3), dtype=np.int64)),
+        obs=pd.DataFrame(index=["BC1", "BC1", "BC2", "BC3"]),
+        var=pd.DataFrame(index=["G1", "G2", "G3"]),
+    )
+    atac = ad.AnnData(
+        X=sp.csr_matrix(np.ones((4, 3), dtype=np.int64)),
+        obs=pd.DataFrame(index=["BC1", "BC2", "BC3", "BC4"]),
+        var=pd.DataFrame(index=["chr1:100-200", "chr1:300-400", "chr1:500-600"]),
+    )
+    rna_p = tmp_path / "rna_dup.h5ad"
+    atac_p = tmp_path / "atac_ok.h5ad"
+    rna.write_h5ad(rna_p)
+    atac.write_h5ad(atac_p)
+
+    # eRegulons split-file branch (needs minimal GTF + FASTA + motif file to reach split ingestion)
+    gtf = tmp_path / "genes.gtf"
+    gtf.write_text('chr1\tsrc\tgene\t1000\t2000\t.\t+\t.\tgene_id "G1"; gene_name "G1";\n')
+    fa = tmp_path / "ref.fa"
+    fa.write_text(">chr1\n" + "ACGT" * 250 + "\n")
+    (tmp_path / "ref.fa.fai").write_text("chr1\t1000\t6\t1000\t1001\n")
+    meme = tmp_path / "motifs.meme"
+    meme.write_text(
+        "MEME version 4\nALPHABET= ACGT\nMOTIF M1 G1\nletter-probability matrix: alength= 4 w= 4\n"
+        "0.7 0.1 0.1 0.1\n0.1 0.7 0.1 0.1\n0.1 0.1 0.7 0.1\n0.1 0.1 0.1 0.7\n"
+    )
+    res_ereg = integration_eregulons(
+        {
+            "rna_files": [str(rna_p)],
+            "atac_files": [str(atac_p)],
+            "gtf_path": str(gtf),
+            "genome_fasta": str(fa),
+            "motif_file": str(meme),
+            "output_dir": str(tmp_path / "ereg_out"),
+            "resume": False,
+        }
+    )
+    assert res_ereg["status"] == "error"
+    assert res_ereg["error_type"] == "DuplicateBarcodes"
+
+
+def test_d3_h11_split_file_duplicate_barcodes_rejected_wnn(tmp_path: Path):
+    ad = pytest.importorskip("anndata")
+    pytest.importorskip("muon")
+    pytest.importorskip("scanpy")
     from aria.scripts.integration_wnn import integration_wnn
 
     rna = ad.AnnData(
@@ -211,52 +258,16 @@ def test_d3_h11_split_file_duplicate_barcodes_rejected(tmp_path: Path):
     rna.write_h5ad(rna_p)
     atac.write_h5ad(atac_p)
 
-    # WNN split-file branch (if muon/scanpy available in this env)
-    if pytest.importorskip is not None:
-        try:
-            import muon  # noqa: F401
-            import scanpy  # noqa: F401
-            res_wnn = integration_wnn(
-                {
-                    "rna_files": [str(rna_p)],
-                    "atac_files": [str(atac_p)],
-                    "output_dir": str(tmp_path / "wnn_out"),
-                    "resume": False,
-                }
-            )
-            assert res_wnn["status"] == "error"
-            assert res_wnn["error_type"] == "DuplicateBarcodes"
-        except ImportError:
-            pass
-
-    # eRegulons split-file branch (needs minimal GTF + FASTA + motif file to reach split ingestion)
-    gtf = tmp_path / "genes.gtf"
-    gtf.write_text('chr1\tsrc\tgene\t1000\t2000\t.\t+\t.\tgene_id "G1"; gene_name "G1";\n')
-    fa = tmp_path / "ref.fa"
-    fa.write_text(">chr1\n" + "ACGT" * 250 + "\n")
-    (tmp_path / "ref.fa.fai").write_text("chr1\t1000\t6\t1000\t1001\n")
-    meme = tmp_path / "motifs.meme"
-    meme.write_text(
-        "MEME version 4\nALPHABET= ACGT\nMOTIF M1 G1\nletter-probability matrix: alength= 4 w= 4\n"
-        "0.7 0.1 0.1 0.1\n0.1 0.7 0.1 0.1\n0.1 0.1 0.7 0.1\n0.1 0.1 0.1 0.7\n"
+    res_wnn = integration_wnn(
+        {
+            "rna_files": [str(rna_p)],
+            "atac_files": [str(atac_p)],
+            "output_dir": str(tmp_path / "wnn_out"),
+            "resume": False,
+        }
     )
-    try:
-        import scanpy  # noqa: F401
-        res_ereg = integration_eregulons(
-            {
-                "rna_files": [str(rna_p)],
-                "atac_files": [str(atac_p)],
-                "gtf_path": str(gtf),
-                "genome_fasta": str(fa),
-                "motif_file": str(meme),
-                "output_dir": str(tmp_path / "ereg_out"),
-                "resume": False,
-            }
-        )
-        assert res_ereg["status"] == "error"
-        assert res_ereg["error_type"] == "DuplicateBarcodes"
-    except ImportError:
-        pass
+    assert res_wnn["status"] == "error"
+    assert res_wnn["error_type"] == "DuplicateBarcodes"
 
 
 def test_d3_h6_h10_assemble_suffix_reconciliation_unmapped_fragments_and_contigs(tmp_path: Path):

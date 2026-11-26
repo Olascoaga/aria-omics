@@ -87,14 +87,7 @@ from aria.utils.stats import (
 )
 
 
-def _global_bh(pvals):
-    """Return BH-adjusted p-values for one global family of tests."""
-    try:
-        from statsmodels.stats.multitest import multipletests
-        _, padj, _, _ = multipletests(pvals, method="fdr_bh")
-        return padj
-    except Exception:
-        return _bh_correct(pvals)
+_global_bh = _bh_correct
 
 
 def _effective_alpha_from_significant(rows) -> float:
@@ -148,103 +141,18 @@ def _power_disclosure_for_strategy(fdr_strategy: str) -> dict:
 COMPOSITION_COLLINEARITY_MAX = 0.8
 
 
-def _quote_formula_term(name: str) -> str:
-    """Quote non-identifier column names for formulaic using backticks."""
-    import keyword
-    text = str(name)
-    if text.isidentifier() and not keyword.iskeyword(text):
-        return text
-    escaped = text.replace("`", "\\`")
-    return f"`{escaped}`"
+from aria.scripts.rna_bulk.deseq2 import (
+    _BENIGN_WARNING_CATEGORIES,
+    _build_design_formula,
+    _can_wrap_in_formulaic_c as _deseq2_can_wrap_in_formulaic_c,
+    _detect_shrink_sign_flip,
+    _quote_formula_term as _deseq2_quote_formula_term,
+    _serialize_fit_warnings,
+    _shrink_coeff,
+)
 
-
-def _can_wrap_in_formulaic_c(name: str) -> bool:
-    """True when formulaic safely parses ``C(<term>, Treatment(...))``."""
-    import keyword
-    text = str(name)
-    return "." not in text and not keyword.iskeyword(text)
-
-
-def _build_design_formula(
-    condition_col: str,
-    covariates: list,
-    *,
-    ref_level: str | None = None,
-) -> str:
-    """Build a formulaic DESeq2 design with explicit treatment reference level."""
-    terms = [
-        _quote_formula_term(c)
-        for c in dict.fromkeys(covariates or [])
-        if c and c != condition_col
-    ]
-    q_cond = _quote_formula_term(condition_col)
-    if ref_level is not None and _can_wrap_in_formulaic_c(condition_col):
-        cond_term = f"C({q_cond}, Treatment(reference={str(ref_level)!r}))"
-    else:
-        cond_term = q_cond
-    return "~ " + " + ".join(terms + [cond_term])
-
-
-def _shrink_coeff(dds, condition_col: str, test_lvl: str) -> str | None:
-    """Find the apeGLM LFC coefficient column for test-vs-ref (C4 shrinkage).
-
-    Matches ONLY the exact ``[T.<test_lvl>]`` suffix on ``condition_col``
-    (plain, backtick-quoted, or formulaic ``C(<condition_col>, ...)[T.<test_lvl>]``).
-    Never falls back to substring containment (which could match ``[T.KO_ctrl]``
-    when ``test_lvl == 'KO'`` and invert every LFC sign).
-    """
-    try:
-        cols = [str(c) for c in dds.varm["LFC"].columns]
-    except Exception:
-        return None
-    cond = str(condition_col)
-    q_cond = _quote_formula_term(cond)
-    suffix = f"[T.{test_lvl}]"
-    cond_tokens = {cond, q_cond, f"`{cond}`"}
-    for c in cols:
-        if not c.endswith(suffix):
-            continue
-        lhs = c[: -len(suffix)].strip()
-        if lhs in cond_tokens:
-            return c
-    for c in cols:
-        if not c.endswith(suffix):
-            continue
-        lhs = c[: -len(suffix)].strip()
-        if lhs.startswith("C(") and lhs.endswith(")"):
-            inner = lhs[2:-1].strip()
-            for tok in sorted(cond_tokens, key=len, reverse=True):
-                if inner.startswith(tok):
-                    rest = inner[len(tok):].lstrip()
-                    if not rest or rest.startswith(","):
-                        return c
-    return None
-
-
-def _detect_shrink_sign_flip(raw_lfc, shrunk_lfc) -> bool:
-    """Guard against shrinking the inverted contrast coefficient."""
-    import numpy as np
-
-    raw = np.asarray(raw_lfc, dtype=float)
-    shrunk = np.asarray(shrunk_lfc, dtype=float)
-    if raw.shape != shrunk.shape or raw.size == 0:
-        return False
-    clear = (
-        np.isfinite(raw)
-        & np.isfinite(shrunk)
-        & (np.abs(raw) >= 0.5)
-        & (np.abs(shrunk) >= 0.1)
-    )
-    n_clear = int(clear.sum())
-    if n_clear == 0:
-        return False
-    flipped = np.sign(raw[clear]) != np.sign(shrunk[clear])
-    flip_frac = float(flipped.mean())
-    if n_clear >= 3 and flip_frac > 0.5:
-        return True
-    if flip_frac == 1.0 and float(np.abs(raw[clear]).max()) >= 1.0:
-        return True
-    return False
+_can_wrap_in_formulaic_c = _deseq2_can_wrap_in_formulaic_c
+_quote_formula_term = _deseq2_quote_formula_term
 
 
 def _abs_corr(x, y) -> float | None:
@@ -292,7 +200,7 @@ def _expressed_background(counts, gene_names):
             expressed_mask = np.asarray((counts > 0).sum(axis=0)).ravel() > 0
         else:
             expressed_mask = (np.asarray(counts) > 0).sum(axis=0) > 0
-        genes = [str(g) for g, keep in zip(gene_names, expressed_mask) if keep]
+        genes = [str(g) for g, keep in zip(gene_names, expressed_mask, strict=True) if keep]
         return genes, False
     except Exception:
         return list(map(str, gene_names)), True
@@ -348,7 +256,6 @@ def _fdr_filtering_basis(successful_blocks) -> dict:
 
 def rna_pseudobulk_de(params: dict) -> dict:
     import warnings as _w
-    _w.filterwarnings("ignore")
 
     import numpy as np
     import pandas as pd
@@ -589,12 +496,51 @@ def rna_pseudobulk_de(params: dict) -> dict:
                                    f"Available: {list(adata.obs.columns)}")}
 
     # ── Aggregate per (replicate × group) ────────────────────────────────
-    obs = adata.obs[[groupby, condition_col, replicate_col, *covariates]].copy()
-    obs[groupby]       = obs[groupby].astype(str)
-    obs[condition_col] = obs[condition_col].astype(str)
-    obs[replicate_col] = obs[replicate_col].astype(str)
+    warnings: list[str] = []
+    raw_obs = adata.obs[[groupby, condition_col, replicate_col, *covariates]].copy()
+
+    def _valid_meta_mask(series: pd.Series) -> np.ndarray:
+        not_na = ~pd.isna(series).to_numpy(dtype=bool)
+        text = series.astype(str).str.strip().str.lower()
+        not_missing_str = ~text.isin(
+            {"", "nan", "none", "null", "na", "n/a", "<na>"}
+        ).to_numpy(dtype=bool)
+        return not_na & not_missing_str
+
+    valid_mask = (
+        _valid_meta_mask(raw_obs[groupby])
+        & _valid_meta_mask(raw_obs[condition_col])
+        & _valid_meta_mask(raw_obs[replicate_col])
+    )
+    n_dropped_missing = int((~valid_mask).sum())
+    if n_dropped_missing > 0:
+        warnings.append(
+            f"Dropped {n_dropped_missing} cell(s) with missing/empty "
+            f"{groupby!r}, {condition_col!r}, or {replicate_col!r} metadata "
+            f"before pseudobulk aggregation."
+        )
+    valid_pos = np.flatnonzero(valid_mask)
+    if valid_pos.size == 0:
+        return {
+            "status": "error",
+            "error_type": "NoValidMetadataCells",
+            "details": (
+                f"No cells have non-missing {groupby!r}, {condition_col!r}, "
+                f"and {replicate_col!r} metadata for pseudobulk DE."
+            ),
+            "warnings": warnings,
+        }
+
+    obs = raw_obs.iloc[valid_pos].copy()
+    obs[groupby]       = obs[groupby].astype(str).str.strip()
+    obs[condition_col] = obs[condition_col].astype(str).str.strip()
+    obs[replicate_col] = obs[replicate_col].astype(str).str.strip()
 
     is_sparse = sparse.issparse(counts)
+    if n_dropped_missing > 0:
+        counts = counts[valid_pos]
+        if needs_recovery:
+            lib_sizes_full = lib_sizes_full[valid_pos]
 
     # Paired scRNA designs (same donor under multiple conditions) require a
     # replicate x condition pseudobulk key. Grouping only by donor collapses
@@ -621,17 +567,15 @@ def rna_pseudobulk_de(params: dict) -> dict:
     successful_blocks: list = []
 
     for group in groups:
-        cells_in_group = obs[obs[groupby] == group].index
-        if len(cells_in_group) < min_cells_per_pseudosample:
+        cell_pos = np.flatnonzero(obs[groupby].to_numpy() == group)
+        if cell_pos.size < min_cells_per_pseudosample:
             per_group[group] = {"n_pseudosamples": 0,
                                  "status":          "skipped",
-                                 "reason":          f"only {len(cells_in_group)} cells"}
+                                 "reason":          f"only {int(cell_pos.size)} cells"}
             continue
 
-        # cell indices into the adata
-        cell_pos = adata.obs_names.get_indexer(cells_in_group)
         group_counts = counts[cell_pos]
-        group_obs    = obs.loc[cells_in_group]
+        group_obs    = obs.iloc[cell_pos]
 
         # Pseudosample key. In paired designs this is donor x condition; in
         # standard cohort designs it remains donor/sample.
@@ -642,6 +586,7 @@ def rna_pseudobulk_de(params: dict) -> dict:
         rep_to_sum: dict   = {}
         rep_to_n:   dict   = {}
         rep_to_meta: dict  = {}
+        noninvariant_covariates: set[str] = set()
         for sample_key in unique_samples:
             mask = sample_keys == sample_key
             n    = int(mask.sum())
@@ -654,8 +599,7 @@ def rna_pseudobulk_de(params: dict) -> dict:
                 # so memory stays small and we never materialize the full
                 # recovered matrix.
                 block_dense = block.toarray() if is_sparse else np.asarray(block)
-                # cell_pos[mask] maps back into the full adata, indexed
-                # against lib_sizes_full
+                # cell_pos[mask] maps back into the filtered counts/lib_sizes_full
                 rep_cell_idx = cell_pos[mask]
                 rep_lib      = lib_sizes_full[rep_cell_idx][:, None]
                 recovered    = np.expm1(block_dense) * rep_lib / norm_scale_factor
@@ -675,9 +619,13 @@ def rna_pseudobulk_de(params: dict) -> dict:
                 summed = np.asarray(block.sum(axis=0)).ravel().astype(np.int64)
             rep_to_sum[sample_key]  = summed
             rep_to_n[sample_key]    = n
-            # Use the first cell's metadata for the pseudosample. In paired
-            # designs condition is constant because sample_key includes it.
-            row              = group_obs[mask].iloc[0]
+            # Verify each covariate is constant within the pseudosample rather
+            # than silently taking .iloc[0] for within-donor varying covariates.
+            sub_obs = group_obs.iloc[np.flatnonzero(mask)]
+            row = sub_obs.iloc[0]
+            for cv in covariates:
+                if sub_obs[cv].nunique(dropna=False) > 1:
+                    noninvariant_covariates.add(cv)
             meta_entry = {condition_col: row[condition_col],
                           replicate_col: row[replicate_col],
                           **{cv: row[cv] for cv in covariates}}
@@ -691,6 +639,21 @@ def rna_pseudobulk_de(params: dict) -> dict:
                     _math.log((n + 1.0) / (total_for_rep + 1.0))
                 )
             rep_to_meta[sample_key] = meta_entry
+
+        group_covariates = list(covariates)
+        if noninvariant_covariates:
+            dropped_covs = sorted(noninvariant_covariates)
+            warnings.append(
+                f"[{group}] Covariate(s) {dropped_covs} vary within a "
+                f"pseudosample and cannot be modelled at the pseudosample "
+                f"level; excluded from pseudobulk DE."
+            )
+            group_covariates = [
+                c for c in group_covariates if c not in noninvariant_covariates
+            ]
+            for meta_entry in rep_to_meta.values():
+                for cv in dropped_covs:
+                    meta_entry.pop(cv, None)
 
         if len(rep_to_sum) < 2 * min_replicates_per_condition:
             per_group[group] = {"n_pseudosamples": len(rep_to_sum),
@@ -711,7 +674,7 @@ def rna_pseudobulk_de(params: dict) -> dict:
         gene_keep = counts_mat.sum(axis=1) > 0
         counts_df = pd.DataFrame(
             counts_mat[gene_keep],
-            index=[g for g, keep in zip(gene_names, gene_keep) if keep],
+            index=[g for g, keep in zip(gene_names, gene_keep, strict=True) if keep],
             columns=sample_order,
         )
 
@@ -752,7 +715,7 @@ def rna_pseudobulk_de(params: dict) -> dict:
                 }
                 continue
 
-            design_factors = [condition_col] + (covariates or [])
+            design_factors = [condition_col] + (group_covariates or [])
             paired_donor_covariate_used = False
             # B3: classify pairing for THIS contrast and pick a compatible model.
             # complete -> block modeled on all samples; partial -> block modeled on
@@ -891,47 +854,54 @@ def rna_pseudobulk_de(params: dict) -> dict:
                         dds_kwargs["continuous_factors"] = continuous_factors
                     if lfc_shrink_enabled and "ref_level" in dds_params:
                         dds_kwargs["ref_level"] = [condition_col, ref_str]
-                dds = DeseqDataSet(**dds_kwargs)
-                dds.deseq2()
-                stat_res = DeseqStats(
-                    dds,
-                    contrast=[condition_col, test_str, ref_str],
-                )
-                stat_res.summary()
+                with _w.catch_warnings(record=True) as _fit_caught:
+                    _w.simplefilter("always")
+                    for _benign_cat in _BENIGN_WARNING_CATEGORIES:
+                        _w.filterwarnings("ignore", category=_benign_cat)
+                    dds = DeseqDataSet(**dds_kwargs)
+                    dds.deseq2()
+                    stat_res = DeseqStats(
+                        dds,
+                        contrast=[condition_col, test_str, ref_str],
+                    )
+                    stat_res.summary()
 
-                # C4: apeGLM shrinkage. Keep the raw MLE LFC, shrink in place,
-                # fall back to raw if the coefficient is unavailable, shrinkage
-                # raises, or the post-shrink sign-flip guard triggers.
-                shrink_applied = False
-                shrink_reason = None
-                raw_lfc = stat_res.results_df["log2FoldChange"].copy()
-                raw_lfc_se = (
-                    stat_res.results_df["lfcSE"].copy()
-                    if "lfcSE" in stat_res.results_df.columns
-                    else None
-                )
-                if lfc_shrink_enabled:
-                    coeff = _shrink_coeff(dds, condition_col, test_str)
-                    if coeff is None:
-                        shrink_reason = "apeGLM coefficient not found"
+                    # C4: apeGLM shrinkage. Keep the raw MLE LFC, shrink in place,
+                    # fall back to raw if the coefficient is unavailable, shrinkage
+                    # raises, or the post-shrink sign-flip guard triggers.
+                    shrink_applied = False
+                    shrink_reason = None
+                    raw_lfc = stat_res.results_df["log2FoldChange"].copy()
+                    raw_lfc_se = (
+                        stat_res.results_df["lfcSE"].copy()
+                        if "lfcSE" in stat_res.results_df.columns
+                        else None
+                    )
+                    if lfc_shrink_enabled:
+                        coeff = _shrink_coeff(dds, condition_col, test_str)
+                        if coeff is None:
+                            shrink_reason = "apeGLM coefficient not found"
+                        else:
+                            try:
+                                stat_res.lfc_shrink(coeff=coeff)
+                                if _detect_shrink_sign_flip(
+                                    raw_lfc, stat_res.results_df["log2FoldChange"]
+                                ):
+                                    stat_res.results_df["log2FoldChange"] = raw_lfc
+                                    if raw_lfc_se is not None:
+                                        stat_res.results_df["lfcSE"] = raw_lfc_se
+                                    shrink_reason = (
+                                        "lfc_shrink sign-flip detected; reverted to raw MLE"
+                                    )
+                                else:
+                                    shrink_applied = True
+                            except Exception as _sx:  # aria: allow-broad-except auxiliary apeGLM shrinkage falls back to unshrunken MLE
+                                shrink_reason = f"lfc_shrink failed: {str(_sx)[:120]}"
                     else:
-                        try:
-                            stat_res.lfc_shrink(coeff=coeff)
-                            if _detect_shrink_sign_flip(
-                                raw_lfc, stat_res.results_df["log2FoldChange"]
-                            ):
-                                stat_res.results_df["log2FoldChange"] = raw_lfc
-                                if raw_lfc_se is not None:
-                                    stat_res.results_df["lfcSE"] = raw_lfc_se
-                                shrink_reason = (
-                                    "lfc_shrink sign-flip detected; reverted to raw MLE"
-                                )
-                            else:
-                                shrink_applied = True
-                        except Exception as _sx:
-                            shrink_reason = f"lfc_shrink failed: {str(_sx)[:120]}"
-                else:
-                    shrink_reason = "disabled"
+                        shrink_reason = "disabled"
+                block_fit_warnings = _serialize_fit_warnings(_fit_caught)
+                for _fw in block_fit_warnings:
+                    warnings.append(f"{group} ({comp_key}): {_fw}")
 
                 res = stat_res.results_df.dropna(subset=["pvalue"]).copy()
                 res["log2FoldChange_raw"] = raw_lfc.reindex(res.index)
@@ -986,6 +956,7 @@ def rna_pseudobulk_de(params: dict) -> dict:
                 "paired_block_modeled":       paired_donor_covariate_used,
                 "excluded_unpaired_samples":  excluded_unpaired_samples,
                 "design_check":               design_check,
+                "fit_warnings":               block_fit_warnings,
                 "top_genes":                 [],
                 "all_sig":                   [],
             }
@@ -1221,7 +1192,7 @@ def rna_pseudobulk_de(params: dict) -> dict:
                 ),
                 max_reported_features=200,
             )
-        except Exception as exc:
+        except Exception as exc:  # aria: allow-broad-except auxiliary LOBO diagnostic must not abort primary DE
             lobo_res = {"status": "error", "details": str(exc)[:200]}
         comp["lobo_jackknife"] = lobo_res
 
@@ -1264,6 +1235,43 @@ def rna_pseudobulk_de(params: dict) -> dict:
         count_source = "X_counts"
 
     power_disclosure = _power_disclosure_for_strategy(fdr_strategy)
+    shrink_applied_n = 0
+    shrink_failed_n = 0
+    shrink_failed_reasons: list[str] = []
+    for _g_info in per_group.values():
+        for _ck, _c_info in (_g_info.get("per_comparison") or {}).items():
+            if not isinstance(_c_info, dict) or _c_info.get("status") != "success":
+                continue
+            _sk = _c_info.get("lfc_shrinkage") or {}
+            if _sk.get("applied"):
+                shrink_applied_n += 1
+            elif lfc_shrink_enabled:
+                shrink_failed_n += 1
+                if _sk.get("reason"):
+                    shrink_failed_reasons.append(f"{_ck}: {_sk['reason']}")
+
+    if not lfc_shrink_enabled:
+        shrink_effect = (
+            "lfc_shrink disabled; reported log2fc is the unshrunken MLE"
+        )
+    elif shrink_applied_n > 0 and shrink_failed_n == 0:
+        shrink_effect = (
+            "reported log2fc is the shrunken estimate; log2fc_raw is "
+            "the unshrunken MLE; the |log2fc| > lfc_min effect-size "
+            "gate uses the shrunken value"
+        )
+    elif shrink_applied_n > 0 and shrink_failed_n > 0:
+        shrink_effect = (
+            f"apeGLM shrinkage applied to {shrink_applied_n}/"
+            f"{shrink_applied_n + shrink_failed_n} comparison(s) "
+            f"({shrink_failed_n} fell back to unshrunken MLE); "
+            "per-comparison lfc_shrinkage records which comparisons were "
+            "shrunken and log2fc_raw preserves the unshrunken MLE"
+        )
+    else:
+        shrink_effect = (
+            "apeGLM shrinkage did not apply; reported log2fc is the unshrunken MLE"
+        )
 
     return {
         "status":                          "success",
@@ -1281,10 +1289,15 @@ def rna_pseudobulk_de(params: dict) -> dict:
         "composition_covariate_requested": composition_covariate,
         "lfc_shrinkage": {
             "requested": lfc_shrink_enabled,
-            "method": "apeGLM (pydeseq2 lfc_shrink, p-values unchanged)",
-            "effect": ("reported log2fc is the shrunken estimate; log2fc_raw is "
-                       "the unshrunken MLE; the |log2fc| > lfc_min effect-size "
-                       "gate uses the shrunken value"),
+            "applied": bool(lfc_shrink_enabled and shrink_applied_n > 0 and shrink_failed_n == 0),
+            "n_applied": shrink_applied_n,
+            "n_failed": shrink_failed_n,
+            "failed_reasons": shrink_failed_reasons[:10],
+            "method": (
+                "apeGLM (pydeseq2 lfc_shrink, p-values unchanged)"
+                if shrink_applied_n > 0 else None
+            ),
+            "effect": shrink_effect,
         },
         "paired_design":                   paired_design,
         "auto_paired_donor_covariate":      auto_paired_donor_covariate,
@@ -1333,6 +1346,7 @@ def rna_pseudobulk_de(params: dict) -> dict:
         "per_group":      per_group,
         "output_csv":     csv_path,
         "full_results_csv": full_csv_path,
+        "warnings":       warnings,
     }
 
 

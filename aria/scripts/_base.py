@@ -71,13 +71,11 @@ def run_script(analysis_fn: Callable[[dict], dict]) -> None:
                      Must include {"status": "success"} in the return value
                      or the base will add it automatically.
     """
-    # Silence common bioinformatics warnings that pollute stderr
-    # These are safe to suppress for production runs
+    # Silence benign FutureWarning / sparse-format UserWarning chatter while
+    # keeping IEEE-754 RuntimeWarnings (including log2 domain errors) observable.
     warnings.filterwarnings("ignore", category=FutureWarning)
     warnings.filterwarnings("ignore", category=UserWarning,
                             message=".*sparse.*")
-    warnings.filterwarnings("ignore", category=RuntimeWarning,
-                            message=".*log2.*")
 
     if len(sys.argv) != 3:
         _write_error(

@@ -26,7 +26,7 @@ from pathlib import Path
 from typing import Optional
 
 from aria.agents.base_agent import BaseAgent
-from aria.bus.message_bus import Confidence, bus
+from aria.bus.message_bus import Confidence
 from aria.llm.provider import LLMProvider, TaskTier
 from aria.llm.prompt_boundary import (
     PromptDataField,
@@ -86,8 +86,6 @@ class DesignAgent(BaseAgent):
         self._inferred_design: dict = {}
         self._pseudobulk_design: dict = {}
         self._replicate_handling: Optional[dict] = None
-        # IDs for current escalation (needed to resolve later)
-        self._pending_escalation_id: Optional[str] = None
         self._experiment_id: Optional[str] = None
 
     # ── Public entry: called by orchestrator after CP1 ──────────────────
@@ -520,7 +518,7 @@ class DesignAgent(BaseAgent):
             "For example, two conditions with three replicates each:\n"
             "  treated=s1,s2,s3; control=s4,s5,s6"
         )
-        msg = self.publish_escalation(
+        self.publish_escalation(
             experiment_id=self._experiment_id,
             checkpoint=2.1,
             question=question,
@@ -532,7 +530,6 @@ class DesignAgent(BaseAgent):
             ],
             context={"proposed_groups": groups},
         )
-        self._pending_escalation_id = msg.id
 
     def _publish_organism_checkpoint(self):
         std_options = [
@@ -564,13 +561,12 @@ class DesignAgent(BaseAgent):
             + geo_note + "\n\n"
             + "\n".join(lines) + "\n"
         )
-        msg = self.publish_escalation(
+        self.publish_escalation(
             experiment_id=self._experiment_id,
             checkpoint=2.2,
             question=question,
             options=options,
         )
-        self._pending_escalation_id = msg.id
 
     def _publish_factor_checkpoint(self):
         group_names = list(self._confirmed_groups.keys())
@@ -607,13 +603,12 @@ class DesignAgent(BaseAgent):
         ]
         if factor_guess and factor_guess not in options:
             options = [factor_guess] + options
-        msg = self.publish_escalation(
+        self.publish_escalation(
             experiment_id=self._experiment_id,
             checkpoint=2.3,
             question=question,
             options=options,
         )
-        self._pending_escalation_id = msg.id
 
     @staticmethod
     def _sanitize_factor_guess(raw: str) -> str:
@@ -673,7 +668,7 @@ class DesignAgent(BaseAgent):
             f"Possible batch variable detected: {', '.join(sorted(possible_batch))}\n\n"
             "Do you want to include this as a covariate in the design formula?"
         )
-        msg = self.publish_escalation(
+        self.publish_escalation(
             experiment_id=self._experiment_id,
             checkpoint=2.4,
             question=question,
@@ -683,7 +678,6 @@ class DesignAgent(BaseAgent):
                 "Cancel",
             ],
         )
-        self._pending_escalation_id = msg.id
 
     def _detect_cross_arm_paired_units(self) -> dict | None:
         """Detect repeated biological units (donors/cell lines) spanning >=2 groups.
@@ -808,13 +802,12 @@ class DesignAgent(BaseAgent):
                 "No — technical replicates; merge by biological unit",
                 "Not sure — stop and provide a sample sheet",
             ]
-        msg = self.publish_escalation(
+        self.publish_escalation(
             experiment_id=self._experiment_id,
             checkpoint=2.5,
             question=question,
             options=options,
         )
-        self._pending_escalation_id = msg.id
 
     def _publish_confirm_checkpoint(self):
         design = self._build_design()
@@ -849,13 +842,12 @@ class DesignAgent(BaseAgent):
             if design.get("design_status") != "blocking"
             else ["Cancel — provide an explicit sample sheet / resolve confounding"]
         )
-        msg = self.publish_escalation(
+        self.publish_escalation(
             experiment_id=self._experiment_id,
             checkpoint=2.6,
             question=question,
             options=options,
         )
-        self._pending_escalation_id = msg.id
 
     # ── Helpers ──────────────────────────────────────────────────────────
 
@@ -1177,8 +1169,12 @@ class DesignAgent(BaseAgent):
                 made_by="user",
             )
             log.info(f"Design stored for {self._experiment_id}")
-        except Exception as e:
+        except Exception as e:  # aria: allow-broad-except surface non-fatal design decision persistence error
             log.warning(f"Failed to store design decision: {e}")
+            if isinstance(design, dict):
+                design.setdefault("warnings", []).append(
+                    f"Design decision persistence failed: {type(e).__name__}: {e}"
+                )
 
     # ── Satisfy BaseAgent's abstract method ──────────────────────────────
     def run(self, experiment_id: str, context: dict) -> dict:

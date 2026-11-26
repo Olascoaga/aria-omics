@@ -26,6 +26,7 @@ from aria.llm.prompt_boundary import (
     system_with_untrusted_boundary,
 )
 from aria.memory.memory import ARIAMemory
+from aria.utils.bulk_qc_contract import sample_qc_failed, sample_qc_size_ratio
 
 log = logging.getLogger("aria.bulk_rna")
 
@@ -254,6 +255,8 @@ class BulkRNAAgent(BaseAgent):
             de_extra_params["suppress_tpm"] = True
         if proto_for_de.get("umi_config"):
             de_extra_params["umi_config"] = proto_for_de["umi_config"]
+        if exp_ctx.get("count_union_policy"):
+            de_extra_params["count_union_policy"] = str(exp_ctx["count_union_policy"])
 
         # D1-H3: never fabricate conflicting human/hg38 defaults when only one
         # of organism/genome is specified; read from exp_ctx, design, or
@@ -374,12 +377,53 @@ class BulkRNAAgent(BaseAgent):
         factor = design.get("main_factor", "condition")
         sample_stems = {sample: group for group, samples in groups.items() for sample in samples}
         sample_aliases = design.get("sample_aliases", {}) or {}
+        stem_aliases: dict[str, list[str]] = {stem: [stem] for stem in sample_stems}
+
+        def _register_alias(stem: str, raw_val) -> None:
+            if stem not in stem_aliases or raw_val in (None, ""):
+                return
+            vals = raw_val if isinstance(raw_val, (list, tuple, set)) else [raw_val]
+            for v in vals:
+                tok = str(v).strip()
+                if tok and tok not in stem_aliases[stem]:
+                    stem_aliases[stem].append(tok)
+
+        for stem in sample_stems:
+            _register_alias(stem, sample_aliases.get(stem))
+
+        # Explicit ID maps (e.g. GSM<->SRR) carried by the design layer.
+        for map_key in ("sample_id_map", "gsm_to_srr", "srr_to_gsm"):
+            id_map = design.get(map_key)
+            if not isinstance(id_map, dict):
+                continue
+            for k, v in id_map.items():
+                ks = str(k).strip()
+                if ks in sample_stems:
+                    _register_alias(ks, v)
+                vals = v if isinstance(v, (list, tuple, set)) else [v]
+                for item in vals:
+                    vs = str(item).strip()
+                    if vs in sample_stems:
+                        _register_alias(vs, ks)
+
+        for row in design.get("sample_sheet") or []:
+            if not isinstance(row, dict):
+                continue
+            sid = str(row.get("sample") or row.get("id") or "").strip()
+            if sid in sample_stems:
+                for col_key in (
+                    "run_accession", "sra_run", "sra_runs", "sra_accessions",
+                    "srr", "gsm", "alias", "aliases",
+                ):
+                    if row.get(col_key):
+                        _register_alias(sid, row[col_key])
+
         alias_to_group = {}
+        alias_to_stems: dict[str, set[str]] = {}
         for stem, grp in sample_stems.items():
-            aliases = sample_aliases.get(stem, [stem])
-            for alias in aliases:
-                if alias:
-                    alias_to_group[str(alias)] = grp
+            for alias in stem_aliases[stem]:
+                alias_to_group[alias] = grp
+                alias_to_stems.setdefault(alias, set()).add(stem)
 
         # Read actual column names from the first count file (gzip + comment-aware)
         try:
@@ -406,6 +450,7 @@ class BulkRNAAgent(BaseAgent):
         # substring fallback. Multiple aliases resolving to the SAME group are
         # unambiguous.
         group_labels = {}
+        matched_stems: set[str] = set()
         for col in ordered_cols:
             col_norm = _normalise_sample_token(col)
             col_leaf = Path(col).name
@@ -417,8 +462,8 @@ class BulkRNAAgent(BaseAgent):
             )
             col_leaf_norm = _normalise_sample_token(col_leaf_stem)
 
-            exact_groups = {
-                grp
+            exact_hits = [
+                (stem, grp)
                 for stem, grp in all_candidates.items()
                 if stem == col
                 or stem == col_leaf
@@ -427,9 +472,12 @@ class BulkRNAAgent(BaseAgent):
                     _normalise_sample_token(stem)
                     and _normalise_sample_token(stem) in {col_norm, col_leaf_norm}
                 )
-            }
+            ]
+            exact_groups = {grp for _, grp in exact_hits}
             if len(exact_groups) == 1:
                 group_labels[col] = next(iter(exact_groups))
+                for tok, _ in exact_hits:
+                    matched_stems.update(alias_to_stems.get(tok, {tok}))
                 continue
             if len(exact_groups) > 1:
                 log.warning(
@@ -438,36 +486,42 @@ class BulkRNAAgent(BaseAgent):
                 )
                 continue
 
-            boundary_groups = {
-                grp
+            boundary_hits = [
+                (stem, grp)
                 for stem, grp in all_candidates.items()
                 if _boundary_matches(str(stem), col)
                 or _boundary_matches(str(stem), col_leaf_stem)
-            }
+            ]
+            boundary_groups = {grp for _, grp in boundary_hits}
             if len(boundary_groups) == 1:
                 group_labels[col] = next(iter(boundary_groups))
+                for tok, _ in boundary_hits:
+                    matched_stems.update(alias_to_stems.get(tok, {tok}))
                 continue
             if len(boundary_groups) > 1:
                 log.warning(
                     f"Ambiguous column '{col}' matches multiple groups "
                     f"{sorted(boundary_groups)} — skipping, will retry with "
-                    f"suffix-trimming or positional fallback."
+                    f"suffix-trimming."
                 )
                 continue
 
-            sub_groups = {
-                grp
+            sub_hits = [
+                (stem, grp)
                 for stem, grp in all_candidates.items()
                 if (stem and str(stem) in col)
                 or (_normalise_sample_token(stem) and _normalise_sample_token(stem) in col_norm)
-            }
+            ]
+            sub_groups = {grp for _, grp in sub_hits}
             if len(sub_groups) == 1:
                 group_labels[col] = next(iter(sub_groups))
+                for tok, _ in sub_hits:
+                    matched_stems.update(alias_to_stems.get(tok, {tok}))
             elif len(sub_groups) > 1:
                 log.warning(
                     f"Ambiguous column '{col}' matches multiple groups "
                     f"{sorted(sub_groups)} — skipping, will retry with "
-                    f"suffix-trimming or positional fallback."
+                    f"suffix-trimming."
                 )
 
         # Attempt to match by trimming potential technical replicate suffixes (_1, _2, etc.)
@@ -476,19 +530,22 @@ class BulkRNAAgent(BaseAgent):
                 col_norm = _normalise_sample_token(col)
                 col_base = re.sub(r"[_\-]?[12]$", "", col)
                 col_base_norm = _normalise_sample_token(col_base)
-                exact_trim = {
-                    grp
+                exact_trim_hits = [
+                    (stem, grp)
                     for stem, grp in all_candidates.items()
                     if col_base == stem
                     or (col_base_norm and col_base_norm == _normalise_sample_token(stem))
-                }
+                ]
+                exact_trim = {grp for _, grp in exact_trim_hits}
                 if len(exact_trim) == 1:
                     group_labels[col] = next(iter(exact_trim))
+                    for tok, _ in exact_trim_hits:
+                        matched_stems.update(alias_to_stems.get(tok, {tok}))
                     continue
                 if len(exact_trim) > 1:
                     continue
-                fuzzy_trim = {
-                    grp
+                fuzzy_trim_hits = [
+                    (stem, grp)
                     for stem, grp in all_candidates.items()
                     if (
                         (col_base and (stem.startswith(col_base) or col_base.startswith(stem)))
@@ -502,31 +559,31 @@ class BulkRNAAgent(BaseAgent):
                             )
                         )
                     )
-                }
+                ]
+                fuzzy_trim = {grp for _, grp in fuzzy_trim_hits}
                 if len(fuzzy_trim) == 1:
                     group_labels[col] = next(iter(fuzzy_trim))
+                    for tok, _ in fuzzy_trim_hits:
+                        matched_stems.update(alias_to_stems.get(tok, {tok}))
 
-        # Fallback: if no match, assign from design directly (assumes column order)
-        if not group_labels:
-            ordered_samples = list(sample_stems.keys())
-            if len(ordered_samples) == len(ordered_cols):
-                for i, col in enumerate(ordered_cols):
-                    group_labels[col] = sample_stems[ordered_samples[i]]
-
-        # B4 preprint-readiness: NO column-name inference rescue here. When the
-        # confirmed design cannot be mapped to the matrix columns (e.g. a
-        # sample-count mismatch from incomplete metadata), fail closed so the
-        # caller's P0-6 gate handles it — blocking, or inferring only under the
-        # explicit ARIA_ALLOW_FILENAME_FALLBACK opt-in via the sample-name path.
-        # Rebuilding the design from ctrl_*/treat_* column names would silently
-        # discard the confirmed design and run DE on a guess (P0-5/F5).
+        # B4 / D7-001 preprint-readiness: NO positional fallback and NO
+        # column-name inference rescue here. When the confirmed design cannot
+        # be mapped to the matrix columns (including same-length GSM-vs-SRR
+        # mismatches without an explicit alias/ID map), fail closed naming the
+        # unmatched identifiers on both sides so the caller's P0-6 gate handles
+        # it instead of silently flipping contrast signs.
+        unmatched_design = [s for s in sample_stems if s not in matched_stems]
+        unmatched_cols = [c for c in ordered_cols if c not in group_labels]
         if not group_labels or len(set(group_labels.values())) < 2:
             raise ValueError(
                 f"Could not map the confirmed design groups to the count matrix "
-                f"columns. Design stems: {list(sample_stems.keys())}, "
-                f"Columns: {colnames}. ARIA refuses to infer the design from "
-                f"column names; provide metadata that maps the confirmed design "
-                f"to these columns."
+                f"columns. Unmatched design IDs: {unmatched_design}; "
+                f"Unmatched matrix columns: {unmatched_cols}. "
+                f"Design stems: {list(sample_stems.keys())}, "
+                f"Columns: {colnames}. ARIA refuses positional fallback or "
+                f"column-name inference; provide explicit sample_aliases / "
+                f"sample_id_map (e.g. GSM<->SRR) or metadata that maps the "
+                f"confirmed design to these columns."
             )
 
         sample_names = list(group_labels.keys())
@@ -588,30 +645,18 @@ class BulkRNAAgent(BaseAgent):
             resolved = by_token.get(token)
             return resolved if resolved is not None else ""
 
+        from aria.utils.design_matrix import normalize_comparisons
+
         contrasts: list[dict] = []
-        for comp in raw:
-            if isinstance(comp, dict):
-                num = comp.get("numerator") or comp.get("test") or comp.get("case")
-                den = (
-                    comp.get("denominator")
-                    or comp.get("reference")
-                    or comp.get("ref")
-                    or comp.get("control")
-                )
-                name = comp.get("name")
-            elif isinstance(comp, (list, tuple)) and len(comp) >= 2:
-                num, den = comp[0], comp[1]
-                name = None
-            else:
-                continue
-            num = resolve_level(num)
-            den = resolve_level(den)
+        for comp in normalize_comparisons(raw, keep_name=True):
+            num = resolve_level(comp["test"])
+            den = resolve_level(comp["reference"])
             if not num or not den:
                 continue
             contrasts.append({
                 "numerator": num,
                 "denominator": den,
-                "name": str(name or f"{num} vs {den}"),
+                "name": str(comp.get("name") or f"{num} vs {den}"),
             })
         return contrasts
 
@@ -648,9 +693,10 @@ class BulkRNAAgent(BaseAgent):
                 sep = "\t" if "\t" in sample_lines[0] else ","
                 reader = csv.DictReader(sample_lines, delimiter=sep)
                 source = list(reader)
-            except Exception as exc:
-                log.debug(f"Could not read metadata source {p}: {exc}")
-                return {}
+            except (OSError, UnicodeDecodeError, csv.Error) as exc:
+                raise ValueError(
+                    f"Failed to read declared sample metadata file '{p}': {exc}"
+                ) from exc
         if isinstance(source, list):
             for row in source:
                 if not isinstance(row, dict):
@@ -1000,7 +1046,8 @@ class BulkRNAAgent(BaseAgent):
                 return []
             cols = cls._read_counts_header(p)
             return [c for c in cols if c.lower().strip() not in cls._GENE_COLS]
-        except Exception:
+        except Exception as exc:  # aria: allow-broad-except log count header read failure during sample-name preview
+            log.warning(f"Could not read sample names from {path}: {exc}")
             return []
 
     @staticmethod
@@ -1012,13 +1059,6 @@ class BulkRNAAgent(BaseAgent):
             gr = {s: "_".join(s.split("_")[:-1]) for s in samples}
             if len(set(gr.values())) >= 2: return gr
         return {}
-
-    def _build_contrasts(self, intent: dict, group_labels: dict, experiment_id: str) -> tuple[str, list]:
-        design_factor = self._infer_design_factor(intent)
-        # P0-5: this legacy helper no longer authorizes executable contrasts.
-        # The run path emits a confirmation checkpoint via
-        # _block_for_explicit_contrast when no plan/design contrast is present.
-        return design_factor, []
 
     @staticmethod
     def _infer_design_factor(intent: dict) -> str:
@@ -1087,11 +1127,6 @@ class BulkRNAAgent(BaseAgent):
                 if keyword in label.lower(): return label
         return None
 
-    @staticmethod
-    def _humanize_contrast(num_label: str, den_label: str, entity_to_label: dict) -> str:
-        label_to_entity = {v: k for k, v in entity_to_label.items()}
-        return f"{label_to_entity.get(num_label, num_label)} vs {label_to_entity.get(den_label, den_label)}"
-
     def _record_methodology_decisions(self, experiment_id: str, result: dict) -> None:
         try:
             methodology = (result.get("methodology") or {})
@@ -1115,7 +1150,12 @@ class BulkRNAAgent(BaseAgent):
                         decision_id=f"{experiment_id[:8]}-auto-{cp:02d}", wing_id=experiment_id, checkpoint=cp,
                         question=step, decision=decision_summary, rationale=d.get("justification", "")[:500], made_by="bulk_rna_agent (auto)"
                     )
-                except Exception as e: log.debug(f"Failed to store decision '{step}': {e}")
+                except Exception as e:  # aria: allow-broad-except surface non-fatal decision persistence error
+                    log.warning(f"Failed to store decision '{step}': {e}")
+                    if isinstance(result, dict):
+                        result.setdefault("warnings", []).append(
+                            f"Decision persistence failed for '{step}': {type(e).__name__}: {e}"
+                        )
 
             try:
                 self.memory.store_decision(
@@ -1131,18 +1171,90 @@ class BulkRNAAgent(BaseAgent):
                         f"(never inferred from the question text)."),
                     made_by="User / bulk_rna_agent"
                 )
-            except Exception as e: log.debug(f"Failed to store threshold decision: {e}")
+            except Exception as e:  # aria: allow-broad-except surface non-fatal threshold decision persistence error
+                log.warning(f"Failed to store threshold decision: {e}")
+                if isinstance(result, dict):
+                    result.setdefault("warnings", []).append(
+                        f"Threshold decision persistence failed: {type(e).__name__}: {e}"
+                    )
 
             try:
-                self.memory.store_decision(
-                    decision_id=f"{experiment_id[:8]}-auto-00-design", wing_id=experiment_id, checkpoint=0,
-                    question="DESeq2 design formula", decision=result.get("design_used", "~condition"),
-                    rationale="Single-factor design inferred from sample labels. No batch or covariate adjustment applied.",
-                    made_by="bulk_rna_agent (auto)"
+                contrasts_list = [
+                    c for c in (result.get("contrasts") or []) if isinstance(c, dict)
+                ]
+                fitted_formulas = list(
+                    dict.fromkeys(
+                        str(c["fitted_design_formula"]).strip()
+                        for c in contrasts_list
+                        if str(c.get("fitted_design_formula") or "").strip()
+                    )
                 )
-            except Exception as e: log.debug(f"Failed to store design decision: {e}")
-        except Exception as e:
+                design_decision = (
+                    fitted_formulas[0]
+                    if len(fitted_formulas) == 1
+                    else (
+                        "; ".join(fitted_formulas)
+                        if fitted_formulas
+                        else str(result.get("design_used") or "not reported")
+                    )
+                )
+                covs_adjusted = list(
+                    dict.fromkeys(
+                        str(cov)
+                        for c in contrasts_list
+                        for cov in (c.get("covariates_adjusted") or [])
+                        if str(cov or "").strip()
+                    )
+                )
+                covs_dropped = list(
+                    dict.fromkeys(
+                        str(cov)
+                        for c in contrasts_list
+                        for cov in (c.get("covariates_dropped") or [])
+                        if str(cov or "").strip()
+                    )
+                )
+                if covs_adjusted:
+                    design_rationale = (
+                        f"Multi-factor DESeq2 design adjusting for confirmed covariate(s): "
+                        f"{', '.join(covs_adjusted)}."
+                    )
+                    if covs_dropped:
+                        design_rationale += (
+                            f" Dropped unestimable/confounded covariate(s): "
+                            f"{', '.join(covs_dropped)}."
+                        )
+                elif covs_dropped:
+                    design_rationale = (
+                        f"Single-factor DESeq2 design; candidate covariate(s) dropped "
+                        f"before fitting: {', '.join(covs_dropped)}."
+                    )
+                else:
+                    design_rationale = (
+                        "Single-factor DESeq2 design with no additional batch or "
+                        "covariate terms fitted."
+                    )
+                self.memory.store_decision(
+                    decision_id=f"{experiment_id[:8]}-auto-00-design",
+                    wing_id=experiment_id,
+                    checkpoint=0,
+                    question="DESeq2 design formula",
+                    decision=design_decision,
+                    rationale=design_rationale,
+                    made_by="bulk_rna_agent (auto)",
+                )
+            except Exception as e:  # aria: allow-broad-except surface non-fatal design decision persistence error
+                log.warning(f"Failed to store design decision: {e}")
+                if isinstance(result, dict):
+                    result.setdefault("warnings", []).append(
+                        f"Design decision persistence failed: {type(e).__name__}: {e}"
+                    )
+        except Exception as e:  # aria: allow-broad-except surface non-fatal bulk decision logging failure
             log.warning(f"Decision logging failed (non-fatal): {e}")
+            if isinstance(result, dict):
+                result.setdefault("warnings", []).append(
+                    f"Decision logging failed: {type(e).__name__}: {e}"
+                )
 
     def _run_preprocessing(self, experiment_id: str, fastq_files: list, exp_ctx: dict, intent: dict) -> tuple:
         from aria.utils.rna_fastq_protocol import resolve_bulk_rna_protocol
@@ -1358,8 +1470,35 @@ class BulkRNAAgent(BaseAgent):
                     self.publish_finding(experiment_id, {"summary": f"[{name}] {db}: {len(terms)} pathways. Top: {', '.join(t['term'] for t in terms[:3])}", "contrast": name, "pathways": terms[:10], "database": db}, Confidence.MEDIUM)
 
         if qc := result.get("sample_qc", {}):
-            outliers = qc.get("outliers", [])
-            self.publish_finding(experiment_id, {"summary": f"Bulk QC: {qc.get('n_samples','?')} samples. Lib size range: {qc.get('size_ratio',1):.1f}x." + (f" Outliers: {outliers}." if outliers else "")}, Confidence.HIGH if not outliers else Confidence.MEDIUM)
+            ratio = sample_qc_size_ratio(qc)
+            ratio_txt = f"{ratio:.1f}x" if ratio is not None else "not available"
+            if sample_qc_failed(qc):
+                err_txt = str(qc.get("error") or "QC failed")[:120]
+                self.publish_finding(
+                    experiment_id,
+                    {
+                        "summary": (
+                            f"Bulk QC failed ({err_txt}): {qc.get('n_samples', '?')} samples. "
+                            f"Lib size range: {ratio_txt}. Outlier screening not available."
+                        ),
+                        "status": "error",
+                        "error": err_txt,
+                    },
+                    Confidence.INSUFFICIENT,
+                )
+            else:
+                outliers = qc.get("candidate_outliers", qc.get("outliers", [])) or []
+                self.publish_finding(
+                    experiment_id,
+                    {
+                        "summary": (
+                            f"Bulk QC: {qc.get('n_samples', '?')} samples. "
+                            f"Lib size range: {ratio_txt}."
+                            + (f" Outliers: {outliers}." if outliers else "")
+                        )
+                    },
+                    Confidence.HIGH if not outliers else Confidence.MEDIUM,
+                )
 
     def _publish_single_contrast_findings(self, experiment_id: str, result: dict):
         n_sig, n_up, n_down, comp = result.get("n_significant", 0), result.get("n_upregulated", 0), result.get("n_downregulated", 0), result.get("comparison_used", {})
@@ -1377,18 +1516,6 @@ class BulkRNAAgent(BaseAgent):
             avg_map = sum(b.get("pct_unique", 0) for b in ok_bams) / max(len(ok_bams), 1)
             low_map = [b["name"] for b in ok_bams if b.get("pct_unique", 100) < 70]
             self.publish_finding(experiment_id, {"summary": f"STAR alignment: {len(ok_bams)}/{len(bams)} samples mapped. Avg unique mapping: {avg_map:.1f}%." + (f" Low mapping: {low_map}" if low_map else "")}, Confidence.MEDIUM if avg_map <= 75 or low_map else Confidence.HIGH)
-
-    def _interpret(self, result: dict, intent: dict, exp_ctx: dict) -> str:
-        return (
-            "Free-text LLM bulk RNA interpretation is disabled by F3 governance; "
-            "use structured NarrativeBlock results and evidence cards."
-        )
-
-    def _interpret_single(self, result: dict, intent: dict, exp_ctx: dict) -> str:
-        return (
-            "Free-text LLM bulk RNA interpretation is disabled by F3 governance; "
-            "use structured NarrativeBlock results and evidence cards."
-        )
 
     def _output_dir(self, files: list) -> str: return str(Path(files[0]).parent / "aria_bulk_de") if files else "/tmp/aria_bulk_de"
 

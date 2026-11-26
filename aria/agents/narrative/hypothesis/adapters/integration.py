@@ -39,8 +39,6 @@ from __future__ import annotations
 
 import json
 import logging
-import math
-import re
 from pathlib import Path
 from typing import Any
 
@@ -75,20 +73,10 @@ _NON_RUN_STATUSES = frozenset(
     {"not_run", "skipped", "blocked", "error", "failed"}
 )
 _DEGRADED_GUARDRAIL_STATUSES = frozenset({"warn", "degraded", "fail"})
-_PEAK_COORD_RE = re.compile(
-    r"^(?:chr[\w.\-]+|[\dXYM]+|MT):\d+[-:]\d+$", re.IGNORECASE
-)
 _COMPOSITE_TF_MARKERS = ("::", ",", "/", ";", "(", ")", " ")
 
-
-def _finite_float(value: Any) -> float | None:
-    if value is None or isinstance(value, bool):
-        return None
-    try:
-        out = float(value)
-    except (TypeError, ValueError):
-        return None
-    return out if math.isfinite(out) else None
+from aria.utils.stats import finite_float as _finite_float
+from aria.utils.text_matching import clean_gene_symbol as _valid_gene_symbol
 
 
 def _finite_corr(value: Any) -> float | None:
@@ -98,35 +86,6 @@ def _finite_corr(value: Any) -> float | None:
     if abs(out) > 1.0 + 1e-6:
         return None
     return max(-1.0, min(1.0, out))
-
-
-def _is_peak_coordinate(token: str) -> bool:
-    s = str(token or "").strip()
-    if not s:
-        return False
-    if _PEAK_COORD_RE.match(s):
-        return True
-    # Also guard Signac-style chr1-10000-10500 coordinate triples.
-    parts = s.split("-")
-    if (
-        len(parts) == 3
-        and parts[0].lower().startswith("chr")
-        and parts[1].isdigit()
-        and parts[2].isdigit()
-    ):
-        return True
-    return False
-
-
-def _valid_gene_symbol(raw: Any) -> str | None:
-    sym = str(raw or "").strip()
-    if not sym or sym == "?":
-        return None
-    if _is_peak_coordinate(sym):
-        return None
-    if any(ch in sym for ch in (" ", "\t", "\n", ";", ",")):
-        return None
-    return sym
 
 
 def _valid_single_tf_symbol(raw: Any) -> str | None:
@@ -451,7 +410,7 @@ def _resolve_mofa_loadings_map(
                     factors = payload.get("factors")
                     if isinstance(factors, dict):
                         return factors
-        except Exception as exc:
+        except Exception as exc:  # aria: allow-broad-except log MOFA+ loadings read error without aborting other signals
             log.warning(
                 "Could not read MOFA+ factor_loadings_path for hypothesis "
                 "adapter (%s); omitting MOFA+ loadings.",

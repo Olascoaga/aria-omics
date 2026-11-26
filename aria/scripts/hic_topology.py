@@ -28,10 +28,8 @@ Zero imports from ``aria.agents.*``, ``litellm``, or ``pydantic``.
 
 from __future__ import annotations
 
-import gzip
 import math
 import os
-import re
 import shutil
 import sys
 from pathlib import Path
@@ -41,12 +39,11 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspa
 
 from aria.scripts._base import mocks_allowed, run_script
 from aria.scripts.hic_preprocess import _check_hic_stage_cache, _save_hic_stage_cache
+from aria.utils.genomic_coords import contig_aliases as _chrom_aliases, parse_gtf_tss_records
 from aria.utils.hic_constants import list_mcool_resolutions
 
 STAGE_VERSION = 1
 EXCLUDED_CHROMS = frozenset({"chrM", "MT", "chrMT", "M", "chrEBV", "EBV"})
-_ATTR_GENE_NAME_RE = re.compile(r'(?:gene_name|Name)[=\s]+"?([^";]+)"?')
-_ATTR_GENE_ID_RE = re.compile(r'(?:gene_id|ID)[=\s]+"?([^";]+)"?')
 
 
 # ── Shared helpers ───────────────────────────────────────────────────────────
@@ -57,20 +54,6 @@ def _snap_window(window_bp: int, resolution_bp: int) -> int:
     res = max(int(resolution_bp), 1)
     n_bins = max(3, int(round(int(window_bp) / float(res))))
     return n_bins * res
-
-
-def _chrom_aliases(chrom: str) -> tuple[str, ...]:
-    c = str(chrom).strip()
-    if not c:
-        return ()
-    if c.lower().startswith("chr"):
-        bare = c[3:]
-        if bare.upper() in {"M", "MT"}:
-            return (c, "chrM", "chrMT", "MT", "M")
-        return (c, bare)
-    if c.upper() in {"M", "MT"}:
-        return (c, "chrM", "chrMT", "MT", "M")
-    return (c, f"chr{c}")
 
 
 def _safe_ignore_diags(clr, view_df, actual_res: int) -> int:
@@ -221,43 +204,9 @@ def _build_view_df(clr, chroms: list[str]):
 
 
 def _parse_gtf_tss(gtf_path: str | None) -> list[tuple[str, int, str]]:
-    """Extract unique ``(chrom, tss_0based, gene_symbol)`` records from GTF/GFF."""
-    if not gtf_path or not Path(str(gtf_path)).is_file():
-        return []
-    p = Path(str(gtf_path))
-    opener = gzip.open if p.name.lower().endswith(".gz") else open
-    genes: list[tuple[str, int, str]] = []
-    seen: set[tuple[str, str]] = set()
-    with opener(p, "rt", encoding="utf-8", errors="replace") as fh:
-        for line in fh:
-            if not line or line.startswith("#"):
-                continue
-            parts = line.rstrip("\n").split("\t")
-            if len(parts) < 9:
-                continue
-            feat = parts[2].lower()
-            if feat not in {"gene", "transcript", "mrna"}:
-                continue
-            chrom = parts[0]
-            try:
-                start_1 = int(parts[3])
-                end_1 = int(parts[4])
-            except ValueError:
-                continue
-            strand = parts[6]
-            tss = max(0, (start_1 - 1) if strand != "-" else (end_1 - 1))
-            attrs = parts[8]
-            m_name = _ATTR_GENE_NAME_RE.search(attrs)
-            m_id = _ATTR_GENE_ID_RE.search(attrs)
-            gene = (m_name.group(1) if m_name else (m_id.group(1) if m_id else "")).strip()
-            if not gene:
-                continue
-            key = (chrom, gene)
-            if key in seen:
-                continue
-            seen.add(key)
-            genes.append((chrom, tss, gene))
-    return genes
+    """Extract unique ``(chrom, tss_0based, gene_symbol)`` records via canonical GTF parser."""
+    records, _ = parse_gtf_tss_records(gtf_path)
+    return [(rec["chrom"], int(rec["tss"]), rec["gene"]) for rec in records.values()]
 
 
 def _phasing_valid_chroms(phasing_df, chroms: list[str], clr=None) -> set[str]:
@@ -287,9 +236,8 @@ def _phasing_valid_chroms(phasing_df, chroms: list[str], clr=None) -> set[str]:
                 for ch in chroms:
                     cm = b_ch == str(ch)
                     ice_valid_by_chrom[str(ch)] = b_st[cm & w_ok]
-        except Exception:
-            ice_valid_full = None
-            ice_valid_by_chrom = None
+        except (OSError, ValueError, KeyError, TypeError):
+            return set()
 
     valid: set[str] = set()
     p_ch = phasing_df["chrom"].astype(str).to_numpy()
@@ -372,55 +320,82 @@ def _run_eigs_per_chrom_safe(
     return ev_out, vec_out
 
 
-def _build_phasing_track(clr, chroms: list[str], genome_fasta: str | None, gtf_path: str | None):
+def _build_phasing_track(
+    clr,
+    chroms: list[str],
+    genome_fasta: str | None,
+    gtf_path: str | None,
+    fallback_reasons: list[str] | None = None,
+):
     """Build a ``(chrom, start, end, phasing_score)`` DataFrame for ``eigs_cis``.
 
-    Returns ``(phasing_df | None, phasing_method, pc1_validated, phased_chroms)``."""
+    Returns ``(phasing_df | None, phasing_method, pc1_validated, phased_chroms)``.
+    If ``fallback_reasons`` is supplied, records any FASTA open/index failure that
+    triggered fallback to GTF or unphased mode.
+    """
     import numpy as np
-    import pandas as pd
 
     bins_df = clr.bins()[:][["chrom", "start", "end"]].copy()
     bins_df["chrom"] = bins_df["chrom"].astype(str)
     chrom_strs = [str(c) for c in chroms]
+    fasta_open_error: str | None = None
 
     # 1. Local genome FASTA GC fraction (gold standard for cooltools eigs_cis)
     if genome_fasta and Path(str(genome_fasta)).is_file():
         try:
             import pysam
-
-            with pysam.FastaFile(str(genome_fasta)) as fa:
-                refs = set(fa.references)
-                alias_to_ref: dict[str, str] = {}
-                for r in refs:
-                    for al in _chrom_aliases(r):
-                        alias_to_ref.setdefault(al, r)
-                matched = [(c, alias_to_ref[c]) for c in chrom_strs if c in alias_to_ref]
-                if matched:
-                    gc_vals = np.full(len(bins_df), np.nan, dtype=float)
-                    for ch, ref_ch in matched:
-                        ch_len = int(fa.get_reference_length(ref_ch))
-                        seq = fa.fetch(ref_ch, 0, ch_len).upper()
-                        ch_idx = np.flatnonzero(bins_df["chrom"].to_numpy() == ch)
-                        starts = bins_df["start"].to_numpy(dtype=int)[ch_idx]
-                        ends = bins_df["end"].to_numpy(dtype=int)[ch_idx]
-                        for idx_pos, s, e in zip(ch_idx, starts, ends):
-                            sub = seq[max(0, s):min(ch_len, e)]
-                            if not sub:
-                                continue
-                            atgc = (
-                                sub.count("A") + sub.count("T")
-                                + sub.count("G") + sub.count("C")
-                            )
-                            if atgc >= 20:
-                                gc_vals[idx_pos] = (sub.count("G") + sub.count("C")) / float(atgc)
-                    cand_df = bins_df[["chrom", "start", "end"]].copy()
-                    cand_df["GC"] = gc_vals
-                    valid_ch = _phasing_valid_chroms(cand_df, chrom_strs, clr=clr)
-                    if valid_ch:
-                        all_phased = bool(chrom_strs) and (set(chrom_strs) <= valid_ch)
-                        return cand_df, "gc_content", all_phased, valid_ch
-        except Exception:
-            pass
+        except ImportError:
+            pysam = None
+            fasta_open_error = (
+                f"FASTA GC phasing unavailable ({Path(str(genome_fasta)).name}: "
+                "pysam is not installed)"
+            )
+        if pysam is not None:
+            fa = None
+            try:
+                fa = pysam.FastaFile(str(genome_fasta))
+            except OSError as exc:
+                # Valid plain-gzip FASTAs (.fa.gz) and FASTAs in read-only dirs
+                # without a pre-built .fai raise OSError at open/index time in
+                # htslib; record the reason and fall back to GTF phasing.
+                # Errors after a successful open (corrupt sequence during fetch)
+                # propagate uncaught below.
+                fasta_open_error = (
+                    f"FASTA open/index failed ({Path(str(genome_fasta)).name}: "
+                    f"{str(exc)[:180]})"
+                )
+            if fa is not None:
+                with fa:
+                    refs = set(fa.references)
+                    alias_to_ref: dict[str, str] = {}
+                    for r in refs:
+                        for al in _chrom_aliases(r):
+                            alias_to_ref.setdefault(al, r)
+                    matched = [(c, alias_to_ref[c]) for c in chrom_strs if c in alias_to_ref]
+                    if matched:
+                        gc_vals = np.full(len(bins_df), np.nan, dtype=float)
+                        for ch, ref_ch in matched:
+                            ch_len = int(fa.get_reference_length(ref_ch))
+                            seq = fa.fetch(ref_ch, 0, ch_len).upper()
+                            ch_idx = np.flatnonzero(bins_df["chrom"].to_numpy() == ch)
+                            starts = bins_df["start"].to_numpy(dtype=int)[ch_idx]
+                            ends = bins_df["end"].to_numpy(dtype=int)[ch_idx]
+                            for idx_pos, s, e in zip(ch_idx, starts, ends, strict=True):
+                                sub = seq[max(0, s):min(ch_len, e)]
+                                if not sub:
+                                    continue
+                                atgc = (
+                                    sub.count("A") + sub.count("T")
+                                    + sub.count("G") + sub.count("C")
+                                )
+                                if atgc >= 20:
+                                    gc_vals[idx_pos] = (sub.count("G") + sub.count("C")) / float(atgc)
+                        cand_df = bins_df[["chrom", "start", "end"]].copy()
+                        cand_df["GC"] = gc_vals
+                        valid_ch = _phasing_valid_chroms(cand_df, chrom_strs, clr=clr)
+                        if valid_ch:
+                            all_phased = bool(chrom_strs) and (set(chrom_strs) <= valid_ch)
+                            return cand_df, "gc_content", all_phased, valid_ch
 
     # 2. Local GTF TSS / gene density per bin
     tss_records = _parse_gtf_tss(gtf_path)
@@ -447,32 +422,21 @@ def _build_phasing_track(clr, chroms: list[str], genome_fasta: str | None, gtf_p
         cand_df["gene_density"] = counts
         valid_ch = _phasing_valid_chroms(cand_df, chrom_strs, clr=clr)
         if valid_ch:
+            if fasta_open_error and fallback_reasons is not None:
+                fallback_reasons.append(
+                    f"{fasta_open_error}; fell back to GTF gene_density phasing"
+                )
             all_phased = bool(chrom_strs) and (set(chrom_strs) <= valid_ch)
             return cand_df, "gene_density", all_phased, valid_ch
 
+    if fasta_open_error and fallback_reasons is not None:
+        fallback_reasons.append(
+            f"{fasta_open_error}; no valid GTF phasing track available"
+        )
     return None, "unphased_arbitrary_sign", False, set()
 
 
-def _bh_fdr(pvals):
-    import numpy as np
-
-    p = np.asarray(pvals, dtype=float)
-    n = p.size
-    out = np.full(n, np.nan, dtype=float)
-    valid = np.isfinite(p)
-    m = int(valid.sum())
-    if m == 0:
-        return out
-    pv = np.clip(p[valid], 0.0, 1.0)
-    order = np.argsort(pv, kind="mergesort")
-    ranked = pv[order]
-    adj = ranked * float(m) / np.arange(1, m + 1, dtype=float)
-    adj = np.minimum.accumulate(adj[::-1])[::-1]
-    adj = np.clip(adj, 0.0, 1.0)
-    inv = np.empty(m, dtype=int)
-    inv[order] = np.arange(m)
-    out[valid] = adj[inv]
-    return out
+from aria.utils.stats import bh_correct as _bh_fdr
 
 
 # ── 1. Compartments A/B ──────────────────────────────────────────────────────
@@ -563,8 +527,13 @@ def _compute_compartments(
         if long_chroms and len(long_chroms) < len(view_df):
             view_df = view_df[view_df["chrom"].isin(long_chroms)].reset_index(drop=True)
         analyzed_chroms = [str(c) for c in view_df["chrom"].tolist()]
+        phasing_fallback_reasons: list[str] = []
         phasing_df, phasing_method, _, phased_chroms = _build_phasing_track(
-            clr, analyzed_chroms, genome_fasta, gtf_path
+            clr, analyzed_chroms, genome_fasta, gtf_path,
+            fallback_reasons=phasing_fallback_reasons,
+        )
+        phasing_fallback_reason = (
+            "; ".join(phasing_fallback_reasons) if phasing_fallback_reasons else None
         )
         phased_chroms_analyzed = [c for c in analyzed_chroms if c in phased_chroms]
         unphased_chroms = [c for c in analyzed_chroms if c not in phased_chroms]
@@ -573,7 +542,7 @@ def _compute_compartments(
         n_eigs = min(3, max(1, nbins_min - 2))
         ignore_diags = _safe_ignore_diags(clr, view_df, actual_res)
 
-        eigvals_df, eigvecs_df = _run_eigs_per_chrom_safe(
+        _eigvals_df, eigvecs_df = _run_eigs_per_chrom_safe(
             eig,
             clr,
             phasing_df=phasing_df,
@@ -637,6 +606,8 @@ def _compute_compartments(
         bg_df.to_csv(comp_bg, sep="\t", header=False, index=False)
 
         warnings: list[str] = []
+        if phasing_fallback_reason:
+            warnings.append(phasing_fallback_reason)
         if pc1_validated:
             note = f"E1 phased via {phasing_method} (positive E1 = active A compartment)."
         elif phased_chroms_analyzed:
@@ -653,7 +624,7 @@ def _compute_compartments(
             )
             warnings.append("unphased_E1_sign_arbitrary")
 
-        return {
+        comp_result = {
             "status": "success",
             "ran": True,
             "data_type": "HiC",
@@ -675,6 +646,9 @@ def _compute_compartments(
             "warnings": warnings,
             "note": note,
         }
+        if phasing_fallback_reason:
+            comp_result["phasing_fallback_reason"] = phasing_fallback_reason
+        return comp_result
     except Exception as exc:
         return {
             "status": "error",
@@ -761,7 +735,7 @@ def _compute_tads(
             st_map: dict[int, float] = {}
             if strength_col in b_df.columns:
                 raw_st = b_df[strength_col].to_numpy(dtype=float)
-                for pos_i, sval in zip(positions, raw_st):
+                for pos_i, sval in zip(positions, raw_st, strict=True):
                     if math.isfinite(float(sval)):
                         fv = float(sval)
                         strengths.append(fv)
@@ -877,7 +851,7 @@ def _calibrate_insulation(
         )
 
         boundary_strengths: dict[str, float] = {}
-        for orig_w, eff_w in zip(windows, valid_windows):
+        for orig_w, eff_w in zip(windows, valid_windows, strict=True):
             bound_col = f"is_boundary_{eff_w}"
             st_col = f"boundary_strength_{eff_w}"
             sc_col = f"log2_insulation_score_{eff_w}"
@@ -1227,7 +1201,7 @@ def _moderated_linear_contrast(
     df_design = pd.DataFrame({"intercept": 1.0, "is_test": is_test})
     dropped_covariates: list[str] = []
     if covariate_rows:
-        cov_sub = [row for row, kp in zip(covariate_rows, keep_samples) if kp]
+        cov_sub = [row for row, kp in zip(covariate_rows, keep_samples, strict=True) if kp]
         cov_df = pd.DataFrame(cov_sub)
         for col in cov_df.columns:
             raw_vals = list(cov_df[col])
@@ -1402,7 +1376,15 @@ def _compute_differential_3d(params: dict, out_dir: str) -> dict:
     import numpy as np
     import pandas as pd
 
-    files = [str(f) for f in (params.get("files") or []) if Path(str(f)).exists()]
+    raw_files = [str(f) for f in (params.get("files") or []) if f]
+    missing_files = [f for f in raw_files if not Path(f).exists()]
+    if missing_files:
+        return {
+            "status": "error",
+            "error_type": "FileNotFound",
+            "details": f"Declared Hi-C input file(s) not found: {missing_files}",
+        }
+    files = raw_files
     if len(files) < 2:
         return {
             "status": "skipped",
@@ -1442,7 +1424,17 @@ def _compute_differential_3d(params: dict, out_dir: str) -> dict:
                     meta_by_sid[str(sid_val)] = m
 
     declared_sids = params.get("sample_ids")
-    if isinstance(declared_sids, list) and len(declared_sids) == len(files):
+    if declared_sids is not None:
+        if not isinstance(declared_sids, list) or len(declared_sids) != len(files):
+            return {
+                "status": "error",
+                "error_type": "SampleIdLengthMismatch",
+                "details": (
+                    f"Declared sample_ids length "
+                    f"({len(declared_sids) if isinstance(declared_sids, list) else type(declared_sids).__name__}) "
+                    f"does not match files length ({len(files)})."
+                ),
+            }
         raw_sids = [str(s) for s in declared_sids]
     else:
         raw_sids = [Path(f).stem.replace(".balanced", "").replace(".mcool", "").replace(".cool", "") for f in files]
@@ -1451,7 +1443,7 @@ def _compute_differential_3d(params: dict, out_dir: str) -> dict:
         sid_counts[s] = sid_counts.get(s, 0) + 1
     seen_sids: set[str] = set()
     sample_ids: list[str] = []
-    for idx_s, (s, fpath_s) in enumerate(zip(raw_sids, files)):
+    for idx_s, (s, fpath_s) in enumerate(zip(raw_sids, files, strict=True)):
         cand = s
         if sid_counts.get(s, 0) > 1:
             parent_tag = Path(fpath_s).parent.name.strip()
@@ -1501,8 +1493,9 @@ def _compute_differential_3d(params: dict, out_dir: str) -> dict:
     phased_chroms: set[str] = set()
     pc1_validated = False
     phasing_method = "unphased_arbitrary_sign"
+    phasing_fallback_reasons: list[str] = []
 
-    for sid, fpath in zip(sample_ids, files):
+    for sid, fpath in zip(sample_ids, files, strict=True):
         if sid not in meta_by_sid:
             continue
         clr_c, actual_comp_res = _ensure_balanced_cooler(fpath, comp_res, out_path / sid)
@@ -1526,7 +1519,8 @@ def _compute_differential_3d(params: dict, out_dir: str) -> dict:
         cur_bins = all_bins_c[all_bins_c["chrom"].astype(str).isin(vdf_chrom_set)].reset_index(drop=True)
         if not phasing_built:
             phasing_df, phasing_method, _, phased_chroms = _build_phasing_track(
-                clr_c, analyzed_c, genome_fasta, gtf_path
+                clr_c, analyzed_c, genome_fasta, gtf_path,
+                fallback_reasons=phasing_fallback_reasons,
             )
             phasing_coords = cur_bins
             phasing_built = True
@@ -1862,7 +1856,12 @@ def _compute_differential_3d(params: dict, out_dir: str) -> dict:
         None,
     )
 
-    return {
+    phasing_fallback_reason = (
+        "; ".join(phasing_fallback_reasons) if phasing_fallback_reasons else None
+    )
+    if phasing_fallback_reason:
+        warnings.append(phasing_fallback_reason)
+    diff_result = {
         "status": "success" if any_ran else "skipped",
         "ran": bool(any_ran),
         "descriptive_only": not any_ran,
@@ -1885,6 +1884,9 @@ def _compute_differential_3d(params: dict, out_dir: str) -> dict:
         "comparisons": contrast_results,
         "warnings": warnings,
     }
+    if phasing_fallback_reason:
+        diff_result["phasing_fallback_reason"] = phasing_fallback_reason
+    return diff_result
 
 
 # ── Main entrypoint ──────────────────────────────────────────────────────────
@@ -1899,13 +1901,32 @@ def hic_topology(params: dict) -> dict:
     chromosomes = params.get("chromosomes", "all")
     allow_mock = mocks_allowed(params)
 
-    valid_files = [f for f in files if Path(f).exists()]
-    if not valid_files:
+    if not files:
         return {
             "status": "error",
             "error_type": "FileNotFound",
             "details": "No valid Hi-C files found for topology analysis.",
         }
+    missing_files = [f for f in files if not Path(f).exists()]
+    if missing_files:
+        return {
+            "status": "error",
+            "error_type": "FileNotFound",
+            "details": f"Declared Hi-C input file(s) not found: {missing_files}",
+        }
+    declared_sids = params.get("sample_ids")
+    if declared_sids is not None:
+        if not isinstance(declared_sids, list) or len(declared_sids) != len(files):
+            return {
+                "status": "error",
+                "error_type": "SampleIdLengthMismatch",
+                "details": (
+                    f"Declared sample_ids length "
+                    f"({len(declared_sids) if isinstance(declared_sids, list) else type(declared_sids).__name__}) "
+                    f"does not match files length ({len(files)})."
+                ),
+            }
+    valid_files = list(files)
 
     default_out = Path(valid_files[0]).parent / "aria_hic_topology" / analysis
     out_dir = str(params.get("output_dir") or default_out)

@@ -195,32 +195,12 @@ def _compute_safe_silhouette(
     seed: int,
     max_dims: int = 20,
 ) -> float | None:
-    """Compute Euclidean silhouette score safely on up to 2,000 sampled cells."""
-    import numpy as np
-    from sklearn.metrics import silhouette_score
+    """Compute Euclidean silhouette score safely via canonical ``integration_qc.safe_silhouette_score``."""
+    from aria.utils.integration_qc import safe_silhouette_score
 
-    n_cells = int(embedding.shape[0])
-    uniq = set(labels)
-    if n_cells < 4 or len(uniq) < 2 or len(uniq) >= n_cells:
-        return None
-    # Require at least one group with >= 2 cells so silhouette is well-defined.
-    if max(labels.count(u) for u in uniq) < 2:
-        return None
-    mat = np.asarray(embedding[:, : min(max_dims, embedding.shape[1])], dtype=np.float64)
-    if not np.all(np.isfinite(mat)):
-        return None
-    try:
-        val = float(
-            silhouette_score(
-                mat,
-                np.asarray(labels, dtype=object),
-                sample_size=min(2000, n_cells),
-                random_state=int(seed),
-            )
-        )
-        return round(val, 4) if np.isfinite(val) else None
-    except Exception:
-        return None
+    return safe_silhouette_score(
+        embedding, labels, seed=int(seed), max_dims=int(max_dims), round_digits=4
+    )
 
 
 def _compute_graph_ilisi(
@@ -370,7 +350,7 @@ def _count_discordant_clusters(
     from collections import Counter, defaultdict
 
     buckets: dict[str, list[str]] = defaultdict(list)
-    for w_lbl, r_lbl in zip(wnn_labels, rna_labels):
+    for w_lbl, r_lbl in zip(wnn_labels, rna_labels, strict=True):
         buckets[str(w_lbl)].append(str(r_lbl))
 
     n_discordant = 0
@@ -1336,7 +1316,7 @@ def integration_wnn(params: dict) -> dict:
         joint_clusters_map: dict[str, str] = {}
         if n_cells <= 50_000:
             joint_clusters_map = {
-                str(bc): str(lbl) for bc, lbl in zip(common_cells, wnn_labels)
+                str(bc): str(lbl) for bc, lbl in zip(common_cells, wnn_labels, strict=True)
             }
         else:
             warnings.append(
@@ -1465,28 +1445,21 @@ def integration_wnn(params: dict) -> dict:
 def _load_rna(path: str):
     """Load scRNA-seq count matrix from .h5ad, 10x .h5, or 10x MEX directory."""
     try:
-        import scanpy as sc
+        from aria.utils.mudata_io import load_modality_matrix
 
-        p = Path(path)
-        if p.suffix.lower() == ".h5ad":
-            return sc.read_h5ad(str(p))
-        if p.suffix.lower() == ".h5":
-            return sc.read_10x_h5(str(p))
-        if p.is_dir():
-            return sc.read_10x_mtx(str(p), var_names="gene_symbols", cache=True)
+        return load_modality_matrix(path, modality="rna")
     except Exception:
         return None
-    return None
 
 
 def _load_atac(files: list, genome: str, organism: str):
-    """Load scATAC peak-count matrix (.h5ad) or raise explicit blocker on fragments.
+    """Load scATAC peak-count matrix (.h5ad, 10x .h5, or MEX) or raise on raw fragments.
 
     P0-8 (ADR-002/ADR-025): raw fragment peak-matrix construction
     (`count_fragments_in_peaks`) is not implemented here; ARIA raises an explicit
     `NotImplementedError` rather than fabricating a placeholder peak matrix.
-    Precomputed peak-by-cell `.h5ad` matrices are loaded directly and verified
-    for raw counts upstream.
+    Precomputed peak-by-cell `.h5ad` and 10x Multiome `.h5`/MEX matrices are
+    loaded via canonical `mudata_io.load_modality_matrix`.
     """
     frag_files = [
         str(f) for f in files
@@ -1500,14 +1473,18 @@ def _load_atac(files: list, genome: str, organism: str):
             "fabricate a peak matrix."
         )
 
-    h5ad_files = [str(f) for f in files if Path(str(f)).suffix.lower() == ".h5ad"]
-    if h5ad_files:
-        try:
-            import scanpy as sc
+    from aria.utils.mudata_io import load_modality_matrix
 
-            return sc.read_h5ad(h5ad_files[0])
+    for f in files:
+        p = Path(str(f))
+        if p.suffix.lower() not in {".h5ad", ".h5"} and not p.is_dir():
+            continue
+        try:
+            ad_obj = load_modality_matrix(p, modality="atac")
+            if ad_obj is not None:
+                return ad_obj
         except Exception:
-            return None
+            continue
     return None
 
 

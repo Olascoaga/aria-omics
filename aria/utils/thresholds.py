@@ -11,6 +11,26 @@ parameter dict.
 from __future__ import annotations
 
 from dataclasses import dataclass
+import math
+
+
+def parse_bool_flag(value) -> bool:
+    """Parse a boolean flag safely using a numeric-aware allowlist.
+
+    Rejects falsy numbers (``0``, ``0.0``), non-finite floats (``NaN``, ``+/-inf``),
+    ``None``, and unknown/falsy strings (``"n"``, ``"no"``, ``"false"``, ``""``).
+    Accepts ``bool``, finite non-zero numbers, and ``{"1", "true", "yes", "y", "on"}``.
+    """
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return False
+    val_type = type(value)
+    if val_type.__name__ in ("bool", "bool_") and val_type.__module__.startswith("numpy"):
+        return bool(value)
+    if isinstance(value, (int, float)):
+        return math.isfinite(float(value)) and bool(value)
+    return str(value).strip().lower() in {"1", "true", "yes", "y", "on"}
 
 
 @dataclass(frozen=True)

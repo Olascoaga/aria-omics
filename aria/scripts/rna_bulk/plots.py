@@ -41,18 +41,30 @@ def _plot_pca_mds(vst_variable, metadata, output_dir: str,
 
     Returns (pca_path, mds_path, pca_coords, pca_variance_pct).
     """
+    # ── PCA (statistical coordinates — decoupled from plotting I/O) ──────
     try:
-        import numpy as np
         import pandas as pd
+        from sklearn.decomposition import PCA
+
+        X = vst_variable.T.values
+        n_components = min(2, *X.shape)
+        if n_components < 2:
+            warnings.append("PCA/MDS skipped: at least two samples and two genes are required for two PCs.")
+            return None, None, None, []
+        pca     = PCA(n_components=n_components)
+        coords  = pca.fit_transform(X)
+        var_pct = pca.explained_variance_ratio_ * 100
+        var_exp = [round(float(v), 3) for v in var_pct[:2]]
+    except Exception as e:  # aria: allow-broad-except auxiliary PCA diagnostic must not abort primary DE
+        warnings.append(f"PCA computation failed: {e}")
+        return None, None, None, []
+
+    try:
         import matplotlib
         matplotlib.use("Agg")
         import matplotlib.pyplot as plt
-        from sklearn.decomposition import PCA
         from sklearn.manifold import MDS
         from scipy.spatial.distance import pdist, squareform
-
-        # Samples × genes for PCA/MDS (standard orientation)
-        X = vst_variable.T.values
 
         # Identify the condition column
         metadata = metadata.reindex(vst_variable.columns)
@@ -64,17 +76,6 @@ def _plot_pca_mds(vst_variable, metadata, output_dir: str,
         conditions = (metadata[condition_col].astype(str)
                        if condition_col else
                        pd.Series(["all"] * X.shape[0], index=metadata.index))
-
-        # ── PCA ──────────────────────────────────────────────────────────
-        # NO StandardScaler — VST already stabilizes variance.
-        # PCA on genes × samples with centered (not z-scored) values.
-        n_components = min(2, *X.shape)
-        if n_components < 2:
-            warnings.append("PCA/MDS skipped: at least two samples and two genes are required for two PCs.")
-            return None, None, None, []
-        pca     = PCA(n_components=n_components)
-        coords  = pca.fit_transform(X)
-        var_pct = pca.explained_variance_ratio_ * 100
 
         # ── MDS (classical / metric) ─────────────────────────────────────
         # Euclidean distance on VST — same convention as edgeR's plotMDS.
@@ -147,12 +148,11 @@ def _plot_pca_mds(vst_variable, metadata, output_dir: str,
             str(Path(output_dir) / "mds.svg"),
         )
 
-        return pca_path, mds_path, coords, [round(float(v), 3)
-                                               for v in var_pct[:2]]
+        return pca_path, mds_path, coords, var_exp
 
-    except Exception as e:
+    except Exception as e:  # aria: allow-broad-except auxiliary PCA/MDS plot render must not abort primary DE
         warnings.append(f"PCA/MDS plotting failed: {e}")
-        return None, None, None, []
+        return None, None, coords, var_exp
 
 def _save_single_dr_plot(coords, conditions, sample_names, color_map,
                           title, xlbl, ylbl, output_path):
@@ -220,12 +220,12 @@ def _generate_plots(de_result: dict, sample_qc: dict,
             results_df["log2FoldChange"] = lfc_num.loc[valid]
             results_df["padj"] = padj.loc[valid]
             lfc = results_df["log2FoldChange"].clip(-8, 8)
+            from aria.utils.stats import adaptive_neglog10
+
             padj = results_df["padj"]
-            positive = padj > 0
-            neg_log_p = -np.log10(padj.where(positive))
-            cap = max(1.0, float(neg_log_p[positive].max()) * 1.15) if positive.any() else 10.0
-            neg_log_p = neg_log_p.fillna(cap)
-            if (~positive).any():
+            neg_vals, cap, has_underflow = adaptive_neglog10(padj.to_numpy(dtype=float))
+            neg_log_p = pd.Series(neg_vals, index=padj.index)
+            if has_underflow:
                 ax.text(0.02, 0.98, f"padj = 0 (underflow): shown at {cap:.2f}",
                         transform=ax.transAxes, va="top", fontsize=8, color=_P["muted"])
 
@@ -378,7 +378,6 @@ def _plot_heatmap(genes: list, vst_matrix, counts_filt,
         matplotlib.use("Agg")
         import matplotlib.pyplot as plt
         import numpy as np
-        import pandas as pd
 
         if not genes:
             return None

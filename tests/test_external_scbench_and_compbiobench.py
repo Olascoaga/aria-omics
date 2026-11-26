@@ -42,6 +42,10 @@ def test_extract_json_answer_parses_final_tags_and_fences():
 
 
 def test_scbench_adapter_synthetic_smoke_runs_real_pseudobulk_and_abstains_non_rna():
+    from scripts.external_benchmarks.scbench_aria_agent import DEFAULT_RNA_PYTHON
+
+    if not Path(DEFAULT_RNA_PYTHON).is_file():
+        pytest.skip(f"aria-rna-env python not installed at {DEFAULT_RNA_PYTHON}")
     res = run_synthetic_smoke()
     assert res["status"] == "pass"
     assert res["pseudobulk_n_sig"] >= 6

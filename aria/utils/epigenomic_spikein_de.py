@@ -29,7 +29,6 @@ Boundary invariant: imported inside ``aria-rna-env``; never imports
 from __future__ import annotations
 
 import math
-import warnings as w
 from typing import Any
 
 import numpy as np
@@ -177,225 +176,27 @@ def run_deseq2_with_external_size_factors(
     n_cpus: int | None = None,
     expose_convergence: bool = True,
 ) -> tuple[dict[str, Any], list[str]]:
-    """Run PyDESeq2 with pre-computed external (spike-in) size factors."""
-    from aria.scripts.rna_bulk.deseq2 import (
-        _build_design_formula,
-        _resolve_covariates,
-        _serialize_fit_warnings,
-        _shrink_coeff,
-    )
-    from aria.utils.design_matrix import validate_design_matrix
-    from aria.utils.power_estimation import bulk_power_estimate
+    """Run PyDESeq2 with pre-computed external (spike-in) size factors.
 
-    warnings_out: list[str] = []
+    Delegates to the canonical ``aria.scripts.rna_bulk.deseq2._run_deseq2`` core
+    so formulaic ``Treatment(reference=denominator)`` anchoring, continuous /
+    categorical covariate coercion, Wald ``lfcThreshold``, and apeGLM sign-flip
+    checks never diverge from bulk RNA/ATAC DESeq2 (D8-001 / D2-BUG-6).
+    """
+    from aria.scripts.rna_bulk.deseq2 import _run_deseq2
 
-    mask = metadata[design_factor].isin([numerator, denominator])
-    meta_sub = metadata[mask].copy()
-    counts_sub = counts[meta_sub.index].copy()
-
-    group_sizes = meta_sub[design_factor].value_counts().to_dict()
-    n_num = int(group_sizes.get(numerator, 0))
-    n_den = int(group_sizes.get(denominator, 0))
-    if n_num < min_replicates_per_condition or n_den < min_replicates_per_condition:
-        return {
-            "status": "error",
-            "error_type": "InsufficientReplicates",
-            "details": (
-                f"DESeq2 requires at least {min_replicates_per_condition} "
-                f"replicates per group. Found {group_sizes}."
-            ),
-        }, warnings_out
-
-    usable_covariates, dropped_covariates = _resolve_covariates(
-        meta_sub, design_factor, covariates or []
-    )
-    for cov, reason in dropped_covariates:
-        warnings_out.append(
-            f"Confirmed covariate '{cov}' was NOT adjusted for: {reason}. "
-            f"The fitted model does not control for it."
-        )
-
-    design_check = validate_design_matrix(
-        meta_sub,
-        condition_col=design_factor,
-        covariates=usable_covariates,
+    return _run_deseq2(
+        counts,
+        metadata,
+        design_factor,
+        numerator,
+        denominator,
+        padj_thr,
+        lfc_thr,
         min_replicates_per_condition=min_replicates_per_condition,
+        covariates=covariates,
+        lfc_shrink=lfc_shrink,
+        n_cpus=n_cpus,
+        expose_convergence=expose_convergence,
+        external_size_factors=external_size_factors,
     )
-    warnings_out.extend(
-        f"Design matrix {issue['severity']}: {issue['message']}"
-        for issue in design_check.get("issues", [])
-    )
-    if design_check.get("status") == "blocking":
-        return {
-            "status": "error",
-            "error_type": "InvalidDesignMatrix",
-            "details": "; ".join(
-                issue["message"]
-                for issue in design_check.get("issues", [])
-                if issue.get("severity") == "blocking"
-            )[:500],
-            "design_check": design_check,
-        }, warnings_out
-
-    sf_raw = external_size_factors.reindex(meta_sub.index).astype(float)
-    sf_arr = sf_raw.to_numpy(dtype=float)
-    if (sf_arr.size == 0 or (~np.isfinite(sf_arr)).any() or (sf_arr <= 0).any()):
-        return {
-            "status": "error",
-            "error_type": "InvalidSpikeInSizeFactors",
-            "details": "External spike-in size factors must be finite and > 0 for all contrast samples.",
-        }, warnings_out
-    # Re-center subset size factors to geometric mean = 1.0 matching R DESeq2 subset semantics
-    sf_sub = sf_raw / float(np.exp(np.mean(np.log(sf_arr))))
-    if not np.isfinite(sf_sub.to_numpy(dtype=float)).all() or (sf_sub <= 0).any():
-        return {
-            "status": "error",
-            "error_type": "InvalidSpikeInSizeFactors",
-            "details": "Re-centred spike-in size factors are not finite and positive.",
-        }, warnings_out
-
-    try:
-        from pydeseq2.dds import DeseqDataSet
-        from pydeseq2.ds import DeseqStats
-
-        means = counts_sub.mean(axis=1).astype(float)
-        variances = counts_sub.var(axis=1, ddof=1).astype(float)
-        disp = ((variances - means) / (means ** 2)).replace(
-            [float("inf"), float("-inf")], float("nan")
-        ).dropna()
-        dispersion_estimate = float(disp[disp > 0].median()) if (disp > 0).any() else 0.1
-        mean_expression = float(means[means > 0].median()) if (means > 0).any() else 1.0
-        power_estimate = bulk_power_estimate(
-            n_per_group=(n_num, n_den),
-            mean_expression=mean_expression,
-            dispersion=dispersion_estimate,
-            target_log2fc=lfc_thr,
-            alpha=padj_thr,
-        )
-
-        design_formula = _build_design_formula(design_factor, usable_covariates)
-        ref_kwargs = {"ref_level": [design_factor, denominator]} if lfc_shrink else {}
-        par_kwargs = {"n_cpus": int(n_cpus)} if n_cpus else {}
-
-        dds = DeseqDataSet(
-            counts=counts_sub.T,
-            metadata=meta_sub,
-            design=design_formula,
-            refit_cooks=True,
-            quiet=True,
-            **ref_kwargs,
-            **par_kwargs,
-        )
-
-        wald_kwargs: dict[str, Any] = {
-            "contrast": [design_factor, numerator, denominator],
-            "alpha": padj_thr,
-            "quiet": True,
-        }
-        lfc_threshold_test = {
-            "requested": float(lfc_thr),
-            "applied": False,
-            "alt_hypothesis": None,
-            "lfc_null": 0.0,
-            "significance_rule": "padj < threshold",
-        }
-        if float(lfc_thr) > 0:
-            wald_kwargs.update({
-                "lfc_null": float(lfc_thr),
-                "alt_hypothesis": "greaterAbs",
-            })
-            lfc_threshold_test.update({
-                "applied": True,
-                "alt_hypothesis": "greaterAbs",
-                "lfc_null": float(lfc_thr),
-            })
-
-        with w.catch_warnings(record=True) as fit_warns:
-            w.simplefilter("always")
-            # Inject external heterologous spike-in size factors directly (bypassing
-            # fit_size_factors() median-of-ratios so global unidirectional chromatin
-            # shifts are preserved).
-            sf_aligned = sf_sub.reindex(dds.obs_names).to_numpy(dtype=float)
-            dds.obs["size_factors"] = sf_aligned
-            dds.layers["normed_counts"] = dds.X / sf_aligned[:, None]
-            dds.var["_normed_means"] = dds.layers["normed_counts"].mean(axis=0)
-
-            dds.fit_genewise_dispersions()
-            dds.fit_dispersion_trend()
-            dds.fit_dispersion_prior()
-            dds.fit_MAP_dispersions()
-            dds.fit_LFC()
-            dds.calculate_cooks()
-            if dds.refit_cooks:
-                dds.refit()
-            dds.cooks_outlier()
-
-            stat_res = DeseqStats(dds, **wald_kwargs)
-            stat_res.summary()
-        warnings_out.extend(_serialize_fit_warnings(fit_warns))
-
-        shrink_applied = False
-        shrink_reason = None
-        raw_lfc = stat_res.results_df["log2FoldChange"].copy()
-        if lfc_shrink:
-            coeff = _shrink_coeff(dds, design_factor, numerator)
-            if coeff is None:
-                shrink_reason = "apeGLM coefficient not found"
-            else:
-                try:
-                    stat_res.lfc_shrink(coeff=coeff)
-                    shrink_applied = True
-                except Exception as sx:
-                    shrink_reason = f"lfc_shrink failed: {str(sx)[:120]}"
-        else:
-            shrink_reason = "disabled"
-
-        results_df = stat_res.results_df.dropna(subset=["padj"]).copy()
-        results_df["log2FoldChange_raw"] = raw_lfc.reindex(results_df.index)
-        if expose_convergence and "_LFC_converged" in dds.var.columns:
-            results_df["lfc_converged"] = dds.var["_LFC_converged"].reindex(results_df.index)
-
-        sig = results_df[results_df["padj"] < padj_thr].sort_values("padj")
-        up_genes = list(sig[sig["log2FoldChange"] > 0].index)
-        down_genes = list(sig[sig["log2FoldChange"] < 0].index)
-
-        low_power = n_num <= 2 or n_den <= 2
-        low_power_reason = (
-            f"n={n_num} ({numerator}) vs n={n_den} ({denominator}): "
-            f"dispersion estimation is unreliable with fewer than three "
-            f"replicates per group. Interpret with caution."
-        ) if low_power else None
-        if low_power:
-            warnings_out.append(low_power_reason)
-
-        return {
-            "status": "success",
-            "results": results_df,
-            "n_sig": len(sig),
-            "n_up": len(up_genes),
-            "n_down": len(down_genes),
-            "sig_genes": list(sig.index),
-            "up_genes": up_genes,
-            "down_genes": down_genes,
-            "n_replicates": {numerator: n_num, denominator: n_den},
-            "low_power_warning": low_power,
-            "low_power_reason": low_power_reason,
-            "lfc_shrinkage": {"applied": shrink_applied, "reason": shrink_reason},
-            "lfc_threshold_test": lfc_threshold_test,
-            "fitted_design_formula": design_formula,
-            "covariates_adjusted": usable_covariates,
-            "covariates_dropped": [
-                {"covariate": c, "reason": r} for c, r in dropped_covariates
-            ],
-            "power_estimate_at_lfc_min": power_estimate,
-            "size_factors_used": {
-                str(k): round(float(v), 6) for k, v in dds.obs["size_factors"].items()
-            },
-            "normalization_method": "heterologous_spikein_size_factors",
-        }, warnings_out
-    except Exception as exc:
-        return {
-            "status": "error",
-            "error_type": type(exc).__name__,
-            "details": str(exc)[:500],
-        }, warnings_out

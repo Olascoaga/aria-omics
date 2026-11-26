@@ -25,15 +25,12 @@ import json
 import logging
 import os
 import re
-import uuid
-import hashlib
 import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
 from aria.agents.base_agent import BaseAgent
-from aria.bus.message_bus import Confidence, CavemanMode
 from aria.memory.memory import ARIAMemory
 from aria.utils.assay_detector import AssayDetector
 from aria.utils.multiome_contracts import infer_multiome_contract
@@ -556,6 +553,7 @@ class DataAuditAgent(BaseAgent):
         # same contract works from TUI and headless entrypoints.
         from aria.utils.scatac_fastq_manifest import (
             manifest_library_types,
+            propose_illumina_scatac_manifest,
             resolve_scatac_fastq_manifest,
         )
         scatac_manifest = resolve_scatac_fastq_manifest(
@@ -783,6 +781,12 @@ class DataAuditAgent(BaseAgent):
             exp_context["scatac_fastq_manifest"] = scatac_manifest["manifest"]
             if scatac_manifest.get("source") != "inline":
                 exp_context["scatac_fastq_manifest_path"] = scatac_manifest["source"]
+        else:
+            # Non-binding Illumina 10x scATAC manifest preview for CP1
+            # confirmation (never auto-executed as authoritative manifest).
+            proposed_scatac = propose_illumina_scatac_manifest(data_dir)
+            if proposed_scatac is not None:
+                exp_context["proposed_scatac_fastq_manifest"] = proposed_scatac
         # ADR-057: opt-in SPECULATIVE hypotheses section. Mirrors the
         # reproducible_mode plumbing — surfaced explicitly via the entrypoints
         # (run_headless param / TUI --hypotheses) with an
@@ -1385,10 +1389,6 @@ class DataAuditAgent(BaseAgent):
             "with_condition",
         }
 
-    @staticmethod
-    def _is_aria_intermediate_h5ad(path: str) -> bool:
-        return DataAuditAgent._is_aria_generated_output(path)
-
     def _filter_aria_intermediate_outputs(
         self, classified: dict[str, list[str]]
     ) -> tuple[dict[str, list[str]], list[str]]:
@@ -1487,7 +1487,8 @@ class DataAuditAgent(BaseAgent):
                 backing_file = getattr(adata, "file", None)
                 if backing_file is not None:
                     backing_file.close()
-            except Exception:
+            except Exception as exc:  # aria: allow-broad-except log unreadable h5ad during organism/genome inference
+                log.warning(f"Could not read h5ad {path} for organism/genome inference: {exc}")
                 continue
 
             human_score = sum(g in human_markers for g in genes)

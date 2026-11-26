@@ -53,3 +53,51 @@ def has_keyword_boundary(text: str | None, keywords: Iterable[str]) -> bool:
     if regex is None:
         return False
     return bool(regex.search(str(text)))
+
+
+_GENE_SKIP_TOKENS = frozenset({
+    "",
+    "?",
+    "na",
+    "n/a",
+    "nan",
+    "none",
+    "null",
+    "<na>",
+    "intergenic",
+    "distal",
+    "unannotated",
+    "unspecified",
+    ".",
+    "-",
+})
+_RAW_ENSEMBL_ID_RE = re.compile(
+    r"^(?:ENSG|ENSMUSG|ENSMUST|ENSMUSP|ENST|ENSP|ENSRNOG|ENSRNOT|ENS[A-Z]{1,4}[GTPE]|ENS)\d+(?:\.\d+)?$",
+    re.IGNORECASE,
+)
+_PEAK_COORD_SYMBOL_RE = re.compile(
+    r"^(?:(?:chr[\w.\-]+|[\dXYM]+|MT):\d+[-:]\d+|chr[\w.\-]+-\d+-\d+)$",
+    re.IGNORECASE,
+)
+
+
+def clean_gene_symbol(raw) -> str | None:
+    """Return a clean HGNC/MGI gene symbol, or ``None`` for raw IDs, peak coords, or sentinels.
+
+    Rejects:
+      - missing / whitespace-only / sentinel strings (``?``, ``nan``, ``None``, ``NA``, ``null``, etc.);
+      - bare numeric Entrez/integer IDs (e.g. ``"7157"``);
+      - raw Ensembl identifiers (e.g. ``"ENSG00000141510"``, ``"ENSMUSG00000059552"``);
+      - genomic peak coordinates (``chr1:100-200``, ``1:100-200``, ``chr1-100-200``);
+      - tokens containing whitespace, delimiters, or HTML angle brackets.
+    """
+    if raw is None or isinstance(raw, bool):
+        return None
+    sym = str(raw).strip()
+    if not sym or sym.lower() in _GENE_SKIP_TOKENS or sym.isdigit():
+        return None
+    if _RAW_ENSEMBL_ID_RE.match(sym) or _PEAK_COORD_SYMBOL_RE.match(sym):
+        return None
+    if any(ch in sym for ch in (" ", "\t", "\n", "\r", ";", ",", "<", ">")):
+        return None
+    return sym

@@ -117,10 +117,9 @@ def _style_axis(ax) -> None:
 
 def _read_table(path: str):
     import pandas as pd
+    from aria.utils.count_classifier import detect_table_sep
 
-    name = Path(path).name.lower()
-    sep = "," if name.endswith((".csv", ".csv.gz")) else "\t"
-    return pd.read_csv(path, sep=sep)
+    return pd.read_csv(path, sep=detect_table_sep(path), comment="#")
 
 
 def _load_counts(path: Optional[str]):
@@ -129,11 +128,14 @@ def _load_counts(path: Optional[str]):
         return None, "no counts matrix supplied"
     import numpy as np
     import pandas as pd
+    from aria.utils.count_classifier import strip_featurecounts_metadata
 
     df = _read_table(str(path))
     if df.shape[1] < 2:
         return None, "counts matrix has no sample columns"
-    mat = df.set_index(df.columns[0])
+    mat = strip_featurecounts_metadata(df.set_index(df.columns[0]))
+    if mat.shape[1] < 1:
+        return None, "counts matrix has no sample columns"
     mat = mat.apply(lambda col: pd.to_numeric(col, errors="coerce"))
     mat = mat.dropna(axis=0, how="any")
     if mat.empty:
@@ -179,14 +181,16 @@ def _pca(mat, is_cpm: bool):
     """SVD-PCA on centred log2(CPM+1). Returns (scores, pct_var, samples) or
     (None, reason)."""
     import numpy as np
+    from aria.utils.stats import compute_log2_cpm
 
     values = mat.to_numpy(dtype=float)
     if not is_cpm:
-        lib = values.sum(axis=0)
-        if (lib <= 0).any():
-            return None, "a sample has zero total counts"
-        values = values / lib * 1e6
-    logv = np.log2(values + 1.0)
+        try:
+            logv = compute_log2_cpm(values, zero_policy="raise")
+        except ValueError as exc:
+            return None, str(exc)
+    else:
+        logv = np.log2(values + 1.0)
     keep = logv.std(axis=1) > 0
     if int(keep.sum()) < 2:
         return None, "fewer than 2 non-constant peaks"
@@ -314,7 +318,7 @@ def render_qc_summary(qc: dict, peaks: dict, out_path: Path,
                              figsize=(width * len(panels), 3.4), dpi=200,
                              squeeze=False)
     fig.patch.set_facecolor(_SURFACE)
-    for ax, (label, series, ref, ref_label) in zip(axes[0], panels):
+    for ax, (label, series, ref, ref_label) in zip(axes[0], panels, strict=True):
         _style_axis(ax)
         names = list(series)
         vals = [series[n] for n in names]

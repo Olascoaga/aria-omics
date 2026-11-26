@@ -3,7 +3,6 @@
 
 Re-exported from aria.scripts.rna_bulk_de."""
 from __future__ import annotations
-import warnings
 
 from aria.scripts.rna_bulk.gtf_io import _strip_gene_version
 
@@ -40,19 +39,12 @@ def _run_vst(counts_raw, metadata, warnings: list):
             dds.fit_size_factors()
             dds.vst_fit(use_design=False)
             vst = dds.vst_transform()
-        except (AttributeError, ValueError, RuntimeError):
-            try:
-                dds.deseq2()
-                vst = np.log2(dds.layers["normed_counts"] + 1)
-                warnings.append(
-                    "pydeseq2 VST unavailable — using log2(size-factor normalized + 1)."
-                )
-            except Exception as e:
-                warnings.append(
-                    f"VST/rlog failed ({e}); falling back to raw log2. "
-                    f"PCA/MDS may be affected by library size differences."
-                )
-                vst = np.log2(counts_raw.T.astype(float) + 1)
+        except Exception:  # aria: allow-broad-except auxiliary VST fit falls back to DESeq2 normalized counts
+            dds.deseq2()
+            vst = np.log2(dds.layers["normed_counts"] + 1)
+            warnings.append(
+                "pydeseq2 VST unavailable — using log2(size-factor normalized + 1)."
+            )
 
         # vst is samples × genes; transpose back to genes × samples
         vst_df = pd.DataFrame(
@@ -62,7 +54,7 @@ def _run_vst(counts_raw, metadata, warnings: list):
         )
         return vst_df
 
-    except (ImportError, AttributeError, ValueError, RuntimeError) as exc:
+    except Exception as exc:  # aria: allow-broad-except auxiliary VST transform falls back to library-size-normalized log2
         warnings.append(
             f"pydeseq2 VST unavailable ({exc}) — using log2(counts+1) + lib-size scaling. "
             "PCA may be dominated by library size differences."
@@ -214,12 +206,9 @@ def _compute_cpm(counts_raw, warnings: list):
     length (TPM) introduces severe length bias (ADR-075). NOT used for DE or PCA.
     """
     try:
-        import numpy as np
+        from aria.utils.stats import compute_cpm
 
-        lib_millions = counts_raw.sum(axis=0).astype(float) / 1e6
-        lib_safe = lib_millions.replace(0.0, np.nan)
-        cpm = counts_raw.astype(float).div(lib_safe, axis=1).fillna(0.0)
-        return cpm.round(3)
+        return compute_cpm(counts_raw, zero_policy="zero").round(3)
     except Exception as e:
         warnings.append(f"CPM computation failed: {e}")
         return None

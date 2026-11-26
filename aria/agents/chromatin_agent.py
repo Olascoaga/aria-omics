@@ -34,8 +34,8 @@ from pathlib import Path
 from typing import Optional
 
 from aria.agents.base_agent import BaseAgent
-from aria.bus.message_bus import Confidence, MessageType, CavemanMode
-from aria.llm.provider import LLMProvider, TaskTier
+from aria.bus.message_bus import Confidence
+from aria.llm.provider import LLMProvider
 from aria.llm.parameter_advisor import ParameterAdvisor
 from aria.memory.memory import ARIAMemory
 from aria.agents.chromatin_helpers import (
@@ -59,7 +59,7 @@ def _is_missing(value) -> bool:
         import pandas as pd
 
         return bool(pd.api.types.is_scalar(value) and pd.isna(value))
-    except Exception:
+    except Exception:  # aria: allow-broad-except cosmetic scalar NA predicate
         return False
 
 
@@ -147,21 +147,6 @@ class ChromatinAgent(BaseAgent):
         "Handles scATAC-seq, bulk ATAC-seq, ChIP-seq, CUT&RUN, CUT&TAG."
     )
     validation_level = "production"  # ADR-076/077/078/081: all 5 chromatin assays production
-    dispatch_enabled = True
-    REQUIRED_SCRIPTS = (
-        "aria/scripts/chromatin_qc.py",
-        "aria/scripts/chromatin_peaks.py",
-        "aria/scripts/chromatin_peak_counts.py",
-        "aria/scripts/chromatin_bulk_diffacc.py",
-        "aria/scripts/chromatin_lsi_clustering.py",
-        "aria/scripts/chromatin_diffacc.py",
-        "aria/scripts/chromatin_motifs.py",
-        "aria/scripts/chromatin_regulatory.py",
-    )
-    PLANNED_SCRIPTS = (
-        "aria/scripts/chromatin_footprinting.py",
-        "aria/scripts/chromatin_accessibility_score.py",
-    )
 
     # Assay-specific MACS3 parameters
     MACS3_PARAMS = {
@@ -1694,7 +1679,7 @@ class ChromatinAgent(BaseAgent):
             try:
                 local, _src = genomes.resolve_local_genome_fasta(
                     exp_ctx.get("genome") or "hg38")
-            except Exception as exc:  # resolution must never fail the run
+            except Exception as exc:  # aria: allow-broad-except non-fatal footprint genome resolution
                 log.warning("footprint genome resolution failed: %s", exc)
                 local = None
             if local:
@@ -1713,7 +1698,7 @@ class ChromatinAgent(BaseAgent):
             try:
                 loaded = motifs.load_local_motif_collection(
                     exp_ctx.get("motif_collection") or motifs.DEFAULT_COLLECTION)
-            except Exception as exc:
+            except Exception as exc:  # aria: allow-broad-except non-fatal footprint motif collection resolution
                 log.warning("footprint motif resolution failed: %s", exc)
                 loaded = None
             if loaded is not None:
@@ -1912,8 +1897,8 @@ class ChromatinAgent(BaseAgent):
                 file = getattr(adata, "file", None)
                 if file is not None:
                     file.close()
-        except Exception:
-            pass
+        except Exception as exc:  # aria: allow-broad-except fallback to h5py backend when anndata read fails
+            log.debug("anndata obs read failed for %s (%s); falling back to h5py", h5ad_path, exc)
         import h5py
 
         with h5py.File(str(h5ad_path), "r") as handle:
@@ -1936,8 +1921,8 @@ class ChromatinAgent(BaseAgent):
 
             with h5py.File(str(h5ad_path), "r") as handle:
                 return cls._h5ad_index(handle["var"])
-        except Exception:
-            pass
+        except Exception as exc:  # aria: allow-broad-except fallback to anndata backend when h5py var read fails
+            log.debug("h5py var_names read failed for %s (%s); falling back to anndata", h5ad_path, exc)
         try:
             import anndata
 
@@ -1948,7 +1933,8 @@ class ChromatinAgent(BaseAgent):
                 file = getattr(adata, "file", None)
                 if file is not None:
                     file.close()
-        except Exception:
+        except Exception as exc:  # aria: allow-broad-except log unreadable h5ad var_names after both backends fail
+            log.warning("Could not read var_names from %s: %s", h5ad_path, exc)
             return []
 
     def _derive_peaks_bed_from_h5ad(self, clustered, dest) -> Optional[str]:
@@ -2003,7 +1989,7 @@ class ChromatinAgent(BaseAgent):
         contract = self._resolve_da_design(exp_ctx)
         try:
             barcodes, columns = self._read_h5ad_obs(clustered)
-        except Exception as exc:
+        except Exception as exc:  # aria: allow-broad-except log barcode-design derivation error without aborting scATAC run
             log.warning("footprint barcode-design derivation failed: %s", exc)
             return None
         if not barcodes or not columns:
@@ -2150,8 +2136,9 @@ class ChromatinAgent(BaseAgent):
                 try:
                     rna_means = self._rna_group_means_from_path(
                         exp_ctx, genes, str(ga), str(gb))
-                except Exception as exc:
-                    log.info("footprint RNA cross-evidence unavailable: %s", exc)
+                except Exception as exc:  # aria: allow-broad-except record RNA cross-evidence lookup failure for W-WARN
+                    log.warning("footprint RNA cross-evidence unavailable: %s", exc)
+                    result["rna_cross_evidence_error"] = f"{type(exc).__name__}: {exc}"
                     rna_means = None
             if isinstance(rna_means, dict) and rna_means:
                 from aria.agents.narrative.synthesis.footprint_rna import (
@@ -2160,8 +2147,10 @@ class ChromatinAgent(BaseAgent):
 
                 result["rna_cross_evidence"] = footprint_rna_concordance(
                     summary, rna_means, str(ga), str(gb))
-        except Exception as exc:  # cross-evidence must never fail footprinting
+        except Exception as exc:  # aria: allow-broad-except record RNA cross-evidence concordance failure for W-WARN
             log.warning("footprint RNA cross-evidence failed: %s", exc)
+            if isinstance(result, dict):
+                result["rna_cross_evidence_error"] = f"{type(exc).__name__}: {exc}"
 
     def _bulk_condition_bams(self, exp_ctx: dict, files: list,
                              condition_col: str = "condition") -> dict:
@@ -2313,8 +2302,7 @@ class ChromatinAgent(BaseAgent):
                 batch_col=(contract.get("batch_covariate")
                            or (contract.get("covariates") or [None])[0])),
         }
-        if bool(exp_ctx.get("paired_replicates")
-                or (exp_ctx.get("design") or {}).get("paired")):
+        if contract.get("is_paired"):
             params["paired_replicates"] = True
         motif_source = params.pop("_motif_source", None)
         if any(str(f).lower().endswith(".cram") for f in files):
@@ -2470,13 +2458,9 @@ class ChromatinAgent(BaseAgent):
 
     @staticmethod
     def _parse_bool_flag(value) -> bool:
-        if isinstance(value, bool):
-            return value
-        if value is None:
-            return False
-        if isinstance(value, (int, float)):
-            return bool(value) and value == value
-        return str(value).strip().lower() in {"1", "true", "yes", "y"}
+        from aria.utils.thresholds import parse_bool_flag
+
+        return parse_bool_flag(value)
 
     @staticmethod
     def _parse_optional_float(value) -> Optional[float]:
@@ -2523,17 +2507,58 @@ class ChromatinAgent(BaseAgent):
             exp_ctx.get("sample_metadata")
             or (exp_ctx.get("design") or {}).get("sample_sheet")
         )
+        sample_metadata_encoding: str | None = None
         if sample_metadata is None and exp_ctx.get("sample_metadata_path"):
             mpath = Path(str(exp_ctx["sample_metadata_path"]))
             if mpath.is_file():
-                try:
-                    import csv as _csv
+                import csv as _csv
+                import io as _io
 
-                    sep = "\t" if mpath.suffix.lower() in {".tsv", ".txt"} else ","
-                    with mpath.open("r", encoding="utf-8") as fh:
-                        sample_metadata = list(_csv.DictReader(fh, delimiter=sep))
-                except Exception:
-                    sample_metadata = None
+                raw_bytes = mpath.read_bytes()
+                if b"\x00" in raw_bytes:
+                    raise ValueError(
+                        f"sample_metadata_path '{mpath}' contains NUL bytes and "
+                        "cannot be parsed as delimited text."
+                    )
+                enc_order = (
+                    ("utf-8-sig", "utf-8", "cp1252", "latin-1")
+                    if raw_bytes.startswith(b"\xef\xbb\xbf")
+                    else ("utf-8", "utf-8-sig", "cp1252", "latin-1")
+                )
+                decoded_text: str | None = None
+                last_decode_err: Exception | None = None
+                for enc in enc_order:
+                    try:
+                        decoded_text = raw_bytes.decode(enc)
+                        sample_metadata_encoding = enc
+                        break
+                    except UnicodeDecodeError as exc:
+                        last_decode_err = exc
+                if decoded_text is None:
+                    raise ValueError(
+                        f"Could not decode sample_metadata_path '{mpath}' with "
+                        f"encodings {enc_order}: {last_decode_err}"
+                    ) from last_decode_err
+                if sample_metadata_encoding != "utf-8":
+                    log.info(
+                        "Decoded sample_metadata_path '%s' using %s encoding",
+                        mpath,
+                        sample_metadata_encoding,
+                    )
+                sep = "\t" if mpath.suffix.lower() in {".tsv", ".txt"} else ","
+                try:
+                    reader = _csv.DictReader(_io.StringIO(decoded_text), delimiter=sep)
+                    if not reader.fieldnames or not any(
+                        str(f or "").strip() for f in reader.fieldnames
+                    ):
+                        raise ValueError(
+                            f"sample_metadata_path '{mpath}' has no valid header row."
+                        )
+                    sample_metadata = list(reader)
+                except _csv.Error as exc:
+                    raise ValueError(
+                        f"Malformed delimited metadata file '{mpath}': {exc}"
+                    ) from exc
         meta_by_sid: dict[str, dict] = {}
         if isinstance(sample_metadata, dict):
             for sid, m in sample_metadata.items():
@@ -2663,6 +2688,7 @@ class ChromatinAgent(BaseAgent):
             "control_files": control_files,
             "control_sample_ids": control_sids,
             "parsed_sample_metadata": meta_by_sid or None,
+            "sample_metadata_encoding": sample_metadata_encoding,
             "spikein_counts": {k: v for k, v in spikein_counts.items()
                                if k in known_sids},
             "spikein_scale_factors": {k: v for k, v in spikein_sf.items()
@@ -2987,8 +3013,9 @@ class ChromatinAgent(BaseAgent):
                 content=json.dumps(decision),
                 confidence="high",
             )
-        except Exception as e:
+        except Exception as e:  # aria: allow-broad-except surface non-fatal LSI decision persistence error
             log.warning(f"Could not store LSI decision: {e}")
+            decision["memory_warning"] = f"{type(e).__name__}: {e}"
 
         return decision
 
@@ -3080,30 +3107,6 @@ class ChromatinAgent(BaseAgent):
             )
 
         return motif_result
-
-    # ── Differential accessibility ────────────────────────────────────────
-
-    def _run_differential_accessibility(
-        self, experiment_id: str, exp_ctx: dict,
-        intent: dict, peaks_result: dict
-    ) -> dict:
-        """Differential accessibility between conditions using DESeq2."""
-        script_path = "aria/scripts/chromatin_differential.py"
-        if not self._script_exists(script_path):
-            return self._planned_script_blocker(
-                script_path, "differential_accessibility"
-            )
-
-        return self.env.run_in_stack(
-            stack="chromatin",
-            script_path=script_path,
-            params={
-                "peaks_path":  peaks_result.get("consensus_peaks_path", ""),
-                "comparison":  intent.get("comparison", ""),
-                "genome":      exp_ctx.get("genome", "hg38"),
-                "organism":    exp_ctx.get("organism", "Homo sapiens"),
-            },
-        )
 
     # ── Helpers ───────────────────────────────────────────────────────────
 

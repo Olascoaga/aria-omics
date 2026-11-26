@@ -26,7 +26,6 @@ from typing import Optional
 
 from aria.agents.base_agent import BaseAgent
 from aria.agents.modality_audit import build_capability_matrix
-from aria.bus.message_bus import Confidence
 
 log = logging.getLogger("aria.audit")
 
@@ -85,34 +84,63 @@ class AuditAgent(BaseAgent):
         )
         findings.extend(capability_matrix.get("findings", []))
 
+        def _check_error_finding(check_key: str, label: str, exc: Exception) -> dict:
+            return {
+                "severity": "warning",
+                "check": f"{check_key}_failed",
+                "message": (
+                    f"{label} audit check failed ({type(exc).__name__}: {exc}); "
+                    "this confound check could not be evaluated."
+                ),
+                "recommendation": (
+                    "Inspect the input count matrix, design metadata, or alignment "
+                    "logs and resolve the error before trusting clean audit status."
+                ),
+            }
+
         # ── 1. Replicate correlation ──────────────────────────────────────
         try:
             corr_findings = self._check_replicate_correlation(files, design)
             findings.extend(corr_findings)
-        except Exception as e:
+        except Exception as e:  # aria: allow-broad-except surface failed audit check as CP3.5 warning
             log.warning(f"Replicate correlation check failed: {e}")
+            findings.append(_check_error_finding("replicate_correlation", "Replicate correlation", e))
 
         # ── 2. PCA batch dominance ────────────────────────────────────────
-        if design.get("batch_factor"):
+        from aria.utils.design_matrix import resolve_design_contract
+
+        design_contract = resolve_design_contract(design, exp_context)
+        if (
+            design_contract.get("batch_covariate")
+            or design.get("batch_map")
+            or design.get("batches")
+        ):
             try:
-                batch_findings = self._check_pca_batch_dominance(files, design)
+                batch_findings = self._check_pca_batch_dominance(
+                    files, design, exp_context=exp_context
+                )
                 findings.extend(batch_findings)
-            except Exception as e:
+            except Exception as e:  # aria: allow-broad-except surface failed audit check as CP3.5 warning
                 log.warning(f"PCA batch dominance check failed: {e}")
+                findings.append(_check_error_finding("pca_batch_dominance", "PCA batch dominance", e))
 
         # ── 2b. Design-matrix sanity ────────────────────────────────────
         try:
-            design_findings = self._check_design_matrix_sanity(files, design)
+            design_findings = self._check_design_matrix_sanity(
+                files, design, exp_context=exp_context
+            )
             findings.extend(design_findings)
-        except Exception as e:
+        except Exception as e:  # aria: allow-broad-except surface failed audit check as CP3.5 warning
             log.warning(f"Design-matrix sanity check failed: {e}")
+            findings.append(_check_error_finding("design_matrix_sanity", "Design-matrix sanity", e))
 
         # ── 3. STAR alignment rate ────────────────────────────────────────
         try:
             star_findings = self._check_star_alignment(files)
             findings.extend(star_findings)
-        except Exception as e:
+        except Exception as e:  # aria: allow-broad-except surface failed audit check as CP3.5 warning
             log.warning(f"STAR alignment check failed: {e}")
+            findings.append(_check_error_finding("star_alignment", "STAR alignment", e))
 
         dispatch = capability_matrix.get("dispatch", {})
         integration_readiness = capability_matrix.get("integration_readiness") or {}
@@ -179,23 +207,45 @@ class AuditAgent(BaseAgent):
         if not group_labels or len(set(group_labels.values())) < 2:
             return []
 
-        # Filter to expressed genes and normalize to log1p(CPM)
-        expressed = counts.loc[counts.sum(axis=1) >= 10]
-        if expressed.empty:
-            return []
-
-        cpm   = expressed.div(expressed.sum(axis=0) / 1e6)
-        lcpm  = np.log1p(cpm)
-
-        corr = lcpm.corr(method="pearson")
+        # Detect zero-depth libraries before filtering so dead libraries never
+        # silently drop out as NaN correlations.
+        from aria.utils.stats import compute_log2_cpm
 
         findings = []
-        samples  = list(group_labels.keys())
+        samples = [s for s in group_labels.keys() if s in counts.columns]
+        lib_totals = counts[samples].sum(axis=0)
+        zero_samples = [s for s in samples if not (np.isfinite(lib_totals[s]) and float(lib_totals[s]) > 0.0)]
+        for sample in zero_samples:
+            findings.append({
+                "severity": "blocking",
+                "check":    "replicate_correlation",
+                "message":  (
+                    f"Sample '{sample}' ({group_labels[sample]}) has zero total "
+                    f"counts (empty sequencing library); replicate correlation is "
+                    f"undefined."
+                ),
+                "recommendation": (
+                    f"Inspect '{sample}' alignment and quantification logs and "
+                    f"exclude or re-sequence this failed library before running DE."
+                ),
+            })
 
-        for sample in samples:
+        valid_samples = [s for s in samples if s not in set(zero_samples)]
+        if len(valid_samples) < 2:
+            return findings
+
+        # Compute full-library log2(CPM + 1), then restrict to expressed genes.
+        expressed_mask = counts[valid_samples].sum(axis=1) >= 10
+        if not bool(expressed_mask.any()):
+            return findings
+
+        lcpm = compute_log2_cpm(counts[valid_samples]).loc[expressed_mask]
+        corr = lcpm.corr(method="pearson")
+
+        for sample in valid_samples:
             grp = group_labels[sample]
-            same_grp   = [s for s in samples if group_labels[s] == grp and s != sample]
-            other_grp  = [s for s in samples if group_labels[s] != grp]
+            same_grp   = [s for s in valid_samples if group_labels[s] == grp and s != sample]
+            other_grp  = [s for s in valid_samples if group_labels[s] != grp]
 
             if not same_grp:
                 continue
@@ -241,12 +291,17 @@ class AuditAgent(BaseAgent):
 
     # ── Check 2: PCA batch dominance ─────────────────────────────────────
 
-    def _check_pca_batch_dominance(self, files: list, design: dict) -> list:
+    def _check_pca_batch_dominance(
+        self,
+        files: list,
+        design: dict,
+        exp_context: dict | None = None,
+    ) -> list:
         """
         Runs a quick PCA on log1p(CPM) counts and checks whether PC1 separates
         samples by batch more than by biological condition.
 
-        Only runs when the design explicitly has a batch_factor.
+        Only runs when the design explicitly carries a batch covariate or batch map.
         """
         if not files:
             return []
@@ -267,16 +322,44 @@ class AuditAgent(BaseAgent):
         if not group_labels:
             return []
 
-        batch_labels = _infer_batch_labels(counts, design)
+        batch_labels = _infer_batch_labels(counts, design, exp_context=exp_context)
         if not batch_labels or len(set(batch_labels.values())) < 2:
             return []
 
-        expressed = counts.loc[counts.sum(axis=1) >= 10]
-        if expressed.shape[0] < 10:
-            return []
+        from aria.utils.stats import compute_log2_cpm
 
-        cpm  = expressed.div(expressed.sum(axis=0) / 1e6)
-        lcpm = np.log1p(cpm).T.values  # shape: (n_samples, n_genes)
+        lib_totals = counts.sum(axis=0)
+        zero_samples = [
+            str(s) for s in counts.columns
+            if not (np.isfinite(lib_totals[s]) and float(lib_totals[s]) > 0.0)
+        ]
+        findings: list[dict] = []
+        for s in zero_samples:
+            if s in group_labels:
+                findings.append({
+                    "severity": "warning",
+                    "check":    "pca_batch_dominance",
+                    "message":  (
+                        f"Sample '{s}' has zero total counts and was excluded "
+                        f"from PCA batch-dominance analysis."
+                    ),
+                    "recommendation": (
+                        f"Inspect '{s}' for library failure before running PCA or DE."
+                    ),
+                })
+
+        valid_cols = [
+            s for s in counts.columns
+            if s in group_labels and s not in set(zero_samples)
+        ]
+        if len(valid_cols) < 3 or len({batch_labels.get(s) for s in valid_cols if s in batch_labels}) < 2:
+            return findings
+
+        expressed_mask = counts[valid_cols].sum(axis=1) >= 10
+        if int(expressed_mask.sum()) < 10:
+            return findings
+
+        lcpm = compute_log2_cpm(counts[valid_cols]).loc[expressed_mask].T.values  # (n_samples, n_genes)
 
         # Standardize each gene (column) to mean 0 / unit variance so PC1
         # reflects covariance structure rather than the few highly-expressed
@@ -289,9 +372,9 @@ class AuditAgent(BaseAgent):
         var1   = pca.explained_variance_ratio_[0]
 
         if var1 < _PC1_BATCH_THR:
-            return []  # PC1 is not dominant enough to matter
+            return findings  # PC1 is not dominant enough to matter
 
-        samples = [s for s in counts.columns if s in group_labels]
+        samples = valid_cols
         cond_vals  = [group_labels.get(s, "?") for s in samples]
         batch_vals = [batch_labels.get(s, "?") for s in samples]
 
@@ -311,7 +394,7 @@ class AuditAgent(BaseAgent):
         batch_bvar = _between_var(batch_vals, pc1)
 
         if batch_bvar > cond_bvar:
-            return [{
+            findings.append({
                 "severity": "warning",
                 "check":    "pca_batch_dominance",
                 "message":  (
@@ -325,20 +408,28 @@ class AuditAgent(BaseAgent):
                     "design formula (e.g., ~ batch + condition). ARIA will propagate "
                     "this automatically if the batch factor is confirmed in the design."
                 ),
-            }]
+            })
 
-        return []
+        return findings
 
     # ── Check 2b: DE design-matrix sanity ───────────────────────────────
 
-    def _check_design_matrix_sanity(self, files: list, design: dict) -> list:
+    def _check_design_matrix_sanity(
+        self,
+        files: list,
+        design: dict,
+        exp_context: dict | None = None,
+    ) -> list:
         """Validate condition/covariate structure before DESeq2 dispatch."""
         if not files or not design or not design.get("groups"):
             return []
 
         try:
             import pandas as pd
-            from aria.utils.design_matrix import validate_design_matrix
+            from aria.utils.design_matrix import (
+                resolve_design_contract,
+                validate_design_matrix,
+            )
         except ImportError:
             return []
 
@@ -350,26 +441,32 @@ class AuditAgent(BaseAgent):
         if not group_labels:
             return []
 
+        contract = resolve_design_contract(design, exp_context)
         meta = pd.DataFrame(index=list(group_labels))
-        condition_col = design.get("main_factor") or "condition"
+        condition_col = contract.get("condition_col") or "condition"
         meta[condition_col] = [
             group_labels[sample] for sample in meta.index
         ]
 
-        covariates = []
-        batch_labels = _infer_batch_labels(counts, design)
+        covariates: list[str] = []
+        batch_labels = _infer_batch_labels(counts, design, exp_context=exp_context)
         if batch_labels:
-            batch_col = design.get("batch_factor") or "batch"
+            batch_col = contract.get("batch_covariate") or "batch"
             meta[batch_col] = [
                 batch_labels.get(sample, "") for sample in meta.index
             ]
             covariates.append(batch_col)
 
-        for cov in design.get("covariates", []) or []:
-            cov_map = (design.get("covariate_map", {}) or {}).get(cov, {})
+        cov_values = contract.get("covariate_values") or {}
+        for cov in contract.get("covariates") or []:
+            if cov in covariates:
+                continue
+            cov_map = cov_values.get(cov) or {}
             if cov_map:
-                meta[cov] = [cov_map.get(sample, "") for sample in meta.index]
-                covariates.append(cov)
+                matched = _match_columns_to_map(meta.index, cov_map)
+                if matched:
+                    meta[cov] = [matched.get(sample, "") for sample in meta.index]
+                    covariates.append(cov)
 
         check = validate_design_matrix(
             meta,
@@ -408,7 +505,21 @@ class AuditAgent(BaseAgent):
 
         findings = []
         for sample_name, log_path in star_logs.items():
-            pct = _parse_star_unique_pct(log_path)
+            try:
+                pct = _parse_star_unique_pct(log_path)
+            except (OSError, UnicodeDecodeError, ValueError) as exc:
+                findings.append({
+                    "severity": "warning",
+                    "check": "star_alignment_parse_failed",
+                    "message": (
+                        f"Could not parse STAR alignment log for sample "
+                        f"'{sample_name}' ({log_path}): {type(exc).__name__}: {exc}."
+                    ),
+                    "recommendation": (
+                        "Inspect the STAR Log.final.out file to verify mapping rate."
+                    ),
+                })
+                continue
             if pct is None:
                 continue
             if pct < _ALIGN_WARN_THR:
@@ -434,38 +545,69 @@ class AuditAgent(BaseAgent):
 
 # ── Module-level helpers (no bus, pure computation) ───────────────────────────
 
+_NON_COUNT_SUFFIXES = (
+    ".bam", ".bai", ".cram", ".sam",
+    ".fastq", ".fastq.gz", ".fq", ".fq.gz",
+    ".h5ad", ".h5mu", ".h5", ".hdf5", ".loom", ".mtx", ".mtx.gz",
+    ".cool", ".mcool", ".hic", ".pairs", ".pairs.gz",
+    ".bw", ".bigwig", ".bed", ".bed.gz", ".bedgraph", ".bedgraph.gz",
+    ".narrowpeak", ".narrowpeak.gz", ".broadpeak", ".broadpeak.gz",
+    ".gtf", ".gtf.gz", ".gff", ".gff.gz", ".gff3", ".gff3.gz",
+    ".fa", ".fa.gz", ".fasta", ".fasta.gz", ".fna", ".fna.gz",
+    ".png", ".svg", ".pdf", ".html", ".json", ".yaml", ".yml",
+    ".sqlite", ".db", ".zip", ".tar", ".tar.gz", ".tgz", ".log", ".out",
+)
+
+
 def _load_count_matrix(files: list):
-    """Load and merge count files into a single (genes × samples) DataFrame."""
-    try:
-        import pandas as pd
+    """Load and merge count files into a single (genes × samples) DataFrame.
 
-        frames = []
-        for f in files:
-            if not f or not Path(f).exists():
-                continue
-            sep = "\t" if str(f).endswith((".tsv", ".txt")) else ","
-            df  = pd.read_csv(f, sep=sep, index_col=0, comment="#")
-            # Drop non-numeric columns (featureCounts metadata)
-            df  = df.select_dtypes(include="number")
-            frames.append(df)
+    Skips non-count files (BAM/FASTQ/h5ad/BED/peaks/logs) and lets parse errors
+    on candidate count tables propagate to ``run_audit`` so corrupt count files
+    surface as explicit CP3.5 warnings.
+    """
+    from aria.utils.count_classifier import load_count_table
 
-        if not frames:
-            return None
-
-        if len(frames) == 1:
-            return frames[0]
-
-        # Multiple files: each file is one sample (one numeric column)
-        combined = frames[0].copy()
-        for frame in frames[1:]:
-            for col in frame.columns:
-                if col not in combined.columns:
-                    combined[col] = frame[col]
-        return combined
-
-    except Exception as e:
-        log.warning(f"_load_count_matrix failed: {e}")
+    tabular = [
+        f for f in (files or [])
+        if f and not str(f).lower().endswith(_NON_COUNT_SUFFIXES)
+    ]
+    if not tabular:
         return None
+    return load_count_table(tabular)
+
+
+def _match_columns_to_map(columns, sample_map: dict) -> dict[str, str]:
+    """Map column names -> label using exact match first, then longest-key boundary/substring."""
+    if not sample_map:
+        return {}
+    entries = [(str(k), str(v)) for k, v in sample_map.items() if str(k)]
+    exact = {k: v for k, v in entries}
+    longest = sorted(entries, key=lambda kv: (-len(kv[0]), kv[0]))
+    result: dict[str, str] = {}
+    for col in columns:
+        col_s = str(col)
+        if col_s in exact:
+            result[col] = exact[col_s]
+            continue
+        matched_val = None
+        for stem, val in longest:
+            if re.search(rf"(?<![A-Za-z0-9]){re.escape(stem)}(?![A-Za-z0-9])", col_s):
+                matched_val = val
+                break
+        if matched_val is None:
+            for stem, val in longest:
+                idx = col_s.find(stem)
+                if idx == -1:
+                    continue
+                end = idx + len(stem)
+                if stem[-1].isdigit() and end < len(col_s) and col_s[end].isdigit():
+                    continue
+                matched_val = val
+                break
+        if matched_val is not None:
+            result[col] = matched_val
+    return result
 
 
 def _infer_group_labels(counts, design: dict) -> dict:
@@ -482,34 +624,33 @@ def _infer_group_labels(counts, design: dict) -> dict:
         for grp, samples in groups.items()
         for sample in samples
     }
-
-    result = {}
-    for col in counts.columns:
-        for stem, grp in sample_to_group.items():
-            if stem in col:
-                result[col] = grp
-                break
-
-    return result
+    return _match_columns_to_map(counts.columns, sample_to_group)
 
 
-def _infer_batch_labels(counts, design: dict) -> dict:
+def _infer_batch_labels(
+    counts,
+    design: dict,
+    exp_context: dict | None = None,
+) -> dict:
     """
-    Map column names → batch labels using design["batch_map"] or
-    design["batches"] if present.
+    Map column names → batch labels using resolve_design_contract (reading
+    DesignAgent's batch_covariate + paired_covariate_values / sample_sheet,
+    with fallback to legacy batch_map / batches).
     """
-    batch_map = design.get("batch_map", {})   # {sample_stem: batch_label}
+    from aria.utils.design_matrix import resolve_design_contract
+
+    contract = resolve_design_contract(design, exp_context)
+    batch_col = contract.get("batch_covariate")
+    cov_values = contract.get("covariate_values") or {}
+    batch_map = (
+        (cov_values.get(batch_col) if batch_col else None)
+        or design.get("batch_map")
+        or design.get("batches")
+        or {}
+    )
     if not batch_map:
         return {}
-
-    result = {}
-    for col in counts.columns:
-        for stem, batch in batch_map.items():
-            if stem in col:
-                result[col] = str(batch)
-                break
-
-    return result
+    return _match_columns_to_map(counts.columns, batch_map)
 
 
 def _find_star_logs(files: list) -> dict:
@@ -536,9 +677,6 @@ def _find_star_logs(files: list) -> dict:
 
 def _parse_star_unique_pct(log_path: Path) -> Optional[float]:
     """Parse 'Uniquely mapped reads %' from a STAR Log.final.out file."""
-    try:
-        text = Path(log_path).read_text()
-        m = re.search(r"Uniquely mapped reads %\s*\|\s*([\d.]+)%", text)
-        return float(m.group(1)) if m else None
-    except Exception:
-        return None
+    text = Path(log_path).read_text(encoding="utf-8")
+    m = re.search(r"Uniquely mapped reads %\s*\|\s*([\d.]+)%", text)
+    return float(m.group(1)) if m else None

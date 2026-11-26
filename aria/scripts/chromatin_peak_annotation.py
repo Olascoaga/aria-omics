@@ -24,7 +24,6 @@ from __future__ import annotations
 
 import bisect
 import csv
-import gzip
 import os
 import re
 import sys
@@ -37,9 +36,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspa
 from aria.benchmarks.bulk_atac_marker_mapping import parse_peak_interval
 from aria.scripts.rna_bulk.gtf_io import _locate_gtf
 from aria.utils.csv_artifacts import persist_csv
-
-_GENE_ID = re.compile(r'gene_id "([^"]+)"')
-_GENE_NAME = re.compile(r'gene_name "([^"]+)"')
+from aria.utils.genomic_coords import ensembl_contig, parse_gtf_gene_models
 
 # Feature priority (highest first) when more than one candidate gene applies.
 FEATURE_PROMOTER = "Promoter"
@@ -53,74 +50,14 @@ DEFAULT_PROMOTER_DOWNSTREAM = 2000
 
 def _norm_chrom(chrom) -> str:
     """Reconcile UCSC (`chr1`/`chrX`/`chrM`) and Ensembl (`1`/`X`/`MT`) contig naming
-    so chr-prefixed ATAC peaks match an Ensembl GTF (and vice versa)."""
-    c = str(chrom)
-    if c[:3].lower() == "chr":
-        c = c[3:]
-    return "MT" if c in ("M", "MT") else c
+    via canonical genomic_coords helper so chr-prefixed ATAC peaks match an Ensembl GTF."""
+    return ensembl_contig(str(chrom))
+
+
 # How many TSS-sorted neighbors to consider as feature candidates around a peak.
 # Bounds the work per peak while still catching a long gene body whose TSS is not
 # the single closest one.
 _NEIGHBORS = 25
-
-
-def parse_gtf_gene_models(gtf_path) -> dict:
-    """Stream a GTF into per-chromosome gene models (low memory).
-
-    Returns ``{chrom: [gene_dict, ...]}`` sorted by TSS, where each ``gene_dict`` has
-    ``gene`` (symbol or id), ``strand``, ``start``, ``end``, ``tss`` (1-based), and
-    ``exons`` (sorted ``[(start, end), ...]``). Mirrors the parsing conventions in
-    ``rna_bulk/gtf_io``. Returns ``{}`` on a read/parse failure (honest, never partial
-    fabrication).
-    """
-    genes: dict = {}
-    exons = defaultdict(list)
-    opener = gzip.open if str(gtf_path).endswith(".gz") else open
-    try:
-        with opener(gtf_path, "rt") as handle:
-            for line in handle:
-                if line.startswith("#"):
-                    continue
-                fields = line.rstrip("\n").split("\t")
-                if len(fields) < 9:
-                    continue
-                feature = fields[2]
-                if feature not in ("gene", "exon"):
-                    continue
-                attrs = fields[8]
-                gid_m = _GENE_ID.search(attrs)
-                if not gid_m:
-                    continue
-                gid = gid_m.group(1)
-                try:
-                    start, end = int(fields[3]), int(fields[4])
-                except ValueError:
-                    continue
-                if feature == "gene":
-                    strand = fields[6]
-                    name_m = _GENE_NAME.search(attrs)
-                    genes[gid] = {
-                        "gene": name_m.group(1) if name_m else gid.split(".")[0],
-                        "chrom": _norm_chrom(fields[0]),
-                        "strand": strand,
-                        "start": start,
-                        "end": end,
-                        "tss": start if strand != "-" else end,
-                    }
-                else:  # exon
-                    exons[gid].append((start, end))
-    except Exception:
-        return {}
-
-    by_chrom: dict = defaultdict(list)
-    for gid, gene in genes.items():
-        gene["exons"] = sorted(exons.get(gid, []))
-        by_chrom[gene["chrom"]].append(gene)
-    out: dict = {}
-    for chrom, glist in by_chrom.items():
-        glist.sort(key=lambda g: g["tss"])
-        out[chrom] = glist
-    return out
 
 
 def _signed_tss_distance(center: int, gene: dict) -> int:
@@ -132,7 +69,7 @@ def _signed_tss_distance(center: int, gene: dict) -> int:
 
 def _in_exon(center: int, exons: list) -> bool:
     for s, e in exons:
-        if s <= center <= e:
+        if s <= center < e:
             return True
         if s > center:
             break
@@ -186,14 +123,14 @@ def _overlapping_genes(
         idx = bisect.bisect_right(starts, hi_coord) - 1
         while idx >= 0 and prefix_max_end[idx] >= lo_coord:
             g = by_start[idx]
-            if (g["start"] <= center <= g["end"]) or (
+            if (g["start"] <= center < g["end"]) or (
                 end > start and start < g["end"] and end > g["start"]
             ):
                 out.append(g)
             idx -= 1
         return out
     for g in models_by_chrom.get(chrom) or []:
-        if (g["start"] <= center <= g["end"]) or (
+        if (g["start"] <= center < g["end"]) or (
             end > start and start < g["end"] and end > g["start"]
         ):
             out.append(g)
@@ -314,7 +251,12 @@ def _resolve_gtf(params: dict, out_dir: Path) -> Optional[Path]:
     `_locate_gtf` returns whatever genome dir it finds first, so without it a human
     dataset can be annotated against a mouse GTF. Power-user override stays a
     fallback, per the auto-resolution principle."""
-    hint = params.get("gtf") or params.get("gtf_path") or os.environ.get("ARIA_GTF")
+    hint = (
+        params.get("gtf")
+        or params.get("gtf_path")
+        or os.environ.get("ARIA_GTF")
+        or os.environ.get("ARIA_GTF_PATH")
+    )
     if hint and Path(hint).exists():
         return Path(hint)
     # Prefer the GTF for THIS experiment's assembly before the generic search.
@@ -391,24 +333,10 @@ def _modality_stamp(params: dict) -> tuple:
 
 
 def _select_comparison_rows(df, comp: Optional[dict]):
-    """Restrict a DA table to one contrast when it is a combined multi-contrast
-    table (a ``comparison`` column, as in the scATAC pseudobulk full CSV).
+    """Restrict a DA table to one contrast via canonical ``cross_modal_concordance.filter_comparison``."""
+    from aria.utils.cross_modal_concordance import filter_comparison
 
-    A multi-contrast table (>1 distinct ``comparison``) is ALWAYS filtered to
-    ``f"{test}_vs_{reference}"`` -- possibly to zero rows; it never falls back to
-    the other contrasts' peaks. A single-contrast table (no ``comparison``
-    column, or one distinct value) is returned unchanged when the key does not
-    match, so per-comparison CSVs are never emptied."""
-    comp = comp or {}
-    test, ref = comp.get("test"), comp.get("reference")
-    if "comparison" not in df.columns or test is None or ref is None:
-        return df
-    comp_key = f"{test}_vs_{ref}"
-    labels = df["comparison"].astype(str)
-    mask = labels == comp_key
-    if bool(mask.any()) or labels.nunique(dropna=True) > 1:
-        return df[mask]
-    return df
+    return filter_comparison(df, comp, allow_single_contrast_fallback=True)
 
 
 def _significant_peaks(csv_path: str, comp: Optional[dict] = None):

@@ -178,7 +178,8 @@ def test_contig_canonicalization_and_gtf_duplicate_resolution(tmp_path):
     assert stats["n_duplicate_symbols_resolved"] == 1
     assert detailed["PLCXD1"]["canon_chrom"] == "chrX"
     assert detailed["DUPGENE"]["gene_id"] == "ENSG000200"
-    assert detailed["DUPGENE"]["tss"] == 830000  # minus strand end
+    # D8-005: 0-based BED TSS for 1-based GTF - strand end 830000 -> 830000 - 1 = 829999
+    assert detailed["DUPGENE"]["tss"] == 829999
     assert detailed["DUPGENE"]["canon_chrom"] == "chr1"
 
     # Ensembl GTF ("1", "X") seamlessly matches UCSC ATAC peaks ("chr1:...", "chrX:...")
@@ -207,18 +208,19 @@ def test_contig_canonicalization_and_gtf_duplicate_resolution(tmp_path):
 def test_indexed_fasta_gc_computation(tmp_path):
     from aria.utils.peak2gene_core import compute_peak_gc_from_indexed_fasta
 
-    seq_chr1 = "A" * 40 + "G" * 20 + "C" * 20 + "T" * 40  # positions 41..80 are 100% GC
-    seq_chr2 = "ACGT" * 30  # exact 50% GC everywhere
+    seq_chr1 = "A" * 40 + "G" * 20 + "C" * 20 + "T" * 40  # 0-based BED [40, 80) is 100% GC
+    seq_chr2 = "ACGT" * 30  # exact 50% GC across every 4-bp repeat
     fa = _write_indexed_fasta(
         tmp_path / "mini.fa",
         [("1", seq_chr1), ("chr2", seq_chr2)],
         line_bases=17,
     )
 
+    # 0-based half-open BED intervals [start, end)
     coords = [
-        ("chr1", 1, 40),    # 0% GC via Ensembl "1" <-> UCSC "chr1" canonical lookup
-        ("chr1", 41, 80),   # 100% GC across line wraps
-        ("chr2", 11, 90),   # 50% GC
+        ("chr1", 0, 40),    # 40 bp [0, 40) = 0% GC via Ensembl "1" <-> UCSC "chr1" lookup
+        ("chr1", 40, 80),   # 40 bp [40, 80) = 100% GC across line wraps
+        ("chr2", 10, 90),   # 80 bp [10, 90) = 20x "GTAC" = exact 50% GC
     ]
     gc, info = compute_peak_gc_from_indexed_fasta(str(fa), coords)
     assert info["available"] is True
@@ -312,8 +314,8 @@ def test_background_null_rejects_depth_confounder_and_is_seed_deterministic(tmp_
     neg_distal = by_pair[("GENE_NEG", "chr2:180000-180500")]
     assert neg_distal["direction"] == "negative"
     assert neg_distal["region_class"] == "distal_cis"
-    # Minus-strand TSS=200,000, peak midpoint=180,250 -> downstream (+19,750 bp)
-    assert neg_distal["tss_offset_bp"] == 19750
+    # D8-005: 0-based - strand TSS=200000-1=199999, peak midpoint=180250 -> 199999-180250 = 19749
+    assert neg_distal["tss_offset_bp"] == 19749
     assert neg_distal["padj"] < 0.01
 
 
@@ -522,8 +524,9 @@ def test_agent_associative_tunnels_orchestrator_gate_and_no_fabrication_guard(tm
             src = (repo_root / rel).read_text(encoding="utf-8")
             assert fab_mod.scan_source(rel, src) == [], f"Fabrication guard flagged {rel}"
 
-    if not _has_module("pydantic"):
-        return
+def test_peak2gene_contract_and_agent_tunnels(tmp_path: Path):
+    _require_module("pydantic")
+    _require_module("litellm")
 
     from aria.agents.integration_agent import IntegrationAgent
     from aria.agents.orchestrator_agent import INTEGRATION_VALIDATION

@@ -312,59 +312,69 @@ def test_d3_h11_h13_m6_mudata_cache_dup_barcodes_and_mofa_sparse_atac(tmp_path: 
     gtf_p = tmp_path / "genes.gtf"
     gtf_p.write_text('chr1\tsrc\tgene\t1000\t2000\t.\t+\t.\tgene_id "G1"; gene_name "G1";\n')
 
-    try:
-        import scanpy  # noqa: F401
-        res_p2g = integration_peak2gene(
-            {
-                "rna_files": [str(rna_p)],
-                "atac_files": [str(atac_p)],
-                "gtf_path": str(gtf_p),
-                "output_dir": str(tmp_path / "p2g_dup"),
-                "resume": False,
-            }
-        )
-        assert res_p2g["status"] == "error"
-        assert res_p2g["error_type"] == "DuplicateBarcodes"
-    except ImportError:
-        pass
-
-    try:
-        import mofapy2  # noqa: F401
-        import scanpy  # noqa: F401
-        res_mofa = integration_mofa(
-            {
-                "modalities": {"scRNA": [str(rna_p)], "scATAC": [str(atac_p)]},
-                "output_dir": str(tmp_path / "mofa_dup"),
-                "resume": False,
-            }
-        )
-        assert res_mofa["status"] == "error"
-        assert res_mofa["error_type"] == "DuplicateBarcodes"
-    except ImportError:
-        pass
+    pytest.importorskip("scanpy")
+    res_p2g = integration_peak2gene(
+        {
+            "rna_files": [str(rna_p)],
+            "atac_files": [str(atac_p)],
+            "gtf_path": str(gtf_p),
+            "output_dir": str(tmp_path / "p2g_dup"),
+            "resume": False,
+        }
+    )
+    assert res_p2g["status"] == "error"
+    assert res_p2g["error_type"] == "DuplicateBarcodes"
 
     # 3. D3-M6: _prepare_view_matrices on pre-normalized sparse ATAC selects n_top_peaks sparsely.
-    try:
-        import scanpy  # noqa: F401
-        rng = np.random.default_rng(7)
-        dense = rng.uniform(0.0, 2.0, size=(20, 12)).astype(np.float64)
-        # Give columns 0..7 strictly higher variance than 8..11
-        dense[:, :8] *= 5.0
-        sp_mat = sp.csr_matrix(dense)
-        prep = _prepare_view_matrices(
-            mod_name="scATAC",
-            mod_kind="atac",
-            matrix_all=sp_mat,
-            var_names=[f"chr1:{i*100}-{i*100+50}" for i in range(12)],
-            train_indices=np.arange(20),
-            is_raw_counts=False,
-            n_top_genes=3,
-            n_top_peaks=7,
-            scale_views=True,
-        )
-        assert prep["n_features_selected"] == 7  # used n_top_peaks=7, NOT n_top_genes=3!
-    except ImportError:
-        pass
+    rng = np.random.default_rng(7)
+    dense = rng.uniform(0.0, 2.0, size=(20, 12)).astype(np.float64)
+    # Give columns 0..7 strictly higher variance than 8..11
+    dense[:, :8] *= 5.0
+    sp_mat = sp.csr_matrix(dense)
+    prep = _prepare_view_matrices(
+        mod_name="scATAC",
+        mod_kind="atac",
+        matrix_all=sp_mat,
+        var_names=[f"chr1:{i*100}-{i*100+50}" for i in range(12)],
+        train_indices=np.arange(20),
+        is_raw_counts=False,
+        n_top_genes=3,
+        n_top_peaks=7,
+        scale_views=True,
+    )
+    assert prep["n_features_selected"] == 7  # used n_top_peaks=7, NOT n_top_genes=3!
+
+
+def test_d3_h11_mofa_split_file_duplicate_barcodes_rejected(tmp_path: Path):
+    ad = pytest.importorskip("anndata")
+    pytest.importorskip("mofapy2")
+    pytest.importorskip("scanpy")
+    from aria.scripts.integration_mofa import integration_mofa
+
+    rna_dup = ad.AnnData(
+        X=sp.csr_matrix(np.ones((4, 3), dtype=np.int64)),
+        obs=pd.DataFrame(index=["BC1", "BC1", "BC2", "BC3"]),
+        var=pd.DataFrame(index=["G1", "G2", "G3"]),
+    )
+    atac_ok = ad.AnnData(
+        X=sp.csr_matrix(np.ones((4, 3), dtype=np.int64)),
+        obs=pd.DataFrame(index=["BC1", "BC2", "BC3", "BC4"]),
+        var=pd.DataFrame(index=["chr1:100-200", "chr1:300-400", "chr1:500-600"]),
+    )
+    rna_p = tmp_path / "rna_dup.h5ad"
+    atac_p = tmp_path / "atac_ok.h5ad"
+    rna_dup.write_h5ad(rna_p)
+    atac_ok.write_h5ad(atac_p)
+
+    res_mofa = integration_mofa(
+        {
+            "modalities": {"scRNA": [str(rna_p)], "scATAC": [str(atac_p)]},
+            "output_dir": str(tmp_path / "mofa_dup"),
+            "resume": False,
+        }
+    )
+    assert res_mofa["status"] == "error"
+    assert res_mofa["error_type"] == "DuplicateBarcodes"
 
 
 def test_d3_m1_eregulon_core_zero_var_depth_sign_flip_and_small_n_clamp(tmp_path: Path):
@@ -647,7 +657,9 @@ def test_d4_h5_h6_hic_adapter_low_replication_qval_and_disk_fallthrough(tmp_path
     from aria.agents.narrative.hypothesis.adapters.hic import _low_replication, hic_evidence
     from aria.agents.narrative.hypothesis.caveats import LOW_REPLICATION
 
-    # 1. D4-H5: descriptive_only=True overrides n_samples >= 2; loops without n_samples >= 2 keeps LOW_REPLICATION.
+    # 1. D4-H5 / D7-011: descriptive_only=True overrides n_samples >= 2; when loops omits
+    #    n_samples (real hic_topology._compute_loops schema), fall through to qc.n_samples
+    #    and remain fail-closed (True) when qc.n_samples < 2 or missing.
     assert _low_replication(
         {
             "qc": {"n_samples": 4},
@@ -660,7 +672,13 @@ def test_d4_h5_h6_hic_adapter_low_replication_qval_and_disk_fallthrough(tmp_path
     assert _low_replication(
         {
             "qc": {"n_samples": 4},
-            "topology": {"loops": {"status": "success"}},  # default n_samples=1
+            "topology": {"loops": {"status": "success"}},  # loops omits n_samples -> qc.n_samples=4
+        }
+    ) is False
+    assert _low_replication(
+        {
+            "qc": {"n_samples": 1},
+            "topology": {"loops": {"status": "success"}},  # qc.n_samples=1 < 2 -> LOW_REPLICATION
         }
     ) is True
     assert _low_replication(
@@ -731,7 +749,7 @@ def test_d4_h5_h6_hic_adapter_low_replication_qval_and_disk_fallthrough(tmp_path
     assert "NAN_QVAL_GENE" not in by_ent
     assert by_ent["TOP_GENE"].value == pytest.approx(0.001)
     assert by_ent["DISK_GENE1"].value == pytest.approx(0.002)
-    assert LOW_REPLICATION in by_ent["TOP_GENE"].caveats_inherited
+    assert LOW_REPLICATION not in by_ent["TOP_GENE"].caveats_inherited
 
     # When fdr_threshold is None and qval is NaN, value MUST be None (never count!).
     res_nofdr = {
@@ -759,6 +777,7 @@ def test_d4_h5_h6_hic_adapter_low_replication_qval_and_disk_fallthrough(tmp_path
     assert len(sigs_nf) == 1
     assert sigs_nf[0].entity == "MYC"
     assert sigs_nf[0].value is None
+    assert LOW_REPLICATION in sigs_nf[0].caveats_inherited
 
 
 def test_d4_h10_m9_hic_narrator_diagnostics_tables_tads_fig_and_captions(tmp_path: Path):

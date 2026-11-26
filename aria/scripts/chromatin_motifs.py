@@ -141,38 +141,12 @@ def _regions_from_csv(da_csv, max_per_group, warnings):
     }
 
 
-def _count_meme_motifs(meme_path: str) -> int | None:
-    """Count MOTIF records in a local MEME file (lightweight header scan)."""
-    try:
-        n = 0
-        with open(meme_path, encoding="utf-8", errors="ignore") as fh:
-            for line in fh:
-                if line.startswith(("MOTIF ", "MOTIF\t")):
-                    n += 1
-        return n
-    except OSError:
-        return None
+from aria.utils.motifs import _count_meme_motifs
 
 
-def _resolve_contig_in_valid(chrom: str, valid_chroms: set[str]) -> str | None:
-    """Resolve ``chrom`` against reference FASTA contigs with UCSC/Ensembl aliasing."""
-    if chrom in valid_chroms:
-        return chrom
-    low = chrom.lower()
-    if low in ("chrm", "chrmt", "mt", "m"):
-        for cand in ("chrM", "MT", "chrMT", "M"):
-            if cand in valid_chroms:
-                return cand
-        return None
-    if low.startswith("chr"):
-        bare = chrom[3:]
-        if bare in valid_chroms:
-            return bare
-    else:
-        prefixed = f"chr{chrom}"
-        if prefixed in valid_chroms:
-            return prefixed
-    return None
+from aria.utils.genomic_coords import (
+    resolve_contig_in_valid as _resolve_contig_in_valid,
+)
 
 
 def _canonicalize_peak_for_genome(
@@ -275,7 +249,6 @@ def _resolve_modality_thresholds(params: dict):
 
 
 def chromatin_motifs(params: dict) -> dict:
-    import json
     from pathlib import Path
 
     data_path = params.get("data_path")

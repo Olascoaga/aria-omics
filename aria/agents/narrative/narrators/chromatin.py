@@ -696,8 +696,6 @@ class ChromatinNarrator:
                 "called peak universe as a pooled/discovery set unless the "
                 "overlap metrics show adequate replicate support.",
                 severity="warning"))
-        for warning in peaks.get("warnings") or []:
-            caveats.append(Caveat(str(warning), severity="warning"))
 
         claim = f"{caller_label} for {label} identified {n_peaks} peaks."
         return NarrativeBlock(
@@ -763,8 +761,6 @@ class ChromatinNarrator:
                 "reads, call peaks, or count overlaps for this run, so read-level "
                 "QC and peak-calling provenance come from the upstream source.",
                 severity="warning"))
-        for warning in counts.get("warnings") or []:
-            caveats.append(Caveat(str(warning), severity="warning"))
 
         mod_title = (
             "Bulk ATAC" if data_type == "bulk_ATAC"
@@ -1035,8 +1031,6 @@ class ChromatinNarrator:
             f"{'accessibility' if is_atac else 'binding'} was not run: {reason}.",
             severity="warning",
         )]
-        for warning in da.get("warnings") or []:
-            caveats.append(Caveat(str(warning), severity="warning"))
         return NarrativeBlock(
             id=block_id,
             modality="chromatin",
@@ -1111,8 +1105,6 @@ class ChromatinNarrator:
               "metadata; ARIA does not infer contrasts from filenames.",
             severity="info",
         )]
-        for warning in da.get("warnings") or []:
-            caveats.append(Caveat(str(warning), severity="warning"))
 
         if is_atac:
             claim = (

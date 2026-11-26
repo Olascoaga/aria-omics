@@ -72,7 +72,7 @@ def integration_merge_cohort(params: dict[str, Any]) -> dict[str, Any]:
         if cached:
             return cached
         datasets, all_intervals, per_sample = [], [], {}
-        for sample, path in zip(samples, paths):
+        for sample, path in zip(samples, paths, strict=True):
             paired = read_h5mu_paired(path, require_raw_counts=True)
             if paired["status"] != "success":
                 return paired

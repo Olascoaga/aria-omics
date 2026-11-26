@@ -19,7 +19,6 @@ import math
 from aria.agents.narrative.validators import (
     _unnegated_causal_hit,
     collect_named_entities,
-    find_causal_language,
 )
 
 
@@ -350,7 +349,7 @@ def _issues_for_sentence(
     low = sentence.lower()
     family = _ANALYSIS_FAMILY.get(block.analysis)
 
-    for number in _claim_numbers(sentence):
+    for number in sorted(_claim_numbers(sentence)):
         if number not in card.numbers:
             issues.append(VerificationIssue(
                 location,
@@ -358,7 +357,7 @@ def _issues_for_sentence(
                 f"numeric value {number!r} is absent from the evidence card",
             ))
 
-    for token in _claim_entities(sentence):
+    for token in sorted(_claim_entities(sentence)):
         if token.lower() not in card.support_text:
             issues.append(VerificationIssue(
                 location,

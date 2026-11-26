@@ -184,10 +184,10 @@ def _translate_barcodes(rna, atac, params):
                 and len(set(an)) == len(an)
                 and set(rn) == set(an)
             ):
-                mapping = dict(zip(rn, rnames))
+                mapping = dict(zip(rn, rnames, strict=True))
                 atac.obs_names = [mapping[b] for b in an]
                 translation["n_translated"] = sum(
-                    a != b for a, b in zip(anames, atac.obs_names)
+                    a != b for a, b in zip(anames, atac.obs_names, strict=True)
                 )
         return translation
     if namespace == "barcode_map_tsv":
@@ -207,7 +207,7 @@ def _translate_barcodes(rna, atac, params):
             )
         rmap, amap = ([row[i] for row in rows] for i in (0, 1))
         _check_bijection(rmap, amap)
-        mapping = dict(zip(amap, rmap))
+        mapping = dict(zip(amap, rmap, strict=True))
     elif namespace == "10x_arc_whitelist_pair":
 
         def whitelist(key):
@@ -225,7 +225,7 @@ def _translate_barcodes(rna, atac, params):
         # Whitelists normally omit GEM suffixes. Strip only -1, preserving it on output.
         rb, ab = [[_split_suffix(b)[0] for b in values] for values in (rmap, amap)]
         _check_bijection(rb, ab)
-        direct = dict(zip(ab, rmap))
+        direct = dict(zip(ab, rmap, strict=True))
         reverse = {_revcomp(b): a for b, a in direct.items()}
 
         rset = set(rnames)
@@ -233,7 +233,7 @@ def _translate_barcodes(rna, atac, params):
         if params.get("normalize_10x_suffix", True):
             rb_obs = [_split_suffix(b)[0] for b in rnames]
             if len(set(rb_obs)) == len(rb_obs):
-                rna_bare_to_full = dict(zip(rb_obs, rnames))
+                rna_bare_to_full = dict(zip(rb_obs, rnames, strict=True))
 
         def translated(table):
             out = []
@@ -269,7 +269,7 @@ def _translate_barcodes(rna, atac, params):
         translation["orientation"] = orientation
         mapping = {
             original: target
-            for original, target in zip(anames, candidates[orientation])
+            for original, target in zip(anames, candidates[orientation], strict=True)
             if target is not None
         }
     else:
@@ -604,7 +604,7 @@ def integration_assemble_multiome(params: dict[str, Any]) -> dict[str, Any]:
                 translation, rows, names = translated
                 raw_to_translated = {
                     orig_atac_barcodes[idx]: str(name)
-                    for idx, name in zip(rows, names)
+                    for idx, name in zip(rows, names, strict=True)
                 }
                 atac = atac[rows].copy()
                 atac.obs_names = names
@@ -612,7 +612,7 @@ def integration_assemble_multiome(params: dict[str, Any]) -> dict[str, Any]:
                 translation = translated
                 raw_to_translated = {
                     orig: str(new)
-                    for orig, new in zip(orig_atac_barcodes, atac.obs_names)
+                    for orig, new in zip(orig_atac_barcodes, atac.obs_names, strict=True)
                 }
             paired = validate_paired_multiome(mudata.MuData({"rna": rna, "atac": atac}))
             if paired["status"] != "success":

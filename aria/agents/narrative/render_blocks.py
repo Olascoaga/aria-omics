@@ -15,7 +15,6 @@ from aria.agents.narrative.validators import (
     validate_blocks,
     NarrativeValidationError,
     _unnegated_causal_hit,
-    find_causal_language,
     collect_named_entities,
 )
 from aria.agents.narrative.evidence_verifier import (
@@ -80,23 +79,35 @@ def render_blocks(blocks: list[NarrativeBlock],
             log.warning("Withholding block %s from report (unverified): %s",
                         getattr(block, "id", "?"), exc)
             out.append(_withheld_block_html(block))
-        except Exception as exc:
+        except Exception as exc:  # aria: allow-broad-except isolate block render failure into withheld placeholder
             log.warning("Withholding block %s from report (render error): %s",
                         getattr(block, "id", "?"), exc)
-            out.append(_withheld_block_html(block))
+            out.append(
+                _withheld_block_html(
+                    block,
+                    reason=f"rendering failed ({type(exc).__name__}: {exc})",
+                )
+            )
     return "\n".join(out)
 
 
-def _withheld_block_html(block: NarrativeBlock) -> str:
+def _withheld_block_html(block: NarrativeBlock, reason: str | None = None) -> str:
     """A placeholder for a block that could not be verified — no orphan claim is
     shown, but the report still renders and the gap is visible."""
     title = html.escape(str(getattr(block, "title", "") or "Result"))
+    detail = (
+        f"This section's narrative was withheld because {html.escape(reason)}."
+        if reason
+        else (
+            "This section's narrative was withheld because a statement could "
+            "not be verified against its structured evidence."
+        )
+    )
     return f"""
 <section class="narrative-block" data-block-id="{html.escape(str(getattr(block, 'id', '')))}" data-withheld="true"
          style="border-top:1px solid var(--border);padding-top:0.9rem;margin-top:0.9rem">
   <h4>{title} <span class="badge insuff" style="margin-left:0.35rem">withheld</span></h4>
-  <p style="color:var(--amber)"><em>This section's narrative was withheld because a
-  statement could not be verified against its structured evidence. The underlying
+  <p style="color:var(--amber)"><em>{detail} The underlying
   tables and figures remain in the report artifacts.</em></p>
 </section>"""
 
@@ -202,8 +213,17 @@ def _claim_tier_badge(block: NarrativeBlock) -> str:
         try:
             from aria.agents.narrative.claim_compiler import classify_claim
             claim = classify_claim(block).as_dict()
-        except Exception:
-            return ""
+        except Exception as exc:  # aria: allow-broad-except surface tier classification failure as warning badge
+            log.warning(
+                "Claim-tier classification failed for block %s: %s",
+                getattr(block, "id", "?"), exc,
+            )
+            return (
+                "<span class='badge low tier-unclassified' "
+                f"title='{html.escape(f'Claim-tier classification failed: {type(exc).__name__}: {exc}')}' "
+                "style='margin-left:0.35rem'>"
+                "Evidence scope: unclassified (error)</span>"
+            )
     tier = claim.get("tier")
     if not tier or tier == "descriptive":
         return ""

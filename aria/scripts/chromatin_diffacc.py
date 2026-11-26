@@ -95,7 +95,6 @@ def _per_cluster_accessibility(adata, groupby, padj_max, lfc_min, top_n,
     """Wilcoxon marker peaks per cluster (cluster vs rest). Descriptive only."""
     import scanpy as sc
     import numpy as np
-    import pandas as pd
 
     n_clusters = int(adata.obs[groupby].astype(str).nunique())
     if n_clusters < 2:
@@ -144,7 +143,7 @@ def _per_cluster_accessibility(adata, groupby, padj_max, lfc_min, top_n,
         padj = rgg["pvals_adj"][cl]
 
         sig = []
-        for peak, l, p in zip(names, lfc, padj):
+        for peak, l, p in zip(names, lfc, padj, strict=True):
             peak = str(peak)
             try:
                 p_val = float(p)
@@ -538,7 +537,7 @@ def _pseudobulk_da(adata, condition_col, replicate_col, comparisons,
                 paired_unit_col=(replicate_col if paired_block_modeled else None),
                 max_reported_features=200,
             )
-        except Exception as exc:
+        except Exception as exc:  # aria: allow-broad-except auxiliary LOBO diagnostic must not abort primary DA
             lobo_res = {"status": "error", "details": str(exc)[:200]}
 
         comp_results.append({
@@ -571,7 +570,6 @@ def _pseudobulk_da(adata, condition_col, replicate_col, comparisons,
 
 
 def chromatin_diffacc(params: dict) -> dict:
-    import json
     from pathlib import Path
 
     data_path = params["data_path"]

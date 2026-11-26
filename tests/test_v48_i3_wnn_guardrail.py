@@ -28,15 +28,7 @@ import pytest
 import scipy.sparse as sp
 from scipy.spatial import cKDTree
 
-from aria.agents.integration_agent import IntegrationAgent
-from aria.agents.orchestrator_agent import INTEGRATION_VALIDATION
-from aria.bus.message_bus import Confidence
 from aria.scripts.integration_wnn_diagnostics import integration_wnn_diagnostics
-from aria.utils.registry_integrity import (
-    AGENT_SCRIPT_CONTRACTS,
-    check_registry_integrity,
-)
-from aria.utils.script_contracts import SCRIPT_CONTRACTS
 from aria.utils.wnn_diagnostics import (
     compute_wnn_anti_degradation_diagnostics,
     sanitize_for_hdf5_uns,
@@ -482,6 +474,15 @@ def test_no_fabrication_ast_scan_on_i3_modules():
 
 
 def test_script_contract_and_registry_integrity_for_i3():
+    pytest.importorskip("litellm")
+    pytest.importorskip("pydantic")
+    from aria.agents.orchestrator_agent import INTEGRATION_VALIDATION
+    from aria.utils.registry_integrity import (
+        AGENT_SCRIPT_CONTRACTS,
+        check_registry_integrity,
+    )
+    from aria.utils.script_contracts import SCRIPT_CONTRACTS
+
     key = "aria/scripts/integration_wnn_diagnostics.py"
     assert key in SCRIPT_CONTRACTS
     assert SCRIPT_CONTRACTS[key].validation_level == "production"
@@ -500,6 +501,10 @@ def test_integration_wnn_diagnostics_missing_file_fails_closed(tmp_path: Path):
 
 
 def test_integration_agent_guardrail_confidence_and_conflict_wiring():
+    pytest.importorskip("litellm")
+    from aria.agents.integration_agent import IntegrationAgent
+    from aria.bus.message_bus import Confidence
+
     agent = IntegrationAgent.__new__(IntegrationAgent)
     captured_findings: list[dict[str, Any]] = []
     captured_dispatch: list[tuple[str, str, dict]] = []

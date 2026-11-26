@@ -6,7 +6,12 @@ Behavior-preserving extraction: these functions are re-exported from
 from __future__ import annotations
 
 from pathlib import Path
-import re
+
+from aria.utils.genomic_coords import (
+    parse_gtf_attributes as _gtf_attributes,
+    parse_gtf_symbol_map as _gtf_to_symbol_map,
+    strip_gene_version as _strip_gene_version,
+)
 
 
 def _normalize_species(organism: str) -> str:
@@ -27,17 +32,6 @@ def _normalize_species(organism: str) -> str:
         if value in names or species.split()[-1] in value:
             return species
     return str(organism or "").strip()
-
-
-def _strip_gene_version(gene: str) -> str:
-    """Strip numeric Ensembl versions without truncating dotted gene symbols."""
-    return re.sub(r"^(ENS[^.]+)\.\d+$", r"\1", gene.strip())
-
-
-def _gtf_attributes(text: str) -> dict:
-    """Read quoted or unquoted GTF attributes, including variable whitespace."""
-    return {m.group(1): (m.group(2) if m.group(2) is not None else m.group(3)).strip()
-            for m in re.finditer(r'(?:^|;)\s*([\w]+)\s*(?:=|\s)\s*(?:"([^"]*)"|([^;]+))', text)}
 
 
 def _load_symbol_map(files: list, warnings: list,
@@ -150,9 +144,18 @@ def _locate_gtf(counts_path: Path, hint: str = None,
     Explicit and sibling references are authoritative. Without a genome or
     organism constraint, cached directories retain deterministic legacy lookup.
     """
+    import os
+    from aria.utils.genomes import genome_dir as _genome_root
+
     candidates = []
     if hint:
         candidates.append(Path(hint).expanduser())
+    env_gtf = (
+        os.environ.get("ARIA_GTF", "").strip()
+        or os.environ.get("ARIA_GTF_PATH", "").strip()
+    )
+    if env_gtf:
+        candidates.append(Path(env_gtf).expanduser())
 
     # Sibling of counts file
     candidates.extend([
@@ -162,14 +165,19 @@ def _locate_gtf(counts_path: Path, hint: str = None,
         counts_path.parent.parent / "annotation.gtf.gz",
     ])
 
-    # ~/.aria/genomes/*/annotation.gtf
-    aria_genomes = Path.home() / ".aria" / "genomes"
-    if aria_genomes.exists():
-        species = _normalize_species(genome or organism)
-        assembly_aliases = {"grch37": "hg19", "grch38": "hg38",
-                            "grcm38": "mm10", "grcm39": "mm39"}
-        requested = str(genome or "").strip().lower()
-        assembly = assembly_aliases.get(requested, requested)
+    # Managed genome stores (ARIA_GENOME_DIR / ARIA_HOME / ~/.aria/genomes)
+    genome_roots = list(dict.fromkeys([
+        _genome_root(),
+        Path.home() / ".aria" / "genomes",
+    ]))
+    species = _normalize_species(genome or organism)
+    assembly_aliases = {"grch37": "hg19", "grch38": "hg38",
+                        "grcm38": "mm10", "grcm39": "mm39"}
+    requested = str(genome or "").strip().lower()
+    assembly = assembly_aliases.get(requested, requested)
+    for aria_genomes in genome_roots:
+        if not aria_genomes.exists():
+            continue
         genome_dirs = sorted(aria_genomes.iterdir(), key=lambda p: (
             p.name.lower() != requested,
             assembly_aliases.get(p.name.lower(), p.name.lower()) != assembly,
@@ -189,33 +197,6 @@ def _locate_gtf(counts_path: Path, hint: str = None,
             return c
     return None
 
-def _gtf_to_symbol_map(gtf_file: str) -> dict:
-    """
-    Parse a GTF for {ensembl_id (no version): gene_symbol}.
-    Streaming, low memory; also handles annotations lacking gene feature rows.
-    """
-    import gzip as _gzip
-
-    mapping = {}
-    opener = _gzip.open if str(gtf_file).endswith(".gz") else open
-    try:
-        with opener(gtf_file, "rt") as f:
-            for line in f:
-                if line.startswith("#"):
-                    continue
-                fields = line.rstrip("\n").split("\t")
-                if len(fields) < 9 or fields[2] not in ("gene", "transcript", "exon"):
-                    continue
-                attrs = _gtf_attributes(fields[8])
-                gid, symbol = attrs.get("gene_id"), attrs.get("gene_name") or attrs.get("gene_symbol")
-                if gid and symbol:
-                    gid = _strip_gene_version(gid)
-                    if fields[2] == "gene" or gid not in mapping:
-                        mapping[gid] = symbol
-    except Exception:
-        return {}
-
-    return mapping
 
 def _load_gene_annotation(files: list, warnings: list,
                           gtf_hint: str = None, genome: str = None,
@@ -270,41 +251,38 @@ def _parse_gtf_biotype_and_length(gtf_file: str) -> tuple:
     gene_lengths = {}
 
     opener = _gzip.open if str(gtf_file).endswith(".gz") else open
-    try:
-        with opener(gtf_file, "rt") as f:
-            for line in f:
-                if line.startswith("#"):
-                    continue
-                fields = line.rstrip("\n").split("\t")
-                if len(fields) < 9:
-                    continue
+    with opener(gtf_file, "rt") as f:
+        for line in f:
+            if line.startswith("#"):
+                continue
+            fields = line.rstrip("\n").split("\t")
+            if len(fields) < 9:
+                continue
 
-                feature = fields[2]
-                if feature not in ("gene", "transcript", "exon"):
-                    continue
+            feature = fields[2]
+            if feature not in ("gene", "transcript", "exon"):
+                continue
 
-                attrs = _gtf_attributes(fields[8])
-                if not attrs.get("gene_id"):
-                    continue
-                gid = _strip_gene_version(attrs["gene_id"])
-                biotype = attrs.get("gene_biotype") or attrs.get("gene_type")
-                if biotype and (feature == "gene" or gid not in biotype_map):
-                    biotype_map[gid] = biotype
+            attrs = _gtf_attributes(fields[8])
+            if not attrs.get("gene_id"):
+                continue
+            gid = _strip_gene_version(attrs["gene_id"])
+            biotype = attrs.get("gene_biotype") or attrs.get("gene_type")
+            if biotype and (feature == "gene" or gid not in biotype_map):
+                biotype_map[gid] = biotype
 
-                if feature in ("gene", "exon"):
-                    try:
-                        start = int(fields[3])
-                        end   = int(fields[4])
-                        if start < 1 or end < start:
-                            continue
-                        if feature == "gene":
-                            gene_lengths[gid] = end - start + 1
-                        else:
-                            exons_by_gene[gid].append((start, end))
-                    except ValueError:
+            if feature in ("gene", "exon"):
+                try:
+                    start = int(fields[3])
+                    end   = int(fields[4])
+                    if start < 1 or end < start:
                         continue
-    except Exception:
-        return biotype_map, {}
+                    if feature == "gene":
+                        gene_lengths[gid] = end - start + 1
+                    else:
+                        exons_by_gene[gid].append((start, end))
+                except ValueError:
+                    continue
 
     # Compute union-exon length per gene (merge overlapping intervals)
     length_map = dict(gene_lengths)

@@ -11,10 +11,30 @@ Integration-level checks above the individual scripts/narrator:
   (a guard against future agent/ledger drift).
 """
 
+import importlib.util
+from pathlib import Path
+
 import pytest
 
-from tests.test_chromatin_narrator_v46 import _findings
 from aria.agents.narrative.narrators.chromatin import ChromatinNarrator
+
+
+def _load_findings_helper():
+    """Load sibling test_chromatin_narrator_v46._findings by file path.
+
+    Avoids ``from tests.*`` shadowing when a third-party package in the conda
+    env (e.g., ``episcanpy`` in ``aria-integration-env``) installs a top-level
+    ``site-packages/tests/__init__.py`` regular package.
+    """
+    mod_path = Path(__file__).resolve().parent / "test_chromatin_narrator_v46.py"
+    spec = importlib.util.spec_from_file_location("_aria_test_chromatin_narrator_v46", mod_path)
+    assert spec is not None and spec.loader is not None
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod._findings
+
+
+_findings = _load_findings_helper()
 
 
 def _chromatin_blocks(findings):

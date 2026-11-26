@@ -42,10 +42,6 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspa
 
 from aria.scripts._base import run_script
 
-# Tn5 insertion offsets (the canonical +4 / -5 shift); applied by TOBIAS via
-# --read_shift, kept here as the documented constant for the cut-site reads.
-TN5_SHIFT = (4, -5)
-
 
 def _skip(reason: str, **extra: Any) -> dict[str, Any]:
     """Honest not-run result (mirrors chromatin_regulatory._skip)."""
@@ -149,19 +145,10 @@ def _finite_change(value: Any) -> bool:
 
 
 def _bh_adjust(pvalues: list[float]) -> list[float]:
-    """Benjamini-Hochberg adjusted p-values, preserving NaN positions."""
-    adjusted = [math.nan] * len(pvalues)
-    valid = [(idx, float(value)) for idx, value in enumerate(pvalues)
-             if math.isfinite(float(value))]
-    valid.sort(key=lambda item: item[1])
-    m = len(valid)
-    running = 1.0
-    for rank_from_end in range(m - 1, -1, -1):
-        idx, pvalue = valid[rank_from_end]
-        rank = rank_from_end + 1
-        running = min(running, max(0.0, min(1.0, pvalue)) * m / rank)
-        adjusted[idx] = min(1.0, running)
-    return adjusted
+    """Benjamini-Hochberg adjusted p-values via canonical ``aria.utils.stats.bh_correct``."""
+    from aria.utils.stats import bh_correct
+
+    return bh_correct(pvalues).tolist()
 
 
 def parse_bindetect_replicate_scores(
@@ -380,12 +367,12 @@ def _within_batch_null_controls(
     counts = [sum(i < n_a for i in stratum) for stratum in strata]
     observed = tuple(range(n_a))
     complement = tuple(range(n_a, len(batches)))
-    total = math.prod(math.comb(len(s), k) for s, k in zip(strata, counts))
+    total = math.prod(math.comb(len(s), k) for s, k in zip(strata, counts, strict=True))
     limit = max(0, max_permutations)
     candidates: list[tuple[int, ...]] = []
     rng = random.Random(random_seed)
     if total <= limit + 2:
-        choices = [itertools.combinations(s, k) for s, k in zip(strata, counts)]
+        choices = [itertools.combinations(s, k) for s, k in zip(strata, counts, strict=True)]
         for assignment in itertools.product(*choices):
             combo = tuple(sorted(itertools.chain.from_iterable(assignment)))
             if combo not in (observed, complement):
@@ -395,7 +382,7 @@ def _within_batch_null_controls(
     else:
         seen = {observed, complement}
         for _ in range(limit * 50):
-            combo = tuple(sorted(i for s, k in zip(strata, counts)
+            combo = tuple(sorted(i for s, k in zip(strata, counts, strict=True)
                                  for i in rng.sample(s, k)))
             if combo not in seen:
                 seen.add(combo)
@@ -441,18 +428,31 @@ def infer_replicate_footprints(
     reps_b = [rep for rep, group in replicate_groups.items() if group == group_b]
     pairing_status = "independent"
     excluded_unpaired_replicates: list[str] = []
+    duplicate_replicate_ids: dict[str, dict[str, list[str]]] = {}
     if replicate_ids:
-        ids_a = {replicate_ids.get(rep, rep): rep for rep in reps_a}
-        ids_b = {replicate_ids.get(rep, rep): rep for rep in reps_b}
-        common = set(ids_a).intersection(ids_b)
-        if common:
-            ordered_ids = sorted(common)
-            excluded_unpaired_replicates = sorted(
-                (set(ids_a).symmetric_difference(set(ids_b))))
-            reps_a = [ids_a[replicate_id] for replicate_id in ordered_ids]
-            reps_b = [ids_b[replicate_id] for replicate_id in ordered_ids]
-            pairing_status = ("complete" if not excluded_unpaired_replicates
-                              else "partial_complete_pair_subset")
+        by_id_a: dict[str, list[str]] = {}
+        for rep in reps_a:
+            by_id_a.setdefault(str(replicate_ids.get(rep, rep)), []).append(rep)
+        by_id_b: dict[str, list[str]] = {}
+        for rep in reps_b:
+            by_id_b.setdefault(str(replicate_ids.get(rep, rep)), []).append(rep)
+        dup_a = {k: sorted(v) for k, v in by_id_a.items() if len(v) > 1}
+        dup_b = {k: sorted(v) for k, v in by_id_b.items() if len(v) > 1}
+        if dup_a or dup_b:
+            pairing_status = "duplicate_replicate_ids_within_condition"
+            duplicate_replicate_ids = {group_a: dup_a, group_b: dup_b}
+        else:
+            ids_a = {k: v[0] for k, v in by_id_a.items()}
+            ids_b = {k: v[0] for k, v in by_id_b.items()}
+            common = set(ids_a).intersection(ids_b)
+            if common:
+                ordered_ids = sorted(common)
+                excluded_unpaired_replicates = sorted(
+                    (set(ids_a).symmetric_difference(set(ids_b))))
+                reps_a = [ids_a[replicate_id] for replicate_id in ordered_ids]
+                reps_b = [ids_b[replicate_id] for replicate_id in ordered_ids]
+                pairing_status = ("complete" if not excluded_unpaired_replicates
+                                  else "partial_complete_pair_subset")
     replicates = reps_a + reps_b
     complete = []
     for motif, record in sorted(score_table.items()):
@@ -470,9 +470,15 @@ def infer_replicate_footprints(
         "minimum_replicates_per_condition": int(min_replicates_per_condition),
         "pairing_status": pairing_status,
         "excluded_unpaired_replicates": excluded_unpaired_replicates,
+        **({"duplicate_replicate_ids": duplicate_replicate_ids}
+           if duplicate_replicate_ids else {}),
     }
     batch_design = None
-    descriptive_reason = None
+    descriptive_reason = (
+        "duplicate_replicate_ids_within_condition"
+        if duplicate_replicate_ids
+        else None
+    )
     batches = [str((replicate_batches or {}).get(rep) or "").strip()
                for rep in replicates]
     has_multi_batch = (
@@ -518,9 +524,17 @@ def infer_replicate_footprints(
                 "replicate_inference": False,
                 "pseudobulk": False,
                 "filter": "none; ranked by absolute replicate-mean difference",
-                "note": ("descriptive only because biological replication is insufficient"
-                         if descriptive_reason == "insufficient_biological_replicates"
-                         else "descriptive only because batch and condition are confounded"),
+                "note": (
+                    "descriptive only because biological replication is insufficient"
+                    if descriptive_reason == "insufficient_biological_replicates"
+                    else (
+                        "descriptive only because duplicate replicate_ids appear within "
+                        "the same condition; collapse technical replicates or supply "
+                        "distinct biological unit IDs before paired inference"
+                        if descriptive_reason == "duplicate_replicate_ids_within_condition"
+                        else "descriptive only because batch and condition are confounded"
+                    )
+                ),
             },
             "inference": {
                 **base_inference,
@@ -555,7 +569,7 @@ def infer_replicate_footprints(
     adjusted = _bh_adjust(pvalues)
     results = []
     for row_idx, ((motif, record, values), pvalue, padj) in enumerate(
-            zip(complete, pvalues, adjusted)):
+            zip(complete, pvalues, adjusted, strict=True)):
         mean_a = float(np.mean(matrix[row_idx, :len(reps_a)]))
         mean_b = float(np.mean(matrix[row_idx, len(reps_a):]))
         effect_val = float(effects[row_idx]) if batch_adjusted else float(mean_a - mean_b)
@@ -703,7 +717,6 @@ def _write_group_bams(frag_file: str | list[str], barcode_groups: dict[str, str]
     if not targets:
         return reused
     refs = list(chrom_sizes.keys())
-    lens = [chrom_sizes[r] for r in refs]
     tid = {r: i for i, r in enumerate(refs)}
     header = {"HD": {"VN": "1.6", "SO": "coordinate"},
               "SQ": [{"SN": r, "LN": chrom_sizes[r]} for r in refs]}
@@ -713,7 +726,7 @@ def _write_group_bams(frag_file: str | list[str], barcode_groups: dict[str, str]
                for g, p in unsorted.items()}
     counts = {g: 0 for g in targets}
     try:
-        fragments = ((sample, fragment) for path, sample in zip(frag_files, samples)
+        fragments = ((sample, fragment) for path, sample in zip(frag_files, samples, strict=True)
                      for fragment in _iter_fragments(path))
         for sample, (chrom, start, end, bc) in fragments:
             candidates = [bc]
@@ -1032,16 +1045,11 @@ def render_footprint_volcano(
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
+    from aria.utils.stats import adaptive_neglog10
+
     alpha = float(summary.get("alpha", 0.05))
-    # Wave 2A: data-adaptive display for p == 0 (float64 underflow in BINDetect
-    # site tests / zero-variance replicate tests). Instead of the old hard
-    # 1e-300 -> y=300 clip that flattened the real cloud, zero p-values sit just
-    # above the largest finite -log10(p) and the cap is disclosed.
-    finite_y = [-math.log10(p) for _, p, _ in rows if p > 0]
-    zero_cap = None
-    if any(p <= 0 for _, p, _ in rows):
-        top = max(finite_y) if finite_y else 0.0
-        zero_cap = max(top * 1.12, top + 1.0) if finite_y else 10.0
+    _, cap_val, has_zero = adaptive_neglog10([p for _, p, _ in rows], headroom=1.12)
+    zero_cap = cap_val if has_zero else None
 
     def _ycoord(pvalue: float) -> float:
         return zero_cap if pvalue <= 0 else -math.log10(pvalue)

@@ -10,6 +10,10 @@ from pydantic import BaseModel, Field
 
 CONTRACT_VERSION = "1.0"
 
+# Canonical script output sub-keys shared across compute scripts and agents
+# (D7: single source of truth to prevent masked_read key drift).
+SCATAC_PER_CLUSTER_DA_KEY = "da_peaks_by_cluster"
+
 FieldType = Literal[
     "any",
     "str",
@@ -242,6 +246,27 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
             )
         ),
     ),
+    "aria/scripts/rna_advise_resolution.py": ScriptContract(
+        script_path="aria/scripts/rna_advise_resolution.py",
+        validation_level="production",
+        inputs=(
+            _f("data_path", "path", allow_empty=False, path_must_exist=True),
+            _f("resolutions", "list", required=False),
+            _f("rep", "str", required=False),
+            _f("seed", "int", required=False),
+            _f("n_hvg", "int", required=False),
+            _f("n_pcs", "int", required=False),
+            _f("max_cells", "int", required=False),
+            _f("resume", "bool", required=False),
+        ),
+        success_outputs=(
+            _f("rep_used", "str", allow_empty=False),
+            _f("candidates", "list", allow_empty=False),
+            _f("sketch_used", "bool", required=False),
+            _f("n_cells_total", "int", required=False),
+            _f("n_cells_used", "int", required=False),
+        ),
+    ),
     "aria/scripts/rna_qc.py": ScriptContract(
         script_path="aria/scripts/rna_qc.py",
         validation_level="production",
@@ -251,6 +276,8 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
         success_outputs=(
             _f("n_cells_before", "int"),
             _f("n_cells_after", "int"),
+            _f("scrublet", "dict", required=False),
+            _f("ambient_correction", "dict", required=False),
         ),
     ),
     "aria/scripts/rna_kb_count.py": ScriptContract(
@@ -292,11 +319,14 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
             _f("design_factor", "str", allow_empty=False),
             _f("contrasts", "list", allow_empty=False),
             _f("n_cpus", "int", required=False),
+            _f("count_union_policy", "str", required=False),
         ),
         success_outputs=(
             _f("n_contrasts", "int"),
             _f("contrasts", "list"),
+            _f("design_used", "str", required=False),
             _f("count_source", "str", required=False),
+            _f("count_union", "dict", required=False),
         ),
     ),
     "aria/scripts/benchmark_a1_external_comparators.py": ScriptContract(

@@ -163,28 +163,30 @@ class DEMixin:
 
     @staticmethod
     def _expressed_gene_background(data_path: str | None) -> list[str]:
-        """Return genes detected at least once in the retained h5ad."""
+        """Return genes detected at least once in the retained h5ad.
+
+        D5-014: fail closed on unreadable/corrupt explicit ``data_path`` instead
+        of returning ``[]`` (which silently caused ORA to fall back to an
+        inflated gene-set universe without setting ``background_degraded``).
+        """
         if not data_path:
             return []
-        try:
-            import numpy as np
-            import anndata as ad
-            from scipy import sparse
-            adata = ad.read_h5ad(data_path)
-            if adata.raw is not None:
-                mat = adata.raw.X
-                genes = list(adata.raw.var_names)
-            else:
-                mat = adata.X
-                genes = list(adata.var_names)
-            if sparse.issparse(mat):
-                mask = np.asarray((mat > 0).sum(axis=0)).ravel() > 0
-            else:
-                mask = (np.asarray(mat) > 0).sum(axis=0) > 0
-            return [str(g) for g, keep in zip(genes, mask) if keep]
-        except Exception as exc:
-            log.debug(f"Could not compute expressed-gene background: {exc}")
-            return []
+        import numpy as np
+        import anndata as ad
+        from scipy import sparse
+
+        adata = ad.read_h5ad(data_path)
+        if adata.raw is not None:
+            mat = adata.raw.X
+            genes = list(adata.raw.var_names)
+        else:
+            mat = adata.X
+            genes = list(adata.var_names)
+        if sparse.issparse(mat):
+            mask = np.asarray((mat > 0).sum(axis=0)).ravel() > 0
+        else:
+            mask = (np.asarray(mat) > 0).sum(axis=0) > 0
+        return [str(g) for g, keep in zip(genes, mask) if keep]
 
     # ── Pseudobulk DE between conditions ─────────────────────────────────
 

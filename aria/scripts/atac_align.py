@@ -54,11 +54,11 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from aria.scripts._base import mocks_allowed, run_script
 try:
     from aria.utils.stage_manifest import (
-        file_record, load_valid_stage_result, stage_manifest_path, write_stage_manifest,
+        file_record, load_valid_stage_result, stage_manifest_path,
     )
 except ImportError:
     from aria.scripts.chromatin_peak_counts import (
-        file_record, load_valid_stage_result, stage_manifest_path, write_stage_manifest,
+        file_record, load_valid_stage_result, stage_manifest_path,
     )
 from aria.scripts.chromatin_peak_counts import _save_stage_result
 

@@ -25,10 +25,10 @@ import os
 import uuid
 import logging
 from dataclasses import dataclass, field
-from typing import Any, Callable, Optional
+from typing import Any, Optional
 
 from aria.memory.memory import ARIAMemory
-from aria.llm.provider import LLMProvider, TaskTier
+from aria.llm.provider import LLMProvider
 from aria.llm.prompt_boundary import (
     PromptDataField,
     build_untrusted_prompt,
@@ -89,7 +89,6 @@ class MetricEvaluator:
         """
         try:
             import scanpy as sc
-            import numpy as np
             from sklearn.metrics import silhouette_score
 
             # Deterministic Leiden seed so repeat evaluations agree.

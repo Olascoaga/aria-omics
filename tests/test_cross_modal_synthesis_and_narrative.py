@@ -31,6 +31,7 @@ from aria.agents.narrative.hypothesis import (
 from aria.agents.narrative.hypothesis.caveats import (
     CAVEAT_CODES,
     FOOTPRINT_ASSOCIATIVE,
+    LOW_REPLICATION,
     MOTIF_NOT_BINDING,
     PARALOG_MOTIF_AMBIGUITY,
     PEAK2GENE_ASSOCIATIVE,
@@ -712,9 +713,10 @@ def test_adapter_gated_on_ledger_node(tmp_path):
                for s in signals)
     assert links[0].context == "matched_samples_n=8"
     assert links[0].caveats_inherited == [PEAK2GENE_ASSOCIATIVE,
-                                          CROSS_MODAL_UNPAIRED_COHORT]
+                                          CROSS_MODAL_UNPAIRED_COHORT,
+                                          LOW_REPLICATION]
     assert not links[0].independence_key
-    assert _normalized_effect(links[0]) == pytest.approx(0.88)
+    assert _normalized_effect(links[0]) == pytest.approx(0.86)
     # Composite motif labels are never invented into component genes.
     assert [s.entity for s in tfs] == ["GATA1", "KLF1"]
     gata1 = tfs[0]
@@ -794,6 +796,7 @@ def test_devils_advocate_requires_unpaired_cohort_acknowledgement(tmp_path):
     base_confounds = [
         "motif_not_binding", "paralog_motif_ambiguity",
         "footprint_associative", "peak2gene_associative",
+        LOW_REPLICATION,
     ]
     hyp = Hypothesis(
         id="h1", mechanism="GATA1 co-varies across assays.",
@@ -815,3 +818,11 @@ def test_devils_advocate_requires_unpaired_cohort_acknowledgement(tmp_path):
     ):
         hyp.devils_advocate["confounds"] = base_confounds + [acknowledgement]
         assert check_devils_advocate(hyp, index).passed is True
+
+    # Without acknowledging low_replication (n_shared_samples=8 < 10), the gate fails.
+    hyp.devils_advocate["confounds"] = [
+        c for c in base_confounds if c != LOW_REPLICATION
+    ] + [CROSS_MODAL_UNPAIRED_COHORT]
+    no_low_rep = check_devils_advocate(hyp, index)
+    assert no_low_rep.passed is False
+    assert LOW_REPLICATION in no_low_rep.reason

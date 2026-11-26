@@ -359,6 +359,13 @@ def test_leiden_subprocess_modularity_is_not_replaced_with_zero():
     )[0]
 
     assert candidate.metrics["modularity"] == 0.42
+    # D3-020: verify independent numerical score and strict sensitivity to modularity
+    # (kills return 0.0 / modularity-dropped mutations).
+    expected_score = round(0.6 * 0.6 + 0.42 * 0.3, 4)
+    assert candidate.score == pytest.approx(expected_score, abs=1e-4)
+    zero_mod_score = advisor._score_leiden({**candidate.metrics, "modularity": 0.0}, {})
+    assert candidate.score > zero_mod_score
+    assert candidate.score - zero_mod_score == pytest.approx(0.42 * 0.3, abs=1e-4)
     assert candidate.score == advisor._score_leiden(candidate.metrics, {})
 
 
@@ -804,6 +811,9 @@ def test_cockpit_is_selected_on_interactive_tty(monkeypatch):
 
 
 def test_cockpit_front_door_builds_context_before_legacy_prompt(monkeypatch, tmp_path):
+    # Optional [tui] extra: runs in pr-checks (pip install -e ".[tui]"); the conda
+    # science lanes deliberately omit textual.
+    pytest.importorskip("textual")
     litellm_stub = types.ModuleType("litellm")
     litellm_stub.completion = lambda *args, **kwargs: None
     monkeypatch.setitem(sys.modules, "litellm", litellm_stub)
@@ -2553,6 +2563,15 @@ def test_pseudobulk_paired_design_uses_donor_condition_pseudosamples(tmp_path):
         assert comp["n_replicates"] == {"test": 4, "ref": 4}
         assert comp["paired_design"] is True
         assert comp["paired_donor_covariate"] is True
+    # D3-019: verify the 5 planted 4x-upregulated DE genes in CD14 Mono are recovered
+    # with positive log2fc > 1.0 (kills sig_primary wipeout / sign flip).
+    mono_comp = result["per_group"]["CD14 Mono"]["per_comparison"]["STIM_vs_CTRL"]
+    planted = {f"GENE_{i:04d}" for i in range(5)}
+    called_planted = [g for g in mono_comp.get("all_sig", []) if g["gene"] in planted]
+    assert len(called_planted) >= 4, (
+        f"Expected >=4/5 planted DE genes in CD14 Mono, got {called_planted}"
+    )
+    assert all(float(g["log2fc"]) > 1.0 for g in called_planted), called_planted
 
 
 def test_pseudobulk_paired_design_counts_pseudosamples_without_deseq2(
@@ -2946,11 +2965,13 @@ def test_pseudobulk_composition_covariate_flag_propagates_into_blocks(tmp_path):
     pytest.importorskip("pydeseq2")
 
     rng = np.random.default_rng(11)
-    # 3 donors per condition, 2 cell types. We give donors very different
-    # totals so the composition log-ratio varies across pseudosamples.
+    # 3 donors per condition, 2 cell types. Vary composition strongly within
+    # each condition so the log-ratio varies across pseudosamples without
+    # being collinear with condition (|r| < COMPOSITION_COLLINEARITY_MAX = 0.8;
+    # collinear drop is tested separately in test_composition_collinearity.py).
     donor_totals = {
-        "ctrl_1": (40, 200), "ctrl_2": (30, 250), "ctrl_3": (50, 220),
-        "treat_1": (90, 220), "treat_2": (110, 200), "treat_3": (100, 180),
+        "ctrl_1": (30, 250), "ctrl_2": (90, 190), "ctrl_3": (55, 225),
+        "treat_1": (35, 245), "treat_2": (105, 185), "treat_3": (60, 220),
     }
     rows = []
     for donor, (n_a, n_b) in donor_totals.items():
@@ -3001,10 +3022,11 @@ def test_pseudobulk_composition_covariate_flag_propagates_into_blocks(tmp_path):
             assert 0.0 <= comp["power_estimate_at_lfc_min"] <= 1.0
             assert "n_significant_local" in comp
             assert "n_significant_global" in comp
+            primary_col = mt.get("primary_padj_column", "padj_local")
             for rec in comp.get("top_genes", []) + comp.get("all_sig", []):
                 assert "padj_local" in rec
                 assert "padj_global" in rec
-                assert rec["padj"] == rec["padj_global"]
+                assert rec["padj"] == rec[primary_col]
             found_corrected = True
     assert found_corrected, "Expected at least one composition-corrected block"
 

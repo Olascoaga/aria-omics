@@ -29,7 +29,7 @@ try:
     )
 except ImportError:
     from aria.utils.stage_manifest import (
-        build_stage_manifest, stage_is_current, write_stage_manifest,
+        stage_is_current, write_stage_manifest,
     )
 
     def file_record(path):
@@ -73,17 +73,7 @@ def _open_alignment(path, reference_fasta=None):
     )
 
 
-def _norm_contig(chrom: str | None) -> str:
-    """Normalize UCSC/Ensembl contig aliases (chr1 <-> 1, chrM/chrMT <-> MT)."""
-    if not chrom:
-        return ""
-    c = str(chrom).strip()
-    low = c.lower()
-    if low in ("chrm", "chrmt", "mt", "m"):
-        return "MT"
-    if low.startswith("chr"):
-        return c[3:]
-    return c
+from aria.utils.genomic_coords import ensembl_contig as _norm_contig
 
 
 def _interval_index(rows):
@@ -130,7 +120,7 @@ def _count_cram(peaks_path, file_path, reference_fasta=None):
                 rows.append((cols[0], int(cols[1]), int(cols[2])))
     by_chrom = {}
     for i, (chrom, start, end) in enumerate(rows):
-        by_chrom.setdefault(chrom, []).append((start, end, i))
+        by_chrom.setdefault(_norm_contig(chrom), []).append((start, end, i))
     index = {}
     for chrom, intervals in by_chrom.items():
         intervals.sort()
@@ -143,7 +133,9 @@ def _count_cram(peaks_path, file_path, reference_fasta=None):
         for read in bam.fetch(until_eof=True):
             if read.is_unmapped or read.reference_end is None:
                 continue
-            intervals, starts, max_end = index.get(read.reference_name, ([], [], []))
+            intervals, starts, max_end = index.get(
+                _norm_contig(read.reference_name), ([], [], [])
+            )
             lo = bisect_right(max_end, read.reference_start)
             hi = bisect_left(starts, read.reference_end)
             for start, end, i in intervals[lo:hi]:
@@ -256,7 +248,7 @@ def _metadata_rows(files: list[str], sample_ids: list[str],
                    sample_metadata: Any = None) -> list[dict[str, Any]]:
     rows = [
         {"sample_id": sample_id, "file": str(file)}
-        for sample_id, file in zip(sample_ids, files)
+        for sample_id, file in zip(sample_ids, files, strict=True)
     ]
     if sample_metadata is None:
         return rows
@@ -307,7 +299,7 @@ def _genome_sizes_from_bam(file_path: str | Path,
     except Exception:
         return None
     if refs and lens and len(refs) == len(lens):
-        return [(str(c), int(l)) for c, l in zip(refs, lens)]
+        return [(str(c), int(l)) for c, l in zip(refs, lens, strict=True)]
     return None
 
 
@@ -389,14 +381,7 @@ _SUPPORTED_BULK_MODALITIES = frozenset({
 })
 
 
-def _parse_bool_flag(value: Any) -> bool:
-    if isinstance(value, bool):
-        return value
-    if value is None:
-        return False
-    if isinstance(value, (int, float)):
-        return bool(value) and value == value
-    return str(value).strip().lower() in {"1", "true", "yes", "y"}
+from aria.utils.thresholds import parse_bool_flag as _parse_bool_flag
 
 
 def _is_control_meta(meta: Any) -> bool:
@@ -459,7 +444,7 @@ def chromatin_peak_counts(params: dict) -> dict:
             }
         excluded_controls: list[str] = []
         filtered_pairs: list[tuple[str, str]] = []
-        for sid, fp in zip(sample_ids, files):
+        for sid, fp in zip(sample_ids, files, strict=True):
             resolved_fp = str(Path(fp).expanduser().resolve())
             if resolved_fp in control_set or _is_control_meta(meta_lookup.get(sid)):
                 excluded_controls.append(sid)
@@ -529,7 +514,7 @@ def chromatin_peak_counts(params: dict) -> dict:
             )
         peak_ids = _read_peak_ids(count_peaks_path)
         sample_counts = {}
-        for sample_id, file_path in zip(sample_ids, files):
+        for sample_id, file_path in zip(sample_ids, files, strict=True):
             if file_path.lower().endswith(".cram"):
                 sample_counts[sample_id] = _count_cram(
                     count_peaks_path, file_path, reference_fasta)
@@ -545,10 +530,12 @@ def chromatin_peak_counts(params: dict) -> dict:
     matrix_path = output_dir / "bulk_atac_peak_counts.tsv"
     metadata_path = output_dir / "bulk_atac_samples.tsv"
     cpm_path = output_dir / "bulk_atac_peak_cpm.tsv"
-    cpm = {}
-    for sid, counts in sample_counts.items():
-        total = max(sum(counts), 1)
-        cpm[sid] = [format(c / total * 1e6, ".10g") for c in counts]
+    from aria.utils.stats import compute_cpm
+
+    cpm = {
+        sid: [format(float(v), ".10g") for v in compute_cpm(counts, zero_policy="zero")]
+        for sid, counts in sample_counts.items()
+    }
     _write_counts_matrix(cpm_path, peak_ids, cpm)
     _write_counts_matrix(matrix_path, peak_ids, sample_counts)
     _write_metadata(metadata_path, metadata)

@@ -19,12 +19,25 @@ QC/technical vocabulary). It reuses the Claim Compiler tiers and adds an
 from __future__ import annotations
 
 import json
+import math
+import re
 from typing import Any
 
 from aria.agents.narrative.types import Caveat, NarrativeBlock
+from aria.utils.design_matrix import resolve_design_contract
 
 
 _CHALLENGEABLE_TIERS = {"associative", "weak_mechanistic", "strong_mechanistic"}
+
+
+def _safe_int(val: Any, default: int = 0) -> int:
+    if val is None or isinstance(val, bool):
+        return default
+    try:
+        num = float(val)
+        return int(num) if math.isfinite(num) else default
+    except (TypeError, ValueError):
+        return default
 
 
 def _scrna_findings(agent_results: dict) -> dict:
@@ -32,7 +45,7 @@ def _scrna_findings(agent_results: dict) -> dict:
     try:
         from aria.agents import _narrative_scrna
         return _narrative_scrna.unwrap_scrna_findings(sc) or {}
-    except Exception:
+    except Exception:  # aria: allow-broad-except defensive unwrap fallback for legacy scRNA shape
         if isinstance(sc, dict):
             return sc.get("findings", sc) or {}
         return {}
@@ -48,7 +61,7 @@ def _ran(val: Any) -> bool:
 def _contains(blob: Any, *needles: str) -> bool:
     try:
         text = json.dumps(blob, default=str).lower()
-    except Exception:
+    except Exception:  # aria: allow-broad-except fallback to str() for non-JSON-serializable objects
         text = str(blob).lower()
     return any(n in text for n in needles)
 
@@ -57,12 +70,38 @@ def _run_signals(agent_results: dict, exp_ctx: dict) -> dict:
     f = _scrna_findings(agent_results)
     integration_ran = _ran(f.get("integration"))
     iqc = f.get("integration_qc") or {}
-    integration_issue = bool(iqc.get("issues") or iqc.get("flags")
-                             or iqc.get("residual_batch"))
+    bqc = f.get("batch_qc") or {}
+    integration_issue = bool(
+        iqc.get("issues") or iqc.get("flags") or iqc.get("residual_batch")
+        or str(iqc.get("status") or "").lower() == "error"
+        or str(bqc.get("status") or "").lower() == "error"
+    )
     da = f.get("differential_abundance") or {}
-    covariates = [str(c).lower()
-                  for c in ((exp_ctx or {}).get("design", {}) or {}).get(
-                      "covariates", []) or []]
+    # D7-004: read batch_covariate / covariates / design_formula through the
+    # shared design contract instead of masking DesignAgent outputs behind
+    # design.get("covariates", []).
+    contract = resolve_design_contract((exp_ctx or {}).get("design"), exp_ctx)
+    covariates = [c.lower() for c in contract["covariates"]]
+    formula = str(contract.get("design_formula") or "")
+    cond_lower = str(contract.get("condition_col") or "condition").lower()
+    formula_terms: list[str] = []
+    if "~" in formula:
+        rhs = formula.split("~", 1)[1]
+        formula_terms = [
+            t.strip().lower()
+            for t in re.split(r"[+*:\s]+", rhs)
+            if t.strip() and t.strip().lower() not in {"0", "1", cond_lower}
+        ]
+    batch_cov_name = str(contract.get("batch_covariate") or "").strip().lower()
+    if "~" in formula:
+        batch_covariate = bool(
+            (batch_cov_name and batch_cov_name in formula_terms)
+            or any("batch" in t for t in formula_terms)
+        )
+    else:
+        batch_covariate = bool(
+            batch_cov_name or any("batch" in c for c in covariates)
+        )
     # P1-4: ambient correction is read from the STRUCTURED QC flag, not a blob
     # text scan — the new ambient-RNA *detector* finding contains the word
     # "ambient" and must not be mistaken for an applied correction.
@@ -72,14 +111,18 @@ def _run_signals(agent_results: dict, exp_ctx: dict) -> dict:
         ambient_corrected = bool(amb.get("ran"))
     else:
         ambient_corrected = _contains(qc, "soupx", "decontx")
+    # D7-002: read the real rna_qc.py producer key ("scrublet") alongside legacy
+    # structured report keys, never a substring scan over JSON text (which
+    # matched the literal key "scrublet" even when scrublet["ran"] is False).
     dbl_reports = [
-        d for d in (qc.get("scrublet_report"), qc.get("doublet_detection"))
+        d for d in (
+            qc.get("scrublet"),
+            qc.get("scrublet_report"),
+            qc.get("doublet_detection"),
+        )
         if isinstance(d, dict)
     ]
-    if dbl_reports:
-        doublets_handled = any(bool(d.get("ran")) for d in dbl_reports)
-    else:
-        doublets_handled = _contains(qc, "doublet", "scrublet")
+    doublets_handled = any(bool(d.get("ran")) for d in dbl_reports)
     return {
         "integration_clean": integration_ran and not integration_issue,
         "integration_ran": integration_ran,
@@ -87,7 +130,7 @@ def _run_signals(agent_results: dict, exp_ctx: dict) -> dict:
         "ambient_corrected": ambient_corrected,
         "da_ran": _ran(da),
         "da_significant": bool(da.get("any_significant")),
-        "batch_covariate": any("batch" in c for c in covariates),
+        "batch_covariate": batch_covariate,
         "multiome": _multiome_signals(agent_results),
     }
 
@@ -102,8 +145,8 @@ def _multiome_signals(agent_results: dict) -> dict:
     ereg = findings.get("eregulons") if isinstance(findings, dict) else {}
     guard = str((wnn or {}).get("guardrail_status") or "skipped")
     mofa_ran = _ran(mofa)
-    ereg_depth = int((ereg or {}).get("n_depth_confounded") or 0)
-    ereg_paralog = int((ereg or {}).get("n_paralog_ambiguous") or 0)
+    ereg_depth = _safe_int((ereg or {}).get("n_depth_confounded"), 0)
+    ereg_paralog = _safe_int((ereg or {}).get("n_paralog_ambiguous"), 0)
     return {
         "wnn_guardrail_pass": guard == "pass",
         "wnn_guardrail_status": guard,

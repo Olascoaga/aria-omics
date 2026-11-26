@@ -31,24 +31,26 @@ class MethodologyMixin:
                 # in-memory or export is unavailable.
                 if dest.exists() and dest.stat().st_size == 0:
                     dest.unlink(missing_ok=True)
-        except Exception as exc:
+        except Exception as exc:  # aria: allow-broad-except fail closed on memory snapshot export without leaking full DB
             log.warning(f"Could not write scoped memory snapshot: {exc}")
             # Fail closed: never fall back to the full lab DB and never leave a
             # 0-byte placeholder file that breaks capsule verification or disk polling.
             try:
                 if dest.exists() and dest.stat().st_size == 0:
                     dest.unlink(missing_ok=True)
-            except Exception:
-                pass
+            except Exception as unlink_exc:  # aria: allow-broad-except cosmetic cleanup of empty snapshot placeholder
+                log.debug(f"Could not unlink empty snapshot placeholder: {unlink_exc}")
 
     def _build_methodology_json(self, provenance: dict, exp_ctx: dict,
                                 agent_results: dict, decisions: list,
                                 llm_usage: dict | None = None,
                                 narrative_blocks: list | None = None,
                                 run_ledger: dict | None = None,
-                                devils_advocate: list | None = None,
+                                devils_advocate: list | dict | None = None,
                                 compiled_claims: list | None = None,
-                                claim_compilation: dict | None = None) -> dict:
+                                claim_compilation: dict | None = None,
+                                robustness_multiverse: dict | None = None,
+                                falsification_certificates: dict | None = None) -> dict:
         thresholds = {}
         bulk = (agent_results or {}).get("bulk_rna_agent", {})
         bulk_findings = bulk.get("findings", bulk) if isinstance(bulk, dict) else {}
@@ -64,8 +66,9 @@ class MethodologyMixin:
             pb = sc_f.get("pseudobulk_de") or {}
             thresholds["scrna_pseudobulk"] = pb.get("thresholds", {})
             thresholds["scrna_multiple_testing"] = pb.get("multiple_testing", {})
-        except Exception:
-            pass
+        except Exception as exc:  # aria: allow-broad-except surface scRNA threshold extraction failure in methodology
+            log.warning(f"Could not extract scRNA thresholds: {exc}")
+            thresholds["scrna_error"] = f"{type(exc).__name__}: {exc}"
         tools = self._collect_tool_versions(
             (
                 "scanpy", "anndata", "pydeseq2", "gseapy", "numpy",
@@ -80,10 +83,16 @@ class MethodologyMixin:
             try:
                 from aria.agents.narrative.run_ledger import build_run_ledger
                 run_ledger = build_run_ledger(exp_ctx, agent_results)
-            except Exception as exc:
+            except Exception as exc:  # aria: allow-broad-except surface failed run-ledger governance pass
                 log.warning(f"Run-ledger build failed: {exc}", exc_info=True)
-                run_ledger = {"entries": [], "divergences": [],
-                              "n_divergences": 0}
+                run_ledger = {
+                    "status": "error",
+                    "error": f"{type(exc).__name__}: {exc}",
+                    "entries": [],
+                    "divergences": [],
+                    "n_divergences": 0,
+                    "modalities": [],
+                }
         from aria.agents.narrative.run_ledger import ensure_report_ledger_nodes
         ensure_report_ledger_nodes(run_ledger, list(narrative_blocks or []))
         # C1: the HTML and methodology consume the SAME pre-render compilation.
@@ -101,17 +110,30 @@ class MethodologyMixin:
                 claims = compilation.claims
                 claim_compilation = compilation.summary()
                 narrative_blocks = compilation.blocks
-            except Exception as exc:
+            except Exception as exc:  # aria: allow-broad-except surface failed claim-compiler governance pass and redact blocks
                 log.warning(
                     f"Public claim compilation failed: {exc}", exc_info=True
                 )
+                err_msg = f"{type(exc).__name__}: {exc}"
+                candidates = list(narrative_blocks or [])
                 claims = []
+                withheld_list = [
+                    {
+                        "claim_id": str(getattr(b, "id", "unknown")),
+                        "status": "withheld",
+                        "reason": f"claim compiler governance pass failed: {err_msg}",
+                    }
+                    for b in candidates
+                ]
                 claim_compilation = {
                     "compiler": "compile_public_claims",
+                    "status": "error",
+                    "error": err_msg,
                     "n_published": 0,
-                    "n_withheld": len(narrative_blocks or []),
-                    "withheld": [],
+                    "n_withheld": len(withheld_list),
+                    "withheld": withheld_list,
                 }
+                narrative_blocks = []
         else:
             claims = compiled_claims
         # ADR-057 rail #6: the active non-promotion wall. A machine hypothesis
@@ -130,9 +152,13 @@ class MethodologyMixin:
                 devils_advocate = build_devils_advocate(
                     list(narrative_blocks or []), agent_results, exp_ctx
                 )
-            except Exception as exc:
+            except Exception as exc:  # aria: allow-broad-except surface failed devil's-advocate governance pass
                 log.warning(f"Devil's-advocate pass failed: {exc}", exc_info=True)
-                devils_advocate = []
+                devils_advocate = {
+                    "status": "error",
+                    "error": f"{type(exc).__name__}: {exc}",
+                    "entries": [],
+                }
         # W-LEDGER: link every compiled claim to its ledger node so each claim is
         # traceable to both an evidence card (W-CLAIM) and a run-ledger node. The
         # per-claim ledger_node_id/ledger_status are written in place; the summary
@@ -140,14 +166,24 @@ class MethodologyMixin:
         try:
             from aria.agents.narrative.run_ledger import link_claims_to_ledger
             run_ledger["claim_linkage"] = link_claims_to_ledger(claims, run_ledger)
-        except Exception as exc:
+        except Exception as exc:  # aria: allow-broad-except surface failed claim-ledger linkage in methodology run ledger
             log.warning(f"Claim-ledger linkage failed: {exc}", exc_info=True)
-        try:
-            from aria.agents.narrative.robustness import build_robustness_multiverse
-            robustness_multiverse = build_robustness_multiverse(agent_results)
-        except Exception as exc:
-            log.warning(f"Robustness multiverse build failed: {exc}", exc_info=True)
-            robustness_multiverse = {"status": "error", "details": str(exc)}
+            err_msg = f"{type(exc).__name__}: {exc}"
+            if isinstance(run_ledger, dict):
+                run_ledger["claim_linkage"] = {
+                    "status": "error",
+                    "error": err_msg,
+                    "linked": 0,
+                    "unlinked": len(claims),
+                    "n_violations": len(claims),
+                }
+        if robustness_multiverse is None:
+            try:
+                from aria.agents.narrative.robustness import build_robustness_multiverse
+                robustness_multiverse = build_robustness_multiverse(agent_results)
+            except Exception as exc:  # aria: allow-broad-except surface robustness multiverse error in methodology
+                log.warning(f"Robustness multiverse build failed: {exc}", exc_info=True)
+                robustness_multiverse = {"status": "error", "details": f"{type(exc).__name__}: {exc}"}
         try:
             from aria.agents.narrative.synthesis.cross_modal_triangulation import (
                 build_cross_modal_evidence_graph,
@@ -155,7 +191,7 @@ class MethodologyMixin:
             cross_modal_evidence_graph = build_cross_modal_evidence_graph(
                 agent_results, exp_ctx
             )
-        except Exception as exc:
+        except Exception as exc:  # aria: allow-broad-except surface triangulation graph error in methodology
             log.warning(
                 f"Cross-modal evidence graph build failed: {exc}", exc_info=True
             )
@@ -165,27 +201,28 @@ class MethodologyMixin:
                 "status": "error",
                 "details": str(exc),
             }
-        try:
-            from aria.agents.narrative.falsification_certificates import (
-                build_falsification_certificates,
-            )
-            falsification_certificates = build_falsification_certificates(
-                claims,
-                agent_results,
-                exp_ctx,
-                robustness_multiverse=robustness_multiverse,
-            )
-        except Exception as exc:
-            log.warning(
-                f"Falsification certificates build failed: {exc}", exc_info=True
-            )
-            falsification_certificates = {
-                "schema_version": "aria.falsification_certificates.v1",
-                "feeds_into_parameter_selection": False,
-                "status": "error",
-                "details": str(exc),
-                "certificates": [],
-            }
+        if falsification_certificates is None:
+            try:
+                from aria.agents.narrative.falsification_certificates import (
+                    build_falsification_certificates,
+                )
+                falsification_certificates = build_falsification_certificates(
+                    claims,
+                    agent_results,
+                    exp_ctx,
+                    robustness_multiverse=robustness_multiverse,
+                )
+            except Exception as exc:  # aria: allow-broad-except surface failed falsification certificates pass in methodology
+                log.warning(
+                    f"Falsification certificates build failed: {exc}", exc_info=True
+                )
+                falsification_certificates = {
+                    "schema_version": "aria.falsification_certificates.v1",
+                    "feeds_into_parameter_selection": False,
+                    "status": "error",
+                    "details": f"{type(exc).__name__}: {exc}",
+                    "certificates": [],
+                }
         realized_param_decisions: dict[str, Any] = {}
         for dec in decisions or []:
             if not isinstance(dec, dict):
@@ -287,6 +324,18 @@ class MethodologyMixin:
     ) -> str:
         if not isinstance(falsification_certificates, dict):
             return ""
+        if falsification_certificates.get("status") == "error":
+            err = _html.escape(
+                str(falsification_certificates.get("details")
+                    or falsification_certificates.get("error")
+                    or "unknown error")
+            )
+            return (
+                "<h3>In-Silico Reviewer #2 Falsification Certificates</h3>"
+                "<div class='warning'>"
+                f"<strong>Falsification Certificates governance pass failed:</strong> "
+                f"<code>{err}</code>.</div>"
+            )
         certs = falsification_certificates.get("certificates") or []
         if not certs:
             return ""

@@ -56,7 +56,7 @@ def _hamming_le_1(a: str, b: str) -> bool:
     if len(a) != len(b):
         return False
     mismatches = 0
-    for ca, cb in zip(a, b):
+    for ca, cb in zip(a, b, strict=True):
         if ca != cb:
             mismatches += 1
             if mismatches > 1:

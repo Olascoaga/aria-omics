@@ -45,14 +45,7 @@ __all__ = [
 ]
 
 
-def _finite_float(value: Any) -> float:
-    try:
-        f = float(value)
-    except (TypeError, ValueError):
-        return 0.0
-    if f != f or f in (float("inf"), float("-inf")):
-        return 0.0
-    return f
+from aria.utils.stats import finite_float as _finite_float
 
 
 def _auc(pos_scores: list[float], neg_scores: list[float]) -> float | None:
@@ -115,7 +108,7 @@ def load_seqc_maqc_bundle(bundle_dir: str | Path) -> dict[str, Any] | None:
     taqman["gene"] = taqman["gene"].astype(str)
     taqman = taqman[~taqman["gene"].duplicated(keep="first")]
     taqman_log2 = {
-        row.gene: _finite_float(row.log2_ab)
+        row.gene: _finite_float(row.log2_ab, 0.0)
         for row in taqman.itertuples(index=False)
         if str(row.log2_ab) not in ("", "nan", "NA")
     }
@@ -157,7 +150,6 @@ def load_seqc_maqc_bundle(bundle_dir: str | Path) -> dict[str, Any] | None:
 def _group_means_cpm(counts, samples) -> dict[str, Any]:
     """Library-size-normalized (CPM) mean expression per group."""
     import numpy as np
-    import pandas as pd
 
     lib = counts.sum(axis=0).replace(0, np.nan)
     cpm = counts.div(lib, axis=1) * 1e6
@@ -230,7 +222,6 @@ def score_seqc_maqc_a1(
     df.index = [str(i) for i in df.index]
     est_lfc = pd.to_numeric(df.get("log2FoldChange"), errors="coerce")
     pvalue = pd.to_numeric(df.get("pvalue"), errors="coerce")
-    padj = pd.to_numeric(df.get("padj"), errors="coerce")
 
     # 1. LFC concordance vs TaqMan on the overlap.
     overlap = [g for g in df.index if g in taqman]
@@ -242,15 +233,15 @@ def score_seqc_maqc_a1(
         spearman = pearson = spearman_signal = 0.0
         n_signal = 0
     else:
-        spearman = _finite_float(conc["aria"].corr(conc["taqman"], method="spearman"))
-        pearson = _finite_float(conc["aria"].corr(conc["taqman"], method="pearson"))
+        spearman = _finite_float(conc["aria"].corr(conc["taqman"], method="spearman"), 0.0)
+        pearson = _finite_float(conc["aria"].corr(conc["taqman"], method="pearson"), 0.0)
         # Rank concordance restricted to genes TaqMan resolves as real signal:
         # the panel-wide Spearman is swamped by null ties when most genes are
         # non-DE, so report a signal-gene Spearman that is not.
         signal = conc[conc["taqman"].abs() >= signal_floor]
         n_signal = int(len(signal))
         spearman_signal = (
-            _finite_float(signal["aria"].corr(signal["taqman"], method="spearman"))
+            _finite_float(signal["aria"].corr(signal["taqman"], method="spearman"), 0.0)
             if n_signal >= 3 else 0.0
         )
 
@@ -356,9 +347,9 @@ def write_seqc_maqc_a1_figure(manifest: dict[str, Any], path: str) -> str:
     det = axes.get("taqman_de_detection", {})
     titr = axes.get("titration_monotonicity", {})
     vals = [
-        ("LFC Pearson vs TaqMan", _finite_float(axes.get("lfc_concordance", {}).get("pearson", 0.0))),
-        ("TaqMan-DE AUC", _finite_float(det.get("auc", 0.0))),
-        ("Titration monotone", _finite_float(titr.get("fraction_monotone", 0.0))
+        ("LFC Pearson vs TaqMan", _finite_float(axes.get("lfc_concordance", {}).get("pearson", 0.0), 0.0)),
+        ("TaqMan-DE AUC", _finite_float(det.get("auc", 0.0), 0.0)),
+        ("Titration monotone", _finite_float(titr.get("fraction_monotone", 0.0), 0.0)
          if titr.get("status") == "computed" else 0.0),
     ]
     width = 760
@@ -492,10 +483,10 @@ def _taqman_summary(de_result, est_lfc, taqman, *, signal_floor, taqman_de_thres
     }, index=overlap).replace([np.inf, -np.inf], np.nan).dropna()
     if conc.empty:
         return {"pearson": 0.0, "spearman_signal": 0.0, "auc": None, "n_overlap": 0}
-    pearson = _finite_float(conc["aria"].corr(conc["taqman"], method="pearson"))
+    pearson = _finite_float(conc["aria"].corr(conc["taqman"], method="pearson"), 0.0)
     signal = conc[conc["taqman"].abs() >= signal_floor]
     spearman_signal = (
-        _finite_float(signal["aria"].corr(signal["taqman"], method="spearman"))
+        _finite_float(signal["aria"].corr(signal["taqman"], method="spearman"), 0.0)
         if len(signal) >= 3 else 0.0
     )
     score = (-np.log10(pvalue.clip(lower=1e-300))).reindex(overlap)
@@ -585,8 +576,8 @@ def run_seqc_maqc_multisite(
             if len(joint) < 3:
                 pearson_matrix[s1][s2] = spearman_matrix[s1][s2] = None
                 continue
-            p = round(_finite_float(joint["a"].corr(joint["b"], method="pearson")), 4)
-            sp = round(_finite_float(joint["a"].corr(joint["b"], method="spearman")), 4)
+            p = round(_finite_float(joint["a"].corr(joint["b"], method="pearson"), 0.0), 4)
+            sp = round(_finite_float(joint["a"].corr(joint["b"], method="spearman"), 0.0), 4)
             pearson_matrix[s1][s2] = p
             spearman_matrix[s1][s2] = sp
             if s1 < s2:
@@ -656,14 +647,14 @@ def write_seqc_multisite_figure(manifest: dict[str, Any], path: str) -> str:
     per_site = manifest.get("per_site", {})
     cross = manifest.get("cross_site", {})
     rows_data = [
-        (site, _finite_float(v.get("taqman", {}).get("pearson", 0.0)))
+        (site, _finite_float(v.get("taqman", {}).get("pearson", 0.0), 0.0))
         for site, v in sorted(per_site.items())
         if v.get("status") == "success"
     ]
     mean_cross = cross.get("mean_offdiagonal_pearson")
     if mean_cross is not None:
         rows_data.append((f"cross-site mean ({cross.get('n_pairs', 0)} pairs)",
-                          _finite_float(mean_cross)))
+                          _finite_float(mean_cross, 0.0)))
 
     width = 760
     left, top = 320, 70
@@ -768,7 +759,7 @@ def score_ercc_dose_response(
     mvec = [measured_fc[e] for e in detected]
     evec = [expected_fc[e] for e in detected]
     fc_pearson = (
-        _finite_float(pd.Series(mvec).corr(pd.Series(evec))) if len(detected) >= 3 else 0.0
+        _finite_float(pd.Series(mvec).corr(pd.Series(evec)), 0.0) if len(detected) >= 3 else 0.0
     )
     slope = _ols_slope(evec, mvec)
     by_subgroup = {}
@@ -795,7 +786,7 @@ def score_ercc_dose_response(
             if cpm.loc[e, s] > 0 and c2 > 0:
                 log_meas.append(np.log2(cpm.loc[e, s])); log_nom.append(np.log2(c2))
     if len(log_nom) >= 3:
-        dr_pearson = _finite_float(pd.Series(log_meas).corr(pd.Series(log_nom)))
+        dr_pearson = _finite_float(pd.Series(log_meas).corr(pd.Series(log_nom)), 0.0)
         dr_slope = _ols_slope(log_nom, log_meas)
         dynamic_range_log10 = round(
             float((np.max(log_nom) - np.min(log_nom)) / np.log2(10)), 2
@@ -858,7 +849,7 @@ def write_ercc_figure(manifest: dict[str, Any], path: str) -> str:
         for g, v in sorted(by.items())
     ]
     width = 760
-    left, mid, top = 300, 380, 80
+    mid, top = 380, 80
     row_h, gap = 36, 20
     span = 3.2  # log2 axis half-range for the centered bars
     rows = []

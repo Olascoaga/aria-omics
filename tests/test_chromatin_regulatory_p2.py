@@ -24,8 +24,10 @@ def test_regulatory_helpers_parse_coordinates_and_gtf(tmp_path):
         encoding="utf-8",
     )
     tss = _parse_gtf_tss(str(gtf))
-    assert tss["GENE1"] == ("chr1", 100)
-    assert tss["GENE2"] == ("chr2", 550)
+    # D8-005: 0-based BED TSS for 1-based GTF + strand start 100 -> 100 - 1 = 99
+    assert tss["GENE1"] == ("chr1", 99)
+    # D8-005: 0-based BED TSS for 1-based GTF - strand end 550 -> 550 - 1 = 549
+    assert tss["GENE2"] == ("chr2", 549)
     mapping = _genes_to_peak_indices(
         ["chr1:90-120", "chr2:10-20"], tss, window_bp=50)
     assert mapping == {"GENE1": [0]}

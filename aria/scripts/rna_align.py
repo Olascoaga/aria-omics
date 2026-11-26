@@ -333,7 +333,7 @@ def _align_sample(sample: dict, genome_dir: Path, output_dir: Path,
     # ── Resume check: valid BAM AND the stage manifest still matches? ─────
     bam_path = Path(f"{prefix}Aligned.sortedByCoord.out.bam")
     log_file = Path(f"{prefix}Log.final.out")
-    manifest_current, manifest_reason = stage_is_current(
+    manifest_current, _manifest_reason = stage_is_current(
         manifest_path, inputs=stage_inputs, params=stage_params,
         tool_version=star_version,
     )

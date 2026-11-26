@@ -21,6 +21,7 @@ regardless of which key carried them.
 
 from __future__ import annotations
 
+import logging
 import re
 import os
 from dataclasses import dataclass, field
@@ -29,6 +30,8 @@ from pathlib import Path
 from typing import Any, Optional
 
 from aria.bus.message_bus import bus, Message, MessageType
+
+log = logging.getLogger(__name__)
 
 # Canonical checkpoint titles. Single source of truth for any presentation
 # layer (the legacy `aria.tui` keeps its own copy until U1 converges on this).
@@ -293,8 +296,18 @@ def _ledger_views(session: Any) -> list[LedgerNodeView]:
     try:
         from aria.agents.narrative.run_ledger import build_run_ledger
         ledger = build_run_ledger(exp_ctx, agent_results)
-    except Exception:
-        return []
+    except Exception as exc:  # aria: allow-broad-except surface ledger build error in read-model
+        log.warning("Could not build run-ledger view: %s", exc)
+        return [LedgerNodeView(
+            modality="report",
+            analysis="run_ledger",
+            label="Run ledger error",
+            status="error",
+            planned=False,
+            divergence=True,
+            reason=f"{type(exc).__name__}: {exc}",
+            node_id="ledger://report/run_ledger_error",
+        )]
     out: list[LedgerNodeView] = []
     for e in ledger.get("entries", []) or []:
         if not isinstance(e, dict):
@@ -379,7 +392,7 @@ def _path_exists(path: str | os.PathLike | None) -> bool:
         return False
     try:
         return Path(path).expanduser().exists()
-    except Exception:
+    except Exception:  # aria: allow-broad-except cosmetic filesystem existence probe
         return False
 
 
@@ -388,7 +401,7 @@ def _count_children_with_suffix(base: Path, suffix: str) -> int:
         if not base.exists():
             return 0
         return sum(1 for p in base.glob(f"*/*{suffix}") if p.is_file())
-    except Exception:
+    except Exception:  # aria: allow-broad-except cosmetic filesystem directory count probe
         return 0
 
 
@@ -431,9 +444,10 @@ def _resource_geneset_view() -> ResourceView:
             detail="No local GMT libraries staged for offline ORA.",
             path=str(base), action="Run scripts/fetch_genesets.py explicitly.",
         )
-    except Exception as exc:
+    except Exception as exc:  # aria: allow-broad-except surface GMT store inspection error in read-model
+        log.warning("Could not inspect GMT directory: %s", exc)
         return ResourceView(
-            category="geneset", name="Local GMT libraries", status="missing",
+            category="geneset", name="Local GMT libraries", status="error",
             detail=f"Could not inspect GMT directory: {exc}",
         )
 
@@ -460,9 +474,10 @@ def _resource_motif_view(exp_ctx: dict) -> ResourceView:
             detail=detail, path=str(base),
             action="Run scripts/fetch_motifs.py explicitly.",
         )
-    except Exception as exc:
+    except Exception as exc:  # aria: allow-broad-except surface motif store inspection error in read-model
+        log.warning("Could not inspect motif directory: %s", exc)
         return ResourceView(
-            category="motif", name="Motif collections", status="missing",
+            category="motif", name="Motif collections", status="error",
             detail=f"Could not inspect motif directory: {exc}",
         )
 
@@ -495,10 +510,11 @@ def _resource_genome_view(exp_ctx: dict) -> ResourceView:
             status="missing", detail="No local FASTA resolved.",
             path=str(genomes.genome_dir()), action=action,
         )
-    except Exception as exc:
+    except Exception as exc:  # aria: allow-broad-except surface genome store inspection error in read-model
+        log.warning("Could not inspect genome store: %s", exc)
         return ResourceView(
             category="genome", name=f"Reference genome: {assembly}",
-            status="missing", detail=f"Could not inspect genome store: {exc}",
+            status="error", detail=f"Could not inspect genome store: {exc}",
         )
 
 
@@ -529,16 +545,23 @@ def _celltypist_model_from_context(exp_ctx: dict) -> tuple[str, str]:
         resolved, source, _warning = _resolve_celltypist_model(
             model, organism, hint)
         return str(resolved), str(source)
-    except Exception:
+    except Exception as exc:  # aria: allow-broad-except surface CellTypist model resolution failure in read-model
+        log.warning("Could not resolve CellTypist model: %s", exc)
         if model:
-            return str(model), "explicit"
-        return "Immune_All_Low.pkl", "default_immune_fallback"
+            return str(model), f"explicit (resolver_error: {type(exc).__name__})"
+        return "unknown", f"resolution_error ({type(exc).__name__}: {exc})"
 
 
 def _resource_celltypist_view(exp_ctx: dict) -> list[ResourceView]:
     if "scRNA" not in set((exp_ctx.get("modalities") or {}).keys()):
         return []
     model, source = _celltypist_model_from_context(exp_ctx)
+    if source.startswith("resolution_error"):
+        return [ResourceView(
+            category="celltypist", name="CellTypist model",
+            status="error", detail=f"Model resolution failed: {source}",
+            action="Check CellTypist resolver configuration.",
+        )]
     cached = _celltypist_model_cached(model)
     status = "ready" if cached else "missing"
     detail = f"Model source: {source}; cache {'hit' if cached else 'miss'}."
@@ -557,8 +580,18 @@ def _resource_privacy_view(exp_ctx: dict) -> ResourceView:
         try:
             from aria.utils.privacy import air_gapped_enabled
             enabled = air_gapped_enabled()
-        except Exception:
-            enabled = False
+        except Exception as exc:  # aria: allow-broad-except fail closed when air-gap policy check fails
+            log.warning("Could not verify air-gap privacy policy: %s", exc)
+            return ResourceView(
+                category="privacy",
+                name="Network egress",
+                status="error",
+                detail=(
+                    "Could not verify air-gap privacy policy "
+                    f"({type(exc).__name__}: {exc}); refusing to report egress as allowed."
+                ),
+                action="Inspect ARIA_AIR_GAPPED / privacy policy configuration.",
+            )
     return ResourceView(
         category="privacy", name="Network egress", status="blocked" if enabled else "info",
         detail=("Air-gapped mode is active; network fetches are blocked."
@@ -596,15 +629,23 @@ _CLAIM_LEDGER_STATUS = {
 }
 
 
-def _read_methodology(report_dir: Path) -> Optional[dict]:
+def _read_methodology_with_error(
+    report_dir: Path,
+) -> tuple[Optional[dict], Optional[str]]:
     path = report_dir / "methodology.json"
     if not path.is_file():
-        return None
+        return None, None
     try:
         import json
-        return json.loads(path.read_text(encoding="utf-8"))
-    except Exception:
-        return None
+        return json.loads(path.read_text(encoding="utf-8")), None
+    except Exception as exc:  # aria: allow-broad-except surface methodology.json read/parse error in artifact view
+        log.warning("Could not parse methodology.json at %s: %s", path, exc)
+        return None, f"{type(exc).__name__}: {exc}"
+
+
+def _read_methodology(report_dir: Path) -> Optional[dict]:
+    data, _err = _read_methodology_with_error(report_dir)
+    return data
 
 
 def _list_dir_artifacts(report_dir: Path, sub: str,
@@ -619,13 +660,14 @@ def _list_dir_artifacts(report_dir: Path, sub: str,
                 continue
             try:
                 size = p.stat().st_size
-            except Exception:
+            except Exception:  # aria: allow-broad-except cosmetic file size probe
                 size = 0
             out.append(ArtifactView(
                 category=category, name=p.name, status="present",
                 detail=f"{size:,} bytes", path=str(p),
             ))
-    except Exception:
+    except Exception as exc:  # aria: allow-broad-except cosmetic artifact directory listing probe
+        log.warning("Could not list artifacts under %s: %s", base, exc)
         return out
     return out
 
@@ -692,17 +734,26 @@ def _artifact_views(report_path: Optional[str]) -> list[ArtifactView]:
 
     meth_path = report_dir / "methodology.json"
     meth_present = meth_path.is_file()
-    out.append(ArtifactView(
-        category="methodology", name="methodology.json",
-        status="present" if meth_present else "missing",
-        detail=("Provenance, thresholds, tools, claims, run-ledger."
-                if meth_present else "Methodology manifest not found."),
-        path=str(meth_path) if meth_present else None,
-    ))
+    meth_data, meth_err = _read_methodology_with_error(report_dir)
+    if meth_err is not None:
+        out.append(ArtifactView(
+            category="methodology", name="methodology.json",
+            status="error",
+            detail=f"Could not parse methodology.json: {meth_err}",
+            path=str(meth_path),
+        ))
+    else:
+        out.append(ArtifactView(
+            category="methodology", name="methodology.json",
+            status="present" if meth_present else "missing",
+            detail=("Provenance, thresholds, tools, claims, run-ledger."
+                    if meth_present else "Methodology manifest not found."),
+            path=str(meth_path) if meth_present else None,
+        ))
 
     out.extend(_list_dir_artifacts(report_dir, "figures", "figure"))
     out.extend(_list_dir_artifacts(report_dir, "tables", "table"))
-    out.extend(_claim_artifact_views(_read_methodology(report_dir)))
+    out.extend(_claim_artifact_views(meth_data))
     return out
 
 
@@ -733,13 +784,13 @@ def _resolve_report_dir(experiment_id: str,
             if d.is_dir() and d.name.endswith(f"_{suffix}")
             and (d / "report.html").is_file()
         ]
-    except Exception:
+    except Exception:  # aria: allow-broad-except cosmetic report directory lookup probe
         return None
     if not candidates:
         return None
     try:
         return max(candidates, key=lambda d: d.stat().st_mtime)
-    except Exception:
+    except Exception:  # aria: allow-broad-except cosmetic mtime sort fallback
         return candidates[-1]
 
 
@@ -748,13 +799,18 @@ def _history_view_for_wing(memory: Any, wing: dict,
     eid = str(wing.get("id", ""))
     decisions: list = []
     halls: list = []
+    errors: list[str] = []
     try:
         decisions = memory.get_decisions(eid) or []
-    except Exception:
+    except Exception as exc:  # aria: allow-broad-except surface memory decision read error in history view
+        log.warning("Could not read decisions for wing %s: %s", eid, exc)
+        errors.append(f"decisions read failed ({type(exc).__name__}: {exc})")
         decisions = []
     try:
         halls = memory.get_halls(eid) or []
-    except Exception:
+    except Exception as exc:  # aria: allow-broad-except surface memory halls read error in history view
+        log.warning("Could not read halls for wing %s: %s", eid, exc)
+        errors.append(f"halls read failed ({type(exc).__name__}: {exc})")
         halls = []
     last_decision: Optional[str] = None
     if decisions:
@@ -768,13 +824,17 @@ def _history_view_for_wing(memory: Any, wing: dict,
     })
     report_dir = _resolve_report_dir(eid, reports_dir)
     report_path = str(report_dir / "report.html") if report_dir else None
+    summary = str(wing.get("summary") or "")
+    if errors:
+        err_note = "; ".join(errors)
+        summary = f"{summary} [memory error: {err_note}]".strip()
     return ExperimentHistoryView(
         experiment_id=eid,
         name=str(wing.get("name", "untitled")),
         organism=str(wing.get("organism") or "?"),
         genome=str(wing.get("genome") or "?"),
         updated_at=str(wing.get("updated_at") or ""),
-        summary=str(wing.get("summary") or ""),
+        summary=summary,
         n_decisions=len(decisions),
         last_decision=last_decision,
         modalities=modalities,
@@ -798,7 +858,8 @@ def build_history(memory: Any, *,
         return []
     try:
         wings = memory.list_wings() or []
-    except Exception:
+    except Exception as exc:  # aria: allow-broad-except log memory history query failure; TUI expects valid wings only
+        log.warning("Could not list experiment wings from memory: %s", exc)
         return []
     base = Path(reports_dir).expanduser() if reports_dir else _default_reports_dir()
     wings = [w for w in wings if isinstance(w, dict)]

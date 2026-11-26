@@ -37,7 +37,6 @@ import signal
 import shutil
 import subprocess
 import tempfile
-import urllib.request
 from pathlib import Path
 from typing import Callable, Optional
 from urllib.parse import quote, unquote, urlencode
@@ -875,9 +874,11 @@ def _parse_soft_text(text: str) -> dict:
 
         if line.startswith("^SAMPLE"):
             if current:
+                current["sra_accessions"] = list(dict.fromkeys(current["sra_accessions"]))
                 metadata["samples"].append(current)
             current = {"id": val, "title": "", "organism": "",
-                       "characteristics": {}, "library_strategy": ""}
+                       "characteristics": {}, "library_strategy": "",
+                       "sra_accessions": []}
 
         elif line.startswith("!Series_title"):
             metadata["title"] = val
@@ -903,11 +904,12 @@ def _parse_soft_text(text: str) -> dict:
                 if not metadata["library_strategy"]:
                     metadata["library_strategy"] = val
             elif line.startswith("!Sample_relation"):
-                metadata["sra_accessions"].extend(
-                    _extract_public_sequence_accessions(val)
-                )
+                rel_accs = _extract_public_sequence_accessions(val)
+                metadata["sra_accessions"].extend(rel_accs)
+                current["sra_accessions"].extend(rel_accs)
 
     if current:
+        current["sra_accessions"] = list(dict.fromkeys(current["sra_accessions"]))
         metadata["samples"].append(current)
 
     metadata["sra_accessions"] = list(dict.fromkeys(metadata["sra_accessions"]))
@@ -951,13 +953,17 @@ def _soft_from_geoparse(gse) -> dict:
         sample_relations = gm.get("relation", [])
         if not isinstance(sample_relations, list):
             sample_relations = [sample_relations]
+        sample_sra: list[str] = []
         for relation in sample_relations:
-            sra_accessions.extend(_extract_public_sequence_accessions(relation))
+            rel_accs = _extract_public_sequence_accessions(relation)
+            sra_accessions.extend(rel_accs)
+            sample_sra.extend(rel_accs)
         samples.append({
             "id": gsm_id, "title": title_s,
             "organism": organism,
             "characteristics": chars,
             "library_strategy": lib_strat,
+            "sra_accessions": list(dict.fromkeys(sample_sra)),
         })
 
     organism = samples[0]["organism"] if samples else ""
@@ -1050,6 +1056,21 @@ def _infer_design(metadata: dict) -> dict:
                 best_key = key
                 break
 
+    def _sample_aliases_for(s: dict, sample_id: str, title: str) -> list[str]:
+        aliases = [sample_id]
+        if title and title != sample_id:
+            aliases.append(title)
+        for key in ("sra_accessions", "sra_runs", "run_accessions", "run_accession", "srr"):
+            raw = s.get(key)
+            if not raw:
+                continue
+            vals = raw if isinstance(raw, (list, tuple, set)) else [raw]
+            for v in vals:
+                tok = str(v).strip()
+                if tok and tok not in aliases:
+                    aliases.append(tok)
+        return aliases
+
     groups: dict = {}
     sample_aliases: dict = {}
     if best_key:
@@ -1060,18 +1081,13 @@ def _infer_design(metadata: dict) -> dict:
             sample_id = str(s.get("id") or s.get("title") or "sample")
             title = str(s.get("title") or "")
             groups.setdefault(val, []).append(sample_id)
-            aliases = [sample_id]
-            if title and title != sample_id:
-                aliases.append(title)
-            sample_aliases[sample_id] = aliases
+            sample_aliases[sample_id] = _sample_aliases_for(s, sample_id, title)
     else:
         for s in samples:
             sample_id = str(s.get("id") or s.get("title") or "sample")
             title = str(s.get("title") or "")
             groups.setdefault("all_samples", []).append(sample_id)
-            sample_aliases[sample_id] = [sample_id] + (
-                [title] if title and title != sample_id else []
-            )
+            sample_aliases[sample_id] = _sample_aliases_for(s, sample_id, title)
 
     condition_col = best_key or "condition"
 

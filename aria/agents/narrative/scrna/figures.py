@@ -92,7 +92,6 @@ def render_cellcomm_heatmap(findings: dict,
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
-    import numpy as np
     import pandas as pd
 
     df = pd.DataFrame(top)
@@ -197,13 +196,11 @@ def render_cellcomm_top_pairs_bar(findings: dict,
     scores = np.array([r[1] for r in rows], dtype=float)
 
     if pvalue_like:
-        positive = scores > 0
-        plot_vals = np.zeros_like(scores)
-        plot_vals[positive] = -np.log10(scores[positive])
-        cap = max(1.0, float(plot_vals[positive].max()) * 1.15) if positive.any() else 10.0
-        plot_vals[~positive] = cap
+        from aria.utils.stats import adaptive_neglog10
+
+        plot_vals, cap, has_underflow = adaptive_neglog10(scores)
         xlabel = f"-log10({metric})"
-        if (~positive).any():
+        if has_underflow:
             xlabel += f" (score=0 shown at {cap:.2f}; underflow)"
     else:
         plot_vals = scores
@@ -306,7 +303,7 @@ def _embed_png(path: str) -> str:
         data = p.read_bytes()
         b64 = base64.b64encode(data).decode("ascii")
         return f"data:image/png;base64,{b64}"
-    except Exception as e:
+    except Exception as e:  # aria: allow-broad-except cosmetic inline PNG read failure
         log.warning(f"_embed_png failed for {path}: {e}")
         return ""
 
@@ -708,8 +705,10 @@ def generate_figures(findings: dict,
                         f"UMAP figure generation failed: "
                         f"{res.get('error_type')} — {res.get('details', '')[:200]}"
                     )
-            except Exception as e:
+            except Exception as e:  # aria: allow-broad-except record scRNA UMAP figure error for W-WARN
                 log.warning(f"UMAP figure subprocess crashed: {e}")
+                from aria.agents.narrative.protocols import record_figure_error
+                record_figure_error(findings, "scrna_umap", e)
 
     # 2. Per-cell-type DE summary bar ───────────────────────────────────
     bar_path = render_per_celltype_de_bar(
@@ -758,8 +757,10 @@ def generate_figures(findings: dict,
                         f"{paga_res.get('error_type')} — "
                         f"{paga_res.get('details', '')[:200]}"
                     )
-            except Exception as e:
+            except Exception as e:  # aria: allow-broad-except record scRNA PAGA figure error for W-WARN
                 log.warning(f"PAGA figure subprocess crashed: {e}")
+                from aria.agents.narrative.protocols import record_figure_error
+                record_figure_error(findings, "scrna_paga", e)
 
             # DPT-coloured UMAP — only if dpt_pseudotime obs col exists.
             pt = traj.get("pseudotime", {}) or {}
@@ -780,7 +781,9 @@ def generate_figures(findings: dict,
                         )
                         if path:
                             figs["umap_dpt_pseudotime"] = path
-                except Exception as e:
+                except Exception as e:  # aria: allow-broad-except record scRNA DPT UMAP error for W-WARN
                     log.warning(f"DPT UMAP subprocess crashed: {e}")
+                    from aria.agents.narrative.protocols import record_figure_error
+                    record_figure_error(findings, "scrna_dpt_umap", e)
 
     return findings

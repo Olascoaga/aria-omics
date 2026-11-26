@@ -80,7 +80,6 @@ python -m aria.utils.environment_audit --env aria-integration-env
 | `ARIA_LLM_CACHE=0` | Disables on-disk prompt caching under `~/.aria/llm_cache/`. |
 | `ARIA_CLIPBOARD_SOURCE` | Controls Ctrl+V clipboard backend (`windows`, `x11`, `wayland`, `mac`, or `off`). Remote SSH sessions default to terminal paste safety (`off`). |
 | `ARIA_ALLOW_FILENAME_FALLBACK=1` | Development-only opt-in allowing sample-name group guessing when explicit metadata is absent (stamps `LOW` confidence / not publication-grade). |
-| `ARIA_ALLOW_EXPERIMENTAL_HIC=1` | Experimental-only opt-in for the scaffolded Hi-C / Micro-C lane (stamps report as non-publication-grade). |
 
 ---
 

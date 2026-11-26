@@ -2,9 +2,20 @@
 
 from __future__ import annotations
 
+import math
 from typing import Any
 
 from aria.agents import _narrative_scrna
+
+
+def _safe_int(val: Any, default: int = 0) -> int:
+    if val is None or isinstance(val, bool):
+        return default
+    try:
+        num = float(val)
+        return int(num) if math.isfinite(num) else default
+    except (TypeError, ValueError):
+        return default
 
 
 def build_robustness_multiverse(agent_results: dict[str, Any] | None) -> dict:
@@ -22,19 +33,21 @@ def build_robustness_multiverse(agent_results: dict[str, Any] | None) -> dict:
     pb = findings.get("pseudobulk_de") or {}
     entries = []
     for group, info in (pb.get("per_group", {}) or {}).items():
+        if not isinstance(info, dict):
+            continue
         for comparison, comp in (info.get("per_comparison", {}) or {}).items():
-            if comp.get("status") != "success":
+            if not isinstance(comp, dict) or comp.get("status") != "success":
                 continue
             mv = comp.get("robustness_multiverse") or {}
-            local = int(mv.get("n_local", comp.get("n_significant_local", 0)) or 0)
-            global_ = int(mv.get("n_global", comp.get("n_significant_global", 0)) or 0)
+            local = _safe_int(mv.get("n_local", comp.get("n_significant_local", 0)), 0)
+            global_ = _safe_int(mv.get("n_global", comp.get("n_significant_global", 0)), 0)
             has_stability = (
                 bool(mv)
                 and mv.get("stability_basis") == "gene_id_intersection"
                 and mv.get("stable_significant_genes") is not None
             )
             stable = (
-                int(mv.get("stable_significant_genes") or 0)
+                _safe_int(mv.get("stable_significant_genes"), 0)
                 if has_stability else None
             )
             entries.append({

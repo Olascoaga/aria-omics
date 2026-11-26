@@ -313,6 +313,90 @@ def _inspect_count_matrix(matrix: Any) -> dict[str, Any]:
     }
 
 
+def _align_raw_counts_matrix(
+    adata: Any, raw_obj: Any
+) -> tuple[bool, Any, dict[str, Any], str | None]:
+    """Verify raw.X obs/var alignment against adata; reindex exact permutations, else reject."""
+    if getattr(raw_obj, "shape", None) != getattr(adata, "shape", None):
+        return False, None, {}, "raw_shape_mismatch"
+    ad_obs_obj = getattr(adata, "obs_names", None)
+    ad_var_obj = getattr(adata, "var_names", None)
+    raw_obs_obj = getattr(raw_obj, "obs_names", None)
+    raw_var_obj = getattr(raw_obj, "var_names", None)
+    if (
+        ad_obs_obj is None
+        or ad_var_obj is None
+        or raw_obs_obj is None
+        or raw_var_obj is None
+    ):
+        return False, None, {}, "raw_missing_axis_names"
+
+    ad_obs = [str(x) for x in ad_obs_obj]
+    ad_var = [str(x) for x in ad_var_obj]
+    raw_obs = [str(x) for x in raw_obs_obj]
+    raw_var = [str(x) for x in raw_var_obj]
+
+    obs_equal = raw_obs == ad_obs
+    var_equal = raw_var == ad_var
+    if obs_equal and var_equal:
+        return (
+            True,
+            raw_obj.X,
+            {
+                "raw_reindexed": False,
+                "obs_reordered": False,
+                "var_reordered": False,
+            },
+            None,
+        )
+
+    if not obs_equal and (
+        len(set(ad_obs)) != len(ad_obs) or len(set(raw_obs)) != len(raw_obs)
+    ):
+        return False, None, {}, "raw_non_unique_obs_names"
+    if not var_equal and (
+        len(set(ad_var)) != len(ad_var) or len(set(raw_var)) != len(raw_var)
+    ):
+        return False, None, {}, "raw_non_unique_var_names"
+
+    obs_same_set = obs_equal or (set(raw_obs) == set(ad_obs))
+    var_same_set = var_equal or (set(raw_var) == set(ad_var))
+    if not obs_same_set and not var_same_set:
+        return False, None, {}, "raw_obs_and_var_names_mismatch"
+    if not obs_same_set:
+        return False, None, {}, "raw_obs_names_mismatch"
+    if not var_same_set:
+        return False, None, {}, "raw_var_names_mismatch"
+
+    mat = raw_obj.X
+    if mat is None:
+        return False, None, {}, "missing"
+    from scipy import sparse
+
+    if sparse.issparse(mat) and not isinstance(
+        mat, (sparse.csr_matrix, sparse.csc_matrix)
+    ):
+        mat = mat.tocsr()
+    if not obs_equal:
+        obs_pos = {name: idx for idx, name in enumerate(raw_obs)}
+        obs_idx = [obs_pos[name] for name in ad_obs]
+        mat = mat[obs_idx, :]
+    if not var_equal:
+        var_pos = {name: idx for idx, name in enumerate(raw_var)}
+        var_idx = [var_pos[name] for name in ad_var]
+        mat = mat[:, var_idx]
+    return (
+        True,
+        mat,
+        {
+            "raw_reindexed": True,
+            "obs_reordered": not obs_equal,
+            "var_reordered": not var_equal,
+        },
+        None,
+    )
+
+
 def _select_raw_counts_matrix(
     adata: Any,
     *,
@@ -326,22 +410,48 @@ def _select_raw_counts_matrix(
         for layer_key in ("counts", "raw_counts"):
             if layer_key in layers:
                 candidates.append((f"layers['{layer_key}']", layers[layer_key]))
-    raw_obj = getattr(adata, "raw", None)
-    if raw_obj is not None and getattr(raw_obj, "shape", None) == adata.shape:
-        candidates.append(("raw.X", raw_obj.X))
 
     inspections: dict[str, dict[str, Any]] = {}
+    raw_alignment_meta: dict[str, Any] = {}
+    raw_obj = getattr(adata, "raw", None)
+    if raw_obj is not None:
+        raw_ok, aligned_raw, raw_alignment_meta, raw_reject_reason = (
+            _align_raw_counts_matrix(adata, raw_obj)
+        )
+        if raw_ok:
+            candidates.append(("raw.X", aligned_raw))
+        else:
+            inspections["raw.X"] = {
+                "present": True,
+                "is_raw_counts": False,
+                "is_finite": None,
+                "has_negative": None,
+                "is_integer_valued": None,
+                "is_binary": False,
+                "n_nonzero": 0,
+                "max_value": None,
+                "reason": raw_reject_reason or "raw_alignment_rejected",
+            }
+
     for source, mat in candidates:
         info = _inspect_count_matrix(mat)
+        if source == "raw.X" and raw_alignment_meta:
+            info = {**info, **raw_alignment_meta}
         inspections[source] = info
         if info["present"] and info["is_raw_counts"]:
-            return {
+            result: dict[str, Any] = {
                 "ok": True,
                 "source": source,
                 "matrix": mat,
                 "inspection": info,
                 "inspections": inspections,
             }
+            if source == "raw.X" and raw_alignment_meta:
+                result["raw_reindexed"] = bool(
+                    raw_alignment_meta.get("raw_reindexed", False)
+                )
+                result["raw_alignment"] = dict(raw_alignment_meta)
+            return result
 
     x_info = inspections.get("X", {})
     if not require_raw_counts and x_info.get("present") and x_info.get("is_finite"):
@@ -418,12 +528,14 @@ def paired_input_files(role, path):
 
 
 def _canonical_peak(name):
-    match = re.fullmatch(r"(.+?)(?::|_)(\d+)[_-](\d+)", str(name))
-    if not match or int(match[2]) < 0 or int(match[3]) <= int(match[2]):
+    from aria.utils.genomic_coords import parse_peak_coord
+
+    parsed = parse_peak_coord(name, allow_reversed=False)
+    if parsed is None or parsed[2] <= parsed[1]:
         raise MultiomeInputError(
             "NonGenomicPeakFeatures", f"Invalid peak interval: {name}"
         )
-    return f"{match[1]}:{int(match[2])}-{int(match[3])}"
+    return f"{parsed[0]}:{parsed[1]}-{parsed[2]}"
 
 
 def _read_10x_matrix(path, *, require_paired=False):
@@ -545,6 +657,55 @@ def _tenx_modality(data, feature_type):
     return result
 
 
+def load_modality_matrix(path: str | Path, modality: str = "rna"):
+    """Load a single-modality AnnData matrix from ``.h5ad``, 10x ``.h5``, or 10x MEX dir.
+
+    Canonical multiome matrix loader shared across WNN, MOFA+, Peak2Gene, and
+    eRegulons. Uses case-insensitive suffix matching, ``cache=False`` for MEX
+    reads, and 10x Cell Ranger ARC ``feature_type`` slicing (``"Gene Expression"``
+    for RNA, ``"Peaks"`` for ATAC).
+    """
+    import anndata as ad
+
+    p = Path(str(path))
+    suffix = p.suffix.lower()
+    if suffix == ".h5ad":
+        return ad.read_h5ad(str(p))
+
+    low = str(modality or "").strip().lower()
+    if any(k in low for k in ("atac", "peak", "chrom", "acc")):
+        kind, feature_type = "atac", "Peaks"
+    elif any(k in low for k in ("rna", "gex", "expr")):
+        kind, feature_type = "rna", "Gene Expression"
+    else:
+        kind, feature_type = "other", None
+
+    if suffix == ".h5" or p.is_dir():
+        if feature_type is not None:
+            try:
+                data = _read_10x_matrix(str(p), require_paired=False)
+                if feature_type in data[4]:
+                    return _tenx_modality(data, feature_type)
+            except MultiomeInputError:
+                pass
+        import scanpy as sc
+
+        if suffix == ".h5":
+            ad_obj = sc.read_10x_h5(str(p), gex_only=False)
+        else:
+            ad_obj = sc.read_10x_mtx(
+                str(p), var_names="gene_symbols", gex_only=False, cache=False
+            )
+        if ad_obj is not None and "feature_types" in ad_obj.var.columns:
+            ft = ad_obj.var["feature_types"].astype(str)
+            if kind == "atac" and (ft == "Peaks").any():
+                ad_obj = ad_obj[:, ft == "Peaks"].copy()
+            elif kind == "rna" and (ft == "Gene Expression").any():
+                ad_obj = ad_obj[:, ft == "Gene Expression"].copy()
+        return ad_obj
+    return None
+
+
 def _write_paired_atomic(mdata, output_path):
     import os
     import tempfile
@@ -662,7 +823,9 @@ def _stage_cache(
     if script_sha:
         normalized["_script_sha256"] = script_sha
     state = (stage, manifest, receipt, inputs, normalized, __version__, tuple(required))
-    if not resume:
+    # Avoid creating output_dir or lockfiles on a cold miss (so a failing stage
+    # such as ZeroCellsAfterQC leaves the output directory untouched).
+    if not resume or not manifest.is_file() or not receipt.is_file():
         return None, state
     with _stage_lock(lock_path):
         try:
@@ -1005,8 +1168,13 @@ def _decode_h5_str_list(raw_arr: Any) -> list[str | None]:
     return [_decode_h5_scalar(v) for v in raw_arr]
 
 
-def _read_h5_obs_series(obs_obj: Any, col: str) -> tuple[bool, list[str | None] | str]:
-    """Read a single `/obs/<col>` column from an `.h5ad` via `h5py` only."""
+def read_h5_obs_series(obs_obj: Any, col: str) -> tuple[bool, list[str | None] | str]:
+    """Read a single `/obs/<col>` column from an `.h5ad` or `.h5mu` via `h5py` only.
+
+    Supports modern AnnData categorical groups (``codes`` + ``categories``),
+    nullable arrays (``values`` + ``mask``), legacy AnnData ``/obs/__categories/<col>``
+    storage, compound ``/obs`` datasets, and plain string/scalar datasets.
+    """
     import h5py
     import numpy as np
 
@@ -1038,7 +1206,7 @@ def _read_h5_obs_series(obs_obj: Any, col: str) -> tuple[bool, list[str | None] 
             mask = np.asarray(item["mask"][:], dtype=bool)
             out = [
                 None if bool(m) else v
-                for v, m in zip(vals, mask)
+                for v, m in zip(vals, mask, strict=True)
             ]
             return True, out
         return False, f"Unsupported HDF5 group encoding for /obs/{col}: keys={list(item.keys())}."
@@ -1062,6 +1230,9 @@ def _read_h5_obs_series(obs_obj: Any, col: str) -> tuple[bool, list[str | None] 
         return True, _decode_h5_str_list(arr)
 
     return False, f"Unsupported HDF5 object type for /obs/{col}: {type(item).__name__}."
+
+
+_read_h5_obs_series = read_h5_obs_series
 
 
 def read_h5ad_obs_columns(
@@ -1146,6 +1317,8 @@ def read_h5ad_obs_columns(
                         "details": str(series_or_err),
                     }
                 assert isinstance(series_or_err, list)
+                if len(series_or_err) != len(obs_names):
+                    raise ValueError(f"Column '{col}' length ({len(series_or_err)}) != obs_names length ({len(obs_names)})")
                 col_data[col] = series_or_err
     except Exception as exc:
         return {
@@ -1202,7 +1375,7 @@ def join_obs_labels_from_h5ad(
         ref_samples = loaded["columns"][reference_sample_col]
         scoped_pairs = [
             (bc, lbl)
-            for bc, lbl, smp in zip(ref_barcodes, ref_labels, ref_samples)
+            for bc, lbl, smp in zip(ref_barcodes, ref_labels, ref_samples, strict=True)
             if smp == sid
         ]
         if not scoped_pairs:
@@ -1217,7 +1390,7 @@ def join_obs_labels_from_h5ad(
                 matched_level = ci_levels[0]
                 scoped_pairs = [
                     (bc, lbl)
-                    for bc, lbl, smp in zip(ref_barcodes, ref_labels, ref_samples)
+                    for bc, lbl, smp in zip(ref_barcodes, ref_labels, ref_samples, strict=True)
                     if smp == matched_level
                 ]
             elif len(ci_levels) > 1:
@@ -1337,7 +1510,7 @@ def join_obs_labels_from_h5ad(
             continue
 
         ref_buckets: dict[str, list[str | None]] = {}
-        for r_bc, r_lbl in zip(ref_barcodes, ref_labels):
+        for r_bc, r_lbl in zip(ref_barcodes, ref_labels, strict=True):
             rk = r_fn(r_bc)
             if rk is None:
                 continue

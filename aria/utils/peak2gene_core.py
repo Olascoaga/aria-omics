@@ -23,240 +23,26 @@ Governance invariants (ADR-002, ADR-005, ADR-011, ADR-050, ADR-064):
 
 from __future__ import annotations
 
-import gzip
 import math
 import os
 from pathlib import Path
-import re
 from typing import Any, Sequence
 
 import numpy as np
 
+from aria.utils.genomic_coords import (
+    bed_interval_clamped,
+    canonical_contig,
+    is_standard_contig,
+    parse_gtf_attributes,
+    parse_gtf_tss_records as parse_gtf_tss_detailed,
+    parse_peak_coord,
+)
 from aria.utils.stats import bh_correct
-
-_PEAK_SEP_RE = re.compile(r"^([^:\-_\t]+)[:\-_](\d+)[\-_](\d+)$")
-_STANDARD_AUTOSOMES = {str(i) for i in range(1, 23)}
-
-
-def canonical_contig(chrom: str | None) -> str | None:
-    """Normalize UCSC (`chr1`, `chrM`) and Ensembl (`1`, `MT`) contig aliases.
-
-    Standard human/mouse nuclear chromosomes (`1..22`, `X`, `Y`) and mitochondrial
-    aliases (`M`, `MT`, `chrM`, `chrMT`) map to canonical `chr*` keys so UCSC
-    peaks (`chr1:100-200`) and Ensembl GTFs (`1`) interoperate seamlessly while
-    preserving non-standard contig identifiers in normalized form.
-    """
-    if chrom is None:
-        return None
-    raw = str(chrom).strip()
-    if not raw:
-        return None
-    low = raw.lower()
-    if low in ("m", "mt", "chrm", "chrmt"):
-        return "chrM"
-    stripped = raw[3:] if low.startswith("chr") else raw
-    up = stripped.upper()
-    if stripped in _STANDARD_AUTOSOMES or up in ("X", "Y"):
-        return f"chr{up}"
-    # Preserve mouse autosomes 1..19 (already in 1..22) or rat/other numeric contigs
-    if stripped.isdigit() and 1 <= int(stripped) <= 99:
-        return f"chr{int(stripped)}"
-    return raw
-
-
-def is_standard_contig(chrom: str | None) -> bool:
-    """Return True if `chrom` maps to `chr1..chr22`, `chrX`, or `chrY`."""
-    canon = canonical_contig(chrom)
-    if canon is None or not canon.startswith("chr"):
-        return False
-    body = canon[3:]
-    return body in _STANDARD_AUTOSOMES or body in ("X", "Y")
-
-
-def parse_peak_coord(name: str) -> tuple[str, int, int] | None:
-    """Parse a peak identifier (`chr1:100-200`, `chr1-100-200`, or BED tab line)."""
-    text = str(name).strip()
-    if not text:
-        return None
-    try:
-        if "\t" in text:
-            parts = text.split("\t")
-            if len(parts) >= 3:
-                s, e = int(parts[1]), int(parts[2])
-                return parts[0].strip(), min(s, e), max(s, e)
-        if ":" in text and "-" in text:
-            chrom, pos = text.split(":", 1)
-            s_txt, e_txt = pos.replace("_", "-").split("-", 1)
-            s, e = int(s_txt), int(e_txt)
-            return chrom.strip(), min(s, e), max(s, e)
-        m = _PEAK_SEP_RE.match(text)
-        if m:
-            s, e = int(m.group(2)), int(m.group(3))
-            return m.group(1).strip(), min(s, e), max(s, e)
-    except Exception:
-        return None
-    return None
 
 
 def _gtf_attr(attrs: str, key: str) -> str | None:
-    prefix_eq = f"{key}="
-    prefix_sp = f"{key} "
-    for chunk in attrs.split(";"):
-        item = chunk.strip()
-        if not item:
-            continue
-        if item.startswith(prefix_sp):
-            val = item[len(prefix_sp) :].strip().strip('"')
-            return val or None
-        if item.startswith(prefix_eq):
-            val = item[len(prefix_eq) :].strip().strip('"')
-            return val or None
-    return None
-
-
-def _gtf_has_tag(attrs: str, tag_value: str) -> bool:
-    target = tag_value.lower()
-    for chunk in attrs.split(";"):
-        item = chunk.strip()
-        if item.lower().startswith("tag ") or item.lower().startswith("tag="):
-            val = item.split(None, 1)[-1] if " " in item else item.split("=", 1)[-1]
-            if val.strip().strip('"').lower() == target:
-                return True
-    return False
-
-
-def parse_gtf_tss_detailed(
-    gtf_path: str | None,
-    wanted: set[str] | None = None,
-) -> tuple[dict[str, dict[str, Any]], dict[str, Any]]:
-    """Parse canonical per-gene TSS records from a local `.gtf` or `.gtf.gz`.
-
-    Resolves duplicate `gene_name` entries deterministically:
-      1. Drops pseudoautosomal Y duplicates (`_PAR_Y` / `PAR` tag on Y).
-      2. Prefers `MANE_Select` / `Ensembl_canonical` tags.
-      3. Prefers `protein_coding` biotype over pseudogenes/fragments.
-      4. Prefers `basic` tag.
-      5. Prefers longest genomic gene span (`end - start`).
-      6. Breaks remaining ties by lexicographically smallest `gene_id`.
-    """
-    stats: dict[str, Any] = {
-        "n_gene_rows_scanned": 0,
-        "n_par_y_dropped": 0,
-        "n_duplicate_symbols_resolved": 0,
-        "n_unique_genes": 0,
-    }
-    if not gtf_path or not Path(str(gtf_path)).is_file():
-        return {}, stats
-
-    opener = gzip.open if str(gtf_path).endswith(".gz") else open
-    best_by_gene: dict[str, tuple[tuple[int, int, int, int], str, dict[str, Any]]] = {}
-
-    wanted_set = set(wanted) if wanted is not None else None
-    wanted_no_ver: dict[str, str] = {}
-    wanted_upper_unique: dict[str, str] = {}
-    if wanted_set is not None:
-        no_ver_buckets: dict[str, list[str]] = {}
-        upper_buckets: dict[str, list[str]] = {}
-        for w in wanted_set:
-            ws = str(w).strip()
-            if not ws:
-                continue
-            base = ws.split(".", 1)[0]
-            no_ver_buckets.setdefault(base, []).append(ws)
-            upper_buckets.setdefault(ws.upper(), []).append(ws)
-        wanted_no_ver = {k: v[0] for k, v in no_ver_buckets.items() if len(v) == 1}
-        wanted_upper_unique = {k: v[0] for k, v in upper_buckets.items() if len(v) == 1}
-
-    def _scan_feature(target_feature: str) -> None:
-        needle = f"\t{target_feature}\t"
-        with opener(str(gtf_path), "rt", encoding="utf-8", errors="replace") as fh:
-            for line in fh:
-                if not line or line[0] == "#" or needle not in line:
-                    continue
-                parts = line.rstrip("\n").split("\t")
-                if len(parts) < 9 or parts[2] != target_feature:
-                    continue
-                stats["n_gene_rows_scanned"] += 1
-                attrs = parts[8]
-                gene_id = _gtf_attr(attrs, "gene_id") or ""
-                gene_name = _gtf_attr(attrs, "gene_name") or gene_id
-                if not gene_name:
-                    continue
-                if wanted_set is not None:
-                    if gene_name in wanted_set:
-                        key_symbol = gene_name
-                    elif gene_id and gene_id in wanted_set:
-                        key_symbol = gene_id
-                    elif gene_id and gene_id.split(".", 1)[0] in wanted_no_ver:
-                        key_symbol = wanted_no_ver[gene_id.split(".", 1)[0]]
-                    elif gene_name.upper() in wanted_upper_unique:
-                        key_symbol = wanted_upper_unique[gene_name.upper()]
-                    elif gene_id and gene_id.upper() in wanted_upper_unique:
-                        key_symbol = wanted_upper_unique[gene_id.upper()]
-                    else:
-                        continue
-                else:
-                    key_symbol = gene_name
-
-                if gene_id.upper().endswith("_PAR_Y") or (
-                    _gtf_has_tag(attrs, "PAR")
-                    and canonical_contig(parts[0]) == "chrY"
-                ):
-                    stats["n_par_y_dropped"] += 1
-                    continue
-
-                try:
-                    start = int(parts[3])
-                    end = int(parts[4])
-                except ValueError:
-                    continue
-                strand = "-" if parts[6] == "-" else "+"
-                tss = start if strand == "+" else end
-                span = max(0, end - start)
-
-                biotype = (
-                    _gtf_attr(attrs, "gene_type")
-                    or _gtf_attr(attrs, "gene_biotype")
-                    or ""
-                ).lower()
-                is_mane = int(
-                    _gtf_has_tag(attrs, "MANE_Select")
-                    or _gtf_has_tag(attrs, "Ensembl_canonical")
-                )
-                is_pc = int(biotype == "protein_coding")
-                is_basic = int(_gtf_has_tag(attrs, "basic"))
-                prio = (is_mane, is_pc, is_basic, span)
-
-                rec = {
-                    "gene": key_symbol,
-                    "gene_id": gene_id or key_symbol,
-                    "chrom": parts[0].strip(),
-                    "canon_chrom": canonical_contig(parts[0]),
-                    "start": start,
-                    "end": end,
-                    "tss": tss,
-                    "strand": strand,
-                    "gene_biotype": biotype or None,
-                }
-
-                prev = best_by_gene.get(key_symbol)
-                if prev is None:
-                    best_by_gene[key_symbol] = (prio, rec["gene_id"], rec)
-                else:
-                    stats["n_duplicate_symbols_resolved"] += 1
-                    prev_prio, prev_gid, _ = prev
-                    if prio > prev_prio or (
-                        prio == prev_prio and rec["gene_id"] < prev_gid
-                    ):
-                        best_by_gene[key_symbol] = (prio, rec["gene_id"], rec)
-
-    _scan_feature("gene")
-    if not best_by_gene:
-        _scan_feature("transcript")
-
-    out = {k: v[2] for k, v in best_by_gene.items()}
-    stats["n_unique_genes"] = len(out)
-    return out, stats
+    return parse_gtf_attributes(attrs).get(key) or None
 
 
 def parse_gtf_tss(
@@ -279,22 +65,31 @@ def resolve_gtf_path(
             raise FileNotFoundError(f"Explicit GTF file does not exist: {explicit_gtf}")
         return str(cand)
 
-    env_gtf = os.environ.get("ARIA_GTF_PATH", "").strip()
+    env_gtf = (
+        os.environ.get("ARIA_GTF", "").strip()
+        or os.environ.get("ARIA_GTF_PATH", "").strip()
+    )
     if env_gtf:
         env_p = Path(env_gtf).expanduser()
         if env_p.is_file():
             return str(env_p)
 
-    genome_dir = Path.home() / ".aria" / "genomes" / str(genome)
-    for fname in (
-        "annotation.gtf",
-        "annotation.gtf.gz",
-        f"{genome}.gtf",
-        f"{genome}.gtf.gz",
-    ):
-        cand = genome_dir / fname
-        if cand.is_file():
-            return str(cand)
+    from aria.utils.genomes import genome_dir as _genome_root
+
+    search_roots = list(dict.fromkeys([
+        _genome_root() / str(genome),
+        Path.home() / ".aria" / "genomes" / str(genome),
+    ]))
+    for genome_dir in search_roots:
+        for fname in (
+            "annotation.gtf",
+            "annotation.gtf.gz",
+            f"{genome}.gtf",
+            f"{genome}.gtf.gz",
+        ):
+            cand = genome_dir / fname
+            if cand.is_file():
+                return str(cand)
     return None
 
 
@@ -364,9 +159,8 @@ def compute_peak_gc_from_indexed_fasta(
             if rec is None:
                 continue
             seq_len, offset, line_bases, line_bytes = rec
-            # Support both 0-based and 1-based start safely clamped to [0, seq_len).
-            s0 = max(0, min(seq_len, int(start) - 1 if int(start) >= 1 else 0))
-            e0 = max(s0, min(seq_len, int(end)))
+            # Peak coordinates are 0-based half-open BED [start, end); clamp directly.
+            s0, e0 = bed_interval_clamped(start, end, seq_len)
             if e0 <= s0 or line_bases <= 0:
                 continue
 
@@ -468,13 +262,16 @@ def vectorized_pearson_corr(x: Any, cols: Any) -> np.ndarray:
 
 
 def _quantile_bin_labels(values: np.ndarray, n_bins: int) -> np.ndarray:
-    """Assign finite 1D values into `0..n_bins-1` rank-quantile bins deterministically."""
-    n = values.size
+    """Assign finite 1D values into `0..n_bins-1` rank-quantile bins, invariant to input order."""
+    arr = np.asarray(values, dtype=np.float64)
+    n = arr.size
     if n == 0 or n_bins <= 1:
         return np.zeros(n, dtype=int)
-    order = np.argsort(values, kind="mergesort")
-    ranks = np.empty(n, dtype=np.float64)
-    ranks[order] = np.arange(n, dtype=np.float64)
+    if float(np.ptp(arr)) == 0.0:
+        return np.zeros(n, dtype=int)
+    from scipy.stats import rankdata
+
+    ranks = rankdata(arr, method="average") - 1.0
     bins = np.floor(ranks * float(n_bins) / float(n)).astype(int)
     return np.clip(bins, 0, n_bins - 1)
 

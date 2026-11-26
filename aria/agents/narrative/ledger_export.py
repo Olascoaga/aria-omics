@@ -49,7 +49,7 @@ def _sanitize_json_value(obj: Any) -> Any:
     if callable(item) and type(obj).__module__.startswith("numpy"):
         try:
             return _sanitize_json_value(item())
-        except Exception:
+        except Exception:  # aria: allow-broad-except cosmetic numpy scalar conversion fallback
             pass
     return obj
 
@@ -678,7 +678,8 @@ def write_reproducible_capsule(report_dir: str | Path,
             raise ValueError(
                 "capsule staging verification failed: "
                 f"{verification.get('files')}; "
-                f"memory snapshot={verification.get('memory_snapshot')}"
+                f"memory snapshot={verification.get('memory_snapshot')}; "
+                f"environment={verification.get('environment')}"
             )
         with tmp_zip.open("rb") as stream:
             os.fsync(stream.fileno())
@@ -889,7 +890,7 @@ def verify_reproducible_capsule(
             "matches": current_version.get("git_commit") == expected_commit,
             "current_dirty": current_version.get("git_dirty"),
         }
-    except Exception as exc:
+    except Exception as exc:  # aria: allow-broad-except record environment verification failure and fail closed
         result["environment"] = {"status": "unverified", "error": str(exc)}
 
     if compare_report:
@@ -898,7 +899,8 @@ def verify_reproducible_capsule(
     if (result["files"]["missing"] or result["files"]["mismatched"]
             or result["inputs"]["mismatched"]
             or not result["memory_snapshot"].get("valid", False)
-            or not result.get("decision_manifest", {}).get("valid", True)):
+            or not result.get("decision_manifest", {}).get("valid", True)
+            or result.get("environment", {}).get("status") == "unverified"):
         result["status"] = "fail"
     elif (result["inputs"]["missing"]
           or result["inputs"]["relocation_required"]):

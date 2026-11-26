@@ -18,22 +18,16 @@ from __future__ import annotations
 from typing import Iterable, Optional
 
 
-def parse_peak_interval(peak: str) -> Optional[tuple[str, int, int]]:
-    """Parse a ``chrom:start-end`` peak id into ``(chrom, start, end)``.
+from aria.utils.genomic_coords import parse_peak_coord
 
-    Returns ``None`` for anything that does not match (never fabricates coordinates).
+
+def parse_peak_interval(peak: str) -> Optional[tuple[str, int, int]]:
+    """Parse a peak coordinate string (UCSC, Ensembl, Signac, or BED) into ``(chrom, start, end)``.
+
+    Returns ``None`` for non-strings, reversed intervals (``end < start``), or
+    unparseable values (never fabricates coordinates).
     """
-    if not isinstance(peak, str) or ":" not in peak or "-" not in peak:
-        return None
-    chrom, _, span = peak.partition(":")
-    start_s, _, end_s = span.partition("-")
-    try:
-        start, end = int(start_s), int(end_s)
-    except ValueError:
-        return None
-    if not chrom or end < start:
-        return None
-    return chrom, start, end
+    return parse_peak_coord(peak, allow_reversed=False, require_str=True)
 
 
 def map_peaks_to_gene_markers(

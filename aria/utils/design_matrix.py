@@ -5,6 +5,97 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+_CONTRAST_TEST_KEYS = ("test", "numerator", "case", "contrast", "condition")
+_CONTRAST_REF_KEYS = ("reference", "ref", "denominator", "control", "baseline")
+_CONTRAST_VS_SEPS = ("_vs_", " vs ", "_VS_", " VS ")
+
+
+def _extract_single_comparison(
+    comp: Any, *, keep_name: bool = False
+) -> dict[str, str] | None:
+    if isinstance(comp, str):
+        text = comp.strip()
+        for sep in _CONTRAST_VS_SEPS:
+            if sep in text:
+                left, right = text.split(sep, 1)
+                left, right = left.strip(), right.strip()
+                if left and right:
+                    return {"test": left, "reference": right}
+        return None
+    if isinstance(comp, dict):
+        test = next(
+            (
+                comp[k]
+                for k in _CONTRAST_TEST_KEYS
+                if comp.get(k) is not None and str(comp.get(k)).strip() != ""
+            ),
+            None,
+        )
+        ref = next(
+            (
+                comp[k]
+                for k in _CONTRAST_REF_KEYS
+                if comp.get(k) is not None and str(comp.get(k)).strip() != ""
+            ),
+            None,
+        )
+        if test is None or ref is None:
+            return None
+        rec = {"test": str(test).strip(), "reference": str(ref).strip()}
+        if keep_name and comp.get("name") not in (None, ""):
+            rec["name"] = str(comp["name"]).strip()
+        return rec
+    if isinstance(comp, (list, tuple)) and len(comp) >= 2:
+        t_val, r_val = comp[0], comp[1]
+        if (
+            t_val is not None
+            and str(t_val).strip() != ""
+            and r_val is not None
+            and str(r_val).strip() != ""
+        ):
+            return {"test": str(t_val).strip(), "reference": str(r_val).strip()}
+    return None
+
+
+def normalize_comparisons(
+    raw: Any,
+    *,
+    valid_groups: Any = None,
+    keep_name: bool = False,
+) -> list[dict[str, str]]:
+    """Canonical contrast/comparison normalizer across ARIA design, power, and DE modules.
+
+    Accepts any combination of:
+      - dicts using ARIA's contrast vocabulary
+        (``test``/``numerator``/``case``/``contrast``/``condition`` vs
+        ``reference``/``ref``/``denominator``/``control``/``baseline``),
+      - 2-element ``[test, reference]`` / ``(test, reference)`` pairs,
+      - ``"A_vs_B"`` / ``"A vs B"`` strings.
+
+    When ``valid_groups`` is provided, only non-self contrasts whose levels are
+    both present in ``valid_groups`` are retained.
+    """
+    if raw in (None, "", []):
+        return []
+    out: list[dict[str, str]] = []
+    if isinstance(raw, (str, dict)):
+        rec = _extract_single_comparison(raw, keep_name=keep_name)
+        if rec is not None:
+            out.append(rec)
+    elif isinstance(raw, (list, tuple)):
+        for item in raw:
+            rec = _extract_single_comparison(item, keep_name=keep_name)
+            if rec is not None:
+                out.append(rec)
+    if valid_groups is not None:
+        vg = {str(g) for g in valid_groups}
+        out = [
+            c
+            for c in out
+            if c["test"] in vg and c["reference"] in vg and c["test"] != c["reference"]
+        ]
+    return out
+
 
 def resolve_design_contract(
     design: dict | None,
@@ -78,17 +169,100 @@ def resolve_design_contract(
     if raw_comparisons is None:
         raw_comparisons = design.get("comparisons")
     if raw_comparisons is None and isinstance(design.get("contrasts"), list):
-        norm_comps = []
-        for item in design["contrasts"]:
-            if isinstance(item, dict):
-                test_lvl = item.get("test") or item.get("numerator")
-                ref_lvl = item.get("reference") or item.get("denominator")
-                if test_lvl and ref_lvl:
-                    norm_comps.append(
-                        {"test": str(test_lvl), "reference": str(ref_lvl)}
-                    )
+        norm_comps = normalize_comparisons(design["contrasts"])
         if norm_comps:
             raw_comparisons = norm_comps
+
+    design_formula = _first(
+        exp_ctx.get("design_formula"),
+        design.get("design_formula"),
+        design.get("formula"),
+        exp_ctx.get("formula"),
+    )
+
+    rep_handling = design.get("replicate_handling")
+    if not isinstance(rep_handling, dict):
+        rep_handling = {}
+    rep_mode = str(rep_handling.get("mode") or "").strip().lower()
+    exp_unit = str(design.get("experimental_unit") or "").strip().lower()
+    is_paired = bool(
+        exp_ctx.get("paired_replicates")
+        or design.get("paired")
+        or rep_mode == "paired_biological_block"
+        or exp_unit == "paired_biological_unit"
+    )
+    has_technical_replicates = bool(rep_mode == "technical_aggregate")
+
+    # Sample-to-covariate value mappings from DesignAgent (paired_covariate_values,
+    # replicate_handling.sample_to_pair, sample_sheet) plus legacy batch_map /
+    # covariate_map shapes.
+    covariate_values: dict[str, dict[str, str]] = {}
+
+    def _merge_cov_map(cov_name: str | None, mapping: Any) -> None:
+        if not cov_name or not isinstance(mapping, dict):
+            return
+        bucket = covariate_values.setdefault(str(cov_name), {})
+        for k, v in mapping.items():
+            ks = str(k).strip()
+            if ks and v not in (None, ""):
+                bucket.setdefault(ks, str(v).strip())
+
+    paired_cov_vals = design.get("paired_covariate_values")
+    if isinstance(paired_cov_vals, dict):
+        for cov_name, s_map in paired_cov_vals.items():
+            _merge_cov_map(str(cov_name).strip(), s_map)
+
+    if rep_handling.get("pair_covariate") and isinstance(
+        rep_handling.get("sample_to_pair"), dict
+    ):
+        _merge_cov_map(
+            str(rep_handling["pair_covariate"]).strip(),
+            rep_handling["sample_to_pair"],
+        )
+
+    cov_map_legacy = design.get("covariate_map")
+    if isinstance(cov_map_legacy, dict):
+        for cov_name, s_map in cov_map_legacy.items():
+            _merge_cov_map(str(cov_name).strip(), s_map)
+
+    legacy_batch_map = design.get("batch_map") or design.get("batches")
+    if isinstance(legacy_batch_map, dict) and legacy_batch_map:
+        _merge_cov_map(batch_covariate or "batch", legacy_batch_map)
+
+    inferred_design = exp_ctx.get("inferred_design")
+    inferred_design = inferred_design if isinstance(inferred_design, dict) else {}
+    target_covs = list(dict.fromkeys(
+        ([batch_covariate] if batch_covariate else []) + clean_covariates
+    ))
+    for sheet in (
+        design.get("sample_sheet"),
+        exp_ctx.get("sample_sheet"),
+        inferred_design.get("sample_sheet"),
+    ):
+        if not isinstance(sheet, list) or not target_covs:
+            continue
+        for row in sheet:
+            if not isinstance(row, dict):
+                continue
+            sid = str(row.get("sample") or row.get("id") or "").strip()
+            if not sid:
+                continue
+            for cov_name in target_covs:
+                val = row.get(cov_name)
+                if val not in (None, ""):
+                    covariate_values.setdefault(cov_name, {}).setdefault(
+                        sid, str(val).strip()
+                    )
+
+    confounded_covariates: list[str] = []
+    for src in (
+        design.get("confounded_covariates"),
+        inferred_design.get("confounded_covariates"),
+    ):
+        for cov in (src or []):
+            cs = str(cov).strip()
+            if cs and cs not in confounded_covariates:
+                confounded_covariates.append(cs)
 
     return {
         "condition_col": condition_col,
@@ -100,6 +274,11 @@ def resolve_design_contract(
             "condition_col": condition_col,
             "replicate_col": replicate_col,
         },
+        "design_formula": design_formula,
+        "is_paired": is_paired,
+        "has_technical_replicates": has_technical_replicates,
+        "covariate_values": covariate_values,
+        "confounded_covariates": confounded_covariates,
     }
 
 

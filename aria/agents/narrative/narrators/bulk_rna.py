@@ -13,6 +13,7 @@ from aria.agents.narrative.types import (
     NarrativeBlock,
     SemanticFact,
 )
+from aria.utils.bulk_qc_contract import sample_qc_failed, sample_qc_size_ratio
 
 
 def _safe_id(value) -> str:
@@ -24,6 +25,41 @@ def _safe_id(value) -> str:
 def _evidence(label: str, value, source: str,
               path: str | None = None) -> EvidenceItem:
     return EvidenceItem(label=label, value=value, source=source, path=path)
+
+
+def _count_union_caveat(findings: dict) -> Caveat | None:
+    """Return a warning caveat when per-sample count files were merged under a non-error policy."""
+    cu = findings.get("count_union")
+    if not isinstance(cu, dict):
+        return None
+    policy = str(cu.get("policy") or "error").strip()
+    if policy == "error":
+        return None
+    n_union = cu.get("n_genes_union")
+    n_inter = cu.get("n_genes_intersection")
+    per_file = cu.get("per_file_missing") or {}
+    affected = {
+        str(k): int(v)
+        for k, v in per_file.items()
+        if isinstance(v, (int, float)) and int(v) > 0
+    }
+    affected_txt = (
+        "; per-file missing: "
+        + ", ".join(f"{k}={v}" for k, v in sorted(affected.items())[:8])
+        if affected
+        else ""
+    )
+    if policy == "union_zero_fill":
+        action = "missing per-sample gene entries were filled with 0"
+    elif policy == "intersect":
+        action = "analysis was restricted to the shared gene intersection"
+    else:
+        action = f"merged using policy '{policy}'"
+    return Caveat(
+        f"Per-sample count files were merged under count_union_policy='{policy}' "
+        f"(union={n_union}, intersection={n_inter}): {action}{affected_txt}.",
+        severity="warning",
+    )
 
 
 class BulkRnaNarrator:
@@ -167,6 +203,9 @@ class BulkRnaNarrator:
                 f"where the design allowed it, and the conclusion was "
                 f"{robust_text} to that decision."
             )
+        cu_caveat = _count_union_caveat(findings)
+        if cu_caveat is not None:
+            lines.append(cu_caveat.text)
         return lines
 
     def figures(self, agent_name: str, agent_result: dict,
@@ -390,15 +429,47 @@ class BulkRnaNarrator:
         n_samples = sqc.get("n_samples") or (preprocessing.get("qc", {}) or {}).get(
             "n_samples"
         )
+        cu_caveat = _count_union_caveat(findings)
+        if sample_qc_failed(sqc):
+            err_msg = str(sqc.get("error") or "Sample QC failed")
+            ratio = sample_qc_size_ratio(sqc)
+            ratio_note = (
+                f" Library-size range: {ratio:.1f}×."
+                if ratio is not None
+                else " Library-size range: not available."
+            )
+            metrics = {"n_samples": n_samples, "error": err_msg}
+            if ratio is not None:
+                metrics["size_ratio"] = ratio
+            qc_caveats = [Caveat(
+                f"Bulk RNA sample QC failed ({err_msg}); outlier screening "
+                f"was not completed.{ratio_note}",
+                severity="warning",
+            )]
+            if cu_caveat is not None:
+                qc_caveats.append(cu_caveat)
+            return [NarrativeBlock(
+                id="bulk.qc",
+                modality="bulk RNA-seq",
+                analysis="sample_qc",
+                block_type="error",
+                title="Bulk RNA sample QC",
+                status="error",
+                confidence="insufficient",
+                claim="",
+                error=err_msg,
+                caveats=qc_caveats,
+                metrics=metrics,
+            )]
         outliers = sqc.get("candidate_outliers", sqc.get("outliers", [])) or []
         removed_primary = sqc.get("outliers_removed_primary", []) or []
         removed_sensitivity = sqc.get("sensitivity_outliers_removed", []) or []
         evidence = []
         if n_samples is not None:
             evidence.append(_evidence("samples", n_samples, "sample_qc"))
-        if sqc.get("size_ratio") is not None:
-            evidence.append(_evidence("library-size range", sqc.get("size_ratio"),
-                                      "sample_qc"))
+        ratio = sample_qc_size_ratio(sqc)
+        if ratio is not None:
+            evidence.append(_evidence("library-size range", ratio, "sample_qc"))
         evidence.append(_evidence("outliers flagged", len(outliers), "sample_qc"))
         evidence.append(_evidence("outliers removed primary",
                                   len(removed_primary), "sample_qc"))
@@ -419,6 +490,7 @@ class BulkRnaNarrator:
             confidence="high",
             claim=claim,
             evidence=evidence or [_evidence("QC status", "completed", "sample_qc")],
+            caveats=[cu_caveat] if cu_caveat is not None else [],
             metrics={
                 "n_samples": n_samples,
                 "n_outliers": len(outliers),
@@ -477,6 +549,9 @@ class BulkRnaNarrator:
                         source="bulk_de",
                     ))
             caveats = []
+            cu_caveat = _count_union_caveat(findings)
+            if cu_caveat is not None:
+                caveats.append(cu_caveat)
             if contrast.get("low_power_warning"):
                 caveats.append(Caveat(
                     contrast.get("low_power_reason")
@@ -530,6 +605,19 @@ class BulkRnaNarrator:
         blocks = []
         name = contrast.get("name", "contrast")
         pathways = contrast.get("pathways", {}) or {}
+        ora_meta = contrast.get("pathway_ora", {}) or {}
+        raw_failed = ora_meta.get("failed_databases")
+        if isinstance(raw_failed, dict):
+            failed_dbs = {
+                str(db).strip(): re.sub(r"\s+", " ", str(err or "")).strip()[:120]
+                for db, err in raw_failed.items()
+                if str(db).strip()
+            }
+        elif isinstance(raw_failed, (list, tuple)):
+            failed_dbs = {str(db).strip(): "" for db in raw_failed if str(db).strip()}
+        else:
+            failed_dbs = {}
+
         terms = []
         for db_name, rows in pathways.items():
             if not isinstance(rows, list):
@@ -541,7 +629,32 @@ class BulkRnaNarrator:
                 if term:
                     terms.append((db_name, term, row))
         if not terms:
-            return blocks
+            if not failed_dbs:
+                return blocks
+            db_names = ", ".join(failed_dbs.keys())
+            details = "; ".join(
+                f"{db} ({err})" if err else db for db, err in failed_dbs.items()
+            )
+            return [NarrativeBlock(
+                id=f"bulk.pathway.{_safe_id(name)}",
+                modality="bulk RNA-seq",
+                analysis="pathway_enrichment",
+                block_type="limitation",
+                title=f"Pathway enrichment {name}",
+                status="limitation",
+                confidence="insufficient",
+                claim="",
+                caveats=[Caveat(
+                    f"Pathway ORA failed for all attempted database(s) ({db_names}): "
+                    f"{details}.",
+                    "warning",
+                )],
+                metrics={
+                    "n_terms": 0,
+                    "ora_method": ora_meta.get("method"),
+                    "failed_databases": dict(failed_dbs),
+                },
+            )]
         evidence = [_evidence("enriched terms", len(terms), "bulk_pathways")]
         for db_name, term, row in terms[:5]:
             evidence.append(_evidence(f"{db_name} term", term, "bulk_pathways"))
@@ -555,7 +668,6 @@ class BulkRnaNarrator:
         # P1-7/W-PRIV: surface the ORA engine + exact versioned gene-set release
         # per database so methodology.json records reproducible provenance and
         # the offline/opt-in posture is auditable.
-        ora_meta = contrast.get("pathway_ora", {}) or {}
         versions = ora_meta.get("gene_set_versions", {}) or {}
         gene_set_releases = {
             db: (v.get("library"), v.get("release"))
@@ -573,6 +685,23 @@ class BulkRnaNarrator:
                 "sets; the gene list did not leave the machine (W-PRIV).",
                 "info",
             ))
+        if failed_dbs:
+            db_names = ", ".join(failed_dbs.keys())
+            details = "; ".join(
+                f"{db} ({err})" if err else db for db, err in failed_dbs.items()
+            )
+            caveats.append(Caveat(
+                f"Pathway ORA failed for database(s) {db_names}: {details}; "
+                "enrichment results are incomplete.",
+                "warning",
+            ))
+        metrics = {
+            "n_terms": len(terms),
+            "ora_method": method,
+            "gene_set_versions": gene_set_releases,
+        }
+        if failed_dbs:
+            metrics["failed_databases"] = dict(failed_dbs)
         blocks.append(NarrativeBlock(
             id=f"bulk.pathway.{_safe_id(name)}",
             modality="bulk RNA-seq",
@@ -584,11 +713,7 @@ class BulkRnaNarrator:
             claim=f"Pathway enrichment found {len(terms)} term(s) for {name}.",
             evidence=evidence,
             caveats=caveats,
-            metrics={
-                "n_terms": len(terms),
-                "ora_method": method,
-                "gene_set_versions": gene_set_releases,
-            },
+            metrics=metrics,
         ))
         return blocks
 
@@ -601,9 +726,40 @@ class BulkRnaNarrator:
             return []
 
         summary = _read_gsea_summary(gsea_table)
+        parse_error = summary.get("parse_error")
         n_pathways = summary.get("n_pathways")
         top_pathways = summary.get("top_pathways", [])
         n_numeric_unstable = summary.get("n_numeric_unstable", 0)
+        name = contrast.get("name", "contrast")
+        if parse_error:
+            return [NarrativeBlock(
+                id=f"bulk.gsea.{_safe_id(name)}",
+                modality="bulk RNA-seq",
+                analysis="gsea_preranked",
+                block_type="limitation",
+                title=f"Preranked GSEA {name}",
+                status="limitation",
+                confidence="insufficient",
+                claim="",
+                evidence=[
+                    _evidence("GSEA table parse error", parse_error, "gsea_preranked", path=gsea_table),
+                ],
+                caveats=[Caveat(
+                    f"GSEA results table could not be parsed ({parse_error}); "
+                    "ranked pathway support could not be verified.",
+                    "warning",
+                )],
+                metrics={"n_pathways": None, "top_pathways": [], "parse_error": parse_error},
+                figures=[
+                    {"id": "gsea_top_table", "path": top_table_fig,
+                     "caption": f"{name} GSEA top table"}
+                ] if top_table_fig else [],
+                tables=[
+                    {"id": "gsea_table", "path": gsea_table,
+                     "label": f"{name} GSEA results"}
+                ] if gsea_table else [],
+                metadata={"gsea_fdr_threshold": 0.25, "parse_error": parse_error},
+            )]
         evidence = [
             _evidence(
                 "FDR<0.25 pathways",
@@ -803,8 +959,12 @@ def _read_gsea_summary(path: str | None) -> dict:
             reader = csv.DictReader(handle)
             for row in reader:
                 rows.append(row)
-    except Exception:
-        return {"n_pathways": None, "top_pathways": []}
+    except (OSError, UnicodeDecodeError, csv.Error) as exc:
+        return {
+            "n_pathways": None,
+            "top_pathways": [],
+            "parse_error": f"{type(exc).__name__}: {exc}",
+        }
 
     parsed = [_parse_gsea_row(row) for row in rows]
     parsed = [row for row in parsed if row.get("term")]
@@ -858,20 +1018,23 @@ def _parse_gsea_row(row: dict) -> dict:
     }
 
 
-def _to_float(value):
-    parsed, unstable = _to_float_checked(value)
-    return None if unstable else parsed
+from aria.utils.stats import finite_float
+
+_to_float = finite_float
 
 
 def _to_float_checked(value, digits: int | None = None):
-    """Parse ``value`` to a finite float.
+    """Parse ``value`` to a finite float, flagging non-finite numeric values.
 
     Full precision is preserved unless ``digits`` is given (used only for
     effect sizes such as NES — never for p-values / FDRs).
     """
+    if value in (None, "") or isinstance(value, bool):
+        return None, False
+    val_type = type(value)
+    if val_type.__name__ in ("bool", "bool_") and val_type.__module__.startswith("numpy"):
+        return None, False
     try:
-        if value in (None, ""):
-            return None, False
         parsed = float(value)
         if not math.isfinite(parsed):
             return None, True

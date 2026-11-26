@@ -224,7 +224,7 @@ def chromatin_fragments_to_matrix(params: dict) -> dict:
         from aria.scripts.chromatin_scatac_align import _merge_library_fragments, _bgzip_tabix
         combined = output_dir / "combined_cohort.fragments.tsv"
         records = [{"library_id": sample, "fragments_file": path}
-                   for sample, path in zip(samples, fragments_files)]
+                   for sample, path in zip(samples, fragments_files, strict=True)]
         union = _merge_library_fragments(records, combined)
         if union.get("status") != "success":
             return not_run("fragment_union_failed", message=union.get("message"))

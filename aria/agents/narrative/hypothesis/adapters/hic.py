@@ -17,7 +17,6 @@ profiled.
 from __future__ import annotations
 
 import csv
-import math
 from pathlib import Path
 import re
 from typing import Any
@@ -32,32 +31,8 @@ HIC_LOOPS_NODE = "ledger://hic/loops"
 HIC_LOOP_MEASURE = "hic_loop_anchor"
 _MAX_LOOP_GENES = 25
 
-_COORD_RE = re.compile(r"^(?:chr[\w.\-]+|[\dXYM]+|MT):\d+[-:]\d+$", re.IGNORECASE)
-_RAW_ID_PREFIXES = ("ENSG0", "ENSMUSG0", "ENST0", "ENSMUST0")
-_SKIP_TOKENS = {
-    "",
-    "na",
-    "n/a",
-    "nan",
-    "none",
-    "null",
-    "intergenic",
-    "distal",
-    "unannotated",
-    "unspecified",
-    ".",
-    "-",
-}
-
-
-def _finite_float(val: Any) -> float | None:
-    if val is None or isinstance(val, bool):
-        return None
-    try:
-        f = float(val)
-    except (TypeError, ValueError):
-        return None
-    return f if math.isfinite(f) else None
+from aria.utils.stats import finite_float as _finite_float
+from aria.utils.text_matching import clean_gene_symbol
 
 
 def _split_gene_field(raw: Any) -> list[str]:
@@ -70,16 +45,9 @@ def _split_gene_field(raw: Any) -> list[str]:
         return tokens
     out: list[str] = []
     for part in re.split(r"[,;|/]+", str(raw)):
-        gene = part.strip()
-        if not gene or gene.lower() in _SKIP_TOKENS:
-            continue
-        if _COORD_RE.match(gene):
-            continue
-        if gene.upper().startswith(_RAW_ID_PREFIXES):
-            continue
-        if any(ch.isspace() for ch in gene):
-            continue
-        out.append(gene)
+        gene = clean_gene_symbol(part)
+        if gene is not None:
+            out.append(gene)
     return out
 
 
@@ -97,10 +65,12 @@ def _low_replication(findings: dict[str, Any]) -> bool:
         or findings.get("loops")
         or {}
     )
-    if isinstance(loops, dict):
-        loop_n = loops.get("n_samples", 1)
+    # D7-011: hic_topology._compute_loops does not emit 'n_samples' (sample count
+    # lives in qc['n_samples']). Only short-circuit when loops explicitly carries
+    # a non-None 'n_samples'; otherwise fall through to qc['n_samples'].
+    if isinstance(loops, dict) and "n_samples" in loops and loops.get("n_samples") is not None:
         try:
-            if loop_n is None or int(loop_n) < 2:
+            if int(loops["n_samples"]) < 2:
                 return True
         except (TypeError, ValueError):
             return True
@@ -114,6 +84,12 @@ def _low_replication(findings: dict[str, Any]) -> bool:
                 return True
         except (TypeError, ValueError):
             pass
+    if isinstance(loops, dict) and loops.get("n_samples") is not None:
+        try:
+            if int(loops["n_samples"]) >= 2:
+                return False
+        except (TypeError, ValueError):
+            return True
     samples = findings.get("samples")
     if isinstance(samples, list):
         return len(samples) < 2
@@ -160,12 +136,6 @@ def _disk_loop_rows(loops: dict[str, Any], limit: int = 5000) -> list[dict[str, 
                 return []
             return out
     return []
-
-
-def _candidate_loop_rows(loops: dict[str, Any]) -> list[dict[str, Any]]:
-    inline = _inline_loop_rows(loops)
-    disk = _disk_loop_rows(loops)
-    return inline + disk if inline else disk
 
 
 def hic_evidence(

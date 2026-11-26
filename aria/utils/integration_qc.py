@@ -119,6 +119,82 @@ def assess_integration_quality(
     }
 
 
+_MISSING_LABEL_TOKENS = frozenset({"", "nan", "none", "na", "<na>"})
+
+
+def safe_silhouette_score(
+    embedding,
+    labels,
+    *,
+    seed: int = 0,
+    max_dims: int | None = None,
+    sample_size: int = 2000,
+    require_all_groups_min2: bool = False,
+    round_digits: int | None = 4,
+) -> float | None:
+    """Compute Euclidean silhouette score safely with missing-label exclusion and deterministic sampling.
+
+    Excludes cells with missing/sentinel labels (``None``, ``""``, ``"nan"``,
+    ``"None"``, ``"NA"``), validates embedding finiteness, requires at least
+    two distinct classes with at least one class having ``>= 2`` cells (or all
+    classes having ``>= 2`` when ``require_all_groups_min2=True``), and caps
+    evaluation at ``min(sample_size, n_valid)`` with ``random_state=seed``.
+    """
+    if embedding is None or labels is None:
+        return None
+    try:
+        import numpy as np
+        from sklearn.metrics import silhouette_score
+
+        x = np.asarray(embedding, dtype=np.float64)
+        if x.ndim != 2 or x.shape[0] < 3 or x.shape[1] < 1:
+            return None
+        if max_dims is not None:
+            x = x[:, : min(int(max_dims), x.shape[1])]
+        raw_labels = list(labels)
+        if len(raw_labels) != x.shape[0]:
+            return None
+        valid_idx: list[int] = []
+        clean_labels: list[str] = []
+        for idx, raw in enumerate(raw_labels):
+            if raw is None:
+                continue
+            s = str(raw).strip()
+            if s.lower() in _MISSING_LABEL_TOKENS:
+                continue
+            valid_idx.append(idx)
+            clean_labels.append(s)
+        n_valid = len(valid_idx)
+        if n_valid < 3:
+            return None
+        mat = x[valid_idx]
+        if not np.all(np.isfinite(mat)):
+            return None
+        counts: dict[str, int] = {}
+        for lbl in clean_labels:
+            counts[lbl] = counts.get(lbl, 0) + 1
+        if len(counts) < 2 or len(counts) >= n_valid:
+            return None
+        if require_all_groups_min2:
+            if min(counts.values()) < 2:
+                return None
+        elif max(counts.values()) < 2:
+            return None
+        val = float(
+            silhouette_score(
+                mat,
+                np.asarray(clean_labels, dtype=object),
+                sample_size=min(int(sample_size), n_valid),
+                random_state=int(seed),
+            )
+        )
+        if not np.isfinite(val):
+            return None
+        return round(val, round_digits) if round_digits is not None else val
+    except Exception:
+        return None
+
+
 def _as_float(x) -> float | None:
     if x is None:
         return None

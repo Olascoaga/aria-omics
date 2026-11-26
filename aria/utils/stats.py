@@ -2,6 +2,29 @@
 
 from __future__ import annotations
 
+import math
+
+
+def finite_float(value, default: float | None = None) -> float | None:
+    """Coerce ``value`` to a finite Python ``float``, or ``default`` (default ``None``).
+
+    Explicitly rejects ``None``, ``bool`` / ``numpy.bool_``, blank strings, and
+    non-finite values (``NaN``, ``+/-inf``) so boolean flags are never coerced
+    to ``1.0``/``0.0`` and missing metrics are never silently fabricated.
+    """
+    if value is None or isinstance(value, bool):
+        return default
+    val_type = type(value)
+    if val_type.__name__ in ("bool", "bool_") and val_type.__module__.startswith("numpy"):
+        return default
+    if isinstance(value, str) and not value.strip():
+        return default
+    try:
+        out = float(value)
+    except (TypeError, ValueError):
+        return default
+    return out if math.isfinite(out) else default
+
 
 def bh_correct(pvals):
     """Benjamini-Hochberg correction without requiring statsmodels."""
@@ -23,6 +46,94 @@ def bh_correct(pvals):
     restored[order] = adj
     out[valid] = restored
     return out
+
+
+def adaptive_neglog10(
+    pvals,
+    *,
+    headroom: float = 1.15,
+    min_cap: float = 5.0,
+    all_zero_floor: float = 10.0,
+):
+    """Data-adaptive ``-log10(p)`` with underflow capping for ``p == 0``.
+
+    Returns ``(values, cap, has_zero_cap)``. Strictly positive finite ``p`` in
+    ``(0, 1]`` map to ``-log10(p)``; float64-underflowed ``p == 0.0`` map to
+    ``max(max_finite * headroom, max_finite + 1.0, min_cap)`` (or
+    ``all_zero_floor`` when no strictly positive finite ``p`` exists), ensuring
+    capped ultra-significant values always lie strictly above ``-log10(0.05)``.
+    Non-finite or out-of-range inputs map to ``np.nan`` (never Python ``None``).
+    """
+    import numpy as np
+
+    arr = np.asarray(pvals, dtype=float)
+    valid = np.isfinite(arr) & (arr >= 0.0) & (arr <= 1.0)
+    pos = arr[valid & (arr > 0.0)]
+    if pos.size > 0:
+        max_fin = float(-np.log10(np.min(pos)))
+        cap = max(max_fin * float(headroom), max_fin + 1.0, float(min_cap))
+    else:
+        cap = float(all_zero_floor)
+    zero_mask = valid & (arr == 0.0)
+    out = np.full(arr.shape, np.nan, dtype=float)
+    out[valid & (arr > 0.0)] = -np.log10(arr[valid & (arr > 0.0)])
+    out[zero_mask] = cap
+    return out, cap, bool(np.any(zero_mask))
+
+
+def compute_cpm(counts, *, zero_policy: str = "zero"):
+    """Compute Counts Per Million (CPM) using full-library totals per sample.
+
+    Accepts a 1D sequence/array (single sample) or a 2D features × samples
+    ``numpy.ndarray`` / ``pandas.DataFrame``. ``zero_policy`` controls samples
+    with non-positive library totals:
+      - ``"zero"`` (default): emit finite ``0.0`` for zero-depth columns;
+      - ``"nan"``: emit ``np.nan`` for zero-depth columns;
+      - ``"raise"``: raise ``ValueError("a sample has zero total counts")``.
+    """
+    import numpy as np
+
+    is_df = hasattr(counts, "to_numpy") and hasattr(counts, "columns") and hasattr(counts, "index")
+    arr = np.asarray(counts.to_numpy(dtype=float) if is_df else counts, dtype=float)
+    if arr.ndim == 1:
+        total = float(np.sum(arr))
+        if not np.isfinite(total) or total <= 0.0:
+            if zero_policy == "raise":
+                raise ValueError("a sample has zero total counts")
+            fill = np.nan if zero_policy == "nan" else 0.0
+            return np.full_like(arr, fill, dtype=float)
+        return (arr / total) * 1e6
+
+    lib_sizes = np.sum(arr, axis=0)
+    zero_mask = (~np.isfinite(lib_sizes)) | (lib_sizes <= 0.0)
+    if np.any(zero_mask) and zero_policy == "raise":
+        raise ValueError("a sample has zero total counts")
+    safe_lib = np.where(zero_mask, 1.0, lib_sizes)
+    cpm = (arr / safe_lib[None, :]) * 1e6
+    if np.any(zero_mask):
+        fill = np.nan if zero_policy == "nan" else 0.0
+        cpm[:, zero_mask] = fill
+    if is_df:
+        import pandas as pd
+
+        return pd.DataFrame(cpm, index=counts.index, columns=counts.columns)
+    return cpm
+
+
+def compute_log2_cpm(counts, *, zero_policy: str = "zero"):
+    """Compute ``log2(CPM + 1)`` using full-library totals per sample."""
+    import numpy as np
+
+    cpm = compute_cpm(counts, zero_policy=zero_policy)
+    if hasattr(cpm, "to_numpy") and hasattr(cpm, "columns"):
+        import pandas as pd
+
+        return pd.DataFrame(
+            np.log2(np.maximum(cpm.to_numpy(dtype=float), 0.0) + 1.0),
+            index=cpm.index,
+            columns=cpm.columns,
+        )
+    return np.log2(np.maximum(cpm, 0.0) + 1.0)
 
 
 # ── Pre-registered FDR family (P1-2) ─────────────────────────────────────────
@@ -161,7 +272,7 @@ def pooled_bh_across_groups(group_pvalues: dict) -> dict:
     if not pvals:
         return out
     adj = bh_correct(pvals)
-    for (grp, gene), a in zip(keys, adj):
+    for (grp, gene), a in zip(keys, adj, strict=True):
         out[grp][gene] = float(a)
     return out
 

@@ -75,12 +75,7 @@ _MOUSE_MODELS = {
 _IMMUNE_DEFAULT_MODEL = "Immune_All_Low.pkl"
 
 
-def _as_bool(value) -> bool:
-    if isinstance(value, bool):
-        return value
-    if value is None:
-        return False
-    return str(value).strip().lower() in {"1", "true", "yes", "on"}
+from aria.utils.thresholds import parse_bool_flag as _as_bool
 
 
 def _resolve_celltypist_model(model_explicit, organism, tissue_hint):
@@ -205,7 +200,7 @@ def _summarize_annotation_confidence(cluster_ids, raw_labels, assigned_labels,
     by_cluster_assigned: dict = defaultdict(list)
     by_cluster_conf: dict = defaultdict(list)
     for cl, raw, assigned, conf in zip(
-        cluster_ids, raw_labels, assigned_labels, conf_scores
+        cluster_ids, raw_labels, assigned_labels, conf_scores, strict=True
     ):
         cl = str(cl)
         by_cluster_raw[cl].append(str(raw))

@@ -78,15 +78,7 @@ _NON_STATE_LABEL_TOKENS = (
 )
 
 
-def _finite_float(value: Any) -> float | None:
-    """``float(value)`` when finite, else ``None`` (no falsy-``0.0`` traps)."""
-    if value is None or (isinstance(value, str) and not value.strip()):
-        return None
-    try:
-        out = float(value)
-    except (TypeError, ValueError):
-        return None
-    return out if math.isfinite(out) else None
+from aria.utils.stats import finite_float as _finite_float
 
 
 def _classify_view_kind(name: str, views_meta: Any = None) -> str:
@@ -120,19 +112,6 @@ def _view_value(mapping: Any, kind: str, views_meta: Any = None) -> Any:
     return None
 
 
-def _view_key(mofa: dict[str, Any], kind: str) -> str | None:
-    """Original view name (e.g. ``"scRNA"``) resolving to ``kind``, if any."""
-    views_meta = mofa.get("views") if isinstance(mofa.get("views"), dict) else None
-    candidates: list[str] = list(views_meta or {})
-    for src in (mofa.get("variance_explained"), mofa.get("variance_explained_additive")):
-        if isinstance(src, dict):
-            candidates.extend(k for k in src if k not in candidates)
-    for key in candidates:
-        if _classify_view_kind(key, views_meta) == kind:
-            return str(key)
-    return None
-
-
 def _label_str(value: Any) -> str:
     """Stable string label: ``3``, ``np.int64(3)``, ``3.0`` and ``"3"`` -> ``"3"``."""
     if isinstance(value, (bytes, bytearray, np.bytes_)):
@@ -149,15 +128,13 @@ def _label_str(value: Any) -> str:
 
 def _neglog10_display(pvals: list[float], headroom: float = 1.15,
                       all_zero_floor: float = 10.0) -> tuple[list[float], float | None]:
-    """Data-adaptive ``-log10(p)``: exact for ``p > 0``; ``p == 0`` underflow is
-    placed at ``max(max_finite * headroom, max_finite + 1)`` (never 300, never
-    shrunk to 0.05). Returns ``(values, cap)`` with ``cap=None`` if none capped."""
-    finite = [-math.log10(p) for p in pvals if p > 0]
-    cap = None
-    if any(p <= 0 for p in pvals):
-        top = max(finite) if finite else None
-        cap = max(top * headroom, top + 1.0) if top is not None else all_zero_floor
-    return [(-math.log10(p) if p > 0 else cap) for p in pvals], cap
+    """Data-adaptive ``-log10(p)`` via canonical ``stats.adaptive_neglog10``."""
+    from aria.utils.stats import adaptive_neglog10
+
+    vals, cap, has_zero = adaptive_neglog10(
+        pvals, headroom=headroom, all_zero_floor=all_zero_floor
+    )
+    return [float(v) for v in vals.tolist()], (cap if has_zero else None)
 
 
 def _decode_str_array(raw: np.ndarray) -> list[str]:
@@ -189,43 +166,51 @@ def _read_h5_index(obs_group) -> list[str]:
 
 
 def _decode_h5_obs_column(item) -> np.ndarray | list[str] | None:
-    """Decode an HDF5 ``obs`` column (Dataset, categorical Group, or nullable).
+    """Decode an HDF5 ``obs`` column (Dataset, categorical Group, legacy ``__categories``, or nullable).
 
-    Critical invariant: categorical ``codes < 0`` (AnnData NA code ``-1``) MUST
-    map to ``"NA"``, never ``categories[-1]``.
+    Delegates categorical and string decoding to canonical
+    ``aria.utils.mudata_io.read_h5_obs_series`` so both modern ``codes/categories``
+    groups and legacy AnnData ``/obs/__categories/<col>`` columns resolve cleanly
+    with negative NA codes mapped to ``"NA"``. Preserves numeric ``np.ndarray``
+    for non-categorical float/int datasets and nullable numeric groups.
     """
     import h5py
+    from aria.utils.mudata_io import read_h5_obs_series
 
-    if isinstance(item, h5py.Group):
-        if "codes" in item and "categories" in item:
-            codes = np.asarray(item["codes"][()], dtype=np.int64).ravel()
-            cats = _decode_str_array(np.asarray(item["categories"][()]))
-            n_cats = len(cats)
-            decoded: list[str] = []
-            for c in codes.tolist():
-                if c < 0 or c >= n_cats:
-                    decoded.append("NA")
-                else:
-                    decoded.append(cats[c])
-            return decoded
-        if "values" in item and "mask" in item:
-            vals = np.asarray(item["values"][()])
+    if isinstance(item, h5py.Group) and "values" in item and "mask" in item:
+        vals = np.asarray(item["values"][()])
+        if vals.dtype.kind in {"f", "i", "u"}:
             mask = np.asarray(item["mask"][()], dtype=bool)
-            if vals.dtype.kind in {"f", "i", "u"}:
-                arr = vals.astype(np.float64)
-                arr[mask] = np.nan
-                return arr
-            str_vals = _decode_str_array(vals)
-            return ["NA" if bool(m) else v for v, m in zip(str_vals, mask.tolist())]
-        return None
+            arr = vals.astype(np.float64)
+            arr[mask] = np.nan
+            return arr
+
+    parent = getattr(item, "parent", None)
+    raw_name = getattr(item, "name", "") or ""
+    col_name = raw_name.rsplit("/", 1)[-1] if raw_name else ""
 
     if isinstance(item, h5py.Dataset):
         arr = np.asarray(item[()])
-        if arr.dtype.kind in {"f"}:
-            return arr.astype(np.float64)
-        if arr.dtype.kind in {"i", "u"}:
-            return arr
-        return _decode_str_array(arr)
+        is_legacy_cat = (
+            arr.dtype.kind in {"i", "u"}
+            and parent is not None
+            and col_name
+            and "__categories" in parent
+            and col_name in parent["__categories"]
+        )
+        if not is_legacy_cat:
+            if arr.dtype.kind in {"f"}:
+                return arr.astype(np.float64)
+            if arr.dtype.kind in {"i", "u"}:
+                return arr
+
+    if parent is not None and col_name:
+        ok, series = read_h5_obs_series(parent, col_name)
+        if ok and isinstance(series, list):
+            return [
+                "NA" if (v is None or str(v) in {"", "nan", "None", "<NA>"}) else str(v)
+                for v in series
+            ]
     return None
 
 
@@ -307,7 +292,7 @@ def _read_wnn_h5mu(h5mu_path: str | Path) -> dict[str, Any] | None:
                 "atac_umap": atac_umap,
                 "obs": obs_cols,
             }
-    except Exception as exc:
+    except Exception as exc:  # aria: allow-broad-except log WNN h5mu read failure for non-fatal figure panel
         log.warning("Failed reading WNN .h5mu %s: %s", path, exc)
         return None
 
@@ -990,17 +975,13 @@ def _load_p2g_rows_with_total(p2g_findings: dict[str, Any]) -> tuple[list[dict[s
                     total += 1
                     if len(rows) < _P2G_ROW_CAP:
                         rows.append(dict(row))
-        except Exception as exc:
+        except Exception as exc:  # aria: allow-broad-except fallback to top_links when full p2g CSV unreadable
             log.warning("Could not read peak_gene_links.csv (%s); using top_links", exc)
             rows, total = [], 0
     if not rows:
         rows = [dict(r) for r in (p2g_findings.get("top_links") or []) if isinstance(r, dict)]
         total = len(rows)
     return rows, total
-
-
-def _load_p2g_rows(p2g_findings: dict[str, Any]) -> list[dict[str, Any]]:
-    return _load_p2g_rows_with_total(p2g_findings)[0]
 
 
 def _first_present(row: dict[str, Any], *keys: str) -> Any:
@@ -1338,8 +1319,10 @@ def stage_integration_tables(
             if src.resolve() != dest.resolve():
                 shutil.copy2(src, dest)
             staged[key] = f"tables/{dest_name}"
-        except Exception as exc:
+        except Exception as exc:  # aria: allow-broad-except record integration table staging error for W-WARN
             log.warning("Failed staging integration table %s: %s", src, exc)
+            from aria.agents.narrative.protocols import record_figure_error
+            record_figure_error(findings, f"table_{key}", exc)
     return staged
 
 
@@ -1373,7 +1356,9 @@ def generate_figures(
                 png_p, svg_p = dual
                 figs[key] = png_p
                 figs_svg[key] = svg_p
-        except Exception as exc:
+        except Exception as exc:  # aria: allow-broad-except record integration figure error for W-WARN
             log.warning("Integration figure %s failed: %s", key, exc, exc_info=True)
+            from aria.agents.narrative.protocols import record_figure_error
+            record_figure_error(findings, key, exc)
 
     return findings

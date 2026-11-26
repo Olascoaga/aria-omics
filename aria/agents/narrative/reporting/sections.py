@@ -5,6 +5,7 @@ from __future__ import annotations
 import math
 
 from aria.agents.narrative.reporting._base import *
+from aria.utils.bulk_qc_contract import sample_qc_failed, sample_qc_size_ratio
 
 
 def _finite_num(value) -> float | None:
@@ -38,19 +39,33 @@ class ReportSectionsMixin:
             if bulk.get("status") == "done":
                 sqc = ((bulk.get("findings") or {}).get("sample_qc")) or {}
                 n   = sqc.get("n_samples", "?")
-                out = sqc.get("candidate_outliers", sqc.get("outliers", []))
-                sens_out = sqc.get("sensitivity_outliers_removed", [])
-                ratio_f = _finite_num(sqc.get("size_ratio"))
-                ratio_str = (f" · library-size range {ratio_f:.1f}×"
-                             if ratio_f is not None else "")
-                out_str = (f" · <span style='color:var(--amber)'>"
-                           f"{len(out)} outlier(s) flagged; "
-                           f"{len(sens_out)} removed in sensitivity</span>"
-                           if out else " · no outliers flagged")
-                rows.append(
-                    f"<tr><td>Bulk RNA-seq</td>"
-                    f"<td>{_html.escape(str(n))} samples{ratio_str}{out_str}</td></tr>"
-                )
+                ratio_f = sample_qc_size_ratio(sqc)
+                if sample_qc_failed(sqc):
+                    ratio_err_str = (
+                        f" · library-size range {ratio_f:.1f}×"
+                        if ratio_f is not None
+                        else " · library-size range not available"
+                    )
+                    err_txt = _html.escape(str(sqc.get("error") or "sample QC failed")[:120])
+                    rows.append(
+                        f"<tr><td>Bulk RNA-seq</td>"
+                        f"<td>{_html.escape(str(n))} samples{ratio_err_str} · "
+                        f"<span style='color:var(--red)'>sample QC failed ({err_txt}); "
+                        f"outlier screening not available</span></td></tr>"
+                    )
+                else:
+                    out = sqc.get("candidate_outliers", sqc.get("outliers", [])) or []
+                    sens_out = sqc.get("sensitivity_outliers_removed", []) or []
+                    ratio_str = (f" · library-size range {ratio_f:.1f}×"
+                                 if ratio_f is not None else "")
+                    out_str = (f" · <span style='color:var(--amber)'>"
+                               f"{len(out)} outlier(s) flagged; "
+                               f"{len(sens_out)} removed in sensitivity</span>"
+                               if out else " · no outliers flagged")
+                    rows.append(
+                        f"<tr><td>Bulk RNA-seq</td>"
+                        f"<td>{_html.escape(str(n))} samples{ratio_str}{out_str}</td></tr>"
+                    )
 
             # scRNA
             sc = agent_results.get("scrna_agent") or {}
@@ -420,7 +435,8 @@ class ReportSectionsMixin:
                 if p.suffix.lower() in (".jpg", ".jpeg"):
                     return f"data:image/jpeg;base64,{b64}"
                 return ""
-            except Exception:
+            except Exception as exc:  # aria: allow-broad-except cosmetic inline image read failure
+                log.warning("Could not embed bulk RNA image %s: %s", path, exc)
                 return ""
 
         def _figure(src: str, caption: str, alt: str = "") -> str:
@@ -593,6 +609,11 @@ class ReportSectionsMixin:
         self._staged_table_map: dict[str, str] = {}
         tables_dir = report_dir / "tables"
 
+        from aria.agents.narrative.protocols import record_figure_error
+
+        bulk = agent_results.get("bulk_rna_agent", {})
+        bulk_findings = bulk.get("findings") if isinstance(bulk, dict) else None
+
         def _stage_table_file(src_path: Path, dst_name: str) -> None:
             if not src_path.is_file():
                 return
@@ -607,10 +628,9 @@ class ReportSectionsMixin:
                     self._staged_table_map[str(src_path.resolve())] = rel
                 except OSError:
                     pass
-            except Exception as e:
+            except Exception as e:  # aria: allow-broad-except record table staging error for W-WARN
                 log.warning(f"Stage table {src_path.name}: {e}")
-
-        bulk = agent_results.get("bulk_rna_agent", {})
+                record_figure_error(bulk_findings, f"stage_table_{src_path.name}", e)
 
         contrasts = []
         if bulk and bulk.get("status") == "done":
@@ -637,8 +657,9 @@ class ReportSectionsMixin:
                         if f.is_file():
                             try:
                                 shutil.copy2(f, dst_fig / f.name)
-                            except Exception as e:
+                            except Exception as e:  # aria: allow-broad-except record contrast figure staging error for W-WARN
                                 log.warning(f"Stage figure {f.name}: {e}")
+                                record_figure_error(bulk_findings, f"stage_figure_{f.name}", e)
 
                 # Stage tables: report_dir/tables/<slug>_*.tsv
                 src_tbl = Path(contrast_dir) / "tables"
@@ -674,8 +695,9 @@ class ReportSectionsMixin:
             try:
                 pca_ext = Path(pca).suffix.lower() or ".svg"
                 _sh.copy2(pca, report_dir / "figures" / f"pca_all_samples{pca_ext}")
-            except Exception as e:
+            except Exception as e:  # aria: allow-broad-except record PCA staging error for W-WARN
                 log.warning(f"Stage PCA: {e}")
+                record_figure_error(bulk_findings, "stage_pca", e)
 
         # MDS (preserve real file extension — do not label .png as .svg)
         mds = sqc.get("mds_plot")
@@ -683,8 +705,9 @@ class ReportSectionsMixin:
             try:
                 mds_ext = Path(mds).suffix.lower() or ".svg"
                 _sh.copy2(mds, report_dir / "figures" / f"mds_all_samples{mds_ext}")
-            except Exception as e:
+            except Exception as e:  # aria: allow-broad-except record MDS staging error for W-WARN
                 log.warning(f"Stage MDS: {e}")
+                record_figure_error(bulk_findings, "stage_mds", e)
 
         # Individual PCA + MDS SVGs if they were saved separately
         for fname in ("pca.svg", "mds.svg", "pca_mds.svg"):
@@ -696,8 +719,9 @@ class ReportSectionsMixin:
                         try:
                             _sh.copy2(candidate,
                                        report_dir / "figures" / fname)
-                        except Exception:
-                            pass
+                        except Exception as e:  # aria: allow-broad-except record supplemental SVG staging error for W-WARN
+                            log.warning(f"Stage {fname}: {e}")
+                            record_figure_error(bulk_findings, f"stage_{fname}", e)
                         break
 
         # TPM supplementary table (new v3.8)
@@ -710,8 +734,9 @@ class ReportSectionsMixin:
                     try:
                         _sh.copy2(tpm_src,
                                    report_dir / "tables" / "counts_tpm.tsv")
-                    except Exception as e:
+                    except Exception as e:  # aria: allow-broad-except record TPM table staging error for W-WARN
                         log.warning(f"Stage TPM: {e}")
+                        record_figure_error(bulk_findings, "stage_tpm", e)
                     break
 
         # scRNA reports usually carry rich result dictionaries rather than
@@ -719,6 +744,7 @@ class ReportSectionsMixin:
         sc = (agent_results or {}).get("scrna_agent") or \
              (agent_results or {}).get("rna_agent") or {}
         if sc.get("status") == "done":
+            sc_findings = None
             try:
                 from aria.agents import _narrative_scrna
                 sc_findings = _narrative_scrna.unwrap_scrna_findings(sc)
@@ -726,13 +752,19 @@ class ReportSectionsMixin:
                     sc_findings,
                     report_dir / "tables",
                 )
-            except Exception as e:
+            except Exception as e:  # aria: allow-broad-except record scRNA table staging error for W-WARN
                 log.warning(f"Stage scRNA supplementary tables: {e}",
                             exc_info=True)
+                record_figure_error(
+                    sc_findings if isinstance(sc_findings, dict) else sc.get("findings"),
+                    "stage_scrna_tables",
+                    e,
+                )
 
         # Paired multiome integration CSV tables (MOFA loadings, peak2gene, eRegulons).
         integ = (agent_results or {}).get("integration_agent") or {}
         if integ.get("status") == "done":
+            int_findings = None
             try:
                 from aria.agents import _narrative_integration
                 from aria.agents.narrative.narrators.integration import (
@@ -743,9 +775,14 @@ class ReportSectionsMixin:
                     int_findings,
                     report_dir / "tables",
                 )
-            except Exception as e:
+            except Exception as e:  # aria: allow-broad-except record integration table staging error for W-WARN
                 log.warning(f"Stage integration supplementary tables: {e}",
                             exc_info=True)
+                record_figure_error(
+                    int_findings if isinstance(int_findings, dict) else integ.get("findings"),
+                    "stage_integration_tables",
+                    e,
+                )
 
         # Non-same-cell cross-modal concordance tables + starburst (ADR-080).
         self._stage_cross_modal_artifacts(agent_results, report_dir)
@@ -756,6 +793,7 @@ class ReportSectionsMixin:
     def _stage_hic_artifacts(agent_results: dict, report_dir: Path):
         """Copy Hi-C supplementary tables and PNG/SVG figures into the report."""
         import shutil
+        from aria.agents.narrative.protocols import record_figure_error
 
         hic = (agent_results or {}).get("genome_arch_agent") or {}
         if not isinstance(hic, dict) or hic.get("status") not in ("done", "success"):
@@ -775,8 +813,9 @@ class ReportSectionsMixin:
                         src = Path(raw)
                         (report_dir / "figures").mkdir(parents=True, exist_ok=True)
                         shutil.copy2(src, report_dir / "figures" / src.name)
-        except Exception as e:
+        except Exception as e:  # aria: allow-broad-except record Hi-C artifact staging error for W-WARN
             log.warning(f"Stage Hi-C supplementary artifacts: {e}")
+            record_figure_error(hic.get("findings"), "stage_hic_artifacts", e)
 
     @staticmethod
     def _stage_cross_modal_artifacts(agent_results: dict, report_dir: Path):
@@ -787,6 +826,7 @@ class ReportSectionsMixin:
         ``figures/cross_modal_starburst.{png,svg}``).
         """
         import shutil
+        from aria.agents.narrative.protocols import record_figure_error
 
         from aria.agents.narrative.run_ledger import cross_modal_findings
         cm = cross_modal_findings(agent_results)
@@ -809,8 +849,9 @@ class ReportSectionsMixin:
             try:
                 dst_dir.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(src, dst_dir / src.name)
-            except Exception as e:
+            except Exception as e:  # aria: allow-broad-except record cross-modal artifact staging error for W-WARN
                 log.warning(f"Stage cross-modal artifact {src.name}: {e}")
+                record_figure_error(cm, f"stage_cross_modal_{src.name}", e)
 
 
     def _build_findings_table(self, grouped: dict) -> str:

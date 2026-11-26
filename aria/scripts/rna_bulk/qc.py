@@ -3,8 +3,9 @@
 
 Re-exported from aria.scripts.rna_bulk_de."""
 from __future__ import annotations
-import warnings
+import math
 
+from aria.utils.bulk_qc_contract import sample_qc_failed, sample_qc_size_ratio  # noqa: F401
 from aria.utils.stats import contrast_family_significance
 from aria.scripts.rna_bulk.transforms import _run_vst, _select_variable_genes
 from aria.scripts.rna_bulk.deseq2 import _run_deseq2
@@ -29,15 +30,15 @@ def _sample_qc(counts, metadata, output_dir: str,
     A sample is reported as "outlier" if it fails BOTH (more conservative).
     Primary DE retains flagged outliers; removal is a sensitivity analysis only.
     """
+    lib_size_range: list[int] | None = None
+    size_ratio_val: float | None = None
     try:
-        import pandas as pd
-        import numpy as np
-        from sklearn.decomposition import PCA
-        from sklearn.preprocessing import StandardScaler
-
-        # ── Library size stats ────────────────────────────────────────────
+        # ── Library size stats (independent of PCA/VST) ───────────────────
         lib_sizes  = counts.sum(axis=0)
         size_ratio = float(lib_sizes.max() / max(lib_sizes.min(), 1))
+        if math.isfinite(size_ratio):
+            lib_size_range = [int(lib_sizes.min()), int(lib_sizes.max())]
+            size_ratio_val = round(float(size_ratio), 1)
         if size_ratio > 10:
             warnings.append(
                 f"Library size range: {size_ratio:.1f}× "
@@ -46,6 +47,8 @@ def _sample_qc(counts, metadata, output_dir: str,
                 f"DESeq2 normalization handles modest variation; "
                 f"consider re-sequencing low-depth samples if >100×."
             )
+
+        import numpy as np
 
         # ── (a) Replicate concordance ─────────────────────────────────────
         # Use log2(counts+1) so highly-expressed genes don't dominate.
@@ -174,20 +177,20 @@ def _sample_qc(counts, metadata, output_dir: str,
             "n_protein_coding":    int(n_pc),
         }
 
-    except Exception as e:
+    except Exception as e:  # aria: allow-broad-except auxiliary sample QC diagnostic must not abort primary DE
         warnings.append(f"Sample QC failed: {e}")
-        try:
-            lib_sizes = counts.sum(axis=0)
-            lib_range = [int(lib_sizes.min()), int(lib_sizes.max())]
-            size_ratio = round(
-                float(lib_sizes.max() / max(lib_sizes.min(), 1)), 1
-            )
-        except Exception:
-            lib_range = []
-            size_ratio = None
-        return {"n_samples": int(counts.shape[1]), "outliers": [],
-                "pca_variance": [], "lib_size_range": lib_range,
-                "size_ratio": size_ratio, "error": str(e)}
+        err_payload = {
+            "status": "error",
+            "n_samples": int(counts.shape[1]),
+            "outliers": None,
+            "pca_variance": [],
+            "error": str(e),
+        }
+        if lib_size_range is not None:
+            err_payload["lib_size_range"] = lib_size_range
+        if size_ratio_val is not None:
+            err_payload["size_ratio"] = size_ratio_val
+        return err_payload
 
 
 def _prune_outliers_for_design(outliers: list, metadata,

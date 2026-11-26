@@ -54,15 +54,7 @@ CATEGORIES = (
 )
 
 
-def finite(value):
-    """A JSON-compatible finite number, or None."""
-    if isinstance(value, (bool, np.bool_)):
-        return None
-    try:
-        number = float(value)
-        return number if math.isfinite(number) else None
-    except (ValueError, TypeError):
-        return None
+from aria.utils.stats import finite_float as finite
 
 
 def safe_label(value):
@@ -209,11 +201,33 @@ def _value(record, *names):
     return None
 
 
-def filter_comparison(df, comp):
+def _norm_contrast_label(label: str) -> str:
+    return re.sub(r"\s+vs\s+", "_vs_", str(label).strip(), flags=re.IGNORECASE).replace(" ", "_")
+
+
+def filter_comparison(df, comp, *, allow_single_contrast_fallback: bool = False):
+    """Restrict a DA/DE table to one contrast, normalizing ``'A vs B'`` vs ``'A_vs_B'``.
+
+    Multi-contrast tables and mismatched contrast labels are strictly filtered
+    by default so candidate-file loaders never leak a different contrast's rows.
+    When ``allow_single_contrast_fallback=True`` (used for per-comparison DA
+    annotation CSVs), a single-contrast table with a non-matching label is kept.
+    """
+    comp = comp or {}
+    target = contrast_name(comp)
+    has_arms = bool(contrast_arms(comp))
+    target_norm = _norm_contrast_label(target) if (has_arms and target) else ""
     for col in ("comparison", "contrast"):
-        if col in df:
-            df = df[df[col].astype(str) == contrast_name(comp)]
-    if "group" in df and comp.get("group") is not None:
+        if col in df.columns and target_norm:
+            labels = df[col].astype(str)
+            mask = (labels == target) | (labels.map(_norm_contrast_label) == target_norm)
+            if (
+                not allow_single_contrast_fallback
+                or bool(mask.any())
+                or labels.nunique(dropna=True) > 1
+            ):
+                df = df[mask]
+    if "group" in df.columns and comp.get("group") is not None:
         df = df[df["group"].astype(str) == str(comp["group"])]
     return df
 
@@ -229,32 +243,32 @@ def rna_table_paths(comp):
     return paths
 
 
-def gtf_symbols(path):
-    """ID-to-symbol aliases from the same GTF as the genomic assignments."""
-    aliases = {}
-    if not path:
-        return aliases
-    opener = gzip.open if str(path).endswith(".gz") else open
-    try:
-        with opener(path, "rt") as handle:
-            for line in handle:
-                fields = line.rstrip().split("\t")
-                if len(fields) < 9 or fields[2] != "gene":
-                    continue
-                gid = re.search(r'gene_id "([^"]+)"', fields[8])
-                symbol = re.search(r'gene_name "([^"]+)"', fields[8])
-                if gid and symbol:
-                    aliases[gid[1].split(".")[0].upper()] = symbol[1]
-    except (OSError, EOFError):
-        return {}
-    return aliases
+from aria.utils.genomic_coords import (
+    parse_gtf_symbol_map,
+    strip_gene_version as _strip_gene_version,
+)
+
+gtf_symbols = parse_gtf_symbol_map
+
+
+def _lookup_alias(aliases: dict[str, str], raw_id: str) -> str:
+    """Resolve ``raw_id`` against ``aliases`` preserving non-Ensembl dotted IDs."""
+    text = str(raw_id).strip()
+    stripped = _strip_gene_version(text)
+    for cand in (text, stripped, stripped.upper(), text.split(".")[0].upper()):
+        if cand in aliases:
+            return aliases[cand]
+    return text
 
 
 def load_rna_table(comp, aliases, warnings, alpha=.05):
-    aliases = dict(aliases)
+    aliases_ci = {**{str(k).upper(): v for k, v in (aliases or {}).items()}, **(aliases or {})}
     for row in comp.get("top_genes") or []:
         if isinstance(row, dict) and row.get("gene") and row.get("symbol"):
-            aliases[str(row["gene"]).split(".")[0].upper()] = str(row["symbol"])
+            g_str = str(row["gene"]).strip()
+            g_clean = _strip_gene_version(g_str)
+            aliases_ci[g_clean] = str(row["symbol"])
+            aliases_ci[g_clean.upper()] = str(row["symbol"])
     df = pd.DataFrame()
     full = False
     for path in rna_table_paths(comp):
@@ -292,23 +306,81 @@ def load_rna_table(comp, aliases, warnings, alpha=.05):
                      if c in raw and pd.notna(raw[c]) and str(raw[c]).strip()), None)
         if gene is None:
             continue
-        gene = str(gene)
-        gene = aliases.get(gene.split(".")[0].upper(), gene)
+        gene = _lookup_alias(aliases_ci, str(gene))
         lfc = finite(_value(raw, "log2fc", "log2FoldChange", "log2_fold_change", "Log2 Fold Change"))
         padj = finite(_value(raw, "padj", "FDR", "adjusted_pvalue", "Adjusted P-value"))
         direction = finite(raw.get("_direction_sign"))
         if direction is None and raw.get("direction") in ("up", "down"):
             direction = 1 if raw["direction"] == "up" else -1
+        raw_gid = next(
+            (str(raw[c]).split(".")[0].strip() for c in ("gene_id", "Gene ID")
+             if c in raw and pd.notna(raw[c]) and str(raw[c]).strip()),
+            None,
+        )
         rows.append({"gene": gene, "gene_key": gene.upper(), "rna_log2fc": lfc, "rna_padj": padj,
                      "rna_direction": int(np.sign(lfc)) if lfc is not None else direction,
                      "rna_known_sig": raw.get("_known_sig") is True,
-                     "best_cell_group": comp.get("group")})
+                     "best_cell_group": comp.get("group"),
+                     "_locus_id": raw_gid})
     result = pd.DataFrame(rows)
     if not result.empty:
-        # Merge partial in-memory lists without replacing measured effects.
-        known = result.groupby("gene_key").rna_known_sig.any()
-        result = result.sort_values("rna_padj", na_position="last").groupby("gene_key", sort=False, as_index=False).first()
-        result["rna_known_sig"] = result.gene_key.map(known)
+        # Row-preserving deduplication per gene_key (D4-011): never splice
+        # columns across distinct loci via groupby().first() and never OR
+        # rna_known_sig across opposing directions or finite non-sig padj.
+        deduped_rows = []
+        ambiguous_keys: list[str] = []
+        dup_locus_keys: list[str] = []
+        for gkey, grp in result.groupby("gene_key", sort=False):
+            if len(grp) == 1:
+                deduped_rows.append(grp.iloc[0].to_dict())
+                continue
+            ordered = grp.sort_values("rna_padj", na_position="last", kind="mergesort")
+            dirs = {
+                int(d) for d in ordered["rna_direction"].dropna().tolist()
+                if int(d) != 0
+            }
+            loci = {
+                str(x) for x in ordered["_locus_id"].dropna().tolist()
+                if str(x).strip()
+            }
+            finite_padjs = ordered["rna_padj"].dropna().tolist()
+            has_sig = bool(
+                any(p < alpha for p in finite_padjs)
+                or ordered["rna_known_sig"].any()
+            )
+            has_nonsig = bool(any(p >= alpha for p in finite_padjs))
+            if len(dirs) > 1 or (has_sig and has_nonsig):
+                ambiguous_keys.append(str(gkey))
+                continue
+            if len(loci) > 1:
+                dup_locus_keys.append(str(gkey))
+            winner = ordered.iloc[0].to_dict()
+            # Only propagate rna_known_sig from compatible in-memory lists when
+            # the winning row itself has no conflicting non-significant padj.
+            w_padj = winner.get("rna_padj")
+            if (
+                ordered["rna_known_sig"].any()
+                and (w_padj is None or pd.isna(w_padj) or float(w_padj) < alpha)
+            ):
+                winner["rna_known_sig"] = True
+            deduped_rows.append(winner)
+        if ambiguous_keys:
+            warnings.append(
+                f"rna_ambiguous_symbol_collisions_excluded: n={len(ambiguous_keys)} "
+                f"({', '.join(sorted(ambiguous_keys)[:10])})"
+            )
+        if dup_locus_keys:
+            warnings.append(
+                f"rna_duplicate_symbol_loci_deduplicated: n={len(dup_locus_keys)} "
+                f"({', '.join(sorted(dup_locus_keys)[:10])})"
+            )
+        cols = ["gene", "gene_key", "rna_log2fc", "rna_padj", "rna_direction",
+                "rna_known_sig", "best_cell_group"]
+        result = (
+            pd.DataFrame(deduped_rows)[cols]
+            if deduped_rows
+            else pd.DataFrame(columns=cols)
+        )
     return result, "all_tested_genes" if full else "reported_genes_only"
 
 
@@ -787,8 +859,20 @@ def read_cpm(path, aliases, warnings):
         return pd.DataFrame()
     if df.empty:
         return pd.DataFrame()
-    feature = _column(df, "gene_symbol", "gene", "gene_id", "peak", "feature", "Unnamed: 0")
+    # Prefer unique gene_id over non-unique gene_symbol (D4-012), while
+    # preserving any inline gene_symbol column as a local alias map so distinct
+    # Ensembl loci sharing an HGNC symbol sum cleanly instead of aborting.
+    feature = _column(df, "gene_id", "gene_symbol", "gene", "peak", "feature", "Unnamed: 0")
     feature = feature if feature is not None else df.columns[0]
+    sym_col = _column(df, "gene_symbol", "symbol")
+    table_aliases: dict[str, str] = {}
+    if sym_col is not None and sym_col != feature:
+        for fid, sym in zip(df[feature], df[sym_col], strict=True):
+            if pd.notna(fid) and pd.notna(sym):
+                fid_s = str(fid).split(".")[0].strip().upper()
+                sym_s = str(sym).strip()
+                if fid_s and sym_s and sym_s.lower() != "nan":
+                    table_aliases.setdefault(fid_s, sym_s)
     unit = _column(df, "sample_id", "donor_id")
     amount = _column(df, "cpm", "tpm", "expression")
     if unit is not None and amount is not None:
@@ -804,33 +888,20 @@ def read_cpm(path, aliases, warnings):
         warnings.append("cpm_matrix_skipped: duplicate_feature_or_sample_ids")
         return pd.DataFrame()
     df = df.apply(pd.to_numeric, errors="coerce")
-    df.index = [aliases.get(str(x).split(".")[0].upper(), str(x)) for x in df.index]
+    eff_aliases = {**{str(k).upper(): v for k, v in (aliases or {}).items()}, **(aliases or {})}
+    if table_aliases:
+        eff_aliases = {**table_aliases, **eff_aliases}
+    df.index = [_lookup_alias(eff_aliases, str(x)) for x in df.index]
     if df.index.duplicated().any():
         warnings.append("cpm_feature_alias_collisions: summed_mapped_loci")
         df = df.groupby(level=0, sort=False).sum(min_count=1)
     return df
 
 
-def bh_adjust(values):
-    values = np.asarray(values, dtype=float)
-    result = np.full_like(values, np.nan)
-    valid = np.isfinite(values)
-    m = int(valid.sum())
-    if not m:
-        return result
-    p = np.clip(values[valid], 0.0, 1.0)
-    order = np.argsort(p, kind="mergesort")
-    adjusted = np.minimum.accumulate((p[order] * m / np.arange(1, m + 1))[::-1])[::-1]
-    restored = np.empty(m, dtype=float)
-    restored[order] = np.clip(adjusted, 0.0, 1.0)
-    result[valid] = restored
-    return result
+from aria.utils.stats import bh_correct as bh_adjust
 
 
-def _norm_chrom(chrom):
-    chrom = str(chrom)
-    chrom = chrom[3:] if chrom.lower().startswith("chr") else chrom
-    return "MT" if chrom in ("M", "MT") else chrom
+from aria.utils.genomic_coords import ensembl_contig as _norm_chrom
 
 
 def _standardize(matrix):
@@ -944,6 +1015,12 @@ def _residualize_covariates(matrix, shared_samples, sample_covariates):
     }
 
 
+# Minimum sample-matched biological units below which across-sample cis
+# correlation power is low (df < 8 -> power < 80% even for strong effects after
+# BH adjustment across tested peak-gene pairs; D7-014).
+LOW_POWER_MIN_MATCHED_SAMPLES = 10
+
+
 def sample_matched_layer(rna_cpm, atac_cpm, models, params, warnings):
     """Cis correlations with a pooled empirical sample-label permutation null.
 
@@ -954,6 +1031,7 @@ def sample_matched_layer(rna_cpm, atac_cpm, models, params, warnings):
     covariate warning and sex-chromosome link audit are emitted.
     """
     result = {"ran": False, "reason": "cpm_matrices_unavailable", "n_shared_samples": 0, "shared_sample_ids": [],
+              "low_power_warning": None,
               "cis_distance_bp": params["cis_distance_bp"], "min_required": params["min_matched_samples"],
               "n_pairs_tested": 0, "n_significant_links": 0, "n_positive_links": 0, "n_negative_links": 0,
               "n_sex_chromosome_significant_links": 0, "sex_chromosome_significant_fraction": 0.0,
@@ -982,8 +1060,13 @@ def sample_matched_layer(rna_cpm, atac_cpm, models, params, warnings):
     atac = atac_cpm[[y for _, y in aligned]]
     rna = rna[np.isfinite(rna).all(axis=1) & (rna >= 0).all(axis=1)]
     atac = atac[np.isfinite(atac).all(axis=1) & (atac >= 0).all(axis=1)]
+    # Drop strictly constant rows BEFORE log2(x+1) so floating-point variance
+    # noise (~2e-31 for constant nonzero CPM) never leaks into testing (D2-BUG-8).
+    rna = rna[np.ptp(rna.to_numpy(dtype=float), axis=1) > 0.0]
+    atac = atac[np.ptp(atac.to_numpy(dtype=float), axis=1) > 0.0]
     rna, atac = np.log2(rna + 1.0), np.log2(atac + 1.0)
-    rna, atac = rna[rna.var(axis=1) > 0], atac[atac.var(axis=1) > 0]
+    rna = rna[np.var(rna.to_numpy(dtype=float), axis=1) > 1e-12]
+    atac = atac[np.var(atac.to_numpy(dtype=float), axis=1) > 1e-12]
     if len(atac) > 50_000:
         atac = atac.loc[atac.var(axis=1).sort_values(ascending=False, kind="stable").head(50_000).index]
         warnings.append("sample_link_candidate_cap: top_50000_variable_peaks")
@@ -1107,6 +1190,7 @@ def sample_matched_layer(rna_cpm, atac_cpm, models, params, warnings):
         else None
     )
     result.update(ran=True, reason=None, n_pairs_tested=len(frame), n_significant_links=len(significant),
+                  low_power_warning=bool(len(shared) < LOW_POWER_MIN_MATCHED_SAMPLES),
                   n_positive_links=int((significant.pearson_r > 0).sum()), n_negative_links=int((significant.pearson_r < 0).sum()),
                   n_sex_chromosome_significant_links=n_sex_sig,
                   sex_chromosome_significant_fraction=sex_sig_frac,
@@ -1119,21 +1203,7 @@ def sample_matched_layer(rna_cpm, atac_cpm, models, params, warnings):
     return frame, result
 
 
-def _adaptive_neglog10(pvals):
-    """Return (-log10(p) with data-adaptive cap for p==0, cap_value, has_zero_cap)."""
-    arr = np.asarray(pvals, dtype=float)
-    valid = np.isfinite(arr) & (arr >= 0.0) & (arr <= 1.0)
-    pos = arr[valid & (arr > 0.0)]
-    if pos.size > 0:
-        max_fin = float(-np.log10(np.min(pos)))
-        cap = max(max_fin * 1.15, max_fin + 1.0, 5.0)
-    else:
-        cap = 10.0
-    zero_mask = valid & (arr == 0.0)
-    out = np.full(arr.shape, np.nan, dtype=float)
-    out[valid & (arr > 0.0)] = -np.log10(arr[valid & (arr > 0.0)])
-    out[zero_mask] = cap
-    return out, cap, bool(np.any(zero_mask))
+from aria.utils.stats import adaptive_neglog10 as _adaptive_neglog10
 
 
 def render_starburst(de_da, tfs, pathways, summary, output_dir):

@@ -592,6 +592,8 @@ def test_orchestrator_blocks_diagonal_imputation_in_dispatch():
 
 
 def test_adr080_empirical_receipt_integrity():
+    """Static publication-artifact hygiene check for committed ADR-080 receipt
+    (paired with live synthetic kernel oracle below, D3-012)."""
     receipt_path = (
         Path(__file__).resolve().parents[1]
         / "docs"
@@ -599,8 +601,7 @@ def test_adr080_empirical_receipt_integrity():
         / "multiome_concordance"
         / "adr080_cross_modal_concordance_validation.json"
     )
-    if not receipt_path.is_file():
-        pytest.skip("ADR-080 empirical validation receipt not yet generated")
+    assert receipt_path.is_file(), f"Committed ADR-080 receipt missing: {receipt_path}"
     raw = receipt_path.read_text(encoding="utf-8")
     assert "/home/" not in raw
     assert "/tmp/" not in raw
@@ -640,4 +641,67 @@ def test_adr080_empirical_receipt_integrity():
     assert gov["biological_synthesis_slice2"]["w_claim_unsupported_blocks"] == 0
     assert gov["biological_synthesis_slice2"]["c3_ledger_violations"] == 0
     assert gov["biological_synthesis_slice2"]["c4_causal_verb_hits"] == 0
+
+
+def test_adr080_live_synthetic_cross_modal_oracle(tmp_path):
+    """D3-012: live analytical oracle exercising cross_modal_concordance so
+    regressions in the real script cannot hide behind static receipt checks."""
+    import pandas as pd
+    from scipy.stats import fisher_exact
+    from aria.scripts.cross_modal_concordance import cross_modal_concordance
+
+    genes = [f"G{i}" for i in range(10)]
+    positions = [10000 + i * 200000 for i in range(10)]
+    gtf = tmp_path / "genes.gtf"
+    gtf.write_text(
+        "".join(
+            f'chr1\ttest\tgene\t{pos}\t{pos + 1000}\t.\t+\t.\tgene_id "ENSG{i:06}"; gene_name "{g}";\n'
+            for i, (g, pos) in enumerate(zip(genes, positions))
+        ),
+        encoding="utf-8",
+    )
+    tables = tmp_path / "rna" / "ko_vs_wt" / "tables"
+    tables.mkdir(parents=True)
+    # 4 concordant up, 3 concordant down, 1 discordant, 2 unchanged
+    rna_lfc = [3.0, 2.5, 2.0, 1.8, -3.0, -2.5, -2.0, 2.0, 0.1, -0.1]
+    atac_lfc = [2.8, 2.2, 1.9, 1.5, -2.8, -2.1, -1.7, -2.0, 0.05, -0.05]
+    pvals = [0.001] * 8 + [0.8, 0.8]
+    pd.DataFrame({
+        "gene_id": [f"ENSG{i:06}.1" for i in range(10)],
+        "log2FoldChange": rna_lfc,
+        "padj": pvals,
+    }).to_csv(tables / "de_genes.tsv", sep="\t", index=False)
+
+    peaks = [f"chr1:{pos - 100}-{pos + 100}" for pos in positions]
+    atac_csv = tmp_path / "da_full.csv"
+    pd.DataFrame({
+        "peak": peaks,
+        "log2FoldChange": [-x for x in atac_lfc],  # reversed ATAC contrast!
+        "padj": pvals,
+        "significant": [p < 0.05 for p in pvals],
+    }).to_csv(atac_csv, index=False)
+
+    res = cross_modal_concordance({
+        "rna_results": {"status": "done", "findings": {"contrasts": [{
+            "name": "KO_vs_WT", "numerator": "KO", "denominator": "WT",
+            "tables_dir": str(tables),
+        }]}},
+        "chromatin_results": {"status": "done", "findings": {"bulk_ATAC": {"findings": {
+            "differential_accessibility": {"comparisons": [{
+                "test": "WT", "reference": "KO", "full_results_csv": str(atac_csv),
+            }]},
+        }}}},
+        "gtf_path": str(gtf),
+        "output_dir": str(tmp_path / "out"),
+    })
+    assert res["status"] == "success" and res["ran"] is True
+    matched = res["matched_contrasts"][0]
+    assert matched["atac_sign_flipped"] is True
+    s = matched["de_da_summary"]
+    assert s["n_concordant_up"] == 4
+    assert s["n_concordant_down"] == 3
+    assert s["n_discordant_total"] == 1
+    assert s["concordance_fraction"] == pytest.approx(7 / 8)
+    expected_or, expected_p = fisher_exact([[4, 1], [0, 3]], alternative="two-sided")
+    assert s["fisher_pvalue"] == pytest.approx(expected_p)
 

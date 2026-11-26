@@ -57,12 +57,35 @@ def _direction(value: Any) -> str:
 
 
 def _design_caveats(findings: dict, exp_ctx: dict | None) -> list[str]:
+    from aria.utils.design_matrix import resolve_design_contract
+
     caveats: list[str] = []
     if findings.get("low_power_warning") or findings.get("low_power"):
         caveats.append(LOW_REPLICATION)
-    design = ((exp_ctx or {}).get("design", {}) or {})
-    covariates = [str(c).lower() for c in (design.get("covariates", []) or [])]
-    if design.get("has_batch") and not any("batch" in c for c in covariates):
+    ctx = exp_ctx or {}
+    design = ctx.get("design") or {}
+    contract = resolve_design_contract(design, ctx)
+    modeled = {str(c).strip().lower() for c in (contract.get("covariates") or []) if c}
+    if contract.get("batch_covariate"):
+        modeled.add(str(contract["batch_covariate"]).strip().lower())
+
+    confounded = contract.get("confounded_covariates") or []
+    inferred_covs = [
+        str(c).strip()
+        for c in ((ctx.get("inferred_design") or {}).get("covariates") or [])
+        if str(c or "").strip()
+    ]
+    unmodeled_batch = any(
+        "batch" in cov.lower() and cov.lower() not in modeled
+        for cov in inferred_covs
+    )
+    dropped_batch = any(
+        "batch" in str(cov).lower()
+        for c in (findings.get("contrasts") or [])
+        if isinstance(c, dict)
+        for cov in (c.get("covariates_dropped") or [])
+    )
+    if confounded or unmodeled_batch or dropped_batch:
         caveats.append(BATCH)
     return caveats
 

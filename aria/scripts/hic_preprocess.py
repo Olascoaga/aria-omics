@@ -374,15 +374,12 @@ def _convert_hic_to_cooler(
                 off2 = chrom_offsets[c2]
                 nb2 = chrom_nbins[c2]
                 len2 = lengths[c2]
-                try:
-                    mzd = hic.getMatrixZoomData(
-                        c1, c2, "observed", "NONE", "BP", chosen_res
-                    )
-                    if mzd is None:
-                        continue
-                    recs = mzd.getRecords(0, max(0, len1 - 1), 0, max(0, len2 - 1))
-                except Exception:
+                mzd = hic.getMatrixZoomData(
+                    c1, c2, "observed", "NONE", "BP", chosen_res
+                )
+                if mzd is None:
                     continue
+                recs = mzd.getRecords(0, max(0, len1 - 1), 0, max(0, len2 - 1))
                 if not recs:
                     continue
                 b1_list: list[int] = []
@@ -476,7 +473,7 @@ def hic_preprocess(params: dict) -> dict:
         sid_counts[s] = sid_counts.get(s, 0) + 1
     seen_sids: set[str] = set()
     sample_ids: list[str] = []
-    for idx_s, (s, fpath_s) in enumerate(zip(raw_sids, files)):
+    for idx_s, (s, fpath_s) in enumerate(zip(raw_sids, files, strict=True)):
         cand = s
         if sid_counts.get(s, 0) > 1:
             parent_tag = Path(fpath_s).parent.name.strip()
@@ -541,7 +538,7 @@ def hic_preprocess(params: dict) -> dict:
     processed_samples: list[dict[str, Any]] = []
     cooler_files: list[str] = []
 
-    for sid, src_str in zip(sample_ids, files):
+    for sid, src_str in zip(sample_ids, files, strict=True):
         src = Path(src_str)
         low = src.name.lower()
         sdir = out_dir / sid

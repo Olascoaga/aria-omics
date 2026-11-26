@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import csv
 import io
-from typing import Iterable, Mapping, Sequence
+from typing import Mapping, Sequence
 
 # Single-source failure taxonomy (must match docs/.../B2_RUBRIC.md and governance_b2).
 B2_LABELS = (

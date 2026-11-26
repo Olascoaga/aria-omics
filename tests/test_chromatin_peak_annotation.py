@@ -43,10 +43,12 @@ def test_parse_gtf_gene_models(gtf):
     # contigs are stored normalized (chr1 -> 1) so chr-prefixed peaks match.
     assert set(models) == {"1"}
     by_name = {g["gene"]: g for g in models["1"]}
-    assert by_name["GENEA"]["tss"] == 1000 and by_name["GENEA"]["strand"] == "+"
-    # minus-strand TSS is the gene END.
-    assert by_name["GENEB"]["tss"] == 25000 and by_name["GENEB"]["strand"] == "-"
-    assert (3000, 3200) in by_name["GENEA"]["exons"]
+    # GTF + strand start=1000 (1-based closed) -> 0-based BED TSS 999.
+    assert by_name["GENEA"]["tss"] == 999 and by_name["GENEA"]["strand"] == "+"
+    # GTF - strand end=25000 (1-based closed) -> 0-based BED TSS 24999.
+    assert by_name["GENEB"]["tss"] == 24999 and by_name["GENEB"]["strand"] == "-"
+    # GTF exon [3000, 3200] (1-based closed) -> 0-based half-open BED [2999, 3200).
+    assert (2999, 3200) in by_name["GENEA"]["exons"]
     # per-chrom list is TSS-sorted.
     assert [g["tss"] for g in models["1"]] == sorted(
         g["tss"] for g in models["1"])
@@ -58,11 +60,11 @@ def test_annotate_peaks_feature_classes_and_distance(gtf):
 
     models = parse_gtf_gene_models(str(gtf))
     peaks = [
-        "chr1:1050-1150",    # center 1100 -> Promoter of GENEA (+100 from TSS)
+        "chr1:1050-1150",    # center 1100 -> Promoter of GENEA (+101 from 0-based TSS 999)
         "chr1:3050-3150",    # center 3100 -> within an exon -> Exonic
         "chr1:3500-3600",    # center 3550 -> in body, no exon -> Intronic
         "chr1:50000-50100",  # far -> Distal Intergenic
-        "chr1:24900-25000",  # center 24950 -> Promoter of GENEB (- strand, +50)
+        "chr1:24900-25000",  # center 24950 -> Promoter of GENEB (- strand, +49 from 0-based TSS 24999)
         "not_a_peak",        # unparseable -> skipped + counted
     ]
     res = annotate_peaks(peaks, models)
@@ -70,13 +72,14 @@ def test_annotate_peaks_feature_classes_and_distance(gtf):
 
     assert by_peak["chr1:1050-1150"]["feature"] == "Promoter"
     assert by_peak["chr1:1050-1150"]["nearest_gene"] == "GENEA"
-    assert by_peak["chr1:1050-1150"]["distance_to_tss"] == 100
+    # + strand: BED peak center (1050+1150)//2=1100 minus 0-based TSS 999 = 101.
+    assert by_peak["chr1:1050-1150"]["distance_to_tss"] == 101
     assert by_peak["chr1:3050-3150"]["feature"] == "Exonic"
     assert by_peak["chr1:3500-3600"]["feature"] == "Intronic"
     assert by_peak["chr1:50000-50100"]["feature"] == "Distal Intergenic"
-    # minus-strand promoter: signed distance is TSS-center = 25000-24950 = 50.
+    # - strand: 0-based TSS 24999 minus BED peak center (24900+25000)//2=24950 = 49.
     assert by_peak["chr1:24900-25000"]["feature"] == "Promoter"
-    assert by_peak["chr1:24900-25000"]["distance_to_tss"] == 50
+    assert by_peak["chr1:24900-25000"]["distance_to_tss"] == 49
 
     assert res["n_unparsed"] == 1
     assert res["n_annotated"] == 5

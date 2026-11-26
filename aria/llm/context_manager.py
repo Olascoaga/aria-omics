@@ -29,7 +29,6 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from typing import Optional
 
 log = logging.getLogger("aria.llm.context")
 
@@ -55,30 +54,6 @@ class ModelProfile:
         """
         margin = 0.75 if self.is_local else 0.85
         return int(self.context_window * margin)
-
-    @property
-    def compression_threshold(self) -> int:
-        """Start compressing when context exceeds this."""
-        return int(self.safe_limit * 0.70)
-
-    @property
-    def critical_threshold(self) -> int:
-        """Emergency: drop everything except task + L0 memory."""
-        return int(self.safe_limit * 0.90)
-
-
-# Pre-defined profiles for common models
-PROFILES = {
-    "claude-opus-4-7":           ModelProfile("claude-opus-4-7",           200_000),
-    "claude-sonnet-4-6":         ModelProfile("claude-sonnet-4-6",         200_000),
-    "claude-sonnet-4-20250514":  ModelProfile("claude-sonnet-4-20250514",  200_000),
-    "claude-haiku-4-5-20251001": ModelProfile("claude-haiku-4-5-20251001", 200_000),
-    "gpt-4o":                    ModelProfile("gpt-4o",                    128_000),
-    "gpt-4o-mini":               ModelProfile("gpt-4o-mini",               128_000),
-    "ollama/llama3:70b":         ModelProfile("ollama/llama3:70b",           8_000, is_local=True),
-    "ollama/llama3:8b":          ModelProfile("ollama/llama3:8b",            4_000, is_local=True),
-    "ollama/mistral:7b":         ModelProfile("ollama/mistral:7b",           8_000, is_local=True),
-}
 
 
 class ContextManager:
@@ -147,9 +122,6 @@ class ContextManager:
     def count_tokens(self, text: str) -> int:
         """Public token counter for external use."""
         return self._count(text)
-
-    def fits(self, text: str, budget: int) -> bool:
-        return self._count(text) <= budget
 
     # ── Degradation cascade ───────────────────────────────────────────────
 
