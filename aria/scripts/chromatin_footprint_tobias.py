@@ -1052,7 +1052,7 @@ def render_footprint_volcano(
     from aria.utils.stats import adaptive_neglog10
 
     alpha = float(summary.get("alpha", 0.05))
-    _, cap_val, has_zero = adaptive_neglog10([p for _, p, _ in rows])
+    _, cap_val, has_zero = adaptive_neglog10([p for _, p, _ in rows], headroom=1.12)
     zero_cap = cap_val if has_zero else None
 
     def _ycoord(pvalue: float) -> float:

@@ -75,7 +75,7 @@ def _save_dual(fig, png_path) -> str:
     return str(png_path)
 
 
-def _neglog10_capped(p, headroom: float = 1.15, all_zero_floor: float = 10.0):
+def _neglog10_capped(p, headroom: float = 1.12, all_zero_floor: float = 10.0):
     """Wave 2A: data-adaptive ``-log10(p)`` for display via canonical ``stats.adaptive_neglog10``."""
     import numpy as np
     from aria.utils.stats import adaptive_neglog10

@@ -109,7 +109,10 @@ def detect_mt_mask(
             return found
     found = _scan(None)
     if found is not None:
-        return found
+        mask, src = found
+        if preferred_prefix and src:
+            return mask, f"{src} (case-insensitive)"
+        return mask, src
     return np.zeros(len(var_names), dtype=bool), None
 
 

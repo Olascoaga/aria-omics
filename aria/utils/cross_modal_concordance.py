@@ -205,9 +205,14 @@ def _norm_contrast_label(label: str) -> str:
     return re.sub(r"\s+vs\s+", "_vs_", str(label).strip(), flags=re.IGNORECASE).replace(" ", "_")
 
 
-def filter_comparison(df, comp):
-    """Restrict a DA/DE table to one contrast, tolerating ``'A vs B'`` vs ``'A_vs_B'``
-    and preserving unambiguous single-contrast tables (never leaking multi-contrast rows)."""
+def filter_comparison(df, comp, *, allow_single_contrast_fallback: bool = False):
+    """Restrict a DA/DE table to one contrast, normalizing ``'A vs B'`` vs ``'A_vs_B'``.
+
+    Multi-contrast tables and mismatched contrast labels are strictly filtered
+    by default so candidate-file loaders never leak a different contrast's rows.
+    When ``allow_single_contrast_fallback=True`` (used for per-comparison DA
+    annotation CSVs), a single-contrast table with a non-matching label is kept.
+    """
     comp = comp or {}
     target = contrast_name(comp)
     has_arms = bool(contrast_arms(comp))
@@ -216,7 +221,11 @@ def filter_comparison(df, comp):
         if col in df.columns and target_norm:
             labels = df[col].astype(str)
             mask = (labels == target) | (labels.map(_norm_contrast_label) == target_norm)
-            if bool(mask.any()) or labels.nunique(dropna=True) > 1:
+            if (
+                not allow_single_contrast_fallback
+                or bool(mask.any())
+                or labels.nunique(dropna=True) > 1
+            ):
                 df = df[mask]
     if "group" in df.columns and comp.get("group") is not None:
         df = df[df["group"].astype(str) == str(comp["group"])]

@@ -443,6 +443,10 @@ def rna_qc(params: dict) -> dict:
         n_mt_genes = int(np.sum(mt_mask))
         mt_measured = n_mt_genes > 0 and mt_source is not None
         if mt_measured:
+            if "case-insensitive" in str(mt_source):
+                warnings_list.append(
+                    "No mitochondrial genes matched the species prefix; using case-insensitive ^mt- detection."
+                )
             adata.var["mt"] = mt_mask
             sc.pp.calculate_qc_metrics(
                 adata, qc_vars=["mt"],

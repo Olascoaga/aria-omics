@@ -331,7 +331,7 @@ def _select_comparison_rows(df, comp: Optional[dict]):
     """Restrict a DA table to one contrast via canonical ``cross_modal_concordance.filter_comparison``."""
     from aria.utils.cross_modal_concordance import filter_comparison
 
-    return filter_comparison(df, comp)
+    return filter_comparison(df, comp, allow_single_contrast_fallback=True)
 
 
 def _significant_peaks(csv_path: str, comp: Optional[dict] = None):
