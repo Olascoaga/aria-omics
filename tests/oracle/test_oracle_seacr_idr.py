@@ -257,8 +257,23 @@ class TestCopulaIdrOracle:
             (np.argsort(np.argsort(s1)) + 1.0) / (n + 1.0)
             + (np.argsort(np.argsort(s2)) + 1.0) / (n + 1.0)
         )
-        order = np.lexsort((-mean_u, l_idr))
+        # D2-BUG-9: peaks with identical (local_idr, max(u1,u2), min(u1,u2)) form an
+        # exact symmetric tie (seed 2026 has one: rows 275/527). Their order is not
+        # identifiable, so swap symmetry + permutation invariance require the whole
+        # tie group to share the group's end cumulative mean (conservative).
+        u1 = (np.argsort(np.argsort(s1)) + 1.0) / (n + 1.0)
+        u2 = (np.argsort(np.argsort(s2)) + 1.0) / (n + 1.0)
+        u_hi, u_lo = np.maximum(u1, u2), np.minimum(u1, u2)
+        order = np.lexsort((-u_lo, -u_hi, -mean_u, l_idr))
         expected_global = np.cumsum(l_idr[order]) / np.arange(1, n + 1)
+        key = list(zip(l_idr[order], u_hi[order], u_lo[order], strict=True))
+        i = 0
+        while i < n:
+            j = i + 1
+            while j < n and key[j] == key[i]:
+                j += 1
+            expected_global[i:j] = expected_global[j - 1]
+            i = j
         np.testing.assert_allclose(g_idr[order], expected_global, rtol=1e-12, atol=1e-12)
 
     def test_fit_copula_idr_invariances_and_minimum_sample_guard(self):
