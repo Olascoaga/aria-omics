@@ -274,13 +274,22 @@ def test_sample_qc_reports_expected_keys():
 
 
 def test_sample_qc_runs_with_injected_outlier():
-    counts = make_counts(200)
-    counts["ctrl_1"] = counts["ctrl_1"] * 100   # extreme inflation
+    rng = np.random.default_rng(7)
+    samples = ["ctrl_1", "ctrl_2", "ctrl_3", "treat_1", "treat_2", "treat_3"]
+    gene_means = np.exp(rng.normal(4.5, 1.3, size=200))
+    mat = np.column_stack([rng.poisson(gene_means) for _ in samples])
+    counts = pd.DataFrame(
+        mat, columns=samples, index=[f"GENE_{i:04d}" for i in range(200)]
+    )
+    # Reverse ctrl_1 expression profile so its within-group Spearman correlation collapses (<0.70).
+    counts["ctrl_1"] = counts["ctrl_1"].to_numpy()[::-1]
     metadata = pd.DataFrame({"condition": ["ctrl"] * 3 + ["treat"] * 3},
                             index=counts.columns)
     with tempfile.TemporaryDirectory() as tmp:
         qc = _sample_qc(counts, metadata, tmp, [])
-    assert isinstance(qc["outliers"], list)   # detection runs, returns a list
+    assert isinstance(qc["outliers"], list)
+    assert "ctrl_1" in qc["outliers"], qc
+    assert all(s not in qc["outliers"] for s in ("treat_1", "treat_2", "treat_3"))
 
 
 # ── Fix 4: pathway helpers (local ORA, P1-7) ─────────────────────────────────
@@ -458,14 +467,23 @@ def test_bulk_de_e2e_pipeline():
     c0 = result["contrasts"][0]
     for key in ("n_significant", "n_upregulated", "n_downregulated", "plots"):
         assert key in c0
+    assert c0["status"] == "success", c0
+    planted = {f"GENE_{i:04d}" for i in range(20)}
+    assert c0["n_significant"] >= 8, c0
+    assert c0["n_upregulated"] >= 8, c0
+    assert len(set(c0.get("up_gene_ids", [])) & planted) >= 8
 
 
 @heavy
 def test_bulk_de_multicontrast():
     samples = ["B_1", "B_2", "B_3", "R_1", "R_2", "R_3", "WT_1", "WT_2", "WT_3"]
+    df = make_counts(300, samples=samples)
+    # Plant distinct upregulated DE genes in B (0..14) and R (15..29) vs WT.
+    df.iloc[:15, 0:3] *= 6
+    df.iloc[15:30, 3:6] *= 6
     with tempfile.TemporaryDirectory() as tmp:
         result = _run_bulk(
-            make_counts(300, samples=samples),
+            df,
             [{"numerator": "B", "denominator": "WT", "name": "BMAL1 KO vs WT"},
              {"numerator": "R", "denominator": "WT", "name": "REV-ERBa KO vs WT"}],
             tmp, lfc_threshold=0.58,
@@ -475,6 +493,11 @@ def test_bulk_de_multicontrast():
     names = {c["name"] for c in result["contrasts"]}
     assert {"BMAL1 KO vs WT", "REV-ERBa KO vs WT"} <= names
     assert "overlap" in result
+    by_name = {c["name"]: c for c in result["contrasts"]}
+    assert by_name["BMAL1 KO vs WT"]["status"] == "success"
+    assert by_name["REV-ERBa KO vs WT"]["status"] == "success"
+    assert by_name["BMAL1 KO vs WT"]["n_upregulated"] >= 12
+    assert by_name["REV-ERBa KO vs WT"]["n_upregulated"] >= 12
 
 
 @heavy
@@ -508,6 +531,10 @@ def test_deseq2_uses_design_factor():
             tmp,
         )
     assert "condition" in (result.get("design_used", "") or "")
+    assert result["status"] == "success"
+    c0 = result["contrasts"][0]
+    assert c0["status"] == "success", c0
+    assert c0["n_significant"] >= 15, c0
 
 
 @heavy
@@ -518,7 +545,15 @@ def test_insufficient_replicates_is_graceful():
             [{"numerator": "treat", "denominator": "ctrl", "name": "treat vs ctrl"}],
             tmp, min_replicates_per_condition=3,
         )
-    assert result.get("status") in ("error", "success")   # structured, no crash
+    assert result.get("status") in ("error", "success")
+    if result["status"] == "error":
+        assert "replicate" in str(result.get("details", "")).lower() or result.get("error_type") == "InsufficientReplicates"
+    else:
+        assert len(result["contrasts"]) == 1
+        c0 = result["contrasts"][0]
+        assert c0["status"] == "error", c0
+        assert "replicate" in str(c0.get("error", "")).lower(), c0
+        assert result["n_significant"] == 0
 
 
 # ── GOLDEN: deterministic DE recovery against a versioned mini-dataset ────────

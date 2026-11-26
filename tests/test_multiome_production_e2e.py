@@ -700,6 +700,7 @@ def test_wnn_overcorrection_and_mofa_batch_confounding_disclosures_are_non_causa
 
 
 def test_adr079_multidonor_empirical_receipt_and_no_fabrication_scan():
+    """Static publication-artifact hygiene check + AST no-fabrication scan (D3-012)."""
     receipt_path = (
         ROOT
         / "docs"
@@ -707,27 +708,27 @@ def test_adr079_multidonor_empirical_receipt_and_no_fabrication_scan():
         / "multiome_concordance"
         / "adr079_multidonor_multiome_validation.json"
     )
-    if receipt_path.is_file():
-        raw_txt = receipt_path.read_text(encoding="utf-8")
-        for forbidden in ("/home/", "/tmp/", "/Users/", "/private/"):
-            assert forbidden not in raw_txt, f"Absolute path {forbidden!r} leaked into receipt"
-        receipt = json.loads(raw_txt)
-        assert receipt["adr"] == "ADR-079"
-        assert receipt["dataset"]["accession"] == "GSE278576"
-        assert receipt["dataset"]["n_donors"] == 4
-        assert receipt["stage_1_cohort_merge"]["a4_resume_verified"] is True
-        assert receipt["stage_2_paired_qc"]["a4_resume_verified"] is True
-        assert receipt["stage_3_donor_aware_wnn"]["harmony_integrated"]["harmonized"] is True
-        assert receipt["stage_3_donor_aware_wnn"]["harmony_integrated"]["a4_resume_verified"] is True
-        assert receipt["stage_4_donor_screened_mofa"]["a4_resume_verified"] is True
-        p2g = receipt["stage_5_cis_peak2gene_vs_barcode_permuted_null"]
-        assert p2g["real_paired"]["n_links"] >= 10
-        assert p2g["barcode_shuffled_null_control"]["empirical_false_discovery_rate_at_q005"] <= 0.05
-        assert p2g["barcode_shuffled_null_control"]["per_test_false_positive_rate"] < 1e-4
-        assert p2g["barcode_shuffled_null_control"]["derangement_fixed_points"] == 0
-        gov = receipt["stage_6_governance_and_c3_ledger"]
-        assert gov["c3_preprocessing_stage_status"] == "executed"
-        assert gov["claim_ledger_violations"] == 0
+    assert receipt_path.is_file(), f"Committed ADR-079 receipt missing: {receipt_path}"
+    raw_txt = receipt_path.read_text(encoding="utf-8")
+    for forbidden in ("/home/", "/tmp/", "/Users/", "/private/"):
+        assert forbidden not in raw_txt, f"Absolute path {forbidden!r} leaked into receipt"
+    receipt = json.loads(raw_txt)
+    assert receipt["adr"] == "ADR-079"
+    assert receipt["dataset"]["accession"] == "GSE278576"
+    assert receipt["dataset"]["n_donors"] == 4
+    assert receipt["stage_1_cohort_merge"]["a4_resume_verified"] is True
+    assert receipt["stage_2_paired_qc"]["a4_resume_verified"] is True
+    assert receipt["stage_3_donor_aware_wnn"]["harmony_integrated"]["harmonized"] is True
+    assert receipt["stage_3_donor_aware_wnn"]["harmony_integrated"]["a4_resume_verified"] is True
+    assert receipt["stage_4_donor_screened_mofa"]["a4_resume_verified"] is True
+    p2g = receipt["stage_5_cis_peak2gene_vs_barcode_permuted_null"]
+    assert p2g["real_paired"]["n_links"] >= 10
+    assert p2g["barcode_shuffled_null_control"]["empirical_false_discovery_rate_at_q005"] <= 0.05
+    assert p2g["barcode_shuffled_null_control"]["per_test_false_positive_rate"] < 1e-4
+    assert p2g["barcode_shuffled_null_control"]["derangement_fixed_points"] == 0
+    gov = receipt["stage_6_governance_and_c3_ledger"]
+    assert gov["c3_preprocessing_stage_status"] == "executed"
+    assert gov["claim_ledger_violations"] == 0
 
     spec = importlib.util.spec_from_file_location(
         "_fab_guard_adr079",

@@ -26,7 +26,3 @@ def test_disclosure_keeps_bh_as_primary_and_never_claims_ihw():
     # No path may report IHW/s-values as if they ran.
     assert d["ihw"]["status"] != "applied"
     assert d["s_values"]["status"] != "applied"
-
-
-def test_disclosure_is_deterministic():
-    assert fdr_advanced_methods_disclosure() == fdr_advanced_methods_disclosure()

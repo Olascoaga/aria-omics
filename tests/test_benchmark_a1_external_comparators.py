@@ -52,14 +52,19 @@ def test_a1_external_comparator_runner_scores_mocked_r_output(tmp_path, monkeypa
     def fake_run(cmd, *args, **kwargs):
         r_out = Path(cmd[cmd.index("--output-dir") + 1])
         r_json = Path(cmd[cmd.index("--output-json") + 1])
-        truth = pd.read_csv(Path(cmd[cmd.index("--counts") + 1]), sep="\t")
+        counts_path = Path(cmd[cmd.index("--counts") + 1])
+        truth = pd.read_csv(counts_path.parent / "a1_truth.tsv", sep="\t")
         genes = truth["gene"].astype(str).tolist()
+        is_de = truth["is_true_de"].astype(bool).tolist()
+        true_lfc = truth["true_log2fc"].astype(float).tolist()
+        # Plant known-truth R comparator table: exact true_log2fc, padj=0.001 on DE, 0.8 on null.
         table = pd.DataFrame({
             "gene": genes,
-            "log2FoldChange": [idx / max(len(genes), 1) for idx, _ in enumerate(genes)],
-            "pvalue": [1.0] * len(genes),
-            "padj": [1.0] * len(genes),
+            "log2FoldChange": true_lfc,
+            "pvalue": [1e-5 if d else 0.7 for d in is_de],
+            "padj": [1e-3 if d else 0.8 for d in is_de],
         })
+        n_called_true = sum(1 for d, lfc in zip(is_de, true_lfc) if d and abs(lfc) >= 0.5)
         methods = {}
         for key in ("deseq2", "edgeR_QLF", "limma_voom"):
             path = r_out / f"{key}.tsv"
@@ -69,7 +74,7 @@ def test_a1_external_comparator_runner_scores_mocked_r_output(tmp_path, monkeypa
                 "method": key,
                 "results_tsv": str(path),
                 "n_tested": len(genes),
-                "n_called": 0,
+                "n_called": n_called_true,
             }
         r_json.write_text(json.dumps({
             "status": "success",
@@ -97,4 +102,15 @@ def test_a1_external_comparator_runner_scores_mocked_r_output(tmp_path, monkeypa
     manifest_json = result["artifacts"]["manifest_json"]
     assert not manifest_json.startswith("/")
     assert (tmp_path / Path(manifest_json).name).exists()
-    assert result["methods"]["deseq2"]["scores"]["significant_call_concordance"]["n_called"] == 0
+    # D3-021: assert exact analytical scoring metrics on known-truth R comparator table.
+    scores = result["methods"]["deseq2"]["scores"]
+    sig_sc = scores["significant_call_concordance"]
+    lfc_sc = scores["lfc_concordance"]
+    rank_sc = scores["ranking_concordance"]
+    assert sig_sc["n_called"] == sig_sc["n_true_de"]
+    assert sig_sc["recall"] == 1.0
+    assert sig_sc["precision"] == 1.0
+    assert sig_sc["empirical_fdr"] == 0.0
+    assert lfc_sc["pearson_true_de"] > 0.99
+    assert lfc_sc["spearman_true_de"] > 0.99
+    assert rank_sc["top_k_jaccard"] == 1.0

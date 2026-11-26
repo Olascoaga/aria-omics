@@ -824,6 +824,7 @@ def test_cross_stack_ipc_wnn_on_paired_h5ad(tmp_path):
 # ═══════════════════════════════════════════════════════════════════════════
 
 def test_wnn_external_concordance_manifest_invariants():
+    """Static publication-artifact hygiene check for committed WNN concordance manifest (D3-012)."""
     import json
 
     manifest_path = (
@@ -833,8 +834,7 @@ def test_wnn_external_concordance_manifest_invariants():
         / "multiome_concordance"
         / "v48_i2_wnn_concordance.json"
     )
-    if not manifest_path.is_file():
-        pytest.skip("WNN external concordance manifest not present")
+    assert manifest_path.is_file(), f"WNN external concordance manifest missing: {manifest_path}"
 
     data = json.loads(manifest_path.read_text(encoding="utf-8"))
     assert data["benchmark"] == "V48_I2_wnn_external_concordance"

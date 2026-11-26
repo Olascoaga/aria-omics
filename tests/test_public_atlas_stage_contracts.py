@@ -92,9 +92,19 @@ def test_pseudobulk_da_accepts_two_element_list_contrasts():
         n_cpus=1,
     )
     assert res["ran"] is True
-    assert res["comparisons"][0]["test"] == "aged"
-    assert res["comparisons"][0]["reference"] == "young"
-    assert res["comparisons"][0]["status"] == "success"
+    comp = res["comparisons"][0]
+    assert comp["test"] == "aged"
+    assert comp["reference"] == "young"
+    assert comp["status"] == "success"
+    # D3-014: verify planted peak identity, sign, and background precision.
+    planted = {f"chr1:{1000 * (i + 1)}-{1000 * (i + 1) + 500}" for i in range(5)}
+    background = {f"chr1:{1000 * (i + 1)}-{1000 * (i + 1) + 500}" for i in range(5, 25)}
+    called = {p["peak"]: p for p in comp["top_peaks"]}
+    tp = [called[pk] for pk in planted if pk in called]
+    fp = [pk for pk in called if pk in background]
+    assert len(tp) >= 4, f"Expected >=4/5 planted peaks recovered, got {len(tp)}"
+    assert all(p["log2fc"] > 1.0 for p in tp)
+    assert len(fp) / max(len(called), 1) <= 0.10, f"Empirical FDR too high: {len(fp)}/{len(called)}"
 
 
 def test_chromatin_qc_scatac_h5ad_peak_matrix_is_honest(tmp_path):

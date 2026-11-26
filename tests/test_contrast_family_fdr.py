@@ -19,15 +19,28 @@ from aria.utils.stats import (
 
 def test_pooled_bh_is_more_conservative_than_per_group():
     import numpy as np
+    from scipy.stats import false_discovery_control
     from aria.utils.stats import bh_correct
     groups = {
         "c1": {"g1": 0.001, "g2": 0.02, "g3": 0.5},
         "c2": {"g1": 0.001, "g2": 0.04, "g3": 0.9},
     }
     pooled = pooled_bh_across_groups(groups)
+    # Independent analytical BH oracle via scipy.stats.false_discovery_control (D3-017).
+    all_raw = [0.001, 0.02, 0.5, 0.001, 0.04, 0.9]
+    exp_pooled = false_discovery_control(all_raw, method="bh")
+    exp_c1 = false_discovery_control([0.001, 0.02, 0.5], method="bh")
     # Per-group BH on c1 alone vs pooled across both: pooling tests more
     # hypotheses, so each adjusted p-value is >= the per-group one.
     per_c1 = bh_correct(list(groups["c1"].values()))
+    np.testing.assert_allclose(per_c1, exp_c1, rtol=1e-12, atol=1e-12)
+    np.testing.assert_allclose(
+        [pooled["c1"]["g1"], pooled["c1"]["g2"], pooled["c1"]["g3"],
+         pooled["c2"]["g1"], pooled["c2"]["g2"], pooled["c2"]["g3"]],
+        exp_pooled,
+        rtol=1e-12,
+        atol=1e-12,
+    )
     per_c1_map = dict(zip(groups["c1"], per_c1))
     for g in groups["c1"]:
         assert pooled["c1"][g] >= per_c1_map[g] - 1e-9
@@ -121,3 +134,5 @@ def test_bulk_de_global_contrast_family_is_recorded(tmp_path):
     assert succ, res
     for c in succ:
         assert "n_significant_contrast_family" in c
+        assert 0 < c["n_significant_contrast_family"] <= c["n_significant"], c
+        assert c["n_significant_contrast_family"] >= 8, c

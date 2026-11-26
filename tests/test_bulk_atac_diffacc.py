@@ -2,8 +2,11 @@
 
 from pathlib import Path
 
+import pytest
+
 
 def test_bulk_atac_diffacc_contract_registered():
+    pytest.importorskip("pydantic")
     from aria.utils.script_contracts import contract_for_script
 
     contract = contract_for_script("aria/scripts/chromatin_bulk_diffacc.py")
@@ -269,6 +272,65 @@ def test_bulk_atac_diffacc_reports_dropped_covariates(tmp_path, monkeypatch):
     assert any("Covariate 'batch' was not adjusted" in w
                for w in res["warnings"])
     assert res["comparisons"][0]["covariates_dropped"]
+
+
+def test_bulk_atac_diffacc_real_deseq2_planted_up_down_and_convergence(tmp_path):
+    """D3-007: unmocked real-pyDESeq2 bulk ATAC DA oracle verifying planted
+    up/down peak recovery, LFC sign accuracy, empirical FDR, and convergence
+    column emission."""
+    np = pytest.importorskip("numpy")
+    pd = pytest.importorskip("pandas")
+    pytest.importorskip("pydeseq2")
+    from aria.scripts.chromatin_bulk_diffacc import chromatin_bulk_diffacc
+
+    rng = np.random.default_rng(23)
+    samples = ["c1", "c2", "c3", "c4", "t1", "t2", "t3", "t4"]
+    n_peaks = 150
+    peaks = [f"chr1:{i * 1000 + 100}-{i * 1000 + 600}" for i in range(n_peaks)]
+    base = rng.uniform(50.0, 180.0, size=n_peaks)
+    mat = np.zeros((n_peaks, len(samples)), dtype=int)
+    for j, s in enumerate(samples):
+        mu = base.copy()
+        if s.startswith("t"):
+            mu[:15] *= 4.0
+            mu[15:30] *= 0.25
+        mat[:, j] = rng.negative_binomial(n=25, p=25.0 / (25.0 + mu))
+
+    counts_p = tmp_path / "real_counts.tsv"
+    pd.DataFrame(mat, index=peaks, columns=samples).to_csv(
+        counts_p, sep="\t", index_label="peak_id"
+    )
+    meta_p = tmp_path / "real_meta.tsv"
+    pd.DataFrame({
+        "sample_id": samples,
+        "condition": ["ctrl"] * 4 + ["treated"] * 4,
+        "replicate": ["r1", "r2", "r3", "r4"] * 2,
+    }).to_csv(meta_p, sep="\t", index=False)
+
+    res = chromatin_bulk_diffacc({
+        "data_type": "bulk_ATAC",
+        "counts_matrix_path": str(counts_p),
+        "sample_metadata_path": str(meta_p),
+        "comparisons": [["treated", "ctrl"]],
+        "padj_threshold": 0.05,
+        "lfc_threshold": 0.5,
+        "top_n": 150,
+        "n_cpus": 1,
+        "output_dir": str(tmp_path / "real_da"),
+    })
+    assert res["status"] == "success" and res["ran"] is True, res
+    comp = res["comparisons"][0]
+    assert comp["status"] == "success", comp
+    full_df = pd.read_csv(comp["full_results_csv"])
+    assert "lfc_converged" in full_df.columns
+    called = {p["peak"]: p for p in comp["top_peaks"]}
+    up_set, dn_set, null_set = set(peaks[:15]), set(peaks[15:30]), set(peaks[30:])
+    up_tp = [called[pk] for pk in up_set if pk in called]
+    dn_tp = [called[pk] for pk in dn_set if pk in called]
+    fp = [pk for pk in called if pk in null_set]
+    assert len(up_tp) >= 12 and all(p["log2fc"] > 0.5 for p in up_tp)
+    assert len(dn_tp) >= 12 and all(p["log2fc"] < -0.5 for p in dn_tp)
+    assert len(fp) / max(len(called), 1) <= 0.15
 
 
 def test_bulk_atac_diffacc_blocks_dropped_required_covariate(tmp_path):
