@@ -489,3 +489,13 @@ def test_registry_collect_blocks_routes_deduplicates_and_preserves_status_contra
     ), f"Expected bulk.contrast.treat_vs_ctrl in claims; got={compiled.claims}"
     html_out = render_blocks(blocks, strict=False)
     assert "figure render skipped" in html_out
+
+
+def test_code_graph_documents_w_warn_invariant_without_publishable_statuses():
+    code_graph = (_REPO_ROOT / "docs" / "architecture" / "code_graph.md").read_text(encoding="utf-8")
+    assert "W-WARN" in code_graph, "docs/architecture/code_graph.md must document W-WARN invariant"
+    assert "warning_router.py" in code_graph, "docs/architecture/code_graph.md must reference warning_router.py"
+    assert "registry.py" in code_graph, "docs/architecture/code_graph.md must reference registry.py choke point"
+    assert "PUBLISHABLE_STATUSES" not in code_graph, "PUBLISHABLE_STATUSES must not appear in code_graph.md"
+    assert "routed_collect" not in code_graph, "routed_collect decorator must not appear in code_graph.md"
+
