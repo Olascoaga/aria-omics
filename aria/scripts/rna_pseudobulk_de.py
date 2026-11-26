@@ -1221,7 +1221,7 @@ def rna_pseudobulk_de(params: dict) -> dict:
                 ),
                 max_reported_features=200,
             )
-        except Exception as exc:
+        except (ValueError, RuntimeError, TypeError, KeyError) as exc:
             lobo_res = {"status": "error", "details": str(exc)[:200]}
         comp["lobo_jackknife"] = lobo_res
 

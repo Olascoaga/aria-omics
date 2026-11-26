@@ -392,36 +392,38 @@ def _h5ad_atac_qc(h5ad_path: str, genome: str,
                 return str(col)
         return None
 
+    import pandas as pd
+
+    def _obs_median(col: str | None) -> float | None:
+        if col is None:
+            return None
+        vals = pd.to_numeric(obs[col], errors="coerce").to_numpy(dtype=float)
+        vals = vals[np.isfinite(vals)]
+        return float(np.median(vals)) if vals.size else None
+
     frag_col = _find_col(_FRAG_COL_HINTS)
     mito_col = _find_col(_MITO_COL_HINTS)
-    median_frags = None
-    median_mito = None
-    try:
-        if frag_col is not None:
-            vals = np.asarray(obs[frag_col].values, dtype=float)
-            vals = vals[np.isfinite(vals)]
-            if vals.size:
-                median_frags = float(np.median(vals))
-        if mito_col is not None:
-            vals = np.asarray(obs[mito_col].values, dtype=float)
-            vals = vals[np.isfinite(vals)]
-            if vals.size:
-                median_mito = float(np.median(vals))
-    except Exception:
-        pass
+    median_frags = _obs_median(frag_col)
+    median_mito = _obs_median(mito_col)
 
     not_computed = [
         "tss_enrichment (requires raw fragment file + reference TSS annotation)",
         "frip (requires raw fragment file + called peaks)",
     ]
-    if frag_col is None:
-        not_computed.append(
-            "median_fragments_per_cell (no per-cell fragment obs column found)"
+    if median_frags is None:
+        reason = (
+            f"obs column '{frag_col}' had no finite numeric values"
+            if frag_col is not None
+            else "no per-cell fragment obs column found"
         )
-    if mito_col is None:
-        not_computed.append(
-            "mito_fraction (no per-cell mitochondrial obs column found)"
+        not_computed.append(f"median_fragments_per_cell ({reason})")
+    if median_mito is None:
+        reason = (
+            f"obs column '{mito_col}' had no finite numeric values"
+            if mito_col is not None
+            else "no per-cell mitochondrial obs column found"
         )
+        not_computed.append(f"mito_fraction ({reason})")
 
     warnings.append(
         "scATAC peak-matrix QC on .h5ad: cell/peak dimensions and available obs "

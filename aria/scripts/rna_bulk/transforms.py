@@ -41,18 +41,11 @@ def _run_vst(counts_raw, metadata, warnings: list):
             dds.vst_fit(use_design=False)
             vst = dds.vst_transform()
         except (AttributeError, ValueError, RuntimeError):
-            try:
-                dds.deseq2()
-                vst = np.log2(dds.layers["normed_counts"] + 1)
-                warnings.append(
-                    "pydeseq2 VST unavailable — using log2(size-factor normalized + 1)."
-                )
-            except Exception as e:
-                warnings.append(
-                    f"VST/rlog failed ({e}); falling back to raw log2. "
-                    f"PCA/MDS may be affected by library size differences."
-                )
-                vst = np.log2(counts_raw.T.astype(float) + 1)
+            dds.deseq2()
+            vst = np.log2(dds.layers["normed_counts"] + 1)
+            warnings.append(
+                "pydeseq2 VST unavailable — using log2(size-factor normalized + 1)."
+            )
 
         # vst is samples × genes; transpose back to genes × samples
         vst_df = pd.DataFrame(

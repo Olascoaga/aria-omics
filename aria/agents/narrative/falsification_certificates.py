@@ -329,6 +329,14 @@ def _extract_lobo_from_agent_results(
         return []
     modality = str(claim.get("modality") or "").lower()
     modality = modality.replace("_", "").replace("-", "").replace(" ", "")
+    if not modality:
+        an = str(claim.get("analysis") or "")
+        if an in {"differential_expression", "contrast"} and "bulk_rna_agent" in agent_results:
+            modality = "bulkrna"
+        elif an == "pseudobulk_de" and "scrna_agent" in agent_results:
+            modality = "scrna"
+        elif an == "differential_accessibility" and "chromatin_agent" in agent_results:
+            modality = "chromatin"
     # (group, contrast_name, contrast_dict)
     entries: list[tuple[Any, Any, Any]] = []
     if modality in {"bulkrna", "bulkrnaseq"}:
@@ -445,6 +453,7 @@ def build_falsification_certificates(
             if not has_precomputed_lobo and is_inferential else []
         )
         measured_lobo = [s for s in extracted_lobo if s.get("status") == "measured"]
+        error_lobo = [s for s in extracted_lobo if s.get("status") == "error"]
 
         # Axis 1: LOBO Jackknife
         if not is_inferential:
@@ -460,6 +469,12 @@ def build_falsification_certificates(
                 "n_features_evaluated": precomputed_lobo.get("n_features_evaluated"),
                 "n_features_lobo_stable": precomputed_lobo.get("n_features_lobo_stable"),
             }
+        elif isinstance(precomputed_lobo, dict) and precomputed_lobo.get("status") == "error":
+            lobo_axis = {
+                "status": "error",
+                "biological_unit": unit_kind,
+                "error_details": [str(precomputed_lobo.get("details") or "LOBO jackknife failed")],
+            }
         elif measured_lobo:
             n_evaluated = sum(_finite_count(s.get("n_features_evaluated")) for s in measured_lobo)
             n_stable = sum(_finite_count(s.get("n_features_lobo_stable")) for s in measured_lobo)
@@ -472,6 +487,20 @@ def build_falsification_certificates(
                 "n_features_lobo_stable": n_stable,
                 "n_single_unit_driven": sum(_finite_count(s.get("n_single_unit_driven")) for s in measured_lobo),
                 "lobo_stable_fraction": round(n_stable / n_evaluated, 4) if n_evaluated else None,
+            }
+            if error_lobo:
+                lobo_axis["n_contrasts_errored"] = len(error_lobo)
+                lobo_axis["error_details"] = [
+                    str(s.get("details") or "LOBO jackknife failed") for s in error_lobo
+                ]
+        elif error_lobo:
+            lobo_axis = {
+                "status": "error",
+                "biological_unit": unit_kind,
+                "n_contrasts_errored": len(error_lobo),
+                "error_details": [
+                    str(s.get("details") or "LOBO jackknife failed") for s in error_lobo
+                ],
             }
         elif extracted_lobo and all(
             s.get("status") == "not_testable_insufficient_replicates" for s in extracted_lobo

@@ -287,9 +287,8 @@ def _phasing_valid_chroms(phasing_df, chroms: list[str], clr=None) -> set[str]:
                 for ch in chroms:
                     cm = b_ch == str(ch)
                     ice_valid_by_chrom[str(ch)] = b_st[cm & w_ok]
-        except Exception:
-            ice_valid_full = None
-            ice_valid_by_chrom = None
+        except (OSError, ValueError, KeyError, TypeError):
+            return set()
 
     valid: set[str] = set()
     p_ch = phasing_df["chrom"].astype(str).to_numpy()

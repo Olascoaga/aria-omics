@@ -174,20 +174,15 @@ def _sample_qc(counts, metadata, output_dir: str,
             "n_protein_coding":    int(n_pc),
         }
 
-    except Exception as e:
+    except (ValueError, RuntimeError, TypeError, KeyError, OSError, ZeroDivisionError) as e:
         warnings.append(f"Sample QC failed: {e}")
-        try:
-            lib_sizes = counts.sum(axis=0)
-            lib_range = [int(lib_sizes.min()), int(lib_sizes.max())]
-            size_ratio = round(
-                float(lib_sizes.max() / max(lib_sizes.min(), 1)), 1
-            )
-        except Exception:
-            lib_range = []
-            size_ratio = None
-        return {"n_samples": int(counts.shape[1]), "outliers": [],
-                "pca_variance": [], "lib_size_range": lib_range,
-                "size_ratio": size_ratio, "error": str(e)}
+        return {
+            "status": "error",
+            "n_samples": int(counts.shape[1]),
+            "outliers": None,
+            "pca_variance": [],
+            "error": str(e),
+        }
 
 
 def _prune_outliers_for_design(outliers: list, metadata,

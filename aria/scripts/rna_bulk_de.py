@@ -310,12 +310,16 @@ def bulk_rna_de(params: dict) -> dict:
     sample_qc = _call_with_optional_keywords(
         _sample_qc, counts, metadata, output_dir, warnings,
         biotype_map=biotype_map, design_factor=design_factor)
-    flagged_outliers = list(sample_qc.get("outliers", []) or [])
-    outlier_samples = _call_with_optional_keywords(
-        _prune_outliers_for_design,
-        sample_qc.get("outliers", []), metadata, design_factor, warnings,
-        min_reps=min_reps,
-    )
+    if sample_qc.get("status") == "error" or sample_qc.get("error"):
+        flagged_outliers = None
+        outlier_samples = []
+    else:
+        flagged_outliers = list(sample_qc.get("outliers", []) or [])
+        outlier_samples = _call_with_optional_keywords(
+            _prune_outliers_for_design,
+            flagged_outliers, metadata, design_factor, warnings,
+            min_reps=min_reps,
+        )
     sample_qc["outliers"] = flagged_outliers
     sample_qc["candidate_outliers"] = flagged_outliers
     sample_qc["outliers_removed_primary"] = []
@@ -677,7 +681,7 @@ def bulk_rna_de(params: dict) -> dict:
                 primary_significant_features=[str(g) for g in all_sig],
                 max_reported_features=200,
             )
-        except Exception as exc:
+        except (ValueError, RuntimeError, TypeError, KeyError) as exc:
             lobo_res = {"status": "error", "details": str(exc)[:200]}
 
         contrast_results.append({

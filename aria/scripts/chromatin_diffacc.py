@@ -538,7 +538,7 @@ def _pseudobulk_da(adata, condition_col, replicate_col, comparisons,
                 paired_unit_col=(replicate_col if paired_block_modeled else None),
                 max_reported_features=200,
             )
-        except Exception as exc:
+        except (ValueError, RuntimeError, TypeError, KeyError) as exc:
             lobo_res = {"status": "error", "details": str(exc)[:200]}
 
         comp_results.append({

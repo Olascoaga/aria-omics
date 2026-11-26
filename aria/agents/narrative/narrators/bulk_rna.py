@@ -390,6 +390,25 @@ class BulkRnaNarrator:
         n_samples = sqc.get("n_samples") or (preprocessing.get("qc", {}) or {}).get(
             "n_samples"
         )
+        if sqc.get("status") == "error" or sqc.get("error"):
+            err_msg = str(sqc.get("error") or "Sample QC failed")
+            return [NarrativeBlock(
+                id="bulk.qc",
+                modality="bulk RNA-seq",
+                analysis="sample_qc",
+                block_type="error",
+                title="Bulk RNA sample QC",
+                status="error",
+                confidence="insufficient",
+                claim="",
+                error=err_msg,
+                caveats=[Caveat(
+                    f"Bulk RNA sample QC failed ({err_msg}); outlier screening "
+                    "was not completed.",
+                    severity="warning",
+                )],
+                metrics={"n_samples": n_samples, "error": err_msg},
+            )]
         outliers = sqc.get("candidate_outliers", sqc.get("outliers", [])) or []
         removed_primary = sqc.get("outliers_removed_primary", []) or []
         removed_sensitivity = sqc.get("sensitivity_outliers_removed", []) or []

@@ -106,3 +106,37 @@ def test_d1_007_hic_qc_must_not_drop_corrupt_sample_silently(tmp_path):
         "output_dir": str(tmp_path / "out"),
     })
     assert res["status"] == "error"
+
+
+def test_d1_004_phasing_valid_chroms_must_fail_closed_on_ice_error():
+    """D1-004: ICE weight-read error must fail closed (return set()) rather than validating unmasked."""
+    from aria.scripts.hic_topology import _phasing_valid_chroms
+
+    phasing_df = pd.DataFrame({
+        "chrom": ["chr1"] * 10,
+        "start": [i * 100_000 for i in range(10)],
+        "end": [(i + 1) * 100_000 for i in range(10)],
+        "GC": [0.35 + 0.03 * i for i in range(10)],
+    })
+
+    class _BrokenBins:
+        columns = ["chrom", "start", "end", "weight"]
+
+        def __getitem__(self, key):
+            raise OSError("corrupt HDF5 weight dataset")
+
+    class _BrokenCooler:
+        def bins(self):
+            return _BrokenBins()
+
+    assert _phasing_valid_chroms(phasing_df, ["chr1"], clr=_BrokenCooler()) == set()
+
+
+def test_d1_019_hic_inspect_pairs_corrupt_must_report_error(tmp_path):
+    """D1-019: Corrupt .pairs.gz must include an 'error' key in hic_inspect per_file entry."""
+    from aria.scripts.hic_inspect import hic_inspect
+
+    bad = tmp_path / "corrupt.pairs.gz"
+    bad.write_bytes(b"NOT_GZIP_BYTES")
+    res = hic_inspect({"files": [str(bad)]})
+    assert "error" in res["per_file"][0] and res["per_file"][0]["chromosomes"] == []

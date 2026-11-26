@@ -38,19 +38,27 @@ class ReportSectionsMixin:
             if bulk.get("status") == "done":
                 sqc = ((bulk.get("findings") or {}).get("sample_qc")) or {}
                 n   = sqc.get("n_samples", "?")
-                out = sqc.get("candidate_outliers", sqc.get("outliers", []))
-                sens_out = sqc.get("sensitivity_outliers_removed", [])
-                ratio_f = _finite_num(sqc.get("size_ratio"))
-                ratio_str = (f" · library-size range {ratio_f:.1f}×"
-                             if ratio_f is not None else "")
-                out_str = (f" · <span style='color:var(--amber)'>"
-                           f"{len(out)} outlier(s) flagged; "
-                           f"{len(sens_out)} removed in sensitivity</span>"
-                           if out else " · no outliers flagged")
-                rows.append(
-                    f"<tr><td>Bulk RNA-seq</td>"
-                    f"<td>{_html.escape(str(n))} samples{ratio_str}{out_str}</td></tr>"
-                )
+                if sqc.get("status") == "error" or sqc.get("error"):
+                    err_txt = _html.escape(str(sqc.get("error") or "sample QC failed")[:120])
+                    rows.append(
+                        f"<tr><td>Bulk RNA-seq</td>"
+                        f"<td>{_html.escape(str(n))} samples · "
+                        f"<span style='color:var(--red)'>sample QC failed ({err_txt})</span></td></tr>"
+                    )
+                else:
+                    out = sqc.get("candidate_outliers", sqc.get("outliers", []))
+                    sens_out = sqc.get("sensitivity_outliers_removed", [])
+                    ratio_f = _finite_num(sqc.get("size_ratio"))
+                    ratio_str = (f" · library-size range {ratio_f:.1f}×"
+                                 if ratio_f is not None else "")
+                    out_str = (f" · <span style='color:var(--amber)'>"
+                               f"{len(out)} outlier(s) flagged; "
+                               f"{len(sens_out)} removed in sensitivity</span>"
+                               if out else " · no outliers flagged")
+                    rows.append(
+                        f"<tr><td>Bulk RNA-seq</td>"
+                        f"<td>{_html.escape(str(n))} samples{ratio_str}{out_str}</td></tr>"
+                    )
 
             # scRNA
             sc = agent_results.get("scrna_agent") or {}

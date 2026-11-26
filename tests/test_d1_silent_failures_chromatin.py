@@ -78,3 +78,21 @@ def test_d1_018_bulk_chromatin_qc_must_fail_closed_on_corrupt_bam(tmp_path):
         [str(good_bam), str(bad_bam)], "bulk_ATAC", "hg38", "open_chromatin", [], params={}
     )
     assert res["status"] == "error"
+
+
+def test_d1_016_h5ad_atac_qc_frag_parse_error_must_not_skip_mito(tmp_path):
+    """D1-016: Non-numeric fragment obs column must not abort mito obs coercion or omit metrics_not_computed."""
+    ad = pytest.importorskip("anndata")
+    import numpy as np
+    import pandas as pd
+    from aria.scripts.chromatin_qc import _h5ad_atac_qc
+
+    obs = pd.DataFrame(
+        {"n_fragments": ["1,000", "2,000", "3,000"], "pct_mito": [0.04, 0.06, 0.08]},
+        index=["bc1", "bc2", "bc3"],
+    )
+    p = tmp_path / "atac.h5ad"
+    ad.AnnData(X=np.ones((3, 4), dtype=np.float32), obs=obs).write_h5ad(p)
+    res = _h5ad_atac_qc(str(p), "hg38", "Homo sapiens", [])
+    assert res["median_mito_obs"] == pytest.approx(0.06)
+    assert any("median_fragments_per_cell" in m for m in res["metrics_not_computed"])
