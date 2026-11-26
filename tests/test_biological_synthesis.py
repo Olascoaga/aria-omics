@@ -276,17 +276,56 @@ def test_agent_synthesizes_scRNA_without_bulk():
         assert forbidden not in blob
 
 
-# ── real-data golden (runs on Samael's machine; skips in CI) ──────────────────
+# ── real-data golden (opt-in via env var) + portable synthetic overlap golden ─
+
+def test_synthetic_report_overlap_golden():
+    """Portable exact-answer oracle for detect_bulk_patterns cross-contrast
+    overlap, direction concordance, and shared pathway counting (D3-018)."""
+    c1_up = [f"G_UP_{i}" for i in range(15)]
+    c1_down = [f"G_DN_{i}" for i in range(10)]
+    c1_only = [f"G_C1_{i}" for i in range(5)]
+
+    # 20 shared genes: 17 concordant (12 up + 5 down), 3 discordant (3 up in C1, down in C2)
+    c2_up = c1_up[:12] + [f"G_C2_{i}" for i in range(4)]
+    c2_down = c1_down[:5] + c1_up[12:15]
+
+    contrasts = [
+        {
+            "name": "KO1 vs WT", "numerator": "KO1", "denominator": "WT",
+            "status": "success",
+            "n_significant": len(c1_up) + len(c1_down) + len(c1_only),
+            "all_sig_gene_ids": c1_up + c1_down + c1_only,
+            "up_gene_ids": c1_up + c1_only,
+            "down_gene_ids": c1_down,
+            "pathways": {"GO_BP": [{"term": "Circadian rhythm"}, {"term": "Metabolism"}, {"term": "Only_C1"}]},
+            "power_estimate_at_lfc_min": 0.80,
+        },
+        {
+            "name": "KO2 vs WT", "numerator": "KO2", "denominator": "WT",
+            "status": "success",
+            "n_significant": len(c2_up) + len(c2_down),
+            "all_sig_gene_ids": c2_up + c2_down,
+            "up_gene_ids": c2_up,
+            "down_gene_ids": c2_down,
+            "pathways": {"GO_BP": [{"term": "Circadian rhythm"}, {"term": "Metabolism"}, {"term": "Only_C2"}]},
+            "power_estimate_at_lfc_min": 0.80,
+        },
+    ]
+    x = detect_bulk_patterns(contrasts)["cross_contrast"][0]
+    assert x["n_shared_genes"] == 20
+    assert x["n_direction_concordant"] == 17
+    assert x["n_direction_discordant"] == 3
+    assert x["n_shared_terms"] == 2
+
 
 def test_real_report_overlap_golden():
     import csv
     import os
     import pytest
 
-    T = ("/home/medusa/.aria/reports/"
-         "aria_20260604_170909_bmal1_reverba_h9cells_-39a/tables")
-    if not os.path.isdir(T):
-        pytest.skip("real report tables not present")
+    T = os.environ.get("ARIA_REAL_REPORT_TABLES_DIR", "").strip()
+    if not T or not os.path.isdir(T):
+        pytest.skip("set ARIA_REAL_REPORT_TABLES_DIR to run external report golden")
 
     def contrast(name, num, den, de, pw):
         ids, up, down = [], [], []

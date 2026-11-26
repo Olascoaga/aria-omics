@@ -237,20 +237,31 @@ def test_chromatin_pseudobulk_da_is_donor_aware():
     pytest.importorskip("pydeseq2")
     from aria.scripts.chromatin_diffacc import _pseudobulk_da
 
-    rng = np.random.default_rng(0)
+    rng = np.random.default_rng(7)
     layout = [
         ("d1", "ctrl"), ("d1", "stim"),
         ("d2", "ctrl"), ("d2", "stim"),
         ("d3", "ctrl"), ("d3", "stim"),
+        ("d4", "ctrl"), ("d4", "stim"),
     ]
-    donor_base = {"d1": 0.0, "d2": 3.0, "d3": 6.0}
     n_peaks = 120
+    # Per-donor peak-specific baseline shifts (cannot be cancelled by size factors)
+    # plus a moderate +2.3x stim effect on peaks 0..14 (D3-005).
+    donor_shift = {
+        "d1": np.where(np.arange(n_peaks) < 60, 0.25, 4.0),
+        "d2": np.where(np.arange(n_peaks) < 60, 4.0, 0.25),
+        "d3": np.where(np.arange(n_peaks) % 2 == 0, 4.0, 0.25),
+        "d4": np.where(np.arange(n_peaks) % 2 == 0, 0.25, 4.0),
+    }
     rows, obs = [], []
     for donor, cond in layout:
-        for _ in range(40):
-            lam = np.exp(donor_base[donor] / 6.0 + rng.normal(0, 0.1, n_peaks))
+        lam = 4.0 * donor_shift[donor]
+        if cond == "stim":
+            lam = lam.copy()
+            lam[:15] *= 2.3
+        for _ in range(30):
             rows.append(rng.poisson(lam))
-            obs.append({"condition": cond, "donor": donor})
+            obs.append({"condition": cond, "donor": donor, "unpaired_id": f"{donor}_{cond}"})
     X = np.asarray(rows, dtype=float)
     obs_df = pd.DataFrame(obs)
     obs_df.index = [f"c{i}" for i in range(len(obs_df))]
@@ -261,11 +272,26 @@ def test_chromatin_pseudobulk_da_is_donor_aware():
     res = _pseudobulk_da(
         adata, "condition", "donor",
         comparisons=[{"test": "stim", "reference": "ctrl"}],
-        padj_max=0.1, lfc_min=0.0, top_n=50,
+        padj_max=0.05, lfc_min=0.5, top_n=50,
         min_cells=10, min_reps=2, allow_mock=False, warnings=warnings,
+    )
+    unpaired = _pseudobulk_da(
+        adata, "condition", "unpaired_id",
+        comparisons=[{"test": "stim", "reference": "ctrl"}],
+        padj_max=0.05, lfc_min=0.5, top_n=50,
+        min_cells=10, min_reps=2, allow_mock=False, warnings=[],
     )
     assert res["ran"] is True
     comp = res["comparisons"][0]
-    # A complete-paired scATAC design must model the donor block, not ~condition.
+    comp_unp = unpaired["comparisons"][0]
+    # A complete-paired scATAC design must model the donor block AND recover
+    # masked treatment effects that fail under an unblocked ~condition fit.
     assert comp.get("pairing_status") == "complete"
     assert comp.get("paired_block_modeled") is True
+    planted = {f"peak{i}" for i in range(15)}
+    paired_hits = {p["peak"] for p in comp["top_peaks"] if p["peak"] in planted and p["log2fc"] > 0.5}
+    unpaired_hits = {p["peak"] for p in comp_unp["top_peaks"] if p["peak"] in planted and p["log2fc"] > 0.5}
+    assert len(paired_hits) >= 12, f"Paired fit recovered only {len(paired_hits)}/15 planted peaks"
+    assert len(paired_hits) > len(unpaired_hits), (
+        f"Donor block did not outperform unpaired fit: {len(paired_hits)} vs {len(unpaired_hits)}"
+    )

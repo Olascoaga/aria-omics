@@ -359,6 +359,13 @@ def test_leiden_subprocess_modularity_is_not_replaced_with_zero():
     )[0]
 
     assert candidate.metrics["modularity"] == 0.42
+    # D3-020: verify independent numerical score and strict sensitivity to modularity
+    # (kills return 0.0 / modularity-dropped mutations).
+    expected_score = round(0.6 * 0.6 + 0.42 * 0.3, 4)
+    assert candidate.score == pytest.approx(expected_score, abs=1e-4)
+    zero_mod_score = advisor._score_leiden({**candidate.metrics, "modularity": 0.0}, {})
+    assert candidate.score > zero_mod_score
+    assert candidate.score - zero_mod_score == pytest.approx(0.42 * 0.3, abs=1e-4)
     assert candidate.score == advisor._score_leiden(candidate.metrics, {})
 
 
@@ -2553,6 +2560,15 @@ def test_pseudobulk_paired_design_uses_donor_condition_pseudosamples(tmp_path):
         assert comp["n_replicates"] == {"test": 4, "ref": 4}
         assert comp["paired_design"] is True
         assert comp["paired_donor_covariate"] is True
+    # D3-019: verify the 5 planted 4x-upregulated DE genes in CD14 Mono are recovered
+    # with positive log2fc > 1.0 (kills sig_primary wipeout / sign flip).
+    mono_comp = result["per_group"]["CD14 Mono"]["per_comparison"]["STIM_vs_CTRL"]
+    planted = {f"GENE_{i:04d}" for i in range(5)}
+    called_planted = [g for g in mono_comp.get("all_sig", []) if g["gene"] in planted]
+    assert len(called_planted) >= 4, (
+        f"Expected >=4/5 planted DE genes in CD14 Mono, got {called_planted}"
+    )
+    assert all(float(g["log2fc"]) > 1.0 for g in called_planted), called_planted
 
 
 def test_pseudobulk_paired_design_counts_pseudosamples_without_deseq2(

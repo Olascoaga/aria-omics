@@ -18,6 +18,7 @@ import pytest
 # ── Contract + light error routing ───────────────────────────────────────────
 
 def test_diffacc_has_ipc_contract():
+    pytest.importorskip("pydantic")
     from aria.utils.script_contracts import SCRIPT_CONTRACTS
     key = "aria/scripts/chromatin_diffacc.py"
     assert key in SCRIPT_CONTRACTS
@@ -113,10 +114,16 @@ def test_per_cluster_accessibility_runs(tmp_path):
     # planted block structure should yield differential peaks for the clusters
     assert pc["n_da_total"] > 0
     # records are descriptive (peak coordinate + stats + accessibility fraction)
-    for recs in pc["da_peaks_by_cluster"].values():
+    expected_blocks = {
+        "0": {str(i) for i in range(0, 60)},
+        "1": {str(i) for i in range(60, 120)},
+    }
+    for cl_id, recs in pc["da_peaks_by_cluster"].items():
         for r in recs:
             assert {"peak", "log2fc", "padj", "pct_in", "pct_out"} <= set(r)
             assert 0.0 <= r["pct_in"] <= 1.0
+        pos_hits = {r["peak"] for r in recs if r["log2fc"] > 0.5 and r["padj"] < 0.05}
+        assert len(pos_hits & expected_blocks[cl_id]) >= 15, (cl_id, len(pos_hits))
 
 
 def test_per_cluster_skips_single_cluster(tmp_path):
@@ -169,6 +176,7 @@ def test_pseudobulk_da_runs_with_replicates(tmp_path):
         "replicate_col": "replicate",
         "comparisons": [{"test": "B", "reference": "A"}],
         "min_replicates_per_condition": 3,
+        "top_n": 200,
         "output_dir": str(tmp_path),
     })
     assert res["status"] == "success"
@@ -178,3 +186,12 @@ def test_pseudobulk_da_runs_with_replicates(tmp_path):
     assert comp["status"] == "success"
     assert comp["n_sig"] > 0
     assert comp["n_up"] > 0   # the planted peaks are up in B vs A
+    # D3-014: verify planted peak IDs, positive LFC sign, and controlled empirical FDR.
+    planted = {str(i) for i in range(50)}
+    null_peaks = {str(i) for i in range(50, 200)}
+    called = {r["peak"]: r for r in comp["top_peaks"]}
+    tp = [called[pk] for pk in planted if pk in called]
+    fp = [pk for pk in called if pk in null_peaks]
+    assert len(tp) >= 40, f"Expected >=40/50 planted peaks recovered, got {len(tp)}"
+    assert all(r["log2fc"] > 0.5 for r in tp)
+    assert len(fp) / max(len(called), 1) <= 0.10, f"Empirical FDR too high: {len(fp)}/{len(called)}"

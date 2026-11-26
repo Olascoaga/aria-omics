@@ -57,6 +57,12 @@ def test_shrinkage_applied_and_raw_preserved():
     assert blk["lfc_shrinkage"]["method"] == "apeGLM"
     sig = blk["all_sig"]
     assert sig, "expected significant DE genes"
+    planted = {f"g{i}" for i in range(6)}
+    called_planted = [g for g in sig if g["gene"] in planted]
+    assert len(called_planted) >= 5, f"Expected >=5/6 planted DE genes, got {[g['gene'] for g in sig]}"
+    for g in called_planted:
+        assert g["log2fc"] > 0.5, f"Planted up gene {g['gene']} has wrong sign: {g}"
+        assert g["log2fc_raw"] > 0.5, f"Planted up gene {g['gene']} raw LFC has wrong sign: {g}"
     for g in sig:
         assert "log2fc_raw" in g and g["log2fc_raw"] is not None
         # apeGLM never increases magnitude: |shrunk| <= |raw| (+ rounding slack)
@@ -70,6 +76,11 @@ def test_shrinkage_can_be_disabled():
     blk = res["per_group"]["A"]["per_comparison"]["treat_vs_ctrl"]
     assert blk["lfc_shrinkage"]["applied"] is False
     assert blk["lfc_shrinkage"]["reason"] == "disabled"
+    planted = {f"g{i}" for i in range(6)}
+    called_planted = [g for g in blk["all_sig"] if g["gene"] in planted]
+    assert len(called_planted) >= 5
+    for g in called_planted:
+        assert g["log2fc"] > 0.5
     # with shrinkage off, reported log2fc equals the raw MLE
     for g in blk["all_sig"]:
         assert abs(g["log2fc"] - g["log2fc_raw"]) < 1e-3

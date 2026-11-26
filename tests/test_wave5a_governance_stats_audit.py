@@ -813,8 +813,18 @@ def test_d5c4_orchestrator_replay_preserves_specification_sha_and_fork_index(mon
 
     monkeypatch.setattr(orch, "_blocked_modalities", lambda m: {})
     monkeypatch.setattr(orch, "_experimental_modalities", lambda m: {})
-    # Stub Setup/Narrative/downstream by making _dispatch_agents stop via empty modalities + mocked NarrativeAgent
+    # Stub Setup/Narrative/downstream by making _dispatch_agents stop via empty modalities + mocked agents
     from aria.agents import narrative_agent as na_mod
+    from aria.agents import setup_agent as sa_mod
+
+    class _StubSA:
+        name = "setup_agent"
+
+        def __init__(self, *a, **k):
+            pass
+
+        def run(self, exp_id, ctx):
+            return {"status": "ready", "genome_config": {}}
 
     class _StubNA:
         name = "narrative_agent"
@@ -827,6 +837,7 @@ def test_d5c4_orchestrator_replay_preserves_specification_sha_and_fork_index(mon
             captured["biological_intent"] = ctx["biological_intent"]
             return {"status": "done", "report_path": str(tmp_path / "r.html")}
 
+    monkeypatch.setattr(sa_mod, "SetupAgent", _StubSA)
     monkeypatch.setattr(na_mod, "NarrativeAgent", _StubNA)
     orch._experiment_plans["replay_run"] = {"intent": dict(intent)}
     orch._dispatch_agents(

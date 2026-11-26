@@ -95,11 +95,6 @@ def _strings(value):
 def test_contract_production_and_optional_inputs(tmp_path):
     pytest.importorskip("pydantic")
     from aria.utils.script_contracts import contract_for_script
-    try:
-        from aria.agents.narrative.validators import CAUSAL_PATTERNS as NARR_CAUSAL
-        assert tuple(CAUSAL_PATTERNS) == tuple(NARR_CAUSAL)
-    except ImportError:
-        pass
     contract = contract_for_script("aria/scripts/cross_modal_concordance.py")
     assert contract.validation_level == "production"
     assert contract.validate_params({}) == []
@@ -113,6 +108,12 @@ def test_contract_production_and_optional_inputs(tmp_path):
     assert contract.validate_result(result) == []
     result["ran"] = True
     assert contract.validate_result(result) == []
+
+
+def test_causal_patterns_parity_with_narrative_validators():
+    pytest.importorskip("litellm")
+    from aria.agents.narrative.validators import CAUSAL_PATTERNS as NARR_CAUSAL
+    assert tuple(CAUSAL_PATTERNS) == tuple(NARR_CAUSAL)
 
 
 def test_full_bulk_run_background_statistics_and_artifacts(bulk_inputs):
@@ -149,12 +150,15 @@ def test_full_bulk_run_background_statistics_and_artifacts(bulk_inputs):
         assert Path(result["tables"][key]).stat().st_size > 100
     for key in ("figures", "figures_svg"):
         assert Path(result[key]["cross_modal_starburst"]).stat().st_size > 5000
-    try:
-        from aria.utils.script_contracts import contract_for_script
-        assert contract_for_script("aria/scripts/cross_modal_concordance.py").validate_result(result) == []
-    except ImportError:
-        pass
     json.dumps(result, allow_nan=False)
+
+
+def test_full_bulk_run_validates_against_script_contract(bulk_inputs):
+    pytest.importorskip("pydantic")
+    from aria.utils.script_contracts import contract_for_script
+    result = cross_modal_concordance(bulk_inputs)
+    assert result["status"] == "success" and result["ran"]
+    assert contract_for_script("aria/scripts/cross_modal_concordance.py").validate_result(result) == []
 
 
 def test_reverse_sign_alignment_including_motifs_and_footprints(bulk_inputs):

@@ -213,7 +213,7 @@ def _stage_scrna_qc(data_dir: Path, exp_ctx: dict,
         adata = sc.read_10x_mtx(
             str(data_dir),
             var_names="gene_symbols",
-            cache=True,
+            cache=False,
         )
         ok(f"Data loaded: {adata.n_obs} cells x {adata.n_vars} genes",
            f"{time.time()-t0:.1f}s")
@@ -524,6 +524,98 @@ def test_pbmc_e2e_pipeline():
     _stage_message_bus_summary(experiment_id)
 
     assert qc_result.get("n_cells", 0) > 0
+
+
+def test_synthetic_scrna_e2e_pipeline(tmp_path):
+    """Self-contained synthetic scRNA-seq E2E test (D3-016): runs ARIA's real
+    rna_qc -> rna_clustering -> rna_de_per_cluster scripts on a planted
+    3-population AnnData without external downloads or repo-root cache writes."""
+    import numpy as np
+    import pandas as pd
+    import pytest
+    from scipy.sparse import csr_matrix
+
+    pytest.importorskip("scanpy")
+    ad = pytest.importorskip("anndata")
+
+    from aria.scripts.rna_clustering import rna_clustering
+    from aria.scripts.rna_de_per_cluster import rna_de_per_cluster
+    from aria.scripts.rna_qc import rna_qc
+
+    rng = np.random.default_rng(2026)
+    n_per = 80
+    n_cells = 3 * n_per
+    n_genes = 360
+    X = rng.poisson(2.5, size=(n_cells, n_genes)).astype(np.float32)
+    planted = {
+        0: [f"GENE_{j:03d}" for j in range(0, 12)],
+        1: [f"GENE_{j:03d}" for j in range(120, 132)],
+        2: [f"GENE_{j:03d}" for j in range(240, 252)],
+    }
+    X[:n_per, 0:12] += rng.poisson(35.0, size=(n_per, 12))
+    X[n_per:2 * n_per, 120:132] += rng.poisson(35.0, size=(n_per, 12))
+    X[2 * n_per:, 240:252] += rng.poisson(35.0, size=(n_per, 12))
+
+    # Inject 5 damaged high-MT cells (enough genes to pass empty-droplet prefilter,
+    # >50% mitochondrial reads) that rna_qc must filter out via mt_threshold.
+    mt_genes = [f"MT-G{j}" for j in range(5)]
+    var_names = [f"GENE_{j:03d}" for j in range(n_genes)] + mt_genes
+    mt_counts = np.zeros((n_cells, 5), dtype=np.float32)
+    bad_X = np.zeros((5, n_genes + 5), dtype=np.float32)
+    bad_X[:, :80] = 1.0
+    bad_X[:, n_genes:] = 500.0
+    full_X = np.vstack([np.hstack([X, mt_counts]), bad_X])
+
+    adata = ad.AnnData(
+        X=csr_matrix(full_X),
+        obs=pd.DataFrame(index=[f"CELL_{i:04d}" for i in range(full_X.shape[0])]),
+        var=pd.DataFrame(index=var_names),
+    )
+    raw_path = tmp_path / "synthetic_scrna.h5ad"
+    adata.write_h5ad(raw_path)
+
+    qc_res = rna_qc({
+        "data_path": str(raw_path),
+        "organism": "Homo sapiens",
+        "min_genes": 50,
+        "min_cells": 3,
+        "mt_threshold": 10.0,
+        "run_scrublet": False,
+        "output_dir": str(tmp_path / "qc"),
+    })
+    assert qc_res["status"] == "success", qc_res
+    assert qc_res["n_cells_before"] == n_cells + 5
+    assert qc_res["n_cells_after"] == n_cells
+
+    cl_res = rna_clustering({
+        "data_path": qc_res["output_path"],
+        "resolution": 0.4,
+        "n_hvg": 200,
+        "n_pcs": 15,
+        "n_neighbors": 12,
+        "seed": 0,
+        "output_dir": str(tmp_path / "clust"),
+    })
+    assert cl_res["status"] == "success", cl_res
+    assert cl_res["n_clusters"] == 3, cl_res
+
+    de_res = rna_de_per_cluster({
+        "data_path": cl_res["output_path"],
+        "groupby": "leiden",
+        "padj_max": 0.05,
+        "lfc_min": 0.5,
+        "top_n": 20,
+        "output_dir": str(tmp_path / "de"),
+    })
+    assert de_res["status"] == "success", de_res
+    assert de_res["n_clusters"] == 3
+    matched_pops = set()
+    for cl_id, recs in de_res["de_genes_by_cluster"].items():
+        up_genes = {r["gene"] for r in recs if r["log2fc"] > 1.0 and r["padj"] < 0.05}
+        for pop_idx, expected_markers in planted.items():
+            if len(up_genes & set(expected_markers)) >= 8:
+                matched_pops.add(pop_idx)
+    assert matched_pops == {0, 1, 2}, de_res["de_genes_by_cluster"]
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────

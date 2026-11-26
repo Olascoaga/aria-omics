@@ -523,8 +523,9 @@ def test_agent_associative_tunnels_orchestrator_gate_and_no_fabrication_guard(tm
             src = (repo_root / rel).read_text(encoding="utf-8")
             assert fab_mod.scan_source(rel, src) == [], f"Fabrication guard flagged {rel}"
 
-    if not _has_module("pydantic"):
-        return
+def test_peak2gene_contract_and_agent_tunnels(tmp_path: Path):
+    _require_module("pydantic")
+    _require_module("litellm")
 
     from aria.agents.integration_agent import IntegrationAgent
     from aria.agents.orchestrator_agent import INTEGRATION_VALIDATION

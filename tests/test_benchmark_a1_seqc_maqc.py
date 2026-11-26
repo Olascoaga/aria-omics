@@ -238,6 +238,6 @@ def test_a1_seqc_maqc_real_bundle():
     from aria.benchmarks.reference_seqc import run_seqc_maqc_a1_benchmark
 
     manifest = run_seqc_maqc_a1_benchmark(os.environ["ARIA_SEQC_MAQC_BUNDLE"])
-    assert manifest["status"] in ("pass", "fail"), manifest
+    assert manifest["status"] == "pass", manifest
     assert manifest["axes"]["lfc_concordance"]["n_genes_scored"] > 100
     assert manifest["axes"]["taqman_de_detection"]["auc"] is not None

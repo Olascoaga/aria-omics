@@ -1,14 +1,15 @@
 name: ARIA CI
 
-# P1-10 (master audit pre-4.6): a blocking, 3-tier gate + supply-chain hygiene.
-#   PR      -> lint + unit + contracts + guards (pure-Python, importorskip-gated)
-#             + packaging metadata (P2-1)
-#   main    -> the above + the heavy pydeseq2 conda lane + recent closeout tests
-#   release -> base + RNA Docker build + conda env solve + a real mini DE
-#             benchmark + a CycloneDX SBOM of the image (P2-2)
+# Blocking multi-tier CI + supply-chain hygiene (reworked in D3 to collect tests/
+# dynamically instead of brittle hand-maintained file allowlists):
+#   PR      -> lint + packaging metadata + full `pytest tests/` in pure-Python +
+#              statsmodels + TUI env (conda/heavy-dep tests self-skip via importorskip)
+#   main    -> PR checks + full `pytest tests/` in RNA/pyDESeq2 conda lane +
+#              Hi-C/cooler conda lane + Multiome/MuData/MOFA+ conda lane
+#   release -> base + RNA/ATAC/chromatin/TOBIAS Docker builds + in-container
+#              smoke & benchmark suites + CycloneDX SBOM (P2-2)
 #   always  -> gitleaks secret scan (P2-2)
-# No lane is `continue-on-error`: a red lane is a real failure signal. Closes
-# F-ENG-REPRO / the master plan's "CI no bloqueante" finding.
+# No lane is `continue-on-error`: a red lane is a real failure signal.
 
 on:
   push:
@@ -19,9 +20,11 @@ on:
   workflow_dispatch:
 
 jobs:
-  # ── Tier 1 (PR + main): lint + unit + contracts + guards ─────────────────
-  # Pure-Python lane. Tests that need scanpy/pydeseq2 self-skip via
-  # pytest.importorskip, so this lane runs the subset the pip env supports.
+  # ── Tier 1 (PR + main): compile + packaging + full pure-Python test suite ──
+  # Dynamically collects all `tests/` (except legacy script-style harnesses in
+  # `tests/conftest.py:collect_ignore`). Tests needing conda-only packages
+  # (`pydeseq2`, `scanpy`, `cooler`, `mudata`, `mofapy2`, `snapatac2`) self-skip
+  # via `pytest.importorskip` here and execute in the conda lanes below.
   pr-checks:
     runs-on: ubuntu-latest
     steps:
@@ -35,15 +38,12 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -e ".[tui]"
-          pip install pytest numpy pandas scipy anndata scikit-learn matplotlib
+          pip install pytest numpy pandas scipy statsmodels anndata scikit-learn matplotlib
 
       - name: Byte-compile the package
         run: python -m compileall -q aria
 
       - name: Packaging metadata (P2-1, reproducible install)
-        # `pip install -e .` above already built from pyproject; assert the
-        # installed metadata matches the single-source version + 3.11 floor and
-        # run the pure packaging guard (version-drift regression).
         run: |
           python -c "import importlib.metadata as m, aria; \
             md = m.metadata('aria-omics'); \
@@ -51,181 +51,15 @@ jobs:
             assert m.version('aria-omics') == aria.__version__, m.version('aria-omics')"
           python -m pytest -q tests/test_packaging.py
 
-      - name: Governance guards (anti-fabrication + IPC contract coverage)
-        # Two test_script_contracts cases drive a real `conda run` subprocess and
-        # need the full RNA env (covered by the heavy lane / Docker); deselect
-        # them here so the pure-Python contract checks still gate the PR.
-        run: |
-          python -m pytest -q \
-            tests/test_no_fabrication_guard.py \
-            tests/test_dispatchable_contracts.py \
-            tests/test_registry_integrity.py \
-            tests/test_script_contracts.py \
-            tests/test_cellcomm_contract.py \
-            --deselect tests/test_script_contracts.py::test_environment_manager_validates_script_output_contract \
-            --deselect tests/test_script_contracts.py::test_environment_manager_attaches_contract_metadata_on_success
+      - name: Full pure-Python test suite (all tests/, importorskip-gated)
+        run: python -m pytest -q tests/
 
-      - name: Sprint-0 / Sprint-1 correctness gates
-        run: |
-          python -m pytest -q \
-            tests/test_llm_partial_config.py \
-            tests/test_hic_dispatch_gate.py \
-            tests/test_filename_fallback_gate.py \
-            tests/test_wnn_no_fabrication.py \
-            tests/test_analysis_thresholds.py \
-            tests/test_explicit_contrast_gate.py \
-            tests/test_pseudobulk_gate.py \
-            tests/test_scrna_agent_contract.py \
-            tests/test_bulk_covariates.py \
-            tests/test_geo_design.py \
-            tests/test_geo_spikein_inference.py \
-            tests/test_local_ora.py \
-            tests/test_egress_governance.py \
-            tests/test_sensitivity_privacy.py \
-            tests/test_parameter_advisor_honesty.py \
-            tests/test_secret_hygiene.py \
-            tests/test_doctor_diagnostics.py \
-            tests/test_packaging.py \
-            tests/test_docker_hermeticity.py \
-            tests/test_image_provenance.py \
-            tests/test_assay_detector_fastq.py \
-            tests/test_preprint_audit_e2_library_type.py \
-            tests/test_preprint_audit_e4_bulk_fastq_manifest.py \
-            tests/test_preprint_audit_e5_scatac_manifest.py \
-            tests/test_preprint_audit_a4_stage_manifests.py \
-            tests/test_raw_ingestion_kb_dispatch.py \
-            tests/test_bulk_rna_raw_multiplatform_e2e.py \
-            tests/test_metadata_correction.py \
-            tests/test_benchmark_a1_seqc_maqc.py \
-            tests/test_benchmark_a2_kang_muscat.py \
-            tests/test_benchmark_b1_design_governance.py \
-            tests/test_benchmark_b2_claim_narrative.py \
-            tests/test_benchmark_b4_null_narrative.py \
-            tests/test_benchmark_scatac_da.py \
-            tests/test_rna_bulk_de_contract.py \
-            tests/test_bulk_rna.py
-
-      - name: Narrative kernel + claim/causal + closeout
-        run: |
-          python -m pytest -q \
-            tests/test_narrative_types.py \
-            tests/test_narrative_scrna_contract.py \
-            tests/test_narrative_validators.py \
-            tests/test_narrator_scrna.py \
-            tests/test_narrator_bulk.py \
-            tests/test_narrative_render_blocks.py \
-            tests/test_causal_guard.py \
-            tests/test_claim_compiler.py \
-            tests/test_biological_synthesis.py \
-            tests/test_run_ledger_and_devils.py \
-            tests/test_ledger_claim_linkage.py \
-            tests/test_ledger_export.py \
-            tests/test_preprint_audit_b3_multi_provider.py \
-            tests/test_preprint_audit_b3_multi_provider_e2e.py \
-            tests/test_render_ledger_e2e.py \
-            tests/test_stage4_closeout.py \
-            tests/test_calibration_badge.py \
-            tests/test_calibration_spike_in.py \
-            tests/test_fdr_advanced_disclosure.py \
-            tests/test_llm_provider_fallback.py \
-            tests/test_lfc_shrinkage.py \
-            tests/test_pathway_viz.py \
-            tests/test_doctor.py \
-            tests/test_headless_design_e2e.py \
-            tests/test_env_manager_cache.py
-
-      - name: Converted legacy native tests (P1-11, dep-gated)
-        # Native conversions of the former script-style harnesses. Light/source
-        # checks run here; scanpy marker/DE + pydeseq2 e2e + dataset-gated cases
-        # skip in this pip lane and run in the heavy/dev lanes.
-        run: |
-          python -m pytest -q \
-            tests/test_scrna.py \
-            tests/test_environment_manager.py \
-            tests/test_pbmc_e2e.py
-
-      - name: Chromatin + ATAC lane (honest-skip / dispatch / contracts / env specs)
-        # S7 (pre-integration audit / Codex #3): CI validated RNA/core but not the
-        # chromatin/ATAC stacks. These tests are fake-env / honest-skip / contract
-        # checks (no scanpy/snapatac2/bwa-mem2/chromap/TOBIAS needed — the binaries
-        # honest-skip), so they run in the pure-Python lane and gate every PR. They
-        # cover the raw-ingestion chain (FASTQ->BAM, FASTQ->fragments,
-        # fragments->matrix), bulk ATAC QC->peaks->counts->DA, TOBIAS/chromap
-        # honest-skip, GEO 4-modal routing, dispatch gating, readiness, and that the
-        # chromatin/atacseq/tobias env specs declare their tools. A full conda solve
-        # + chr20 end-to-end smoke is a heavier follow-up (chromatin Docker image).
-        run: |
-          python -m pytest -q \
-            tests/test_chromatin_env_specs.py \
-            tests/test_atac_align.py \
-            tests/test_chromatin_scatac_align.py \
-            tests/test_chromatin_fragments_to_matrix.py \
-            tests/test_scatac_cohort_union.py \
-            tests/test_scatac_production_multiplatform_e2e.py \
-            tests/test_bulk_atac_production_e2e.py \
-            tests/test_tobias_production_e2e.py \
-            tests/test_chromatin_footprint_tobias.py \
-            tests/test_chromatin_footprint_governance.py \
-            tests/test_preprint_audit_b7_footprint_inference.py \
-            tests/test_bulk_atac_footprint.py \
-            tests/test_bulk_atac_v47.py \
-            tests/test_bulk_atac_diffacc.py \
-            tests/test_bulk_atac_peak_counts.py \
-            tests/test_bulk_atac_marker_mapping.py \
-            tests/test_scatac_raw_path_c4.py \
-            tests/test_scatac_da_dispatch_stack.py \
-            tests/test_geo_atac_inference.py \
-            tests/test_chromatin_peaks_c5.py \
-            tests/test_modality_readiness.py \
-            tests/test_chromatin_dispatch_gate.py \
-            tests/test_orchestrator_scatac_dispatch.py \
-            tests/test_docs_drift_guard.py \
-            tests/test_no_dead_packages.py \
-            tests/test_env_lock_numpy_consistency.py \
-            tests/test_env_lock_provenance.py \
-            tests/test_base_atomic_write.py \
-            tests/test_calibration_gate.py
-
-      - name: Preprint C1-C7 governance + HypothesisAgent + V48 Multiome contracts
-        # ADR-079: integration production governance (same-cell gate, audit
-        # tiers, registry invariants, contracts, ledger/narrator) gates the PR.
-        run: |
-          python -m pytest -q \
-            tests/test_preprint_audit_q1_doc_claims.py \
-            tests/test_preprint_audit_c1_claim_boundary.py \
-            tests/test_preprint_audit_c2_semantic_facts.py \
-            tests/test_preprint_audit_c3_publication_linkage.py \
-            tests/test_preprint_audit_c4_causal_estimands.py \
-            tests/test_preprint_freeze_inventory.py \
-            tests/test_public_artifacts_no_absolute_paths.py \
-            tests/test_hypothesis_quarantine.py \
-            tests/test_hypothesis_gates.py \
-            tests/test_hypothesis_grounding.py \
-            tests/test_hypothesis_redteam.py \
-            tests/test_hypothesis_optin_plumbing.py \
-            tests/test_hypothesis_report_section.py \
-            tests/test_integration_agent.py \
-            tests/test_integration_governance_adr079.py \
-            tests/test_multiome_contracts.py \
-            tests/test_v48_i7_integration_narrative.py \
-            tests/test_v48_i8_integration_promotion.py \
-            tests/test_v48_i9_cross_modal_hypotheses.py \
-            tests/test_cross_modal_concordance_core.py \
-            tests/test_cross_modal_synthesis_and_narrative.py \
-            tests/test_cross_modal_production_e2e.py \
-            tests/test_v494_pre_submission_hardening.py \
-            tests/test_setup_cli.py \
-            tests/test_setup_agent_envs.py \
-            tests/test_count_classifier.py
-
-      - name: Integration smoke suite (importorskip-gated)
-        run: python -m pytest -q tests/test_pytest_smoke.py
-
-  # ── Tier 2 (main only): heavy conda lane — BLOCKING ──────────────────────
-  # Runs the real pyDESeq2 numerical-recovery gates in a SLIM scanpy+pydeseq2
-  # env (envs/aria-rna-ci.yml). The FULL env solve is validated by the release
-  # lane's Docker build. No continue-on-error: a failed solve or a numerical
-  # regression is red.
+  # ── Tier 2a (main only): RNA + pyDESeq2 + scanpy conda lane — BLOCKING ─────
+  # Runs full `pytest tests/` in envs/aria-rna-ci.yml + `pip install -e . pytest statsmodels`.
+  # Only `tests/test_cockpit_render.py` is ignored because optional `[tui]`
+  # (`textual`) is intentionally excluded from the science conda lane (covered by
+  # `pr-checks`). All pyDESeq2, scanpy, pseudobulk DE, bulk RNA, chromatin DA,
+  # LOBO, contrast-family FDR, Wave 1-6, and oracle suites run automatically.
   rna-env-tests:
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
@@ -238,26 +72,67 @@ jobs:
           init-shell: bash
           cache-environment: true
 
-      - name: Run pydeseq2-gated science gates
+      - name: Run full suite in RNA/pyDESeq2 conda env
         shell: bash -el {0}
         env:
           NUMBA_CACHE_DIR: /tmp/numba_cache
         run: |
-          pip install -e . pytest
-          python -m pytest -q \
-            tests/test_benchmark_synthetic_de.py \
-            tests/test_benchmark_a1_seqc_maqc.py \
-            tests/test_benchmark_a2_kang_muscat.py \
-            tests/test_benchmark_scatac_da.py \
-            tests/test_calibration_spike_in.py \
-            tests/test_lfc_shrinkage.py \
-            tests/test_composition_collinearity.py \
-            tests/test_bulk_covariates.py \
-            tests/test_bulk_rna.py \
-            tests/test_scrna.py \
-            tests/test_calibration_gate.py
+          pip install -e . pytest statsmodels
+          python -m pytest -q tests/ \
+            --ignore=tests/test_cockpit_render.py
 
-  # ── Secret scanning (PR + push + tags): supply-chain hygiene ─────────────
+  # ── Tier 2b (main only): Hi-C / cooler / cooltools conda lane — BLOCKING ───
+  # Exercises all Hi-C, cooler, cooltools, and differential-3D tests dynamically
+  # from `tests/` inside envs/aria-hic-env.yml (`numpy<2` preserved).
+  hic-env-tests:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: mamba-org/setup-micromamba@v2
+        with:
+          environment-file: envs/aria-hic-env.yml
+          init-shell: bash
+          cache-environment: true
+
+      - name: Run Hi-C / cooler / cooltools tests
+        shell: bash -el {0}
+        env:
+          NUMBA_CACHE_DIR: /tmp/numba_cache
+        run: |
+          pip install "numpy<2" -e . pytest statsmodels
+          python -m pytest -q tests/ \
+            --ignore=tests/test_cockpit_render.py \
+            -k "hic or cooler or topology or differential_3d"
+
+  # ── Tier 2c (main only): Multiome / MuData / MOFA+ / WNN lane — BLOCKING ───
+  # Exercises paired Multiome, WNN, MOFA+, peak2gene, eRegulons, SnapATAC2,
+  # cross-modal concordance, and SEACR/IDR tests dynamically from `tests/` inside
+  # envs/aria-integration-env.yml (`numpy<2` preserved).
+  integration-env-tests:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: mamba-org/setup-micromamba@v2
+        with:
+          environment-file: envs/aria-integration-env.yml
+          init-shell: bash
+          cache-environment: true
+
+      - name: Run Multiome / MuData / MOFA+ / WNN / peak2gene tests
+        shell: bash -el {0}
+        env:
+          NUMBA_CACHE_DIR: /tmp/numba_cache
+        run: |
+          pip install "numpy<2" -e . pytest statsmodels
+          python -m pytest -q tests/ \
+            --ignore=tests/test_cockpit_render.py \
+            -k "wnn or mofa or peak2gene or eregulon or mudata or multiome or snapatac or fragments_to_matrix or cohort_union or cross_modal or seacr or idr"
+
+  # ── Secret scanning (PR + push + tags): supply-chain hygiene ───────────────
   # P2-2: gitleaks fails the build if a credential is committed. Runs on the
   # full history (fetch-depth 0) so a secret in an older commit is also caught.
   secret-scan:
@@ -271,10 +146,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # ── Tier 3 (tags v* only): release reproducibility ───────────────────────
-  # Validates the published Docker images (base + RNA modality) solve the env,
-  # runs a real bulk+pseudobulk DE recovery benchmark inside the container, and
-  # emits a CycloneDX SBOM of the image (P2-2 supply chain).
+  # ── Tier 3 (tags v* only): release reproducibility ─────────────────────────
+  # Validates all published modality Docker images solve their conda specs, runs
+  # real scientific tests inside EVERY built image (RNA, chromatin, ATAC, TOBIAS),
+  # and emits a CycloneDX SBOM of the RNA image (P2-2 supply chain).
   release-repro:
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
@@ -308,11 +183,34 @@ jobs:
             --build-arg ARIA_BASE_IMAGE=aria-base:ci \
             --build-arg ARIA_IMAGE_ENV_SHA="$TOBIAS_SHA" .
 
-      - name: Real synthetic-DE recovery benchmark inside the image
+      - name: Real synthetic-DE benchmark + statistical oracles inside RNA image
         run: |
           docker run --rm -e NUMBA_CACHE_DIR=/tmp/numba_cache aria-rna:ci \
             python -m pytest -q \
-              /opt/aria/tests/test_benchmark_synthetic_de.py
+              /opt/aria/tests/test_benchmark_synthetic_de.py \
+              /opt/aria/tests/oracle/
+
+      - name: Real chromatin / scATAC / SEACR-IDR smoke inside chromatin image
+        run: |
+          docker run --rm -e NUMBA_CACHE_DIR=/tmp/numba_cache aria-chromatin:ci \
+            python -m pytest -q \
+              /opt/aria/tests/test_chromatin_fragments_to_matrix.py \
+              /opt/aria/tests/test_bulk_atac_peak_counts.py \
+              /opt/aria/tests/test_seacr_idr_spikein.py \
+              /opt/aria/tests/oracle/test_oracle_seacr_idr.py \
+              /opt/aria/tests/oracle/test_oracle_peak2gene_core.py
+
+      - name: Aligner binary & contract verification inside ATAC-seq image
+        run: |
+          docker run --rm aria-atacseq:ci \
+            bash -lc "command -v bwa-mem2 && command -v samtools && command -v chromap && \
+              python -m pytest -q /opt/aria/tests/test_atac_align.py /opt/aria/tests/test_chromatin_scatac_align.py"
+
+      - name: TOBIAS binary & footprinting verification inside TOBIAS image
+        run: |
+          docker run --rm aria-tobias:ci \
+            bash -lc "TOBIAS --version && \
+              python -m pytest -q /opt/aria/tests/test_chromatin_footprint_tobias.py /opt/aria/tests/test_tobias_production_e2e.py"
 
       - name: Generate CycloneDX SBOM of the RNA image (P2-2 supply chain)
         uses: anchore/sbom-action@v0
