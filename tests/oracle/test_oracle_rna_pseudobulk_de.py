@@ -570,3 +570,59 @@ class TestPseudobulkHelperMutantKillers:
         assert genes_s == ["G1", "G2"] and deg_s is False
         genes_err, deg_err = _expressed_background("not_a_matrix", ["G0", "G1"])
         assert genes_err == ["G0", "G1"] and deg_err is True
+
+    def test_sparse_sum_aggregation_preserves_total_counts_and_kills_mean_mutant(self, tmp_path):
+        """Sparse AnnData pseudobulk MUST sum cell counts (not average), preserving count scale."""
+        pytest.importorskip("pydeseq2")
+        ad = pytest.importorskip("anndata")
+
+        rng = np.random.default_rng(777)
+        n_genes = 40
+        genes = [f"SG{i:03d}" for i in range(n_genes)]
+        cells_per_donor = 60
+        rows, blocks = [], []
+        for cond in ("WT", "KO"):
+            for r in range(4):
+                donor = f"{cond}_d{r}"
+                # Per-cell mean=0.4 (WT) / 1.6 (KO up): sum across 60 cells yields ~24 vs ~96
+                # (clean 4x DE with padj < 1e-8); averaging + int64 truncation collapses null
+                # counts to 0 and destroys pseudobulk power/estimation.
+                mu = np.full(n_genes, 0.4)
+                if cond == "KO":
+                    mu[:8] = 1.6
+                X_blk = rng.poisson(mu, size=(cells_per_donor, n_genes)).astype(np.float32)
+                blocks.append(X_blk)
+                for c in range(cells_per_donor):
+                    rows.append({"cell_type": "Mono", "condition": cond, "donor": donor})
+
+        X_sparse = sparse.csr_matrix(np.vstack(blocks))
+        adata = ad.AnnData(
+            X=X_sparse,
+            obs=pd.DataFrame(rows, index=[f"cell_{i}" for i in range(len(rows))]),
+            var=pd.DataFrame(index=genes),
+        )
+        h5ad = tmp_path / "sparse_pb.h5ad"
+        adata.write_h5ad(h5ad)
+
+        res = rna_pseudobulk_de({
+            "data_path": str(h5ad),
+            "groupby": "cell_type",
+            "condition_col": "condition",
+            "replicate_col": "donor",
+            "comparisons": [["KO", "WT"]],
+            "use_raw": False,
+            "min_cells_per_pseudosample": 10,
+            "min_replicates_per_condition": 3,
+            "padj_max": 0.05,
+            "lfc_min": 0.5,
+            "output_dir": str(tmp_path / "sparse_out"),
+        })
+        assert res["status"] == "success", res
+        comp = res["per_group"]["Mono"]["per_comparison"]["KO_vs_WT"]
+        assert comp["status"] == "success", comp
+        full_df = pd.read_csv(comp["full_results_csv"]).set_index("gene")
+        assert len(full_df) == n_genes
+        assert float(full_df.loc[genes[:8], "padj"].median()) < 1e-6
+        assert float(full_df.loc[genes[:8], "log2fc"].median()) == pytest.approx(2.0, abs=0.45)
+        called_up = {rec["gene"] for rec in comp["all_sig"] if rec["log2fc"] > 1.0}
+        assert len(called_up & set(genes[:8])) >= 7

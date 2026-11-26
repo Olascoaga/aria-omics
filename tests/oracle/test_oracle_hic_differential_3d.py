@@ -401,6 +401,9 @@ class TestComputeDifferential3DCoolerOracle:
         desc_df = pd.read_csv(res_2v2["comparisons"][0]["descriptive_csv"])
         assert "pvalue" not in desc_df.columns
         assert "delta_E1" in desc_df.columns
+        # Assert signed descriptive delta_E1 matches planted A->B (negative) and B->A (positive)
+        assert (desc_df.iloc[16:24]["delta_E1"] < -0.3).sum() >= 6
+        assert (desc_df.iloc[8:16]["delta_E1"] > 0.3).sum() >= 6
 
     def test_moderated_linear_contrast_and_parse_comparisons_mutant_killers(self):
         from scipy import stats as sp_stats
