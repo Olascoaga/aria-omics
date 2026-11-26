@@ -25,6 +25,39 @@ def bh_correct(pvals):
     return out
 
 
+def adaptive_neglog10(
+    pvals,
+    *,
+    headroom: float = 1.15,
+    min_cap: float = 5.0,
+    all_zero_floor: float = 10.0,
+):
+    """Data-adaptive ``-log10(p)`` with underflow capping for ``p == 0``.
+
+    Returns ``(values, cap, has_zero_cap)``. Strictly positive finite ``p`` in
+    ``(0, 1]`` map to ``-log10(p)``; float64-underflowed ``p == 0.0`` map to
+    ``max(max_finite * headroom, max_finite + 1.0, min_cap)`` (or
+    ``all_zero_floor`` when no strictly positive finite ``p`` exists), ensuring
+    capped ultra-significant values always lie strictly above ``-log10(0.05)``.
+    Non-finite or out-of-range inputs map to ``np.nan`` (never Python ``None``).
+    """
+    import numpy as np
+
+    arr = np.asarray(pvals, dtype=float)
+    valid = np.isfinite(arr) & (arr >= 0.0) & (arr <= 1.0)
+    pos = arr[valid & (arr > 0.0)]
+    if pos.size > 0:
+        max_fin = float(-np.log10(np.min(pos)))
+        cap = max(max_fin * float(headroom), max_fin + 1.0, float(min_cap))
+    else:
+        cap = float(all_zero_floor)
+    zero_mask = valid & (arr == 0.0)
+    out = np.full(arr.shape, np.nan, dtype=float)
+    out[valid & (arr > 0.0)] = -np.log10(arr[valid & (arr > 0.0)])
+    out[zero_mask] = cap
+    return out, cap, bool(np.any(zero_mask))
+
+
 # ── Pre-registered FDR family (P1-2) ─────────────────────────────────────────
 # The per-cluster vs global BH family must be fixed from the analysis plan BEFORE
 # any p-values are computed, so the choice cannot be presented as a post-hoc,

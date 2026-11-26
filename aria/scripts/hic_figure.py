@@ -580,15 +580,10 @@ def _render_differential_compartments(diff_csv: str | None, out_dir: Path) -> di
     padj = p_all[valid]
     cls = sub.get("switch_class", pd.Series(["unchanged"] * len(sub), index=sub.index)).astype(str).to_numpy()
 
-    # Data-adaptive ceiling for padj == 0.0 (never clip to 1e-300 -> y=300 spike).
-    pos_p = padj[padj > 0.0]
-    if pos_p.size > 0:
-        max_fin_y = float(-np.log10(np.min(pos_p)))
-        cap_y = max(max_fin_y * 1.15, max_fin_y + 1.0, 5.0)
-    else:
-        cap_y = 10.0
+    from aria.utils.stats import adaptive_neglog10
+
+    neglog, cap_y, _ = adaptive_neglog10(padj)
     zero_mask = padj == 0.0
-    neglog = np.where(zero_mask, cap_y, -np.log10(np.where(zero_mask, 1.0, padj)))
 
     fig, ax = plt.subplots(figsize=(5.8, 4.4))
     bg = cls == "unchanged"

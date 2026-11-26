@@ -149,15 +149,13 @@ def _label_str(value: Any) -> str:
 
 def _neglog10_display(pvals: list[float], headroom: float = 1.15,
                       all_zero_floor: float = 10.0) -> tuple[list[float], float | None]:
-    """Data-adaptive ``-log10(p)``: exact for ``p > 0``; ``p == 0`` underflow is
-    placed at ``max(max_finite * headroom, max_finite + 1)`` (never 300, never
-    shrunk to 0.05). Returns ``(values, cap)`` with ``cap=None`` if none capped."""
-    finite = [-math.log10(p) for p in pvals if p > 0]
-    cap = None
-    if any(p <= 0 for p in pvals):
-        top = max(finite) if finite else None
-        cap = max(top * headroom, top + 1.0) if top is not None else all_zero_floor
-    return [(-math.log10(p) if p > 0 else cap) for p in pvals], cap
+    """Data-adaptive ``-log10(p)`` via canonical ``stats.adaptive_neglog10``."""
+    from aria.utils.stats import adaptive_neglog10
+
+    vals, cap, has_zero = adaptive_neglog10(
+        pvals, headroom=headroom, all_zero_floor=all_zero_floor
+    )
+    return [float(v) for v in vals.tolist()], (cap if has_zero else None)
 
 
 def _decode_str_array(raw: np.ndarray) -> list[str]:

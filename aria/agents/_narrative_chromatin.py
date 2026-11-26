@@ -75,34 +75,17 @@ def _save_dual(fig, png_path) -> str:
     return str(png_path)
 
 
-def _neglog10_capped(p, headroom: float = 1.12, all_zero_floor: float = 10.0):
-    """Wave 2A: data-adaptive ``-log10(p)`` for display.
-
-    ``p`` must already be finite and in ``[0, 1]``. Strictly positive values map
-    to their exact ``-log10``. Underflowed ``p == 0.0`` values (float64 tail
-    underflow in DESeq2 / Fisher / site tests) are placed at a *visual cap* just
-    above the largest finite value — ``max(max_finite * headroom, max_finite + 1)``,
-    i.e. at or above one decade beyond the smallest positive p — instead of the old
-    hard ``1e-300 -> 300`` clip that flattened the real cloud. When every value is
-    zero the cap falls back to ``all_zero_floor``. Returns ``(y, zero_mask, cap)``
-    with ``cap = None`` when nothing was capped.
-    """
+def _neglog10_capped(p, headroom: float = 1.15, all_zero_floor: float = 10.0):
+    """Wave 2A: data-adaptive ``-log10(p)`` for display via canonical ``stats.adaptive_neglog10``."""
     import numpy as np
+    from aria.utils.stats import adaptive_neglog10
 
-    p = np.asarray(p, dtype=float)
-    zero = p <= 0.0
-    y = np.zeros_like(p)
-    if (~zero).any():
-        y[~zero] = -np.log10(p[~zero])
-    cap = None
-    if zero.any():
-        if (~zero).any():
-            max_finite = float(np.max(y[~zero]))
-            cap = max(max_finite * headroom, max_finite + 1.0)
-        else:
-            cap = float(all_zero_floor)
-        y[zero] = cap
-    return y, zero, cap
+    arr = np.asarray(p, dtype=float)
+    y, cap, has_zero = adaptive_neglog10(
+        arr, headroom=headroom, all_zero_floor=all_zero_floor
+    )
+    zero = np.isfinite(arr) & (arr == 0.0)
+    return y, zero, (cap if has_zero else None)
 
 
 def _finite_unit_mask(p):

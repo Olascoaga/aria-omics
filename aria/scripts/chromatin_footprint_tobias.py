@@ -1049,16 +1049,11 @@ def render_footprint_volcano(
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
+    from aria.utils.stats import adaptive_neglog10
+
     alpha = float(summary.get("alpha", 0.05))
-    # Wave 2A: data-adaptive display for p == 0 (float64 underflow in BINDetect
-    # site tests / zero-variance replicate tests). Instead of the old hard
-    # 1e-300 -> y=300 clip that flattened the real cloud, zero p-values sit just
-    # above the largest finite -log10(p) and the cap is disclosed.
-    finite_y = [-math.log10(p) for _, p, _ in rows if p > 0]
-    zero_cap = None
-    if any(p <= 0 for _, p, _ in rows):
-        top = max(finite_y) if finite_y else 0.0
-        zero_cap = max(top * 1.12, top + 1.0) if finite_y else 10.0
+    _, cap_val, has_zero = adaptive_neglog10([p for _, p, _ in rows])
+    zero_cap = cap_val if has_zero else None
 
     def _ycoord(pvalue: float) -> float:
         return zero_cap if pvalue <= 0 else -math.log10(pvalue)

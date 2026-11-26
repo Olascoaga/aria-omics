@@ -1182,21 +1182,7 @@ def sample_matched_layer(rna_cpm, atac_cpm, models, params, warnings):
     return frame, result
 
 
-def _adaptive_neglog10(pvals):
-    """Return (-log10(p) with data-adaptive cap for p==0, cap_value, has_zero_cap)."""
-    arr = np.asarray(pvals, dtype=float)
-    valid = np.isfinite(arr) & (arr >= 0.0) & (arr <= 1.0)
-    pos = arr[valid & (arr > 0.0)]
-    if pos.size > 0:
-        max_fin = float(-np.log10(np.min(pos)))
-        cap = max(max_fin * 1.15, max_fin + 1.0, 5.0)
-    else:
-        cap = 10.0
-    zero_mask = valid & (arr == 0.0)
-    out = np.full(arr.shape, np.nan, dtype=float)
-    out[valid & (arr > 0.0)] = -np.log10(arr[valid & (arr > 0.0)])
-    out[zero_mask] = cap
-    return out, cap, bool(np.any(zero_mask))
+from aria.utils.stats import adaptive_neglog10 as _adaptive_neglog10
 
 
 def render_starburst(de_da, tfs, pathways, summary, output_dir):

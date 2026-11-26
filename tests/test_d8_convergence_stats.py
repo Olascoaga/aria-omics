@@ -38,3 +38,47 @@ def test_d8_016_bh_fdr_nan_poisoning_divergence():
     assert lobo_bh is canonical_bh
     assert xmodal_bh is canonical_bh
     assert hic_bh is canonical_bh
+
+
+def test_d8_014_plot_neglog10_underflow_cap_converges(tmp_path):
+    """D8-014: all -log10(p) underflow cappers must floor cap >= 5.0 (strictly > -log10(0.05)) and emit float NaN."""
+    import math
+    from pathlib import Path
+    import pandas as pd
+    import pytest
+
+    pytest.importorskip("litellm")
+    from aria.agents._narrative_chromatin import _neglog10_capped
+    from aria.agents._narrative_integration import _neglog10_display
+    from aria.scripts.rna_bulk.plots import _generate_plots
+    from aria.utils.cross_modal_concordance import _adaptive_neglog10
+
+    pvals = [0.0, 0.2, 0.8]
+    _, cap_xm, _ = _adaptive_neglog10(pvals)
+    _, _, cap_chr = _neglog10_capped(pvals)
+    _, cap_int = _neglog10_display(pvals)
+    assert cap_xm == 5.0 and cap_chr == 5.0 and cap_int == 5.0
+
+    res_df = pd.DataFrame(
+        {"log2FoldChange": [3.5, 0.2, -0.1], "padj": pvals},
+        index=["GENE_ZERO", "GENE_B", "GENE_C"],
+    )
+    out = _generate_plots(
+        {"results": res_df, "n_up": 1, "n_down": 0, "sig_genes": ["GENE_ZERO"]},
+        {},
+        None,
+        None,
+        "condition",
+        str(tmp_path),
+        padj_thr=0.05,
+        lfc_thr=1.0,
+    )
+    svg = Path(out["volcano"]).read_text(encoding="utf-8")
+    y_int_nan, _ = _neglog10_display([math.nan, 0.01])
+    assert "shown at 5.00" in svg and "shown at 1.00" not in svg
+    assert all(v is not None for v in y_int_nan)
+    assert math.isnan(y_int_nan[0]) and y_int_nan[1] == pytest.approx(2.0)
+
+    from aria.utils.stats import adaptive_neglog10
+
+    assert _adaptive_neglog10 is adaptive_neglog10

@@ -197,13 +197,11 @@ def render_cellcomm_top_pairs_bar(findings: dict,
     scores = np.array([r[1] for r in rows], dtype=float)
 
     if pvalue_like:
-        positive = scores > 0
-        plot_vals = np.zeros_like(scores)
-        plot_vals[positive] = -np.log10(scores[positive])
-        cap = max(1.0, float(plot_vals[positive].max()) * 1.15) if positive.any() else 10.0
-        plot_vals[~positive] = cap
+        from aria.utils.stats import adaptive_neglog10
+
+        plot_vals, cap, has_underflow = adaptive_neglog10(scores)
         xlabel = f"-log10({metric})"
-        if (~positive).any():
+        if has_underflow:
             xlabel += f" (score=0 shown at {cap:.2f}; underflow)"
     else:
         plot_vals = scores

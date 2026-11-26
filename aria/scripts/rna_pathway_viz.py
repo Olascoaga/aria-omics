@@ -117,12 +117,11 @@ def make_ora_dotplot(pathways_list: list,
         df = df.loc[valid].head(top_n).copy()
         if df.empty:
             return None
+        from aria.utils.stats import adaptive_neglog10
+
         padj_num = padj_num.loc[df.index]
-        positive = padj_num > 0
-        neglog = -np.log10(padj_num.where(positive))
-        cap = max(1.0, float(neglog[positive].max()) * 1.15) if positive.any() else 10.0
-        df["-log10(FDR)"] = neglog.fillna(cap)
-        has_underflow = bool((~positive).any())
+        neglog, cap, has_underflow = adaptive_neglog10(padj_num.to_numpy(dtype=float))
+        df["-log10(FDR)"] = neglog
 
         # Gene count: prefer the true overlap numerator (e.g. "12/134" -> 12)
         # because the display `genes` list is capped at 10 entries in ORA output.

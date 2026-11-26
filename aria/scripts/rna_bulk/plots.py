@@ -220,12 +220,12 @@ def _generate_plots(de_result: dict, sample_qc: dict,
             results_df["log2FoldChange"] = lfc_num.loc[valid]
             results_df["padj"] = padj.loc[valid]
             lfc = results_df["log2FoldChange"].clip(-8, 8)
+            from aria.utils.stats import adaptive_neglog10
+
             padj = results_df["padj"]
-            positive = padj > 0
-            neg_log_p = -np.log10(padj.where(positive))
-            cap = max(1.0, float(neg_log_p[positive].max()) * 1.15) if positive.any() else 10.0
-            neg_log_p = neg_log_p.fillna(cap)
-            if (~positive).any():
+            neg_vals, cap, has_underflow = adaptive_neglog10(padj.to_numpy(dtype=float))
+            neg_log_p = pd.Series(neg_vals, index=padj.index)
+            if has_underflow:
                 ax.text(0.02, 0.98, f"padj = 0 (underflow): shown at {cap:.2f}",
                         transform=ax.transAxes, va="top", fontsize=8, color=_P["muted"])
 
