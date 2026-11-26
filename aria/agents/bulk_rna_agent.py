@@ -645,30 +645,18 @@ class BulkRNAAgent(BaseAgent):
             resolved = by_token.get(token)
             return resolved if resolved is not None else ""
 
+        from aria.utils.design_matrix import normalize_comparisons
+
         contrasts: list[dict] = []
-        for comp in raw:
-            if isinstance(comp, dict):
-                num = comp.get("numerator") or comp.get("test") or comp.get("case")
-                den = (
-                    comp.get("denominator")
-                    or comp.get("reference")
-                    or comp.get("ref")
-                    or comp.get("control")
-                )
-                name = comp.get("name")
-            elif isinstance(comp, (list, tuple)) and len(comp) >= 2:
-                num, den = comp[0], comp[1]
-                name = None
-            else:
-                continue
-            num = resolve_level(num)
-            den = resolve_level(den)
+        for comp in normalize_comparisons(raw, keep_name=True):
+            num = resolve_level(comp["test"])
+            den = resolve_level(comp["reference"])
             if not num or not den:
                 continue
             contrasts.append({
                 "numerator": num,
                 "denominator": den,
-                "name": str(name or f"{num} vs {den}"),
+                "name": str(comp.get("name") or f"{num} vs {den}"),
             })
         return contrasts
 

@@ -5,6 +5,97 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+_CONTRAST_TEST_KEYS = ("test", "numerator", "case", "contrast", "condition")
+_CONTRAST_REF_KEYS = ("reference", "ref", "denominator", "control", "baseline")
+_CONTRAST_VS_SEPS = ("_vs_", " vs ", "_VS_", " VS ")
+
+
+def _extract_single_comparison(
+    comp: Any, *, keep_name: bool = False
+) -> dict[str, str] | None:
+    if isinstance(comp, str):
+        text = comp.strip()
+        for sep in _CONTRAST_VS_SEPS:
+            if sep in text:
+                left, right = text.split(sep, 1)
+                left, right = left.strip(), right.strip()
+                if left and right:
+                    return {"test": left, "reference": right}
+        return None
+    if isinstance(comp, dict):
+        test = next(
+            (
+                comp[k]
+                for k in _CONTRAST_TEST_KEYS
+                if comp.get(k) is not None and str(comp.get(k)).strip() != ""
+            ),
+            None,
+        )
+        ref = next(
+            (
+                comp[k]
+                for k in _CONTRAST_REF_KEYS
+                if comp.get(k) is not None and str(comp.get(k)).strip() != ""
+            ),
+            None,
+        )
+        if test is None or ref is None:
+            return None
+        rec = {"test": str(test).strip(), "reference": str(ref).strip()}
+        if keep_name and comp.get("name") not in (None, ""):
+            rec["name"] = str(comp["name"]).strip()
+        return rec
+    if isinstance(comp, (list, tuple)) and len(comp) >= 2:
+        t_val, r_val = comp[0], comp[1]
+        if (
+            t_val is not None
+            and str(t_val).strip() != ""
+            and r_val is not None
+            and str(r_val).strip() != ""
+        ):
+            return {"test": str(t_val).strip(), "reference": str(r_val).strip()}
+    return None
+
+
+def normalize_comparisons(
+    raw: Any,
+    *,
+    valid_groups: Any = None,
+    keep_name: bool = False,
+) -> list[dict[str, str]]:
+    """Canonical contrast/comparison normalizer across ARIA design, power, and DE modules.
+
+    Accepts any combination of:
+      - dicts using ARIA's contrast vocabulary
+        (``test``/``numerator``/``case``/``contrast``/``condition`` vs
+        ``reference``/``ref``/``denominator``/``control``/``baseline``),
+      - 2-element ``[test, reference]`` / ``(test, reference)`` pairs,
+      - ``"A_vs_B"`` / ``"A vs B"`` strings.
+
+    When ``valid_groups`` is provided, only non-self contrasts whose levels are
+    both present in ``valid_groups`` are retained.
+    """
+    if raw in (None, "", []):
+        return []
+    out: list[dict[str, str]] = []
+    if isinstance(raw, (str, dict)):
+        rec = _extract_single_comparison(raw, keep_name=keep_name)
+        if rec is not None:
+            out.append(rec)
+    elif isinstance(raw, (list, tuple)):
+        for item in raw:
+            rec = _extract_single_comparison(item, keep_name=keep_name)
+            if rec is not None:
+                out.append(rec)
+    if valid_groups is not None:
+        vg = {str(g) for g in valid_groups}
+        out = [
+            c
+            for c in out
+            if c["test"] in vg and c["reference"] in vg and c["test"] != c["reference"]
+        ]
+    return out
+
 
 def resolve_design_contract(
     design: dict | None,
@@ -78,15 +169,7 @@ def resolve_design_contract(
     if raw_comparisons is None:
         raw_comparisons = design.get("comparisons")
     if raw_comparisons is None and isinstance(design.get("contrasts"), list):
-        norm_comps = []
-        for item in design["contrasts"]:
-            if isinstance(item, dict):
-                test_lvl = item.get("test") or item.get("numerator")
-                ref_lvl = item.get("reference") or item.get("denominator")
-                if test_lvl and ref_lvl:
-                    norm_comps.append(
-                        {"test": str(test_lvl), "reference": str(ref_lvl)}
-                    )
+        norm_comps = normalize_comparisons(design["contrasts"])
         if norm_comps:
             raw_comparisons = norm_comps
 

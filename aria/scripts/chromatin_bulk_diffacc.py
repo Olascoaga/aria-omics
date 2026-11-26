@@ -23,6 +23,7 @@ from typing import Any
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from aria.scripts._base import mocks_allowed, run_script
+from aria.utils.design_matrix import normalize_comparisons as _normalise_comparisons
 from aria.utils.lobo_jackknife import compute_counts_lobo_jackknife
 
 
@@ -44,34 +45,6 @@ def _skipped(reason: str, **extra) -> dict:
         "warnings": [],
     }
     out.update(extra)
-    return out
-
-
-def _normalise_comparisons(raw) -> list[dict[str, str]]:
-    if raw in (None, "", []):
-        return []
-    if isinstance(raw, str):
-        text = raw.strip()
-        for sep in ("_vs_", " vs ", "_VS_", " VS "):
-            if sep in text:
-                left, right = text.split(sep, 1)
-                if left.strip() and right.strip():
-                    return [{"test": left.strip(), "reference": right.strip()}]
-        return []
-    if isinstance(raw, dict):
-        test = raw.get("test") or raw.get("numerator")
-        ref = raw.get("reference") or raw.get("ref") or raw.get("denominator")
-        return ([{"test": str(test), "reference": str(ref)}]
-                if test and ref else [])
-    out = []
-    if isinstance(raw, list):
-        for item in raw:
-            if isinstance(item, dict):
-                out.extend(_normalise_comparisons(item))
-            elif isinstance(item, (list, tuple)) and len(item) >= 2:
-                out.append({"test": str(item[0]), "reference": str(item[1])})
-            elif isinstance(item, str):
-                out.extend(_normalise_comparisons(item))
     return out
 
 

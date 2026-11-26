@@ -551,30 +551,9 @@ class PseudobulkMixin:
 
     @staticmethod
     def _normalise_pseudobulk_comparisons(raw) -> list[list[str]]:
-        if not raw:
-            return []
-        comparisons = []
-        for comp in raw:
-            if isinstance(comp, dict):
-                test = next(
-                    (comp[k] for k in ("test", "numerator", "case", "contrast")
-                     if comp.get(k) is not None and str(comp.get(k)).strip() != ""),
-                    None,
-                )
-                ref = next(
-                    (comp[k] for k in ("ref", "reference", "denominator", "control")
-                     if comp.get(k) is not None and str(comp.get(k)).strip() != ""),
-                    None,
-                )
-                if test is not None and ref is not None:
-                    comparisons.append([str(test), str(ref)])
-            elif isinstance(comp, (list, tuple)) and len(comp) >= 2:
-                if (
-                    comp[0] is not None and str(comp[0]).strip() != ""
-                    and comp[1] is not None and str(comp[1]).strip() != ""
-                ):
-                    comparisons.append([str(comp[0]), str(comp[1])])
-        return comparisons
+        from aria.utils.design_matrix import normalize_comparisons
+
+        return [[c["test"], c["reference"]] for c in normalize_comparisons(raw)]
 
     @staticmethod
     def _suggest_pseudobulk_comparisons(groups: dict) -> list[list[str]]:

@@ -123,30 +123,12 @@ def _normalize_comparisons(
     comparisons: list[Any],
     groups: dict[str, list[str]],
 ) -> list[tuple[str, str]]:
-    out: list[tuple[str, str]] = []
-    for comp in comparisons or []:
-        test = ref = None
-        if isinstance(comp, dict):
-            test = (
-                comp.get("test")
-                or comp.get("case")
-                or comp.get("numerator")
-                or comp.get("condition")
-            )
-            ref = (
-                comp.get("reference")
-                or comp.get("control")
-                or comp.get("denominator")
-                or comp.get("baseline")
-            )
-        elif isinstance(comp, (list, tuple)) and len(comp) >= 2:
-            test, ref = comp[0], comp[1]
-        if test is None or ref is None:
-            continue
-        test_s, ref_s = str(test), str(ref)
-        if test_s in groups and ref_s in groups and test_s != ref_s:
-            out.append((test_s, ref_s))
-    return out
+    from aria.utils.design_matrix import normalize_comparisons
+
+    return [
+        (c["test"], c["reference"])
+        for c in normalize_comparisons(comparisons, valid_groups=groups)
+    ]
 
 
 def _default_comparisons(groups: dict[str, list[str]]) -> list[tuple[str, str]]:
