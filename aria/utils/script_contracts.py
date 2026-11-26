@@ -303,6 +303,7 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
         success_outputs=(
             _f("n_contrasts", "int"),
             _f("contrasts", "list"),
+            _f("design_used", "str", required=False),
             _f("count_source", "str", required=False),
             _f("count_union", "dict", required=False),
         ),

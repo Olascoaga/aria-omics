@@ -1191,11 +1191,69 @@ class BulkRNAAgent(BaseAgent):
             except Exception as e: log.debug(f"Failed to store threshold decision: {e}")
 
             try:
+                contrasts_list = [
+                    c for c in (result.get("contrasts") or []) if isinstance(c, dict)
+                ]
+                fitted_formulas = list(
+                    dict.fromkeys(
+                        str(c["fitted_design_formula"]).strip()
+                        for c in contrasts_list
+                        if str(c.get("fitted_design_formula") or "").strip()
+                    )
+                )
+                design_decision = (
+                    fitted_formulas[0]
+                    if len(fitted_formulas) == 1
+                    else (
+                        "; ".join(fitted_formulas)
+                        if fitted_formulas
+                        else str(result.get("design_used") or "not reported")
+                    )
+                )
+                covs_adjusted = list(
+                    dict.fromkeys(
+                        str(cov)
+                        for c in contrasts_list
+                        for cov in (c.get("covariates_adjusted") or [])
+                        if str(cov or "").strip()
+                    )
+                )
+                covs_dropped = list(
+                    dict.fromkeys(
+                        str(cov)
+                        for c in contrasts_list
+                        for cov in (c.get("covariates_dropped") or [])
+                        if str(cov or "").strip()
+                    )
+                )
+                if covs_adjusted:
+                    design_rationale = (
+                        f"Multi-factor DESeq2 design adjusting for confirmed covariate(s): "
+                        f"{', '.join(covs_adjusted)}."
+                    )
+                    if covs_dropped:
+                        design_rationale += (
+                            f" Dropped unestimable/confounded covariate(s): "
+                            f"{', '.join(covs_dropped)}."
+                        )
+                elif covs_dropped:
+                    design_rationale = (
+                        f"Single-factor DESeq2 design; candidate covariate(s) dropped "
+                        f"before fitting: {', '.join(covs_dropped)}."
+                    )
+                else:
+                    design_rationale = (
+                        "Single-factor DESeq2 design with no additional batch or "
+                        "covariate terms fitted."
+                    )
                 self.memory.store_decision(
-                    decision_id=f"{experiment_id[:8]}-auto-00-design", wing_id=experiment_id, checkpoint=0,
-                    question="DESeq2 design formula", decision=result.get("design_used", "~condition"),
-                    rationale="Single-factor design inferred from sample labels. No batch or covariate adjustment applied.",
-                    made_by="bulk_rna_agent (auto)"
+                    decision_id=f"{experiment_id[:8]}-auto-00-design",
+                    wing_id=experiment_id,
+                    checkpoint=0,
+                    question="DESeq2 design formula",
+                    decision=design_decision,
+                    rationale=design_rationale,
+                    made_by="bulk_rna_agent (auto)",
                 )
             except Exception as e: log.debug(f"Failed to store design decision: {e}")
         except Exception as e:

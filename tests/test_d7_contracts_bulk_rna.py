@@ -129,3 +129,63 @@ def test_d7_001_bulk_rna_apply_design_maps_explicit_gsm_to_srr_and_geo_soft(tmp_
     assert "SRR9001" in inferred["sample_aliases"]["GSM1001"]
     _, geo_labels, _, _ = agent._apply_design(inferred, [str(tsv)], "exp_geo_sra")
     assert geo_labels == labels
+
+
+def test_d7_007_bulk_rna_agent_records_actual_fitted_design_decision(tmp_path):
+    """D7-007: rna_bulk_de must emit the actual fitted design formula (including
+    covariates) in top-level design_used, and BulkRNAAgent._record_methodology_decisions
+    must record that fitted formula and covariate rationale into ARIAMemory."""
+    pytest.importorskip("litellm")
+    from aria.agents.bulk_rna_agent import BulkRNAAgent
+    from aria.memory.memory import ARIAMemory
+    from aria.utils.environment_manager import env_manager
+
+    rng = np.random.default_rng(13)
+    samples = ["c1_b1", "c2_b1", "c3_b2", "c4_b2", "t1_b1", "t2_b1", "t3_b2", "t4_b2"]
+    n_genes = 50
+    mat = rng.poisson(200, size=(n_genes, len(samples)))
+    mat[:5, 4:] = rng.poisson(800, size=(5, 4))
+    counts_tsv = tmp_path / "counts.tsv"
+    pd.DataFrame(mat, index=[f"G{i}" for i in range(n_genes)], columns=samples).to_csv(
+        counts_tsv, sep="\t", index_label="gene_id"
+    )
+    meta_tsv = tmp_path / "meta.tsv"
+    pd.DataFrame({
+        "sample": samples,
+        "condition": ["ctrl"] * 4 + ["treat"] * 4,
+        "batch": ["b1", "b1", "b2", "b2", "b1", "b1", "b2", "b2"],
+    }).to_csv(meta_tsv, sep="\t", index=False)
+
+    de_res = env_manager.run_in_stack(
+        "rna",
+        "aria/scripts/rna_bulk_de.py",
+        {
+            "files": [str(counts_tsv)],
+            "metadata_file": str(meta_tsv),
+            "design_factor": "condition",
+            "covariates": ["batch"],
+            "contrasts": [{"name": "treat_vs_ctrl", "numerator": "treat", "denominator": "ctrl"}],
+            "padj_threshold": 0.05,
+            "lfc_threshold": 0.5,
+            "output_dir": str(tmp_path / "de_out"),
+            "run_ora": False,
+            "run_gsea": False,
+            "run_qc_plots": False,
+        },
+    )
+    assert de_res["status"] == "success", de_res
+    assert "batch" in de_res["contrasts"][0]["fitted_design_formula"]
+    assert "batch" in de_res["design_used"]
+
+    mem = ARIAMemory(":memory:")
+    agent = BulkRNAAgent(mem, llm=None)
+    agent._record_methodology_decisions("exp_bulk_1", de_res)
+    decisions = mem.get_decisions("exp_bulk_1")
+    design_dec = next(d for d in decisions if d["question"] == "DESeq2 design formula")
+    assert "batch" in design_dec["decision"], (
+        f"Decisions table recorded {design_dec['decision']!r} with rationale "
+        f"{design_dec['rationale']!r} despite DESeq2 fitting "
+        f"{de_res['contrasts'][0]['fitted_design_formula']!r}"
+    )
+    assert "No batch or covariate adjustment applied" not in design_dec["rationale"]
+    assert "batch" in design_dec["rationale"].lower()

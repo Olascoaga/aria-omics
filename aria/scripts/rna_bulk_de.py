@@ -893,6 +893,19 @@ def bulk_rna_de(params: dict) -> dict:
         **({"count_union": count_union} if count_union is not None else {}),
     }
 
+    fitted_formulas = list(
+        dict.fromkeys(
+            str(c["fitted_design_formula"]).strip()
+            for c in contrast_results
+            if isinstance(c, dict) and str(c.get("fitted_design_formula") or "").strip()
+        )
+    )
+    design_used = (
+        fitted_formulas[0]
+        if len(fitted_formulas) == 1
+        else ("; ".join(fitted_formulas) if fitted_formulas else f"~{design_factor}")
+    )
+
     return {
         "status":           "success",
         "n_contrasts":      len(contrast_results),
@@ -902,7 +915,7 @@ def bulk_rna_de(params: dict) -> dict:
         "n_downregulated":  total_down,
         "sample_qc":        sample_qc_clean,
         "outlier_sensitivity": outlier_sensitivity,
-        "design_used":      f"~{design_factor}",
+        "design_used":      design_used,
         "padj_threshold":   padj_thr,
         "lfc_threshold":    lfc_thr,
         "n_cpus":           n_cpus,
