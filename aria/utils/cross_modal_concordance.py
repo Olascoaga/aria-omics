@@ -1016,6 +1016,12 @@ def _residualize_covariates(matrix, shared_samples, sample_covariates):
     }
 
 
+# Minimum sample-matched biological units below which across-sample cis
+# correlation power is low (df < 8 -> power < 80% even for strong effects after
+# BH adjustment across tested peak-gene pairs; D7-014).
+LOW_POWER_MIN_MATCHED_SAMPLES = 10
+
+
 def sample_matched_layer(rna_cpm, atac_cpm, models, params, warnings):
     """Cis correlations with a pooled empirical sample-label permutation null.
 
@@ -1026,6 +1032,7 @@ def sample_matched_layer(rna_cpm, atac_cpm, models, params, warnings):
     covariate warning and sex-chromosome link audit are emitted.
     """
     result = {"ran": False, "reason": "cpm_matrices_unavailable", "n_shared_samples": 0, "shared_sample_ids": [],
+              "low_power_warning": None,
               "cis_distance_bp": params["cis_distance_bp"], "min_required": params["min_matched_samples"],
               "n_pairs_tested": 0, "n_significant_links": 0, "n_positive_links": 0, "n_negative_links": 0,
               "n_sex_chromosome_significant_links": 0, "sex_chromosome_significant_fraction": 0.0,
@@ -1179,6 +1186,7 @@ def sample_matched_layer(rna_cpm, atac_cpm, models, params, warnings):
         else None
     )
     result.update(ran=True, reason=None, n_pairs_tested=len(frame), n_significant_links=len(significant),
+                  low_power_warning=bool(len(shared) < LOW_POWER_MIN_MATCHED_SAMPLES),
                   n_positive_links=int((significant.pearson_r > 0).sum()), n_negative_links=int((significant.pearson_r < 0).sum()),
                   n_sex_chromosome_significant_links=n_sex_sig,
                   sex_chromosome_significant_fraction=sex_sig_frac,
