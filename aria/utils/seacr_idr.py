@@ -827,11 +827,32 @@ def fit_copula_idr_pair(
     gamma = np.clip(np.exp(a1 - (m_max + np.log(np.exp(a0 - m_max) + np.exp(a1 - m_max)))), 0.0, 1.0)
 
     local_idr = 1.0 - gamma
-    # Tie-break identical local_idr by descending mean rank so stronger peaks come first
+    # Deterministic, replicate-swap-symmetric ordering: ascending local_idr,
+    # descending mean_u, then descending (max(u1, u2), min(u1, u2)). Equalize
+    # tie groups sharing identical (local_idr, u_hi, u_lo) with the group's
+    # conservative end cumulative mean so global_idr is strictly permutation-
+    # invariant and swap-symmetric (D2-BUG-9).
     mean_u = 0.5 * (u1 + u2)
-    order = np.lexsort((-mean_u, local_idr))
+    u_hi = np.maximum(u1, u2)
+    u_lo = np.minimum(u1, u2)
+    order = np.lexsort((-u_lo, -u_hi, -mean_u, local_idr))
     sorted_local = local_idr[order]
     sorted_global = np.cumsum(sorted_local) / np.arange(1, n + 1, dtype=float)
+    s_hi = u_hi[order]
+    s_lo = u_lo[order]
+    idx = 0
+    while idx < n:
+        end = idx + 1
+        while (
+            end < n
+            and sorted_local[end] == sorted_local[idx]
+            and s_hi[end] == s_hi[idx]
+            and s_lo[end] == s_lo[idx]
+        ):
+            end += 1
+        if end - idx > 1:
+            sorted_global[idx:end] = sorted_global[end - 1]
+        idx = end
     global_idr = np.empty(n, dtype=float)
     global_idr[order] = sorted_global
 

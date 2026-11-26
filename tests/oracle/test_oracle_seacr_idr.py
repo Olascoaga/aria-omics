@@ -301,14 +301,7 @@ class TestCopulaIdrOracle:
         with pytest.raises(ValueError, match=">=20"):
             fit_copula_idr_pair(s1[:25], s2[:24])
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            "D2-BUG-9: fit_copula_idr_pair computes global_idr via cumsum without tie-group "
-            "equalization, so identical/tied peaks receive different global_idr depending on "
-            "their input row order"
-        ),
-    )
+    # D2-BUG-9 fixed: tie-group equalization makes global_idr strictly permutation-invariant.
     def test_fit_copula_idr_global_idr_is_strictly_permutation_invariant_with_ties(self):
         rng = np.random.default_rng(7)
         z_sig = rng.multivariate_normal([3.0, 3.0], [[1.0, 0.85], [0.85, 1.0]], size=20)
