@@ -253,11 +253,21 @@ def test_no_hardcoded_biology_contract_and_agent_conflict_wiring():
 
 
 def test_mofa_agent_conflict_wiring_and_contract():
+    import importlib.util
+
     pytest.importorskip("litellm")
     pytest.importorskip("pydantic")
     from aria.agents.integration_agent import IntegrationAgent
     from aria.utils.script_contracts import contract_for_script
-    from tests.test_no_fabrication_guard import scan_source
+
+    # Load sibling helper by file path so site-packages/tests/__init__.py
+    # (shipped by episcanpy in aria-integration-env) cannot shadow ARIA's tests/.
+    guard_path = Path(__file__).resolve().parent / "test_no_fabrication_guard.py"
+    spec = importlib.util.spec_from_file_location("_aria_test_no_fabrication_guard", guard_path)
+    assert spec is not None and spec.loader is not None
+    guard_mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(guard_mod)
+    scan_source = guard_mod.scan_source
 
     # No-fabrication static AST guard on new/updated V48 I4 modules
     for rel in (
