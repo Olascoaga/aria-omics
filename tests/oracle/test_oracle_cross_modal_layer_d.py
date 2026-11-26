@@ -321,14 +321,7 @@ class TestSampleMatchedLayerDOracle:
         assert cpm_dup.empty
         assert any("duplicate_sample_headers" in w for w in w_list)
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            "D2-BUG-8: sample_matched_layer filters constant features with `rna.var(axis=1) > 0` "
-            "after log2(x+1), so strictly constant nonzero genes (e.g. CPM=10.0, log2(11) var ~2e-31) "
-            "leak into hypothesis testing and inflate n_pairs_tested / BH padj"
-        ),
-    )
+    # D2-BUG-8 fixed: zero-variance features are filtered before log2(x+1).
     def test_nonzero_constant_gene_must_be_filtered_before_testing(self):
         samples = [f"U{i:02d}" for i in range(12)]
         x = np.linspace(1.0, 12.0, 12)

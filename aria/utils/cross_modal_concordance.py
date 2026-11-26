@@ -1060,8 +1060,13 @@ def sample_matched_layer(rna_cpm, atac_cpm, models, params, warnings):
     atac = atac_cpm[[y for _, y in aligned]]
     rna = rna[np.isfinite(rna).all(axis=1) & (rna >= 0).all(axis=1)]
     atac = atac[np.isfinite(atac).all(axis=1) & (atac >= 0).all(axis=1)]
+    # Drop strictly constant rows BEFORE log2(x+1) so floating-point variance
+    # noise (~2e-31 for constant nonzero CPM) never leaks into testing (D2-BUG-8).
+    rna = rna[np.ptp(rna.to_numpy(dtype=float), axis=1) > 0.0]
+    atac = atac[np.ptp(atac.to_numpy(dtype=float), axis=1) > 0.0]
     rna, atac = np.log2(rna + 1.0), np.log2(atac + 1.0)
-    rna, atac = rna[rna.var(axis=1) > 0], atac[atac.var(axis=1) > 0]
+    rna = rna[np.var(rna.to_numpy(dtype=float), axis=1) > 1e-12]
+    atac = atac[np.var(atac.to_numpy(dtype=float), axis=1) > 1e-12]
     if len(atac) > 50_000:
         atac = atac.loc[atac.var(axis=1).sort_values(ascending=False, kind="stable").head(50_000).index]
         warnings.append("sample_link_candidate_cap: top_50000_variable_peaks")
