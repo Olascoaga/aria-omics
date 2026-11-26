@@ -134,15 +134,11 @@ def _status_done(result: Any) -> bool:
 
 
 def _clean_symbol(raw: Any) -> str | None:
-    """A reportable gene/TF symbol: no raw Ensembl/numeric ids or coordinates."""
-    sym = str(raw or "").strip()
-    if not sym or sym in {"?", "nan", "None", "NA"} or sym.isdigit():
-        return None
-    if sym.upper().startswith(_RAW_ID_PREFIXES) or _PEAK_COORD_RE.match(sym):
-        return None
-    if any(ch in sym for ch in (" ", "\t", "\n", ";", ",", "<", ">")):
-        return None
-    if find_causal_language(sym):
+    """A reportable gene/TF symbol: no raw Ensembl/numeric ids, coordinates, or causal words."""
+    from aria.utils.text_matching import clean_gene_symbol
+
+    sym = clean_gene_symbol(raw)
+    if sym is None or find_causal_language(sym):
         return None
     return sym
 

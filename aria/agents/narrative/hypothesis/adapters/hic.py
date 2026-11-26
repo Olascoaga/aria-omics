@@ -32,25 +32,8 @@ HIC_LOOPS_NODE = "ledger://hic/loops"
 HIC_LOOP_MEASURE = "hic_loop_anchor"
 _MAX_LOOP_GENES = 25
 
-_COORD_RE = re.compile(r"^(?:chr[\w.\-]+|[\dXYM]+|MT):\d+[-:]\d+$", re.IGNORECASE)
-_RAW_ID_PREFIXES = ("ENSG0", "ENSMUSG0", "ENST0", "ENSMUST0")
-_SKIP_TOKENS = {
-    "",
-    "na",
-    "n/a",
-    "nan",
-    "none",
-    "null",
-    "intergenic",
-    "distal",
-    "unannotated",
-    "unspecified",
-    ".",
-    "-",
-}
-
-
 from aria.utils.stats import finite_float as _finite_float
+from aria.utils.text_matching import clean_gene_symbol
 
 
 def _split_gene_field(raw: Any) -> list[str]:
@@ -63,16 +46,9 @@ def _split_gene_field(raw: Any) -> list[str]:
         return tokens
     out: list[str] = []
     for part in re.split(r"[,;|/]+", str(raw)):
-        gene = part.strip()
-        if not gene or gene.lower() in _SKIP_TOKENS:
-            continue
-        if _COORD_RE.match(gene):
-            continue
-        if gene.upper().startswith(_RAW_ID_PREFIXES):
-            continue
-        if any(ch.isspace() for ch in gene):
-            continue
-        out.append(gene)
+        gene = clean_gene_symbol(part)
+        if gene is not None:
+            out.append(gene)
     return out
 
 

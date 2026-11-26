@@ -95,20 +95,7 @@ def _corr(value: Any) -> float | None:
     return max(-1.0, min(1.0, out))
 
 
-def _gene_symbol(raw: Any) -> str | None:
-    sym = str(raw or "").strip()
-    if not sym or sym == "?" or sym.isdigit():
-        return None
-    if _PEAK_COORD_RE.match(sym) or sym.upper().startswith(_RAW_ID_PREFIXES):
-        return None
-    parts = sym.split("-")
-    if len(parts) == 3 and parts[0].lower().startswith("chr") and all(
-        p.isdigit() for p in parts[1:]
-    ):
-        return None
-    if any(ch in sym for ch in (" ", "\t", "\n", ";", ",")):
-        return None
-    return sym
+from aria.utils.text_matching import clean_gene_symbol as _gene_symbol
 
 
 def _single_tf(raw: Any) -> str | None:

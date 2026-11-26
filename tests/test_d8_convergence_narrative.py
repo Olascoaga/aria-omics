@@ -61,3 +61,40 @@ def test_d8_017_narrator_as_int_inf_and_diagnostic_block_converge():
 
     assert hic_int is as_int
     assert int_int is as_int
+
+
+def test_d8_019_gene_symbol_validators_converge():
+    """D8-019: all 5 narrative gene-symbol validators must reject raw Ensembl/Entrez IDs, peak coords, and sentinels."""
+    pytest.importorskip("litellm")
+    from aria.agents.narrative.hypothesis.adapters.cross_modal import _gene_symbol
+    from aria.agents.narrative.hypothesis.adapters.hic import _split_gene_field
+    from aria.agents.narrative.hypothesis.adapters.integration import _valid_gene_symbol
+    from aria.agents.narrative.synthesis.cross_modal_synthesis import _clean_symbol
+    from aria.agents.narrative.synthesis.pattern_detector import _looks_like_raw_id
+
+    for bad in (
+        "ENSG00000141510",
+        "ENSMUSG00000059552",
+        "7157",
+        "nan",
+        "None",
+        "chr1:100-500",
+        "chr1-100-500",
+    ):
+        assert _gene_symbol(bad) is None, bad
+        assert _clean_symbol(bad) is None, bad
+        assert _valid_gene_symbol(bad) is None, bad
+        assert _split_gene_field(bad) == [], bad
+        assert _looks_like_raw_id(bad) is True, bad
+
+    for good in ("TP53", "SOX2", "ENSA", "HLA-DRA"):
+        assert _gene_symbol(good) == good
+        assert _clean_symbol(good) == good
+        assert _valid_gene_symbol(good) == good
+        assert _split_gene_field(good) == [good]
+        assert _looks_like_raw_id(good) is False
+
+    from aria.utils.text_matching import clean_gene_symbol
+
+    assert _gene_symbol is clean_gene_symbol
+    assert _valid_gene_symbol is clean_gene_symbol

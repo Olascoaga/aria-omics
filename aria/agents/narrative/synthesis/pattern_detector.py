@@ -96,8 +96,9 @@ def _id_to_symbol(contrast: dict) -> dict[str, str]:
 
 
 def _looks_like_raw_id(symbol: str) -> bool:
-    s = str(symbol or "")
-    return s.startswith(("ENSG", "ENSMUS", "ENST", "ENS")) or s.isdigit() or not s
+    from aria.utils.text_matching import clean_gene_symbol
+
+    return clean_gene_symbol(symbol) is None
 
 
 def _top_shared_symbols(a: dict, b_ids: set[str], k: int = 10) -> list[str]:
