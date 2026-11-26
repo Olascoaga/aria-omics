@@ -1162,4 +1162,12 @@ def compose_cross_modal_discussion_blocks(
     if patterns.get("tables"):
         primary.tables = [dict(t) for t in patterns["tables"]]
     blocks.append(_limitations_block(route, patterns, engine))
+    if engine and isinstance(links, dict):
+        from aria.agents.narrative.warning_router import route_degradation_signals
+
+        blocks = route_degradation_signals(
+            "cross_modal_concordance",
+            {"sample_matched_links": links},
+            blocks,
+        )
     return blocks

@@ -260,3 +260,93 @@ def test_d7_015_cross_modal_adapter_matches_pearson_direction_tested_by_padj(tmp
     sig = next(s for s in sigs if s.entity == "LEVERAGE1")
     assert sig.direction == "up"
     assert sig.value == pytest.approx(round(row["pearson_r"], 4))
+
+
+def test_d7_005_cross_modal_synthesis_routes_covariate_and_sex_chr_diagnostics_via_router(tmp_path):
+    """D7-005: sample_matched_layer writes covariate_adjustment.unadjusted_confounding_risk
+    and sex_chromosome_significant_fraction; warning_router must surface both as structured
+    warning caveats + metadata['degradation_signals'] on integration.cross_modal_sample_links."""
+    from aria.agents.narrative.synthesis.cross_modal_synthesis import (
+        compose_cross_modal_discussion_blocks,
+        detect_cross_modal_patterns,
+    )
+    from aria.scripts.cross_modal_concordance import cross_modal_concordance
+
+    rng = np.random.default_rng(19)
+    samples = [f"S{i}" for i in range(12)]
+    sex_arr = np.array([1.0 if i < 6 else 0.0 for i in range(12)])
+    sex_map = {s: ("M" if i < 6 else "F") for i, s in enumerate(samples)}
+
+    rna_rows = {
+        "KDM5D": 50.0 + 400.0 * sex_arr + rng.normal(0, 2, 12),
+        "XIST": 450.0 - 400.0 * sex_arr + rng.normal(0, 2, 12),
+    }
+    atac_rows = {
+        "chrY:1000-1500": 20.0 + 200.0 * sex_arr + rng.normal(0, 1, 12),
+        "chrX:2000-2500": 220.0 - 200.0 * sex_arr + rng.normal(0, 1, 12),
+    }
+    for i in range(10):
+        rna_rows[f"AUTOG{i}"] = rng.uniform(50, 150, 12)
+        atac_rows[f"chr1:{10000 + i * 2000}-{10500 + i * 2000}"] = rng.uniform(20, 80, 12)
+
+    rna_csv = tmp_path / "rna.csv"
+    atac_csv = tmp_path / "atac.csv"
+    pd.DataFrame.from_dict(rna_rows, orient="index", columns=samples).to_csv(rna_csv, index_label="gene")
+    pd.DataFrame.from_dict(atac_rows, orient="index", columns=samples).to_csv(atac_csv, index_label="peak")
+
+    gtf = tmp_path / "g.gtf"
+    gtf_lines = [
+        'chrY\tTEST\tgene\t1000\t2000\t.\t+\t.\tgene_id "KDM5D"; gene_name "KDM5D";',
+        'chrX\tTEST\tgene\t2000\t3000\t.\t+\t.\tgene_id "XIST"; gene_name "XIST";',
+    ] + [
+        f'chr1\tTEST\tgene\t{10000 + i * 2000}\t{11000 + i * 2000}\t.\t+\t.\tgene_id "AUTOG{i}"; gene_name "AUTOG{i}";'
+        for i in range(10)
+    ]
+    gtf.write_text("\n".join(gtf_lines) + "\n")
+
+    cm = cross_modal_concordance({
+        "rna_results": {"findings": {"contrasts": []}},
+        "chromatin_results": {"findings": {}},
+        "rna_cpm_path": str(rna_csv),
+        "atac_cpm_path": str(atac_csv),
+        "gtf_path": str(gtf),
+        "output_dir": str(tmp_path / "out_unadj"),
+        "n_permutations": 200,
+        "seed": 0,
+    })
+    links_res = cm["sample_matched_links"]
+    assert links_res["ran"] is True
+    assert links_res["covariate_adjustment"]["unadjusted_confounding_risk"] is True
+    assert links_res["n_sex_chromosome_significant_links"] >= 1
+    assert links_res["sex_chromosome_significant_fraction"] > 0.5
+
+    patterns = detect_cross_modal_patterns({"cross_modal_concordance": cm})
+    blocks = compose_cross_modal_discussion_blocks(patterns)
+    sample_block = next(b for b in blocks if b.id == "integration.cross_modal_sample_links")
+    warn_texts = [c.text.lower() for c in sample_block.caveats if c.severity == "warning"]
+    sig_fields = {s["field"] for s in sample_block.metadata.get("degradation_signals", [])}
+    assert "covariate_adjustment.unadjusted_confounding_risk" in sig_fields
+    assert "sex_chromosome_significant_fraction" in sig_fields
+    assert any("unadjusted" in t and "confound" in t for t in warn_texts)
+    assert any("chrx/chry" in t or "sex-chromosome" in t for t in warn_texts)
+
+    # Adjusted control: supplying sample_covariates={'sex': sex_map} clears both warnings.
+    cm_adj = cross_modal_concordance({
+        "rna_results": {"findings": {"contrasts": []}},
+        "chromatin_results": {"findings": {}},
+        "rna_cpm_path": str(rna_csv),
+        "atac_cpm_path": str(atac_csv),
+        "gtf_path": str(gtf),
+        "sample_covariates": {"sex": sex_map},
+        "output_dir": str(tmp_path / "out_adj"),
+        "n_permutations": 200,
+        "seed": 0,
+    })
+    assert cm_adj["sample_matched_links"]["covariate_adjustment"]["adjusted"] is True
+    adj_blocks = compose_cross_modal_discussion_blocks(
+        detect_cross_modal_patterns({"cross_modal_concordance": cm_adj})
+    )
+    adj_sample = next(b for b in adj_blocks if b.id == "integration.cross_modal_sample_links")
+    adj_fields = {s["field"] for s in adj_sample.metadata.get("degradation_signals", [])}
+    assert "covariate_adjustment.unadjusted_confounding_risk" not in adj_fields
+    assert "sex_chromosome_significant_fraction" not in adj_fields

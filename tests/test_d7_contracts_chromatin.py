@@ -143,3 +143,108 @@ def test_d7_009_chromatin_tobias_forwards_paired_replicates_from_design_agent(tm
         f"Paired design ({design['replicate_handling']['mode']}) was silently dropped: "
         f"paired_replicates={captured['params'].get('paired_replicates')!r}"
     )
+
+
+def test_d7_016_warning_router_surfaces_chromatin_pass_qc_false_and_qc_failures():
+    """D7-016: ChromatinAgent._merge_peak_frip_into_qc populates qc['pass_qc']=False
+    and qc['qc_failures']. Through NarrativeRegistry.collect_blocks, warning_router
+    must attach a structured warning caveat naming the failed ENCODE gates."""
+    import pytest
+
+    pytest.importorskip("litellm")
+    from aria.agents.chromatin_agent import ChromatinAgent
+    from aria.agents.narrative.narrators.chromatin import ChromatinNarrator
+    from aria.agents.narrative.registry import registry_with
+
+    findings = {
+        "qc": {
+            "status": "success",
+            "data_type": "bulk_ATAC",
+            "n_samples": 4,
+            "tss_enrichment": 2.1,
+            "nrf": 0.42,
+            "mito_fraction": 0.45,
+            "metrics_not_computed": ["frip"],
+            "qc_complete": False,
+            "pass_qc": None,
+            "qc_failures": [],
+            "warnings": [],
+        }
+    }
+    ChromatinAgent._merge_peak_frip_into_qc(
+        findings,
+        {"data_type": "bulk_ATAC", "frip": 0.04, "frip_per_sample": {"s1": 0.04}},
+    )
+    qc = findings["qc"]
+    assert qc["pass_qc"] is False
+    assert len(qc["qc_failures"]) >= 2
+    # Clear free-text warnings to prove the STRUCTURED pass_qc + qc_failures
+    # contract routes independently of free-text warnings.
+    qc["warnings"] = []
+
+    reg = registry_with((ChromatinNarrator(),))
+    blocks = reg.collect_blocks({"chromatin_agent": {"status": "done", "findings": findings}})
+    qc_block = next(b for b in blocks if b.id == "chromatin.qc.bulk_ATAC")
+    warn_caveats = [c for c in qc_block.caveats if c.severity == "warning"]
+    assert warn_caveats, f"Expected structured warning caveat for pass_qc=False, got {qc_block.caveats}"
+    assert any("pass_qc=False" in c.text and "FRiP" in c.text for c in warn_caveats)
+    sig_fields = {s["field"] for s in qc_block.metadata.get("degradation_signals", [])}
+    assert "pass_qc" in sig_fields
+
+
+def test_d7_017_warning_router_surfaces_chromatin_partial_pairing_and_dropped_donors():
+    """D7-017 (chromatin): partial pairing with excluded_unpaired_samples (scATAC DA)
+    and excluded_unpaired_replicates (TOBIAS footprinting) must route through
+    warning_router as structured warning caveats naming dropped donors."""
+    from aria.agents.narrative.narrators.chromatin import ChromatinNarrator
+    from aria.agents.narrative.registry import registry_with
+
+    reg = registry_with((ChromatinNarrator(),))
+    agent_results = {
+        "chromatin_agent": {
+            "status": "done",
+            "findings": {
+                "differential_accessibility": {
+                    "status": "success",
+                    "data_type": "scATAC",
+                    "pseudobulk": {
+                        "ran": True,
+                        "comparisons": [{
+                            "test": "treat",
+                            "reference": "ctrl",
+                            "status": "success",
+                            "n_sig": 4,
+                            "pairing_status": "partial",
+                            "excluded_unpaired_samples": ["D4_ctrl"],
+                        }],
+                    },
+                },
+                "footprinting": {
+                    "status": "success",
+                    "ran": True,
+                    "group_a": "treat",
+                    "group_b": "ctrl",
+                    "differential_summary": {
+                        "parsed": True,
+                        "n_motifs_tested": 100,
+                        "n_significant": 5,
+                        "inference": {
+                            "status": "success",
+                            "test": "paired_t",
+                            "replicates_per_condition": {"treat": 3, "ctrl": 3},
+                            "pairing_status": "partial_complete_pair_subset",
+                            "excluded_unpaired_replicates": ["D4"],
+                            "null_label_controls": {"n_permutations": 10},
+                        },
+                    },
+                },
+            },
+        }
+    }
+    blocks = reg.collect_blocks(agent_results)
+    pb_block = next(b for b in blocks if b.id == "chromatin.differential_accessibility.pseudobulk")
+    fp_block = next(b for b in blocks if b.id == "chromatin.differential_tf_footprinting")
+    assert any(c.severity == "warning" and "D4_ctrl" in c.text for c in pb_block.caveats)
+    assert any(s["field"] == "pairing_status" for s in pb_block.metadata.get("degradation_signals", []))
+    assert any(c.severity == "warning" and "D4" in c.text for c in fp_block.caveats)
+    assert any(s["field"] == "pairing_status" for s in fp_block.metadata.get("degradation_signals", []))
