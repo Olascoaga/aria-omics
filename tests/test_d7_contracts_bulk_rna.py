@@ -189,3 +189,70 @@ def test_d7_007_bulk_rna_agent_records_actual_fitted_design_decision(tmp_path):
     )
     assert "No batch or covariate adjustment applied" not in design_dec["rationale"]
     assert "batch" in design_dec["rationale"].lower()
+
+
+def test_d7_012_bulk_rna_adapter_surfaces_unmodeled_or_confounded_batch_from_design_agent():
+    """D7-012: bulk_rna_evidence must derive the BATCH confound caveat from real
+    DesignAgent fields (confounded_covariates, inferred_design.covariates vs
+    resolve_design_contract covariates) rather than reading nonexistent design['has_batch']."""
+    pytest.importorskip("litellm")
+    from aria.agents.design_agent import DesignAgent
+    from aria.agents.narrative.hypothesis.adapters.bulk_rna import bulk_rna_evidence
+    from aria.agents.narrative.hypothesis.caveats import BATCH
+    from aria.memory.memory import ARIAMemory
+
+    da = DesignAgent(ARIAMemory(":memory:"), llm=None)
+    da._organism = "Homo sapiens"
+    da._genome = "hg38"
+    da._confirmed_groups = {"ctrl": ["c1", "c2", "c3"], "treat": ["t1", "t2", "t3"]}
+    da._main_factor = "condition"
+    da._batch_covariate = None  # unmodeled
+    da._inferred_design = {
+        "source": "sample_sheet",
+        "covariates": ["batch"],
+        "confounded_covariates": ["batch"],
+    }
+    design = da._build_design()
+    assert design["confounded_covariates"] == ["batch"]
+    assert "has_batch" not in design
+
+    agent_results = {
+        "bulk_rna_agent": {
+            "status": "done",
+            "findings": {
+                "contrasts": [
+                    {
+                        "name": "treat_vs_ctrl",
+                        "status": "success",
+                        "top_genes": [{"gene": "TP53", "log2fc": 2.4, "padj": 1e-6}],
+                    }
+                ]
+            },
+        }
+    }
+    sigs = bulk_rna_evidence(
+        agent_results,
+        run_ledger=None,
+        exp_ctx={"design": design, "inferred_design": da._inferred_design},
+    )
+    assert sigs and BATCH in sigs[0].caveats_inherited
+
+    # Positive control: when batch is modeled and NOT confounded, BATCH caveat is absent.
+    da_clean = DesignAgent(ARIAMemory(":memory:"), llm=None)
+    da_clean._organism = "Homo sapiens"
+    da_clean._genome = "hg38"
+    da_clean._confirmed_groups = {"ctrl": ["c1", "c2", "c3"], "treat": ["t1", "t2", "t3"]}
+    da_clean._main_factor = "condition"
+    da_clean._batch_covariate = "batch"
+    da_clean._inferred_design = {
+        "source": "sample_sheet",
+        "covariates": ["batch"],
+        "confounded_covariates": [],
+    }
+    design_clean = da_clean._build_design()
+    sigs_clean = bulk_rna_evidence(
+        agent_results,
+        run_ledger=None,
+        exp_ctx={"design": design_clean, "inferred_design": da_clean._inferred_design},
+    )
+    assert sigs_clean and BATCH not in sigs_clean[0].caveats_inherited
