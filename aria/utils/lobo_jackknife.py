@@ -384,8 +384,33 @@ def compute_counts_lobo_jackknife(
     raw = np.where(np.isfinite(raw), np.maximum(raw, 0.0), 0.0)
     normalization = "log2_cpm_plus_1"
     if size_factors is not None:
-        if isinstance(size_factors, dict):
-            sf_vec = np.array([float(size_factors.get(s, 1.0)) for s in samples], dtype=float)
+        from collections.abc import Mapping
+
+        if isinstance(size_factors, Mapping):
+            sf_map = {str(k): v for k, v in size_factors.items()}
+            missing = [s for s in samples if s not in sf_map]
+            if missing:
+                raise ValueError(
+                    f"size_factors mapping is missing sample(s): {missing}"
+                )
+            sf_vec = np.array([float(sf_map[s]) for s in samples], dtype=float)
+        elif hasattr(size_factors, "index") and hasattr(size_factors, "to_dict"):
+            idx_list = [str(k) for k in size_factors.index]
+            if len(set(idx_list)) != len(idx_list):
+                dups = sorted({k for k in idx_list if idx_list.count(k) > 1})
+                raise ValueError(
+                    f"size_factors Series contains duplicate sample index key(s): {dups}"
+                )
+            sf_map = {
+                str(k): v
+                for k, v in zip(idx_list, size_factors.to_numpy(), strict=True)
+            }
+            missing = [s for s in samples if s not in sf_map]
+            if missing:
+                raise ValueError(
+                    f"size_factors Series is missing sample(s): {missing}"
+                )
+            sf_vec = np.array([float(sf_map[s]) for s in samples], dtype=float)
         else:
             sf_vec = np.asarray(size_factors, dtype=float).ravel()
         if sf_vec.shape[0] == len(samples) and np.all(np.isfinite(sf_vec)) and np.all(sf_vec > 0):

@@ -140,3 +140,54 @@ def test_d4_010_label_transfer_rejects_duplicate_barcodes(tmp_path: Path):
     assert res_ok["ran"] is True
     df_ok = pd.read_csv(res_ok["output_csv"])
     assert int(df_ok["n_cells"].sum()) == 60
+
+
+def test_d4_003_lobo_jackknife_reindexes_series_and_rejects_missing_keys():
+    """D4-003: compute_counts_lobo_jackknife must align pd.Series size_factors by
+    sample index (never positionally) and fail closed on missing dict/Series keys."""
+    from aria.utils.lobo_jackknife import compute_counts_lobo_jackknife
+
+    samples = ["ctrl_1", "ctrl_2", "ctrl_3", "treat_1", "treat_2", "treat_3"]
+    counts = pd.DataFrame(
+        {
+            "ctrl_1": [500, 480, 520, 510],
+            "ctrl_2": [510, 490, 505, 495],
+            "ctrl_3": [495, 505, 500, 505],
+            "treat_1": [200, 210, 195, 205],
+            "treat_2": [195, 205, 200, 200],
+            "treat_3": [205, 198, 202, 199],
+        },
+        index=["peak_1", "peak_2", "peak_3", "peak_4"],
+    )
+    meta = pd.DataFrame({"condition": ["ctrl"] * 3 + ["treat"] * 3}, index=samples)
+    sf = pd.Series({
+        "treat_1": 1.0, "treat_2": 1.0, "treat_3": 1.0,
+        "ctrl_1": 10.0, "ctrl_2": 10.0, "ctrl_3": 10.0,
+    })
+
+    res_series = compute_counts_lobo_jackknife(
+        counts, meta, condition_col="condition", numerator="treat", denominator="ctrl",
+        size_factors=sf,
+    )
+    res_dict = compute_counts_lobo_jackknife(
+        counts, meta, condition_col="condition", numerator="treat", denominator="ctrl",
+        size_factors=sf.to_dict(),
+    )
+    assert res_dict["per_feature"]["peak_1"]["full_lfc"] > 1.5
+    assert abs(
+        res_series["per_feature"]["peak_1"]["full_lfc"]
+        - res_dict["per_feature"]["peak_1"]["full_lfc"]
+    ) < 1e-6
+
+    # Missing key in dict or Series must fail closed rather than silently defaulting to 1.0.
+    sf_missing = sf.drop(index=["ctrl_1"])
+    with pytest.raises(ValueError, match="ctrl_1"):
+        compute_counts_lobo_jackknife(
+            counts, meta, condition_col="condition", numerator="treat", denominator="ctrl",
+            size_factors=sf_missing.to_dict(),
+        )
+    with pytest.raises(ValueError, match="ctrl_1"):
+        compute_counts_lobo_jackknife(
+            counts, meta, condition_col="condition", numerator="treat", denominator="ctrl",
+            size_factors=sf_missing,
+        )
