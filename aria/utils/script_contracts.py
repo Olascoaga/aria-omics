@@ -251,6 +251,8 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
         success_outputs=(
             _f("n_cells_before", "int"),
             _f("n_cells_after", "int"),
+            _f("scrublet", "dict", required=False),
+            _f("ambient_correction", "dict", required=False),
         ),
     ),
     "aria/scripts/rna_kb_count.py": ScriptContract(

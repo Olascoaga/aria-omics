@@ -72,14 +72,18 @@ def _run_signals(agent_results: dict, exp_ctx: dict) -> dict:
         ambient_corrected = bool(amb.get("ran"))
     else:
         ambient_corrected = _contains(qc, "soupx", "decontx")
+    # D7-002: read the real rna_qc.py producer key ("scrublet") alongside legacy
+    # structured report keys, never a substring scan over JSON text (which
+    # matched the literal key "scrublet" even when scrublet["ran"] is False).
     dbl_reports = [
-        d for d in (qc.get("scrublet_report"), qc.get("doublet_detection"))
+        d for d in (
+            qc.get("scrublet"),
+            qc.get("scrublet_report"),
+            qc.get("doublet_detection"),
+        )
         if isinstance(d, dict)
     ]
-    if dbl_reports:
-        doublets_handled = any(bool(d.get("ran")) for d in dbl_reports)
-    else:
-        doublets_handled = _contains(qc, "doublet", "scrublet")
+    doublets_handled = any(bool(d.get("ran")) for d in dbl_reports)
     return {
         "integration_clean": integration_ran and not integration_issue,
         "integration_ran": integration_ran,
