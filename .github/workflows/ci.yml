@@ -197,7 +197,7 @@ jobs:
           # pytest is test tooling only; it is installed in the throwaway container,
           # not baked into the published image.
           docker run --rm -e NUMBA_CACHE_DIR=/tmp/numba_cache aria-chromatin:ci \
-            bash -lc "python -m pip install -q pytest && python -m pytest -q \
+            bash -c "python -m pip install -q pytest && python -m pytest -q \
               /opt/aria/tests/test_chromatin_fragments_to_matrix.py \
               /opt/aria/tests/test_bulk_atac_peak_counts.py \
               /opt/aria/tests/test_seacr_idr_spikein.py \
@@ -207,13 +207,13 @@ jobs:
       - name: Aligner binary & contract verification inside ATAC-seq image
         run: |
           docker run --rm aria-atacseq:ci \
-            bash -lc "command -v bwa-mem2 && command -v samtools && command -v chromap && \
+            bash -c "command -v bwa-mem2 && command -v samtools && command -v chromap && \
               python -m pip install -q pytest && python -m pytest -q /opt/aria/tests/test_atac_align.py /opt/aria/tests/test_chromatin_scatac_align.py"
 
       - name: TOBIAS binary & footprinting verification inside TOBIAS image
         run: |
           docker run --rm aria-tobias:ci \
-            bash -lc "TOBIAS --version && \
+            bash -c "TOBIAS --version && \
               python -m pip install -q pytest && python -m pytest -q /opt/aria/tests/test_chromatin_footprint_tobias.py /opt/aria/tests/test_tobias_production_e2e.py"
 
       - name: Generate CycloneDX SBOM of the RNA image (P2-2 supply chain)
