@@ -34,6 +34,12 @@ dependencies:
     - muon==0.1.7
     - mudata==0.3.3
     - snapatac2==2.9.0
+    # snapatac2 2.9.0 deps pinned to the validated pip lock: an unpinned resolve pulled
+    # pyarrow 26 (requires NumPy>=2) into this numpy<2 env, so fragment import failed
+    # (honest-skip fragment_import_failed) on CI for v4.9.5.
+    - polars==1.38.1
+    - polars-runtime-32==1.38.1
+    - pyarrow==23.0.1
     - episcanpy==0.4.0
     - MACS3==3.0.4
     - pyBigWig==0.3.25
