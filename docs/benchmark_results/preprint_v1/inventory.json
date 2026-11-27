@@ -172,7 +172,7 @@
     "ready": false,
     "tag_action_authorized": false
   },
-  "generated_utc": "2026-11-26T22:58:58.029266+00:00",
+  "generated_utc": "2026-11-27T01:38:22.439543+00:00",
   "lanes": [
     {
       "claims": [
@@ -623,15 +623,15 @@
   ],
   "output_root": "docs/benchmark_results/preprint_v1",
   "provenance": {
-    "aria_version": "4.9.5",
-    "git_commit": "fb8f71239d1f367e12b11418d417723bdec46f73",
-    "git_describe": "v4.9.4-126-gfb8f712",
+    "aria_version": "4.9.6",
+    "git_commit": "7a6f35f0a8ce2231992ac991a9ae9b2c1445a63f",
+    "git_describe": "v4.9.5-6-g7a6f35f",
     "git_dirty": false,
-    "git_tree_sha": "bff72e7fa14408c599fcacac76b91a782c9aa3c6",
-    "source_snapshot_hash": "73eaf6a364b082276eb9d6d3fc90d92ff454c0eb5868e59d7cf762d31194d4eb",
+    "git_tree_sha": "30a71a750ba36c659145222b8056ffa2457f5c63",
+    "source_snapshot_hash": "7453a927e5097d68a82524999457dbcab9fbabf59f78bd1e2fdd9a500f65ac95",
     "source_snapshot_hash_algorithm": "sha256(git-ls-files-stage-excluding-output)",
     "version_source": "aria.version.__version__",
-    "workflow_hash": "5dbaddbf8943bf2bd78cbb2765369b29168537cccc430b0a64b1a809119881a7",
+    "workflow_hash": "31aa7c0b99bcd073e831819c1f7e302110d2126be2362500d5bbabc82e16442c",
     "workflow_hash_algorithm": "sha256(version+source_snapshot_hash)"
   },
   "resources": {

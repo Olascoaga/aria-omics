@@ -1,28 +1,28 @@
 {
-  "aria_version": "4.9.5",
+  "aria_version": "4.9.6",
   "artifacts": [
     {
       "path": "claim_2/scatac_donor/scatac_donor_da_concordance.json",
-      "sha256": "1495acc716c53ad1f52c5c4da0fc0587593286eda60c1a2ed25e89ada6bc55c9",
-      "size_bytes": 3653
+      "sha256": "65b41f27a1b2b6e26228d60c885e78497e08cfe15ed11d54c9474f9883fa07d1",
+      "size_bytes": 3651
     }
   ],
   "claims": [
     "claim_2"
   ],
   "command": "conda run -n aria-rna-env python scripts/run_scatac_multisample_da_concordance.py --young hc937,hc5579,hc13344,hc935,hc5614 --old hc26,hc98,hc35,hc40,hc73 --rna-env aria-rna-env --bench-env aria-bench-env --output-dir docs/benchmark_results/preprint_v1/claim_2/scatac_donor --manifest-name scatac_donor_da_concordance.json",
-  "completed_utc": "2026-11-26T22:54:06.303489+00:00",
+  "completed_utc": "2026-11-27T01:33:45.538027+00:00",
   "environment": "aria-rna-env + aria-bench-env",
-  "git_commit": "fb8f71239d1f367e12b11418d417723bdec46f73",
-  "git_tree_sha": "bff72e7fa14408c599fcacac76b91a782c9aa3c6",
+  "git_commit": "7a6f35f0a8ce2231992ac991a9ae9b2c1445a63f",
+  "git_tree_sha": "30a71a750ba36c659145222b8056ffa2457f5c63",
   "lane_id": "c2_scatac_donor_aware",
   "returncode": 0,
   "schema_version": "aria.preprint_freeze.receipt.v1",
-  "source_snapshot_hash": "73eaf6a364b082276eb9d6d3fc90d92ff454c0eb5868e59d7cf762d31194d4eb",
-  "started_utc": "2026-11-26T22:49:23.528415+00:00",
+  "source_snapshot_hash": "7453a927e5097d68a82524999457dbcab9fbabf59f78bd1e2fdd9a500f65ac95",
+  "started_utc": "2026-11-27T01:28:50.495733+00:00",
   "status": "pass",
   "stderr_sha256": "3036b9573c140c6a0a9926528f5fa7df7c40ab2ad80d00ea4076761ab287fd55",
   "stdout_sha256": "2aaa96030ec7570a5ad26860d6409101e736192dd4dbdf15e4a516926cf49172",
   "test_summary": null,
-  "workflow_hash": "5dbaddbf8943bf2bd78cbb2765369b29168537cccc430b0a64b1a809119881a7"
+  "workflow_hash": "31aa7c0b99bcd073e831819c1f7e302110d2126be2362500d5bbabc82e16442c"
 }

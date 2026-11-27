@@ -1,10 +1,10 @@
 {
-  "aria_version": "4.9.5",
+  "aria_version": "4.9.6",
   "artifacts": [
     {
       "path": "claim_2/kang_muscat/a2_kang_muscat_v4.5.5.json",
-      "sha256": "b97c3ede2ea5336cb81e62677ba47feddf6ffc11472c2e00203999252a5a0df3",
-      "size_bytes": 5938
+      "sha256": "4eafdfc3fc36a323931814d040588a6904b297dacf712bdd9239c167dc9dd61f",
+      "size_bytes": 5936
     },
     {
       "path": "claim_2/kang_muscat/fig2_a2_kang_muscat_v4.5.5.svg",
@@ -16,18 +16,18 @@
     "claim_2"
   ],
   "command": "conda run -n aria-rna-env python scripts/run_a2_external_comparators.py --export-dir ~/.aria/benchmarks/kang_muscat --output-dir docs/benchmark_results/preprint_v1/claim_2/kang_muscat",
-  "completed_utc": "2026-11-26T22:49:20.283621+00:00",
+  "completed_utc": "2026-11-27T01:28:46.666177+00:00",
   "environment": "aria-rna-env",
-  "git_commit": "fb8f71239d1f367e12b11418d417723bdec46f73",
-  "git_tree_sha": "bff72e7fa14408c599fcacac76b91a782c9aa3c6",
+  "git_commit": "7a6f35f0a8ce2231992ac991a9ae9b2c1445a63f",
+  "git_tree_sha": "30a71a750ba36c659145222b8056ffa2457f5c63",
   "lane_id": "c2_kang_muscat",
   "returncode": 0,
   "schema_version": "aria.preprint_freeze.receipt.v1",
-  "source_snapshot_hash": "73eaf6a364b082276eb9d6d3fc90d92ff454c0eb5868e59d7cf762d31194d4eb",
-  "started_utc": "2026-11-26T22:48:46.876996+00:00",
+  "source_snapshot_hash": "7453a927e5097d68a82524999457dbcab9fbabf59f78bd1e2fdd9a500f65ac95",
+  "started_utc": "2026-11-27T01:28:13.696164+00:00",
   "status": "pass",
   "stderr_sha256": "731f1f1c240fe327f740571aa8e183675b1cbd5e6d98e35c08f7300a965b7d3a",
   "stdout_sha256": "be029fdca962b3c6a9f11cea2931d746459245e83eed4b0d0c9fdee5c65c0a39",
   "test_summary": null,
-  "workflow_hash": "5dbaddbf8943bf2bd78cbb2765369b29168537cccc430b0a64b1a809119881a7"
+  "workflow_hash": "31aa7c0b99bcd073e831819c1f7e302110d2126be2362500d5bbabc82e16442c"
 }

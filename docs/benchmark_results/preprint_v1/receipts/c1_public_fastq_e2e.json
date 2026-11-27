@@ -1,20 +1,20 @@
 {
-  "aria_version": "4.9.5",
+  "aria_version": "4.9.6",
   "artifacts": [
     {
       "path": "claim_1/public_fastq_e2e/capsule.json",
-      "sha256": "9878ca71355e3bb8d84e84007c9f03b898093632d076f282882f126f38b1efa7",
+      "sha256": "cf39a94b28ebf763a715bd7353eef30e9fd7da309dd291b3b7e15362e302bf3b",
       "size_bytes": 7392
     },
     {
       "path": "claim_1/public_fastq_e2e/report.html",
-      "sha256": "35940499e208a25e3a5d928c076db70d3a29da05ba26902c139dadbf3f7ad42a",
-      "size_bytes": 2780028
+      "sha256": "7f98fa1a05f410285414f1b9ea91a792c48eaa7797472ea639c359a00ce595e0",
+      "size_bytes": 2780025
     },
     {
       "path": "claim_1/public_fastq_e2e/methodology.json",
-      "sha256": "e85cfaad2d18d4ed721c39345e03fd487d64048619b85ea17bc4cb55b8cd348c",
-      "size_bytes": 152449
+      "sha256": "d4606e7f95de287f7d69404c77be5453b035453aaba9a4beea4d8bc2adddba1f",
+      "size_bytes": 152446
     },
     {
       "path": "claim_1/public_fastq_e2e/de_results.tsv",
@@ -23,7 +23,7 @@
     },
     {
       "path": "claim_1/public_fastq_e2e/fig1_gse52778_bulk_de.svg",
-      "sha256": "8af1160d568a5f75ab4352d50abcab84f290bf8b3ce33a967e9ea13637c4173e",
+      "sha256": "4398e689575dc24b65a2ea43bc83cfd3c77f07f774e8a6207bae9ca93fce72d0",
       "size_bytes": 550436
     }
   ],
@@ -31,18 +31,18 @@
     "claim_1"
   ],
   "command": "conda run -n aria-env python scripts/run_c1_public_fastq_e2e.py --output-dir docs/benchmark_results/preprint_v1/claim_1/public_fastq_e2e",
-  "completed_utc": "2026-11-26T22:48:41.525609+00:00",
+  "completed_utc": "2026-11-27T01:28:06.718100+00:00",
   "environment": "aria-env -> aria-rnaseq-env + aria-rna-env",
-  "git_commit": "fb8f71239d1f367e12b11418d417723bdec46f73",
-  "git_tree_sha": "bff72e7fa14408c599fcacac76b91a782c9aa3c6",
+  "git_commit": "7a6f35f0a8ce2231992ac991a9ae9b2c1445a63f",
+  "git_tree_sha": "30a71a750ba36c659145222b8056ffa2457f5c63",
   "lane_id": "c1_public_fastq_e2e",
   "returncode": 0,
   "schema_version": "aria.preprint_freeze.receipt.v1",
-  "source_snapshot_hash": "73eaf6a364b082276eb9d6d3fc90d92ff454c0eb5868e59d7cf762d31194d4eb",
-  "started_utc": "2026-11-26T22:47:57.342232+00:00",
+  "source_snapshot_hash": "7453a927e5097d68a82524999457dbcab9fbabf59f78bd1e2fdd9a500f65ac95",
+  "started_utc": "2026-11-27T01:27:22.308713+00:00",
   "status": "pass",
   "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-  "stdout_sha256": "d6d18c3d3838efad0e63c85f8e7696d2dcbb30ca23ff0264f983086934fac79f",
+  "stdout_sha256": "f9a14304b85b5676930099fbfb77b7c2deb52025dba81fd986660bf2375e2efd",
   "test_summary": null,
-  "workflow_hash": "5dbaddbf8943bf2bd78cbb2765369b29168537cccc430b0a64b1a809119881a7"
+  "workflow_hash": "31aa7c0b99bcd073e831819c1f7e302110d2126be2362500d5bbabc82e16442c"
 }
