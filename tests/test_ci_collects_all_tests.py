@@ -137,12 +137,12 @@ def _extract_pytest_invocations(ci_data: dict[str, Any]) -> dict[str, list[dict[
                 continue
             # Join shell line continuations (`\` + newline)
             joined = re.sub(r"\\\s*\n", " ", str(run_block))
-            # Process line by line, unwrapping `bash -lc "..."` BEFORE splitting on && / ;
+            # Process line by line, unwrapping `bash -c "..."` / `bash -lc "..."` BEFORE splitting on && / ;
             for line in joined.splitlines():
                 line = line.strip()
                 if "pytest" not in line:
                     continue
-                m_bash = re.search(r'bash\s+-lc\s+"([^"]+)"', line)
+                m_bash = re.search(r'bash\s+-l?c\s+"([^"]+)"', line)
                 body = m_bash.group(1) if m_bash else line
                 for sub in re.split(r"(?:&&|;)", body):
                     if "pytest" not in sub:
