@@ -10,7 +10,6 @@ barcode read cannot be inferred), then feeds the fragments into the bridge.
 from pathlib import Path
 
 from aria.scripts import chromatin_scatac_align as sa
-from aria.agents.chromatin_agent import _pick_read
 
 
 # ── pure-input validation ─────────────────────────────────────────────────
@@ -70,6 +69,10 @@ def test_chromap_unavailable(tmp_path, monkeypatch):
 
 
 def test_pick_read():
+    pytest.importorskip("litellm")  # orchestration layer (aria.agents) is not in worker images
+    pytest.importorskip("pydantic")
+    from aria.agents.chromatin_agent import _pick_read
+
     fqs = ["/d/s_R1_001.fastq.gz", "/d/s_R2_001.fastq.gz", "/d/s_R3_001.fastq.gz"]
     assert _pick_read(fqs, ("_r1", "_R1")) == "/d/s_R1_001.fastq.gz"
     assert _pick_read(fqs, ("_r3", "_R3")) == "/d/s_R3_001.fastq.gz"
@@ -77,6 +80,7 @@ def test_pick_read():
 
 
 def test_contract_registered():
+    pytest.importorskip("pydantic")  # script contracts / env manager are orchestration-side
     from aria.utils.script_contracts import contract_for_script
     c = contract_for_script("aria/scripts/chromatin_scatac_align.py")
     assert c is not None and c.validation_level in ("beta", "production")
@@ -94,6 +98,8 @@ class _Env:
 
 
 def _agent(env):
+    pytest.importorskip("litellm")  # orchestration layer (aria.agents) is not in worker images
+    pytest.importorskip("pydantic")
     from aria.agents.chromatin_agent import ChromatinAgent
     a = ChromatinAgent.__new__(ChromatinAgent)
     a.env = env

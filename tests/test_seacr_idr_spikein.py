@@ -223,6 +223,7 @@ def test_spikein_technical_replicate_sum_first_invariant():
 
 
 def test_live_spikein_deseq2_recovers_global_unidirectional_loss(tmp_path):
+    pytest.importorskip("pydantic")  # script contracts / env manager are orchestration-side
     from aria.utils.environment_manager import env_manager
 
     envs = env_manager.check_environments()
@@ -290,6 +291,7 @@ def test_live_spikein_deseq2_recovers_global_unidirectional_loss(tmp_path):
 
 
 def test_live_bam_bedgraph_broad_domains_and_bigwig(tmp_path):
+    pytest.importorskip("pydantic")  # script contracts / env manager are orchestration-side
     from aria.utils.environment_manager import env_manager
 
     envs = env_manager.check_environments()

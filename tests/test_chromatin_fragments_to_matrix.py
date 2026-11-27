@@ -61,6 +61,7 @@ def test_snapatac2_unavailable(tmp_path, monkeypatch):
 
 
 def test_contract_registered():
+    pytest.importorskip("pydantic")  # script contracts / env manager are orchestration-side
     from aria.utils.script_contracts import contract_for_script
     c = contract_for_script("aria/scripts/chromatin_fragments_to_matrix.py")
     assert c is not None

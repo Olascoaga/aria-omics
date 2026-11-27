@@ -167,6 +167,7 @@ def test_dispatch_entrypoint_supports_bulk_mode_skip(tmp_path, monkeypatch):
 
 
 def test_footprint_tobias_contract_registered():
+    pytest.importorskip("pydantic")  # script contracts / env manager are orchestration-side
     from aria.utils.script_contracts import SCRIPT_CONTRACTS
 
     key = "aria/scripts/chromatin_footprint_tobias.py"

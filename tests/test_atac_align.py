@@ -12,8 +12,9 @@ from __future__ import annotations
 import subprocess
 from pathlib import Path
 
+import pytest
+
 from aria.scripts import atac_align as aa
-from aria.agents.chromatin_agent import _is_fastq
 
 
 # ── pure-input validation ─────────────────────────────────────────────────
@@ -88,6 +89,10 @@ def test_filter_constants():
 # ── FASTQ detection used by the agent prepend ─────────────────────────────
 
 def test_is_fastq_helper():
+    pytest.importorskip("litellm")  # orchestration layer (aria.agents) is not in worker images
+    pytest.importorskip("pydantic")
+    from aria.agents.chromatin_agent import _is_fastq
+
     assert _is_fastq(["/data/s_R1.fastq.gz"]) is True
     assert _is_fastq(["/data/s_R1.fq"]) is True
     assert _is_fastq(["/data/sample.bam"]) is False
@@ -126,6 +131,8 @@ class _FakeFastqEnv:
 
 
 def _agent(env):
+    pytest.importorskip("litellm")  # orchestration layer (aria.agents) is not in worker images
+    pytest.importorskip("pydantic")
     from aria.agents.chromatin_agent import ChromatinAgent
     agent = ChromatinAgent.__new__(ChromatinAgent)
     agent.env = env
@@ -204,6 +211,8 @@ def test_bulk_atac_fastq_no_genome_skips(tmp_path, monkeypatch):
 # ── narrator methods discloses the alignment when it ran ──────────────────
 
 def test_methods_reports_alignment_when_preprocessed():
+    pytest.importorskip("litellm")  # orchestration layer (aria.agents) is not in worker images
+    pytest.importorskip("pydantic")
     from aria.agents.narrative.narrators.chromatin import ChromatinNarrator
     narr = ChromatinNarrator.__new__(ChromatinNarrator)
     findings = {
@@ -226,6 +235,8 @@ def test_methods_reports_alignment_when_preprocessed():
 
 
 def test_methods_keeps_no_realign_claim_without_preprocessing():
+    pytest.importorskip("litellm")  # orchestration layer (aria.agents) is not in worker images
+    pytest.importorskip("pydantic")
     from aria.agents.narrative.narrators.chromatin import ChromatinNarrator
     narr = ChromatinNarrator.__new__(ChromatinNarrator)
     findings = {

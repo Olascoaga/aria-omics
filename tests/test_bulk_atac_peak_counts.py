@@ -2,8 +2,11 @@
 
 from pathlib import Path
 
+import pytest
+
 
 def test_peak_counts_contract_registered():
+    pytest.importorskip("pydantic")  # script contracts / env manager are orchestration-side
     from aria.utils.script_contracts import contract_for_script
 
     contract = contract_for_script("aria/scripts/chromatin_peak_counts.py")
@@ -185,6 +188,8 @@ def test_peak_counts_falls_back_to_unsorted_without_genome(tmp_path, monkeypatch
 
 
 def test_run_ledger_has_peak_count_matrix_node():
+    pytest.importorskip("litellm")  # orchestration layer (aria.agents) is not in worker images
+    pytest.importorskip("pydantic")
     from aria.agents.narrative.run_ledger import build_run_ledger
 
     ledger = build_run_ledger(

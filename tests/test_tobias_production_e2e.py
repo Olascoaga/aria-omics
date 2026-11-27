@@ -26,7 +26,10 @@ import pytest
 
 
 def _tobias_env_available() -> bool:
-    from aria.utils.environment_manager import env_manager
+    try:  # evaluated at collection; worker images lack the orchestration deps
+        from aria.utils.environment_manager import env_manager
+    except ImportError:
+        return False
 
     envs = env_manager.check_environments()
     return bool(envs.get("tobias"))
@@ -229,6 +232,8 @@ def _write_bam_from_fragments(bam_path: Path, fasta_path: Path, frags: list[tupl
 
 
 def test_adr078_tobias_production_contracts_and_readiness(tmp_path):
+    pytest.importorskip("litellm")  # orchestration layer (aria.agents) is not in worker images
+    pytest.importorskip("pydantic")
     from aria.agents.modality_audit import build_capability_matrix
     from aria.agents.orchestrator_agent import (
         INTEGRATION_VALIDATION,
