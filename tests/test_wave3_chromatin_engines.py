@@ -428,7 +428,7 @@ def test_bulk_da_skip_carries_data_type(tmp_path):
 
 def test_per_cluster_da_rejects_infinite_stats(monkeypatch):
     import anndata as ad
-    import scanpy as sc
+    sc = pytest.importorskip("scanpy")
 
     from aria.scripts.chromatin_diffacc import _per_cluster_accessibility
 

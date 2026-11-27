@@ -114,6 +114,7 @@ def test_d4_b905_scrna_helpers_strict_zip(tmp_path: Path):
 
     # 3. rna_de_per_cluster: mismatched rank_genes_groups arrays -> ValueError.
     ad = pytest.importorskip("anndata")
+    pytest.importorskip("scanpy")
     from aria.scripts.rna_de_per_cluster import rna_de_per_cluster
 
     adata = ad.AnnData(

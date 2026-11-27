@@ -219,6 +219,7 @@ def test_diffacc_skip_per_cluster_runs_pseudobulk_only(monkeypatch, tmp_path):
     Both heavy lanes are stubbed so this stays a fast, deps-light gating guard."""
     ad = pytest.importorskip("anndata")
     sp = pytest.importorskip("scipy.sparse")
+    pytest.importorskip("scanpy")
     import numpy as np
     import pandas as pd
     from aria.scripts import chromatin_diffacc as cd

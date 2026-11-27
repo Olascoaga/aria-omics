@@ -82,6 +82,7 @@ def test_celltypist_mouse_catalog_and_immune_rejection(organism):
 
 @pytest.mark.parametrize('raw_extra_genes', [False, True])
 def test_celltypist_preserves_original_layers(monkeypatch, tmp_path, raw_extra_genes):
+    pytest.importorskip('scanpy')
     import aria.scripts.rna_celltypist as engine
     full = _adata(np.log1p(np.full((4, 4), 2500.0)), leiden=['0', '0', '1', '1'])
     full.raw = full.copy()
@@ -148,7 +149,7 @@ def test_cellcomm_species_raw_zero_pvalues_and_full_counts(monkeypatch, tmp_path
 
 
 def test_trajectory_disconnects_and_explicit_paga_groups(monkeypatch, tmp_path):
-    import scanpy as sc
+    sc = pytest.importorskip('scanpy')
     from aria.scripts.rna_trajectory import rna_trajectory
     a = _adata(np.ones((5, 2)), leiden=pd.Categorical(['0', '0', '1', '1', '1']),
                annotation=pd.Categorical(['stem', 'stem', 'T', 'B', 'B']))
@@ -189,7 +190,7 @@ def _rgg(groupby='leiden', use_raw=False):
 @pytest.mark.parametrize('sparse_x', [False, True])
 @pytest.mark.parametrize('cached_group,cached_raw', [('leiden', False), ('other', False), ('leiden', True)])
 def test_cluster_de_finite_scaled_and_cache_compatibility(monkeypatch, tmp_path, sparse_x, cached_group, cached_raw):
-    import scanpy as sc
+    sc = pytest.importorskip('scanpy')
     from aria.scripts.rna_de_per_cluster import rna_de_per_cluster
     a = _adata(-np.ones((4, 6)), leiden=['0', '0', '1', '1'])
     if sparse_x:
@@ -229,6 +230,7 @@ def test_qc_none_overrides_and_cache_bounds(monkeypatch, tmp_path):
     for key in ['min_counts', 'max_counts', 'max_genes']:
         assert _cache_params({key: 500}) != _cache_params({})
     assert not _cache_matches({'cache_version': 6, 'cache_params': _cache_params({})}, _cache_params({}))
+    pytest.importorskip('scanpy')
     a = _adata(np.ones((4, 3)), total_counts=[1000] * 4,
                n_genes_by_counts=[300] * 4, pct_counts_mt=[3] * 4)
     result = rna_qc(dict(data_path=_input(monkeypatch, tmp_path, a),
@@ -240,6 +242,7 @@ def test_qc_none_overrides_and_cache_bounds(monkeypatch, tmp_path):
 @pytest.mark.parametrize('organism', MOUSE_TOKENS)
 @pytest.mark.parametrize('prefix', ['mt-', 'MT-'])
 def test_qc_mouse_mitochondrial_prefix_and_case_fallback(monkeypatch, tmp_path, organism, prefix):
+    pytest.importorskip('scanpy')
     from aria.scripts.rna_qc import rna_qc
     a = _adata(np.tile([1, 4, 5], (6, 1)))
     a.var_names = [prefix + 'Nd1', 'G1', 'G2']
@@ -253,7 +256,7 @@ def test_qc_mouse_mitochondrial_prefix_and_case_fallback(monkeypatch, tmp_path, 
 
 
 def _mock_scanpy_pipeline(monkeypatch):
-    import scanpy as sc
+    sc = pytest.importorskip('scanpy')
     seen = {}
     for name in ['normalize_total', 'log1p', 'highly_variable_genes', 'scale']:
         monkeypatch.setattr(sc.pp, name, lambda *a, **kw: None)

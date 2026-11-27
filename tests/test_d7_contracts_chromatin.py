@@ -13,6 +13,7 @@ def test_d7_006_cross_modal_triangulation_reads_scatac_da_peaks_by_cluster():
     peaks under 'da_peaks_by_cluster'. cross_modal_triangulation must read that
     canonical key and emit atac_da_association edges."""
     pytest.importorskip("litellm")
+    pytest.importorskip("scanpy")
     from aria.agents.narrative.synthesis.cross_modal_triangulation import (
         build_cross_modal_evidence_graph,
     )

@@ -14,6 +14,7 @@ def test_d7_002_devils_advocate_reads_real_rna_qc_scrublet_ran_flag(tmp_path):
     import pytest
 
     pytest.importorskip("litellm")
+    pytest.importorskip("scanpy")
     from aria.agents.narrative.devils_advocate import build_devils_advocate
     from aria.agents.narrative.hypothesis.adapters.scrna import scrna_evidence
     from aria.agents.narrative.hypothesis.caveats import DOUBLET
