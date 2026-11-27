@@ -181,7 +181,7 @@ def test_gsea_signature_rejects_infinite_lfc_before_symbol_deduplication():
 
 
 def test_ora_adaptive_zero_cap_valid_odds_distinct_rows_and_svg(tmp_path, saved_figures, monkeypatch):
-    import seaborn as sns
+    sns = pytest.importorskip("seaborn")
 
     seen = {}
     original = sns.scatterplot
@@ -214,6 +214,7 @@ def test_ora_adaptive_zero_cap_valid_odds_distinct_rows_and_svg(tmp_path, saved_
 
 
 def test_ora_all_zero_fdr_has_sensible_ceiling(tmp_path, saved_figures):
+    pytest.importorskip("seaborn")
     rows = [{"term": f"Term {i}", "padj": 0, "odds_ratio": i + 1} for i in range(2)]
     out = tmp_path / "zeros.png"
     assert pathways.make_ora_dotplot(rows, "DB", "A vs B", str(out))
@@ -221,6 +222,7 @@ def test_ora_all_zero_fdr_has_sensible_ceiling(tmp_path, saved_figures):
 
 
 def test_ora_all_invalid_odds_returns_none(tmp_path):
+    pytest.importorskip("seaborn")
     assert pathways.make_ora_dotplot([{"term": "Term", "padj": 0.01, "odds_ratio": np.inf}], "DB", "A vs B", str(tmp_path / "empty.png")) is None
 
 
@@ -366,9 +368,9 @@ def test_fallback_umap_runs_real_pca_on_small_sample_matrix(tmp_path, monkeypatc
     # The managed sandbox cannot write Numba's default cache under site-packages.
     monkeypatch.setenv("NUMBA_CACHE_DIR", str(tmp_path / "numba-cache"))
     import anndata as ad
-    import numba
+    numba = pytest.importorskip("numba")
     monkeypatch.setattr(numba.config, "CACHE_DIR", str(tmp_path / "numba-cache"))
-    import scanpy as sc
+    sc = pytest.importorskip("scanpy")
 
     adata = ad.AnnData(np.random.default_rng(5).poisson(5, size=(4, 8)).astype(float))
     monkeypatch.setattr(sc.pp, "neighbors", lambda *a, **kw: None)
