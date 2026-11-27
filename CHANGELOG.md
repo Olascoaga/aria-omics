@@ -8,9 +8,24 @@ current `main`.
 
 ---
 
-## [v4.9.6] — 2026-11-26 (Current Release)
+## [v4.9.7] — 2026-11-26 (Current Release)
 
-Full release notes: [`docs/release_notes_v4.9.6.md`](docs/release_notes_v4.9.6.md)
+Full release notes: [`docs/release_notes_v4.9.7.md`](docs/release_notes_v4.9.7.md)
+
+### Highlights
+- **`release-repro` patch, no analytical changes: the first tag with the full CI green.**
+  - `pytest` is installed in the throwaway chromatin, ATAC-seq and TOBIAS containers;
+  - those steps use a non-login `bash -c`;
+  - orchestration imports in the worker-image smoke tests are lazy and gated (0 assertions changed);
+  - the CI collection guard unwraps `bash -c`;
+  - `release-repro` can run through `workflow_dispatch`.
+- Validated on a branch before tagging (run `45930304429`).
+
+---
+
+## [v4.9.6] — 2026-11-26
+
+Full release notes: [`docs/releases/release_notes_v4.9.6.md`](docs/releases/release_notes_v4.9.6.md)
 
 ### Highlights
 - **CI patch for `v4.9.5`, no analytical changes:**

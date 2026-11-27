@@ -8,7 +8,7 @@ not release-validated installation targets.
 ## Choose the snapshot first
 
 ARIA's package version and source revision are separate reproducibility fields.
-The current package version is `4.9.6` (latest release tag `v4.9.6`; previous minor baseline `v4.9.0`).
+The current package version is `4.9.7` (latest release tag `v4.9.7`; previous minor baseline `v4.9.0`).
 
 ```bash
 git clone https://github.com/Olascoaga/aria-omics.git
@@ -18,7 +18,7 @@ cd aria-omics
 git switch main
 
 # Or a release baseline
-git checkout v4.9.6
+git checkout v4.9.7
 
 # Or the exact revision supplied by a collaborator
 git checkout <commit-sha>

@@ -3,7 +3,7 @@
 `v4.9.6` contains **no analytical code changes** relative to `v4.9.5`. It makes the CI that
 `v4.9.5` introduced (full `pytest tests/` collection in every lane) pass on GitHub. Every
 scientific behavior, receipt and preprint number of `v4.9.5` is unchanged. See
-[`releases/release_notes_v4.9.5.md`](releases/release_notes_v4.9.5.md) for the audit itself.
+[`release_notes_v4.9.5.md`](release_notes_v4.9.5.md) for the audit itself.
 
 ## Why
 The `v4.9.5` tag was the first run of the reworked CI (`D3`) on GitHub. Four jobs failed, and
