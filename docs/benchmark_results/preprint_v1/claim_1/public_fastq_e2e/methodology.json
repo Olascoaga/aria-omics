@@ -9,7 +9,7 @@
     ],
     "fork_index": 1,
     "is_exact_spec_replay": true,
-    "ledger_runs_observed": 3,
+    "ledger_runs_observed": 4,
     "manifest_sha256": "0a59d8579f09545189fed8a0dcbcf32c6cb6e40f299708f278dc202fa577714b",
     "parent_manifest_sha256": "027f1fc6a88013b7286ee5b07e2900a3e59289e01634563a383fb874af430c1f",
     "schema_version": "aria.fork_ledger.v1",
@@ -1574,7 +1574,7 @@
         "untreated": 4
       }
     },
-    "experiment_id": "4e9593f2-d19",
+    "experiment_id": "bdc26dd0-1aa",
     "fork_ledger_summary": {
       "commitment_status": "post_hoc_fork",
       "fork_changes": [
@@ -1618,152 +1618,152 @@
     {
       "checkpoint": "1",
       "decision": "Confirm and continue",
-      "id": "25044320a1c34593a29fe5fd67a22791",
-      "made_at": "2026-11-26T19:27:24.193619",
+      "id": "a5268c3d12e04fc88a0048090f1decc8",
+      "made_at": "2026-11-26T21:06:00.291347",
       "made_by": "user",
       "question": "\ud83d\udcc1 ARIA found the following data:\n\n  \ud83e\uddec bulk_RNA_raw: 16 file(s)\n\n  \ud83c\udf0d Organism: Homo sapiens\n  \ud83d\uddfa\ufe0f  Genome:   hg38 \u2713\n\n  \u26a0\ufe0f  Warnings:\n     \u2022 Ambiguous library type: generic paired-end FASTQ with no modality signal (untreated_rep4_R2.fastq.gz, dexamethasone_rep3_R2.fastq.gz, dexamethasone_rep1_R2.fastq.gz, dexamethasone_rep2_R2.fastq.gz, dexamethasone_rep2_R1.fastq.gz, ...) \u2014 hinted as bulk_RNA_raw but NOT bound. Declare the library type (assay manifest / library_type) or confirm the modality at CHECKPOINT 1; filenames are only a hint.\n\nIs this correct?\n\n\u2014 Data sensitivity (ELEVATED): Input appears to be human data with no obvious PHI fields. Consider air-gapped mode if the data are not de-identified.\n  To block ALL network egress (cloud LLM, Enrichr ORA, GEO/SRA), choose 'Confirm and enable air-gapped mode'.",
       "rationale": "User confirmed data audit results",
-      "wing_id": "4e9593f2-d19"
+      "wing_id": "bdc26dd0-1aa"
     },
     {
       "checkpoint": "2",
       "decision": "{\n  \"organism\": \"Homo sapiens\",\n  \"genome\": \"hg38\",\n  \"groups\": {\n    \"dexamethasone\": [\n      \"dexamethasone_rep1\",\n      \"dexamethasone_rep2\",\n      \"dexamethasone_rep3\",\n      \"dexamethasone_rep4\"\n    ],\n    \"untreated\": [\n      \"untreated_rep1\",\n      \"untreated_rep2\",\n      \"untreated_rep3\",\n      \"untreated_rep4\"\n    ]\n  },\n  \"analysis_groups\": {\n    \"dexamethasone\": [\n      \"dexamethasone::dexamethasone_rep1\",\n      \"dexamethasone::dexamethasone_rep2\",\n      \"dexamethasone::dexamethasone_rep3\",\n      \"dexamethasone::dexamethasone_rep4\"\n    ],\n    \"untreated\": [\n      \"untreated::untreated_rep1\",\n      \"untreated::untreated_rep2\",\n      \"untreated::untreated_rep3\",\n      \"untreated::untreated_rep4\"\n    ]\n  },\n  \"main_factor\": \"condition\",\n  \"design_formula\": \"~ donor + condition\",\n  \"batch_covariate\": \"donor\",\n  \"paired_covariate_values\": {\n    \"donor\": {\n      \"dexamethasone_rep1\": \"rep1\",\n      \"dexamethasone_rep2\": \"rep2\",\n      \"dexamethasone_rep3\": \"rep3\",\n      \"dexamethasone_rep4\": \"rep4\",\n      \"untreated_rep1\": \"rep1\",\n      \"untreated_rep2\": \"rep2\",\n      \"untreated_rep3\": \"rep3\",\n      \"untreated_rep4\": \"rep4\"\n    }\n  },\n  \"pseudobulk\": {},\n  \"source\": null,\n  \"sample_aliases\": {},\n  \"replicate_handling\": {\n    \"mode\": \"paired_biological_block\",\n    \"source\": \"user_confirmed_cp2.5\",\n    \"aggregation\": \"none\",\n    \"units\": [\n      {\n        \"id\": \"dexamethasone::dexamethasone_rep1\",\n        \"group\": \"dexamethasone\",\n        \"root\": \"dexamethasone_rep1\",\n        \"members\": [\n          \"dexamethasone_rep1\"\n        ]\n      },\n      {\n        \"id\": \"dexamethasone::dexamethasone_rep2\",\n        \"group\": \"dexamethasone\",\n        \"root\": \"dexamethasone_rep2\",\n        \"members\": [\n          \"dexamethasone_rep2\"\n        ]\n      },\n      {\n        \"id\": \"dexamethasone::dexamethasone_rep3\",\n        \"group\": \"dexamethasone\",\n        \"root\": \"dexamethasone_rep3\",\n        \"members\": [\n          \"dexamethasone_rep3\"\n        ]\n      },\n      {\n        \"id\": \"dexamethasone::dexamethasone_rep4\",\n        \"group\": \"dexamethasone\",\n        \"root\": \"dexamethasone_rep4\",\n        \"members\": [\n          \"dexamethasone_rep4\"\n        ]\n      },\n      {\n        \"id\": \"untreated::untreated_rep1\",\n        \"group\": \"untreated\",\n        \"root\": \"untreated_rep1\",\n        \"members\": [\n          \"untreated_rep1\"\n        ]\n      },\n      {\n        \"id\": \"untreated::untreated_rep2\",\n        \"group\": \"untreated\",\n        \"root\": \"untreated_rep2\",\n        \"members\": [\n          \"untreated_rep2\"\n        ]\n      },\n      {\n        \"id\": \"untreated::untreated_rep3\",\n        \"group\": \"untreated\",\n        \"root\": \"untreated_rep3\",\n        \"members\": [\n          \"untreated_rep3\"\n        ]\n      },\n      {\n        \"id\": \"untreated::untreated_rep4\",\n        \"group\": \"untreated\",\n        \"root\": \"untreated_rep4\",\n        \"members\": [\n          \"untreated_rep4\"\n        ]\n      }\n    ],\n    \"sample_to_unit\": {\n      \"dexamethasone_rep1\": \"dexamethasone::dexamethasone_rep1\",\n      \"dexamethasone_rep2\": \"dexamethasone::dexamethasone_rep2\",\n      \"dexamethasone_rep3\": \"dexamethasone::dexamethasone_rep3\",\n      \"dexamethasone_rep4\": \"dexamethasone::dexamethasone_rep4\",\n      \"untreated_rep1\": \"untreated::untreated_rep1\",\n      \"untreated_rep2\": \"untreated::untreated_rep2\",\n      \"untreated_rep3\": \"untreated::untreated_rep3\",\n      \"untreated_rep4\": \"untreated::untreated_rep4\"\n    },\n    \"conflicts\": [],\n    \"pair_covariate\": \"donor\",\n    \"sample_to_pair\": {\n      \"dexamethasone_rep1\": \"rep1\",\n      \"dexamethasone_rep2\": \"rep2\",\n      \"dexamethasone_rep3\": \"rep3\",\n      \"dexamethasone_rep4\": \"rep4\",\n      \"untreated_rep1\": \"rep1\",\n      \"untreated_rep2\": \"rep2\",\n      \"untreated_rep3\": \"rep3\",\n      \"untreated_rep4\": \"rep4\"\n    }\n  },\n  \"experimental_unit\": \"paired_biological_unit\",\n  \"analysis_design_formula\": \"~ donor + condition\",\n  \"replicates\": {\n    \"dexamethasone\": 4,\n    \"untreated\": 4\n  },\n  \"n_input_libraries\": 8,\n  \"n_total_samples\": 8,\n  \"nominal_residual_df\": 3,\n  \"design_status\": \"ready\",\n  \"blocking_groups\": {},\n  \"blocking_reasons\": [],\n  \"confounded_covariates\": []\n}",
-      "id": "7b534e02",
-      "made_at": "2026-11-26T19:27:24.450879",
+      "id": "8c7b92ea",
+      "made_at": "2026-11-26T21:06:00.549592",
       "made_by": "user",
       "question": "Experimental design (organism, groups, factor, formula)",
       "rationale": "User confirmed design interactively",
-      "wing_id": "4e9593f2-d19"
+      "wing_id": "bdc26dd0-1aa"
     },
     {
       "checkpoint": "2.pre",
       "decision": "2 recommended, 1 optional, 1 unsupported/not recommended, 1 warning(s).",
-      "id": "4e9593f2-d19_design_intelligence",
-      "made_at": "2026-11-26T19:27:24.621327",
+      "id": "bdc26dd0-1aa_design_intelligence",
+      "made_at": "2026-11-26T21:06:00.805918",
       "made_by": "design_intelligence",
       "question": "Design Intelligence assessment",
       "rationale": "ARIA evaluated modality feasibility, recommended analyses, optional analyses, unsupported analyses, covariates, and design limitations before compute.",
-      "wing_id": "4e9593f2-d19"
+      "wing_id": "bdc26dd0-1aa"
     },
     {
       "checkpoint": "2",
       "decision": "Run recommended plan only",
-      "id": "29fcdf9ad1ba4da59f0927ab0f7445b6",
-      "made_at": "2026-11-26T19:27:24.673163",
+      "id": "3cfcc2caa9474934bb30d39b99471469",
+      "made_at": "2026-11-26T21:06:00.858019",
       "made_by": "user",
       "question": "Analysis plan confirmed",
       "rationale": "User approved analysis plan directly. Optional supported analyses were not added.",
-      "wing_id": "4e9593f2-d19"
+      "wing_id": "bdc26dd0-1aa"
     },
     {
       "checkpoint": "2",
       "decision": "~ donor + condition",
-      "id": "4e9593f2-design-01",
-      "made_at": "2026-11-26T19:27:42.451872",
+      "id": "bdc26dd0-design-01",
+      "made_at": "2026-11-26T21:06:22.521487",
       "made_by": "user",
       "question": "Experimental design (source: DesignAgent)",
       "rationale": "User confirmed design interactively.",
-      "wing_id": "4e9593f2-d19"
+      "wing_id": "bdc26dd0-1aa"
     },
     {
       "checkpoint": "1",
       "decision": "Raw integer counts | DESeq2 median-of-ratios (internal) | \u226510 counts in \u22652 samples",
-      "id": "4e9593f2-auto-01",
-      "made_at": "2026-11-26T19:28:05.291100",
+      "id": "bdc26dd0-auto-01",
+      "made_at": "2026-11-26T21:06:45.272614",
       "made_by": "bulk_rna_agent (auto)",
       "question": "Differential expression (DESeq2)",
       "rationale": "DESeq2 handles library-size normalization internally; external normalization would break the negative-binomial model assumptions.",
-      "wing_id": "4e9593f2-d19"
+      "wing_id": "bdc26dd0-1aa"
     },
     {
       "checkpoint": "0",
       "decision": "All count-matrix samples | Primary DE retains all samples | Design-safe removal is evaluated only as sensitivity",
-      "id": "4e9593f2-auto-00",
-      "made_at": "2026-11-26T19:28:05.291189",
+      "id": "bdc26dd0-auto-00",
+      "made_at": "2026-11-26T21:06:45.279613",
       "made_by": "bulk_rna_agent (auto)",
       "question": "Sample outliers",
       "rationale": "Automatic pre-DE pruning can turn a null primary result into a significant result; ARIA reports primary and outlier-removal sensitivity separately.",
-      "wing_id": "4e9593f2-d19"
+      "wing_id": "bdc26dd0-1aa"
     },
     {
       "checkpoint": "2",
       "decision": "VST-transformed counts | Variance-Stabilizing Transformation (pydeseq2) | Top 2000 most-variable protein_coding genes",
-      "id": "4e9593f2-auto-02",
-      "made_at": "2026-11-26T19:28:05.291212",
+      "id": "bdc26dd0-auto-02",
+      "made_at": "2026-11-26T21:06:45.279661",
       "made_by": "bulk_rna_agent (auto)",
       "question": "PCA + MDS (sample-level structure)",
       "rationale": "VST produces homoscedastic values suitable for Euclidean-based methods (DESeq2 authors' recommendation). Protein-coding filter removes pseudogene/ncRNA noise. Variable-gene filter focuses on informative signal.",
-      "wing_id": "4e9593f2-d19"
+      "wing_id": "bdc26dd0-1aa"
     },
     {
       "checkpoint": "3",
       "decision": "VST (or log2(counts+1) fallback) | Row z-score | 50 most significant DE genes (sorted by padj)",
-      "id": "4e9593f2-auto-03",
-      "made_at": "2026-11-26T19:28:05.291232",
+      "id": "bdc26dd0-auto-03",
+      "made_at": "2026-11-26T21:06:45.279703",
       "made_by": "bulk_rna_agent (auto)",
       "question": "Heatmap (padj top 50)",
       "rationale": "Statistically confident signal; symbol-annotated rows.",
-      "wing_id": "4e9593f2-d19"
+      "wing_id": "bdc26dd0-1aa"
     },
     {
       "checkpoint": "4",
       "decision": "VST (or log2(counts+1) fallback) | Row z-score | 50 DE genes with largest effect sizes",
-      "id": "4e9593f2-auto-04",
-      "made_at": "2026-11-26T19:28:05.291253",
+      "id": "bdc26dd0-auto-04",
+      "made_at": "2026-11-26T21:06:45.279723",
       "made_by": "bulk_rna_agent (auto)",
       "question": "Heatmap (|log2FC| top 50)",
       "rationale": "Complementary view \u2014 surfaces largest effect sizes, which may not have smallest padj for low-count genes.",
-      "wing_id": "4e9593f2-d19"
+      "wing_id": "bdc26dd0-1aa"
     },
     {
       "checkpoint": "5",
       "decision": "DE gene symbols | Local hypergeometric test against versioned GMT libraries (Enrichr is opt-in) | padj<0.05 from Wald lfcThreshold test; ORA universe = genes retained after expression filtering",
-      "id": "4e9593f2-auto-05",
-      "made_at": "2026-11-26T19:28:05.291272",
+      "id": "bdc26dd0-auto-05",
+      "made_at": "2026-11-26T21:06:45.279743",
       "made_by": "bulk_rna_agent (auto)",
       "question": "Pathway enrichment (ORA)",
       "rationale": "Standard over-representation for discrete gene lists, computed locally against the dataset-expressed background so the gene list never leaves the machine (W-PRIV); the exact gene-set release is recorded in pathway_ora.gene_set_versions.",
-      "wing_id": "4e9593f2-d19"
+      "wing_id": "bdc26dd0-1aa"
     },
     {
       "checkpoint": "6",
       "decision": "All DE-tested genes ranked by log2FC | blitzgsea running sum | None (uses full ranking)",
-      "id": "4e9593f2-auto-06",
-      "made_at": "2026-11-26T19:28:05.291309",
+      "id": "bdc26dd0-auto-06",
+      "made_at": "2026-11-26T21:06:45.279763",
       "made_by": "bulk_rna_agent (auto)",
       "question": "GSEA (pre-ranked)",
       "rationale": "More sensitive than ORA to coordinated small effects; complementary to cutoff-based enrichment.",
-      "wing_id": "4e9593f2-d19"
+      "wing_id": "bdc26dd0-1aa"
     },
     {
       "checkpoint": "7",
       "decision": "Raw counts + exon-union gene lengths | TPM (transcripts per million) | Genes with length annotation in GTF",
-      "id": "4e9593f2-auto-07",
-      "made_at": "2026-11-26T19:28:05.291334",
+      "id": "bdc26dd0-auto-07",
+      "made_at": "2026-11-26T21:06:45.279787",
       "made_by": "bulk_rna_agent (auto)",
       "question": "TPM (supplementary export)",
       "rationale": "Supplementary table for downstream tools that require TPM (ssGSEA, deconvolution). NOT used by ARIA for DE or PCA \u2014 both use more appropriate methods.",
-      "wing_id": "4e9593f2-d19"
+      "wing_id": "bdc26dd0-1aa"
     },
     {
       "checkpoint": "0",
       "decision": "padj < 0.05, |log2FC| > 1.0",
-      "id": "4e9593f2-auto-00-thr",
-      "made_at": "2026-11-26T19:28:05.291356",
+      "id": "bdc26dd0-auto-00-thr",
+      "made_at": "2026-11-26T21:06:45.279810",
       "made_by": "User / bulk_rna_agent",
       "question": "Statistical thresholds for DE significance",
       "rationale": "|log2FC| threshold provenance: default. The default (1.0) is fixed and prompt-independent; it changes only via an explicit User Checkpoint 3 profile or a versioned global_lfc override (never inferred from the question text).",
-      "wing_id": "4e9593f2-d19"
+      "wing_id": "bdc26dd0-1aa"
     },
     {
       "checkpoint": "0",
       "decision": "~ donor + condition",
-      "id": "4e9593f2-auto-00-design",
-      "made_at": "2026-11-26T19:28:05.291383",
+      "id": "bdc26dd0-auto-00-design",
+      "made_at": "2026-11-26T21:06:45.279838",
       "made_by": "bulk_rna_agent (auto)",
       "question": "DESeq2 design formula",
       "rationale": "Multi-factor DESeq2 design adjusting for confirmed covariate(s): donor.",
-      "wing_id": "4e9593f2-d19"
+      "wing_id": "bdc26dd0-1aa"
     }
   ],
   "design": {
@@ -3988,7 +3988,7 @@
     }
   ],
   "provenance": {
-    "aria_version": "4.9.6",
+    "aria_version": "4.9.7",
     "conda_env": "aria-env",
     "environment": {
       "conda_prefix": null,
@@ -3997,11 +3997,11 @@
       "env_name": "aria-env",
       "source": "no_lock"
     },
-    "git_commit": "7a6f35f0a8ce2231992ac991a9ae9b2c1445a63f",
-    "git_describe": "v4.9.5-6-g7a6f35f",
+    "git_commit": "d8ed501b7fe5415e52b4491a0e0d53e1bbedf550",
+    "git_describe": "v4.9.6-5-gd8ed501",
     "git_dirty": false,
-    "git_sha": "7a6f35f0a8ce2231992ac991a9ae9b2c1445a63f",
-    "git_tree_sha": "30a71a750ba36c659145222b8056ffa2457f5c63",
+    "git_sha": "d8ed501b7fe5415e52b4491a0e0d53e1bbedf550",
+    "git_tree_sha": "763f1f7e8c77c803a02ea7b34f5b6ba0e6bcd19b",
     "image": {
       "containerized": false,
       "digest": null,
@@ -4014,9 +4014,9 @@
     "platform": "Linux-5.15.167.4-microsoft-standard-WSL2-x86_64-with-glibc2.39",
     "python_version": "3.11.15 | packaged by conda-forge | (main, Mar  5 2026, 16:45:40) [GCC 14.3.0]",
     "timestamp_utc": "<timestamp redacted for byte-identity>",
-    "version": "4.9.6",
+    "version": "4.9.7",
     "version_source": "aria.version.__version__",
-    "workflow_hash": "149445a456e365c072716dba3df40b68c997adc20483b5ad315584283a4416d1",
+    "workflow_hash": "f711e32fa3529de63fda503969699b22124988ba007b136ea83fd05ac0a27f25",
     "workflow_hash_algorithm": "sha256(version+git_sha+git_tree_sha+git_dirty+git_status+git_diff)"
   },
   "raw_ingestion": [],
