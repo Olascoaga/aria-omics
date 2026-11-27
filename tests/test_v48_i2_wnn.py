@@ -34,7 +34,6 @@ from aria.benchmarks.concordance_wnn import (
 from aria.scripts import integration_wnn as wnn
 
 WNN_SCRIPT = "aria/scripts/integration_wnn.py"
-CHROMATIN_PY = Path("/home/medusa/anaconda3/envs/aria-chromatin-env/bin/python")
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -773,11 +772,8 @@ def test_lsi_depth_filter_does_not_blindly_drop_first_component(muon_stack, tmp_
 # Group B.4 — cross-stack IPC E2E (aria-env -> aria-chromatin-env)
 # ═══════════════════════════════════════════════════════════════════════════
 
-@pytest.mark.skipif(
-    not CHROMATIN_PY.exists(),
-    reason="aria-chromatin-env interpreter not available on this machine",
-)
-def test_cross_stack_ipc_wnn_on_paired_h5ad(tmp_path):
+def test_cross_stack_ipc_wnn_on_paired_h5ad(tmp_path, require_aria_stack):
+    require_aria_stack("chromatin")
     pytest.importorskip("pydantic")
     ad = pytest.importorskip("anndata")
     import pandas as pd

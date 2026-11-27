@@ -8,11 +8,12 @@ from pathlib import Path
 import pytest
 
 
-def test_d7_011_hic_adapter_falls_through_to_qc_n_samples_when_loops_omits_it(tmp_path: Path):
+def test_d7_011_hic_adapter_falls_through_to_qc_n_samples_when_loops_omits_it(tmp_path: Path, require_aria_stack):
     """D7-011: hic_topology._compute_loops does not write 'n_samples' in the
     loops dict (sample count lives in qc['n_samples']). hypothesis/adapters/hic.py
     must not default loops.get('n_samples', 1) and falsely tag n>=2 Hi-C cohorts
     with LOW_REPLICATION."""
+    require_aria_stack("hic")
     hic_py = Path("/home/medusa/anaconda3/envs/aria-hic-env/bin/python")
     if not hic_py.is_file():
         pytest.skip("aria-hic-env not available")

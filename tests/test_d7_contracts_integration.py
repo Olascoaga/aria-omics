@@ -8,11 +8,12 @@ from pathlib import Path
 import pytest
 
 
-def test_d7_018_warning_router_surfaces_mofa_batch_condition_confounded(tmp_path: Path):
+def test_d7_018_warning_router_surfaces_mofa_batch_condition_confounded(tmp_path: Path, require_aria_stack):
     """D7-018: integration_mofa detects 1:1 batch/donor-to-condition confounding
     and sets batch_condition_confounded=True. Through NarrativeRegistry.collect_blocks,
     warning_router must surface a structured warning caveat and cap confidence
     from high to medium even when free-text warnings are absent."""
+    require_aria_stack("integration")
     integ_py = Path("/home/medusa/anaconda3/envs/aria-integration-env/bin/python")
     if not integ_py.is_file():
         pytest.skip("aria-integration-env not available")

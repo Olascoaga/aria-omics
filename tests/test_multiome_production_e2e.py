@@ -390,7 +390,9 @@ def test_adr079_production_governance_and_risk_escalation_matrix(tmp_path, monke
 # ══════════════════════════════════════════════════════════════════════════════
 
 
-def test_live_cellranger_arc_mex_autonomous_integration_and_c3_narrative_e2e(tmp_path):
+def test_live_cellranger_arc_mex_autonomous_integration_and_c3_narrative_e2e(tmp_path, require_aria_stack):
+    require_aria_stack("chromatin")
+    require_aria_stack("integration")
     _require_multiome_envs()
     from aria.agents.data_audit_agent import DataAuditAgent
     from aria.agents.narrative_agent import NarrativeAgent
@@ -509,7 +511,9 @@ def test_live_cellranger_arc_mex_autonomous_integration_and_c3_narrative_e2e(tmp
 # ══════════════════════════════════════════════════════════════════════════════
 
 
-def test_live_multidonor_cohort_harmony_wnn_mofa_eta2_and_a4_resume(tmp_path):
+def test_live_multidonor_cohort_harmony_wnn_mofa_eta2_and_a4_resume(tmp_path, require_aria_stack):
+    require_aria_stack("chromatin")
+    require_aria_stack("integration")
     chrom_py, _ = _require_multiome_envs()
     d1, d2 = _build_two_donor_h5mu_cohort(chrom_py, tmp_path / "donors")
 

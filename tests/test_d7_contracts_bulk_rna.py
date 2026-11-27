@@ -170,11 +170,12 @@ def test_d7_001_bulk_rna_apply_design_maps_explicit_gsm_to_srr_and_geo_soft(tmp_
     assert geo_labels == labels
 
 
-def test_d7_007_bulk_rna_agent_records_actual_fitted_design_decision(tmp_path):
+def test_d7_007_bulk_rna_agent_records_actual_fitted_design_decision(tmp_path, require_aria_stack):
     """D7-007: rna_bulk_de must emit the actual fitted design formula (including
     covariates) in top-level design_used, and BulkRNAAgent._record_methodology_decisions
     must record that fitted formula and covariate rationale into ARIAMemory."""
     pytest.importorskip("litellm")
+    require_aria_stack("rna")
     from aria.agents.bulk_rna_agent import BulkRNAAgent
     from aria.memory.memory import ARIAMemory
     from aria.utils.environment_manager import env_manager
