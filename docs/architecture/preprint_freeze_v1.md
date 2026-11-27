@@ -66,7 +66,7 @@ evidence.
 
 ## Current closure boundary
 
-As of `v4.9.5` (`ADR-083`), all **19 of 19** machine-verifiable freeze lanes under
+As of `v4.9.6` (`ADR-083`), all **19 of 19** machine-verifiable freeze lanes under
 `automated_v1_gate` use 100% public or synthetic inputs (`Claims 1–7` machine lanes,
 including `c1_public_fastq_e2e` on paired public `GSE52778`, label-blind
 `c4_b2_governance_ablation`, and `c4_metamorphic_600_falsification`; refreshed on a

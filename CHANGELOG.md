@@ -8,9 +8,22 @@ current `main`.
 
 ---
 
-## [v4.9.5] — 2026-11-26 (Current Release)
+## [v4.9.6] — 2026-11-26 (Current Release)
 
-Full release notes: [`docs/release_notes_v4.9.5.md`](docs/release_notes_v4.9.5.md)
+Full release notes: [`docs/release_notes_v4.9.6.md`](docs/release_notes_v4.9.6.md)
+
+### Highlights
+- **CI patch for `v4.9.5`, no analytical changes:**
+  - dependency/stack gating of tests (`importorskip`, `require_aria_stack`), with 0 assertions changed;
+  - snapatac2 `pyarrow`/`polars` pins in `envs/aria-integration-env.yml` (`pyarrow 26` needs NumPy ≥ 2);
+  - the reversed-contrast `padj` oracle now asserts decisions and log-scale evidence instead of `rtol=1e-4`.
+- All five CI lanes were reproduced locally before the push.
+
+---
+
+## [v4.9.5] — 2026-11-26
+
+Full release notes: [`docs/releases/release_notes_v4.9.5.md`](docs/releases/release_notes_v4.9.5.md)
 
 ### Highlights
 - **Systematic Tech-Debt Audit Remediation (`D1`–`D10`, 123 non-merge commits, auditor/verifier/fixer separated, FAIL→PASS regression-verified):**
