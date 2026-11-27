@@ -151,7 +151,9 @@ jobs:
   # real scientific tests inside EVERY built image (RNA, chromatin, ATAC, TOBIAS),
   # and emits a CycloneDX SBOM of the RNA image (P2-2 supply chain).
   release-repro:
-    if: startsWith(github.ref, 'refs/tags/v')
+    # Tags run it automatically; workflow_dispatch lets a branch validate the
+    # Docker images before a release is tagged (v4.9.6 lesson).
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -192,25 +194,27 @@ jobs:
 
       - name: Real chromatin / scATAC / SEACR-IDR smoke inside chromatin image
         run: |
+          # pytest is test tooling only; it is installed in the throwaway container,
+          # not baked into the published image.
           docker run --rm -e NUMBA_CACHE_DIR=/tmp/numba_cache aria-chromatin:ci \
-            python -m pytest -q \
+            bash -lc "python -m pip install -q pytest && python -m pytest -q \
               /opt/aria/tests/test_chromatin_fragments_to_matrix.py \
               /opt/aria/tests/test_bulk_atac_peak_counts.py \
               /opt/aria/tests/test_seacr_idr_spikein.py \
               /opt/aria/tests/oracle/test_oracle_seacr_idr.py \
-              /opt/aria/tests/oracle/test_oracle_peak2gene_core.py
+              /opt/aria/tests/oracle/test_oracle_peak2gene_core.py"
 
       - name: Aligner binary & contract verification inside ATAC-seq image
         run: |
           docker run --rm aria-atacseq:ci \
             bash -lc "command -v bwa-mem2 && command -v samtools && command -v chromap && \
-              python -m pytest -q /opt/aria/tests/test_atac_align.py /opt/aria/tests/test_chromatin_scatac_align.py"
+              python -m pip install -q pytest && python -m pytest -q /opt/aria/tests/test_atac_align.py /opt/aria/tests/test_chromatin_scatac_align.py"
 
       - name: TOBIAS binary & footprinting verification inside TOBIAS image
         run: |
           docker run --rm aria-tobias:ci \
             bash -lc "TOBIAS --version && \
-              python -m pytest -q /opt/aria/tests/test_chromatin_footprint_tobias.py /opt/aria/tests/test_tobias_production_e2e.py"
+              python -m pip install -q pytest && python -m pytest -q /opt/aria/tests/test_chromatin_footprint_tobias.py /opt/aria/tests/test_tobias_production_e2e.py"
 
       - name: Generate CycloneDX SBOM of the RNA image (P2-2 supply chain)
         uses: anchore/sbom-action@v0
